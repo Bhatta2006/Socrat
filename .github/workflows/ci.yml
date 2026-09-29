@@ -1,0 +1,73 @@
+name: continuous-integration
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: socrat_ci
+          POSTGRES_USER: socrat
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U socrat -d socrat_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.20"
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.4"
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: uv run ruff format --check services/api
+      - run: uv run ruff check services/api
+      - run: uv run mypy services/api/src
+      - run: uv run pytest --cov=socrat --cov-report=term-missing --cov-fail-under=85
+      - run: uv run alembic upgrade head
+        env:
+          SOCRAT_DATABASE_URL: postgresql+psycopg://socrat:ci-only-password@127.0.0.1:5432/socrat_ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: docker build --file services/api/Dockerfile --tag socrat-api:ci .
+      - run: docker build --file apps/web/Dockerfile --tag socrat-web:ci .
+      - run: npm run test:m0
+      - shell: pwsh
+        run: ./scripts/validation/test-m0-contracts.ps1
+      - run: npm run test:e2e -- --workers=1
+      - run: uv run pip-audit
+      - run: npm audit --audit-level=high
+      - run: terraform fmt -check -recursive infra/oci
+      - run: terraform -chdir=infra/oci/environments/staging init -backend=false
+      - run: terraform -chdir=infra/oci/environments/staging validate
+      - run: terraform -chdir=infra/oci/modules/staging-foundation init -backend=false
+      - run: terraform -chdir=infra/oci/modules/staging-foundation test

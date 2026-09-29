@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Socrat M0 concierge research prototype">
+    <title>Socrat — Concierge prototype</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Socrat prototype home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>Socrat</span>
+      </a>
+      <div class="prototype-badge">Research prototype · no data saved</div>
+    </header>
+
+    <main id="main" class="shell">
+      <aside class="progress-panel" aria-label="Prototype progress">
+        <p class="eyebrow">Your learning loop</p>
+        <ol id="progress-list" class="progress-list">
+          <li data-progress="welcome" aria-current="step">Start</li>
+          <li data-progress="goal">Goal</li>
+          <li data-progress="diagnostic">Diagnostic</li>
+          <li data-progress="plan">Today</li>
+          <li data-progress="practice">Practice</li>
+          <li data-progress="evidence">Evidence</li>
+          <li data-progress="recovery">Recovery</li>
+        </ol>
+        <div class="principle-card">
+          <strong>How Socrat works</strong>
+          <p>Practice can be assisted. Progress claims require fresh, independent evidence.</p>
+        </div>
+      </aside>
+
+      <section class="stage" aria-live="polite">
+        <div class="screen active" data-screen="welcome">
+          <p class="eyebrow">M0 prototype</p>
+          <h1>One useful next step, based on what you can demonstrate.</h1>
+          <p class="lead">Choose a real DSA goal. This walkthrough shows how Socrat would diagnose your starting point, build today’s plan, help without taking over, and explain what your progress evidence means.</p>
+          <div class="notice" role="note">
+            <strong>This is not a test of you.</strong>
+            <span>The prototype is incomplete and rule-based. It does not create an account, store answers, or make a valid mastery judgment.</span>
+          </div>
+          <button class="primary" type="button" data-action="next" data-target="goal">Set my goal</button>
+        </div>
+
+        <div class="screen" data-screen="goal" hidden>
+          <p class="eyebrow">Step 1 of 6</p>
+          <h1>What are you working toward?</h1>
+          <form id="goal-form" novalidate>
+            <fieldset>
+              <legend>Choose one active goal</legend>
+              <div class="choice-grid">
+                <label class="choice-card"><input type="radio" name="track" value="foundations" checked><span><strong>Start from zero</strong><small>Programming foundations and a safe ramp into DSA</small></span></label>
+                <label class="choice-card"><input type="radio" name="track" value="interview"><span><strong>Prepare for interviews</strong><small>Unseen problem solving, implementation, and communication</small></span></label>
+                <label class="choice-card"><input type="radio" name="track" value="competitive"><span><strong>Improve for contests</strong><small>Speed, topic coverage, consistency, and upsolving</small></span></label>
+              </div>
+            </fieldset>
+
+            <div class="form-grid">
+              <label>Language<select name="language"><option value="python">Python</option><option value="cpp">C++</option><option value="java">Java</option><option value="javascript">JavaScript (not in V1)</option></select></label>
+              <label>Experience<select name="experience"><option value="none">None yet</option><option value="syntax_only">Know some syntax</option><option value="solved_problems">Solved coding problems</option><option value="professional">Used professionally</option></select></label>
+              <label>Days each week<input name="daysPerWeek" type="number" min="1" max="7" value="5"></label>
+              <label>Minutes each session<select name="minutesPerSession"><option>20</option><option>30</option><option selected>45</option><option>60</option><option>90</option></select></label>
+              <label id="coverage-field" hidden>Competitive target coverage<select name="targetCoverageStatus"><option value="released">Within released beta band</option><option value="unreleased">Advanced/unreleased target</option></select></label>
+            </div>
+            <label class="check"><input type="checkbox" name="ageConfirmed" checked><span>I confirm I am 18 or older for this V1 pilot.</span></label>
+            <p id="goal-error" class="error" role="alert" hidden></p>
+            <div class="actions"><button class="secondary" type="button" data-action="back" data-target="welcome">Back</button><button class="primary" type="submit">Confirm this goal</button></div>
+          </form>
+        </div>
+
+        <div class="screen" data-screen="route" hidden>
+          <p class="eyebrow">Your route</p>
+          <h1 id="route-title"></h1>
+          <p id="route-copy" class="lead"></p>
+          <div id="route-reason" class="reason-box"></div>
+          <div class="actions"><button class="secondary" type="button" data-action="back" data-target="goal">Change answers</button><button id="continue-diagnostic" class="primary" type="button">Try the diagnostic</button></div>
+        </div>
+
+        <div class="screen" data-screen="diagnostic" hidden>
+          <p class="eyebrow">Step 2 of 6 · placement sample</p>
+          <h1>Show your reasoning—not just an answer.</h1>
+          <div class="task-card">
+            <p>A list contains <code>[2, 4, 6, 8]</code>. We scan from left to right looking for <code>6</code>. What is the most useful first observation?</p>
+            <label class="answer"><input type="radio" name="diagnostic-answer" value="correct"><span>We inspect elements until the target is found; here it takes three comparisons.</span></label>
+            <label class="answer"><input type="radio" name="diagnostic-answer" value="incorrect"><span>We must always inspect every element, even after finding the target.</span></label>
+            <label class="answer"><input type="radio" name="diagnostic-answer" value="unsure"><span>I’m not sure yet.</span></label>
+          </div>
+          <p id="diagnostic-error" class="error" role="alert" hidden></p>
+          <div id="diagnostic-result" class="reason-box" hidden></div>
+          <div class="actions"><button id="diagnostic-submit" class="primary" type="button">Check and adapt</button><button id="diagnostic-continue" class="primary" type="button" hidden>See today’s plan</button></div>
+        </div>
+
+        <div class="screen" data-screen="plan" hidden>
+          <p class="eyebrow">Step 3 of 6 · today</p>
+          <div class="heading-row"><div><h1>One focused plan for today.</h1><p id="plan-summary" class="lead"></p></div><span id="plan-total" class="time-pill"></span></div>
+          <ol id="plan-list" class="plan-list"></ol>
+          <p class="microcopy">The final block stays independent. Finishing earlier can remove repetition, but it cannot remove later verification.</p>
+          <button class="primary" type="button" data-action="next" data-target="practice">Start practice</button>
+        </div>
+
+        <div class="screen" data-screen="practice" hidden>
+          <p class="eyebrow">Step 4 of 6 · guided practice</p>
+          <h1>Think first. Ask for the smallest useful hint.</h1>
+          <div class="task-card">
+            <p><strong>Task:</strong> Given an array of integers, describe how you would detect whether any value appears twice.</p>
+            <label>Your approach<textarea id="approach" rows="5" placeholder="Write the data structure or steps you would try…"></textarea></label>
+          </div>
+          <div class="hint-panel">
+            <div><strong>Hint level <span id="hint-level">0</span></strong><p id="hint-copy">No help used. A submission now can count as independent evidence.</p></div>
+            <button id="hint-button" class="secondary" type="button">Ask for a hint</button>
+          </div>
+          <p id="practice-error" class="error" role="alert" hidden></p>
+          <button id="practice-submit" class="primary" type="button">Submit this attempt</button>
+        </div>
+
+        <div class="screen" data-screen="evidence" hidden>
+          <p class="eyebrow">Step 5 of 6 · evidence</p>
+          <h1 id="evidence-title"></h1>
+          <p id="evidence-copy" class="lead"></p>
+          <div class="evidence-grid">
+            <article><span>Mastery contribution</span><strong id="evidence-weight"></strong><small>Candidate policy value for this prototype</small></article>
+            <article><span>What this proves</span><strong id="evidence-proof"></strong><small>A fresh unseen check is still required</small></article>
+            <article><span>Operational status</span><strong>Valid prototype event</strong><small>A real runner failure would have zero evidence weight</small></article>
+          </div>
+          <div class="notice" role="note"><strong>Mastery is not completion.</strong><span>Socrat would require diverse independent work, an unseen assessment, ready prerequisites, enough confidence, and retention evidence before showing Mastered.</span></div>
+          <button class="primary" type="button" data-action="next" data-target="recovery">See missed-day recovery</button>
+        </div>
+
+        <div class="screen" data-screen="recovery" hidden>
+          <p class="eyebrow">Step 6 of 6 · recovery</p>
+          <h1>You missed three days. We don’t dump a backlog on today.</h1>
+          <p class="lead">Socrat keeps the same capacity, prioritizes goal-critical review, and moves lower-priority work. Nothing is marked complete and no mastery is removed because life happened.</p>
+          <div class="recovery-card"><span>Backlog added today</span><strong>0 minutes</strong><small id="recovery-copy"></small></div>
+          <button class="primary" type="button" data-action="next" data-target="complete">Finish walkthrough</button>
+        </div>
+
+        <div class="screen" data-screen="complete" hidden>
+          <p class="eyebrow">Walkthrough complete</p>
+          <h1>Now tell us where the idea broke.</h1>
+          <p class="lead">The useful research is not whether this looked polished. It is whether the goal felt accurate, the next action was obvious, help preserved thinking, and the evidence claim felt honest.</p>
+          <div class="notice"><strong>No response was stored.</strong><span>The facilitator should record observations in the approved pilot session record using an opaque participant ID.</span></div>
+          <button id="restart" class="secondary" type="button">Restart prototype</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>

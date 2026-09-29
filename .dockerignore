@@ -1,0 +1,16 @@
+.git
+.venv
+.cache
+node_modules
+**/.next
+**/__pycache__
+coverage
+test-results
+playwright-report
+pilot-data
+research-private
+recordings
+exports
+backups
+*.db
+*.log

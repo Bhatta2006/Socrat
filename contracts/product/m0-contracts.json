@@ -1,0 +1,272 @@
+{
+  "contract_version": "0.1.0",
+  "status": "candidate",
+  "product": "Socrat",
+  "launch_scope": {
+    "domain": "data_structures_and_algorithms",
+    "audience": "adults_18_plus",
+    "languages": ["python", "cpp", "java"],
+    "goal_tracks": ["foundations", "interview", "competitive"],
+    "session_minutes": [20, 30, 45, 60, 90],
+    "minimum_days_per_week": 3,
+    "clients": ["responsive_web"],
+    "published_skill_packs": ["dsa"]
+  },
+  "goal_templates": [
+    {
+      "id": "foundations",
+      "display_name": "Start DSA from zero",
+      "intent": "Build enough programming fluency and problem-solving skill to begin and progress through foundational DSA.",
+      "required_fields": [
+        "language",
+        "target_outcome",
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone"
+      ],
+      "target_outcomes": [
+        "programming_readiness",
+        "foundational_dsa",
+        "interview_entry_readiness"
+      ],
+      "success_evidence": [
+        "independent_code_execution",
+        "explanation",
+        "unseen_problem_transfer",
+        "delayed_retention"
+      ],
+      "default_policy": "foundations"
+    },
+    {
+      "id": "interview",
+      "display_name": "Prepare for coding interviews",
+      "intent": "Reach an evidence-backed DSA capability band for a declared software-engineering interview target.",
+      "required_fields": [
+        "language",
+        "role_level",
+        "target_outcome",
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone"
+      ],
+      "role_levels": ["intern", "new_grad", "early_career", "experienced_hire"],
+      "target_outcomes": ["screen_readiness", "interview_loop_readiness", "topic_repair"],
+      "success_evidence": [
+        "independent_unseen_solve_rate",
+        "complexity_explanation",
+        "implementation_correctness",
+        "timed_performance",
+        "delayed_retention"
+      ],
+      "default_policy": "interview"
+    },
+    {
+      "id": "competitive",
+      "display_name": "Improve competitive programming",
+      "intent": "Improve topic coverage, solve speed, consistency, or rating readiness within released content coverage.",
+      "required_fields": [
+        "language",
+        "platform_or_format",
+        "target_outcome",
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone"
+      ],
+      "target_outcomes": ["rating_band", "division_readiness", "topic_repair", "contest_consistency"],
+      "platforms": ["codeforces", "atcoder", "codechef", "other"],
+      "success_evidence": [
+        "timed_independent_solve_rate",
+        "upsolve_completion",
+        "complexity_and_proof",
+        "mixed_topic_transfer",
+        "delayed_retention"
+      ],
+      "default_policy": "competitive"
+    }
+  ],
+  "routing_rules": [
+    {
+      "id": "ROUTE-001",
+      "priority": 10,
+      "when": "age_confirmed is not true",
+      "outcome": "ineligible",
+      "reason_code": "adult_confirmation_required"
+    },
+    {
+      "id": "ROUTE-002",
+      "priority": 20,
+      "when": "language not in launch_scope.languages",
+      "outcome": "waitlist",
+      "reason_code": "unsupported_language"
+    },
+    {
+      "id": "ROUTE-003",
+      "priority": 30,
+      "when": "days_per_week < 3 or minutes_per_session < 20",
+      "outcome": "ineligible",
+      "reason_code": "minimum_practice_commitment_not_met"
+    },
+    {
+      "id": "ROUTE-004",
+      "priority": 40,
+      "when": "requested_goal == competitive and target_coverage_status != released",
+      "outcome": "waitlist",
+      "reason_code": "competitive_target_not_released"
+    },
+    {
+      "id": "ROUTE-005",
+      "priority": 50,
+      "when": "requested_goal in [interview, competitive] and language_experience in [none, syntax_only]",
+      "outcome": "accept_with_foundations_bridge",
+      "reason_code": "foundation_prerequisites_required"
+    },
+    {
+      "id": "ROUTE-006",
+      "priority": 60,
+      "when": "requested_goal == foundations",
+      "outcome": "accept_foundations",
+      "reason_code": "foundations_goal_selected"
+    },
+    {
+      "id": "ROUTE-007",
+      "priority": 70,
+      "when": "requested_goal == interview",
+      "outcome": "accept_interview_diagnostic",
+      "reason_code": "interview_goal_selected"
+    },
+    {
+      "id": "ROUTE-008",
+      "priority": 80,
+      "when": "requested_goal == competitive",
+      "outcome": "accept_competitive_diagnostic",
+      "reason_code": "competitive_goal_selected"
+    }
+  ],
+  "policy_profiles": [
+    {
+      "id": "foundations",
+      "primary_objective": "correct_independent_reasoning_then_implementation",
+      "diagnostic_minutes": {"minimum": 10, "maximum": 15},
+      "initial_difficulty": "readiness_staged",
+      "session_shape": ["retrieval", "micro_instruction", "guided_practice", "independent_challenge"],
+      "new_to_review_ratio": "60:40",
+      "timing_pressure": "none_until_readiness",
+      "hint_policy": "high_scaffolding_progressive_fade",
+      "progression_gate": "independent_correctness_and_prerequisites",
+      "assessment_emphasis": ["trace", "explain", "implement", "retain"]
+    },
+    {
+      "id": "interview",
+      "primary_objective": "unseen_pattern_transfer_under_realistic_time",
+      "diagnostic_minutes": {"minimum": 25, "maximum": 45},
+      "initial_difficulty": "target_and_evidence_calibrated",
+      "session_shape": ["retrieval", "pattern_contrast", "timed_practice", "independent_challenge"],
+      "new_to_review_ratio": "50:50",
+      "timing_pressure": "introduced_after_clean_untimed_solution",
+      "hint_policy": "socratic_attempt_first",
+      "progression_gate": "parallel_unseen_independent_evidence",
+      "assessment_emphasis": ["clarify", "design", "implement", "analyze", "communicate"]
+    },
+    {
+      "id": "competitive",
+      "primary_objective": "speed_accuracy_and_mixed_topic_transfer",
+      "diagnostic_minutes": {"minimum": 25, "maximum": 45},
+      "initial_difficulty": "rating_or_division_calibrated",
+      "session_shape": ["retrieval", "targeted_drill", "timed_set", "upsolve_and_repair"],
+      "new_to_review_ratio": "40:60",
+      "timing_pressure": "default_for_validated_topics",
+      "hint_policy": "contest_lock_then_post_attempt_socratic",
+      "progression_gate": "timed_unseen_and_delayed_evidence",
+      "assessment_emphasis": ["recognize", "prove", "implement", "optimize", "recover"]
+    }
+  ],
+  "mastery_authority": {
+    "owner": "deterministic_policy_engine",
+    "required_evidence_classes": ["independent", "diverse", "unseen_assessment", "prerequisite_ready"],
+    "mastery_threshold": 0.8,
+    "confidence_threshold": 0.65,
+    "retention_required": true,
+    "llm_write_access": false,
+    "passive_activity_changes_mastery": false
+  },
+  "llm_authority": {
+    "default_state": "disabled",
+    "allowed_roles": [
+      "parse_optional_goal_text_into_proposal",
+      "phrase_policy_bounded_hint",
+      "propose_qualitative_rubric_feedback",
+      "rank_preapproved_curriculum_candidates_in_shadow_mode"
+    ],
+    "forbidden_roles": [
+      "change_mastery_directly",
+      "bypass_prerequisites",
+      "invent_content_or_identifiers",
+      "access_assessment_solutions",
+      "execute_code",
+      "release_content"
+    ],
+    "failure_behavior": "deterministic_or_curated_fallback"
+  },
+  "metrics": [
+    {
+      "id": "METRIC-001",
+      "name": "qualified_activation_rate_48h",
+      "numerator": "qualified_users_who_confirm_goal_complete_diagnostic_and_start_first_plan_within_48h",
+      "denominator": "qualified_users_created",
+      "target": ">=0.55",
+      "exclusions": ["test_accounts", "duplicate_accounts", "confirmed_operational_failure"]
+    },
+    {
+      "id": "METRIC-002",
+      "name": "week_one_meaningful_session_rate",
+      "numerator": "activated_users_with_at_least_4_meaningful_sessions_in_first_7_local_days",
+      "denominator": "activated_users",
+      "target": ">=0.35",
+      "exclusions": ["test_accounts", "approved_deletion_before_day_7"]
+    },
+    {
+      "id": "METRIC-003",
+      "name": "independent_solve_rate_delta_pp",
+      "numerator": "final_parallel_form_independent_solve_rate_minus_baseline_parallel_form_independent_solve_rate",
+      "denominator": "eligible_finalized_assessment_items",
+      "target": ">=20 percentage points median",
+      "exclusions": ["assisted_attempts", "invalid_items", "runner_failures"]
+    },
+    {
+      "id": "METRIC-004",
+      "name": "adaptive_incremental_delta_pp",
+      "numerator": "adaptive_cohort_solve_rate_delta_minus_fixed_plan_cohort_solve_rate_delta",
+      "denominator": "eligible_activated_experiment_users",
+      "target": ">=10 percentage points",
+      "exclusions": ["assignment_integrity_failures", "test_accounts"]
+    },
+    {
+      "id": "METRIC-005",
+      "name": "released_exercise_material_defect_rate",
+      "numerator": "released_exercises_with_confirmed_correctness_ambiguity_or_runtime_defect",
+      "denominator": "released_exercises_attempted",
+      "target": "<0.02 after closed beta",
+      "exclusions": ["cosmetic_only_reports"]
+    },
+    {
+      "id": "METRIC-006",
+      "name": "premature_solution_leakage_rate",
+      "numerator": "audited_tutor_interactions_with_solution_equivalent_output_before_policy_allows",
+      "denominator": "audited_tutor_interactions",
+      "target": "<0.03",
+      "exclusions": ["full_explanation_after_allowed_escalation"]
+    }
+  ],
+  "decision_invariants": [
+    "same_material_inputs_policy_version_and_seed_produce_same_structural_plan",
+    "no_passive_event_increases_mastery",
+    "assessment_content_is_never_available_to_tutor_or_practice_selection",
+    "operational_failures_have_zero_learning_evidence_weight",
+    "unsupported_coverage_is_never_fabricated",
+    "accepted_llm_advice_must_be_inside_the_deterministic_candidate_envelope",
+    "every_material_decision_records_reason_and_policy_version"
+  ]
+}

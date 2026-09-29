@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://socrat.example/contracts/m0-contracts.schema.json",
+  "title": "Socrat M0 Product Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "status",
+    "product",
+    "launch_scope",
+    "goal_templates",
+    "routing_rules",
+    "policy_profiles",
+    "mastery_authority",
+    "llm_authority",
+    "metrics",
+    "decision_invariants"
+  ],
+  "properties": {
+    "contract_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "status": {"enum": ["candidate", "approved", "retired"]},
+    "product": {"const": "Socrat"},
+    "launch_scope": {
+      "type": "object",
+      "required": ["domain", "audience", "languages", "goal_tracks", "session_minutes", "minimum_days_per_week", "clients", "published_skill_packs"],
+      "properties": {
+        "domain": {"const": "data_structures_and_algorithms"},
+        "audience": {"const": "adults_18_plus"},
+        "languages": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {"enum": ["python", "cpp", "java"]}
+        },
+        "goal_tracks": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {"enum": ["foundations", "interview", "competitive"]}
+        },
+        "session_minutes": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {"enum": [20, 30, 45, 60, 90]}
+        },
+        "minimum_days_per_week": {"const": 3},
+        "clients": {"type": "array", "contains": {"const": "responsive_web"}},
+        "published_skill_packs": {"type": "array", "contains": {"const": "dsa"}}
+      }
+    },
+    "goal_templates": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "display_name", "intent", "required_fields", "target_outcomes", "success_evidence", "default_policy"],
+        "properties": {
+          "id": {"enum": ["foundations", "interview", "competitive"]},
+          "display_name": {"type": "string", "minLength": 3},
+          "intent": {"type": "string", "minLength": 20},
+          "required_fields": {"type": "array", "minItems": 6, "uniqueItems": true, "items": {"type": "string"}},
+          "target_outcomes": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string"}},
+          "success_evidence": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string"}},
+          "default_policy": {"enum": ["foundations", "interview", "competitive"]}
+        }
+      }
+    },
+    "routing_rules": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["id", "priority", "when", "outcome", "reason_code"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^ROUTE-[0-9]{3}$"},
+          "priority": {"type": "integer", "minimum": 1},
+          "when": {"type": "string", "minLength": 3},
+          "outcome": {"type": "string", "minLength": 3},
+          "reason_code": {"type": "string", "pattern": "^[a-z0-9_]+$"}
+        }
+      }
+    },
+    "policy_profiles": {"type": "array", "minItems": 3, "maxItems": 3},
+    "mastery_authority": {"type": "object"},
+    "llm_authority": {"type": "object"},
+    "metrics": {"type": "array", "minItems": 6},
+    "decision_invariants": {"type": "array", "minItems": 7, "uniqueItems": true, "items": {"type": "string"}}
+  }
+}

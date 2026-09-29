@@ -1,0 +1,51 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and generated output
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.venv/
+.cache/
+.mypy_cache/
+.ruff_cache/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!.tfvars.example
+.tools/
+*.db
+*.db-*
+*.tsbuildinfo
+.coverage
+test-results/
+playwright-report/
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Research data must stay outside source control
+pilot-data/
+research-private/
+recordings/
+exports/
+backups/

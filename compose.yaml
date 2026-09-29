@@ -1,0 +1,76 @@
+name: socrat
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: socrat
+      POSTGRES_USER: socrat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-only-password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socrat -d socrat"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    command: ["alembic", "upgrade", "head"]
+    environment: &api-environment
+      SOCRAT_DATABASE_URL: postgresql+psycopg://socrat:${POSTGRES_PASSWORD:-local-only-password}@postgres:5432/socrat
+      SOCRAT_ENVIRONMENT: development
+      SOCRAT_PUBLIC_ORIGIN: http://localhost:3000
+      SOCRAT_SESSION_SECRET: ${SOCRAT_SESSION_SECRET:-local-development-only-change-before-deploy}
+      SOCRAT_DEV_LOGIN_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment: *api-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready')"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    command: ["python", "-m", "socrat.worker"]
+    environment:
+      <<: *api-environment
+      PYTHONPATH: services/api/src
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+
+volumes:
+  postgres-data:

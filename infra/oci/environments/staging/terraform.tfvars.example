@@ -1,0 +1,6 @@
+tenancy_ocid            = "ocid1.tenancy.oc1..replace-me"
+compartment_ocid        = "ocid1.compartment.oc1..replace-me"
+ssh_authorized_key      = "ssh-ed25519 replace-with-a-public-key-only"
+admin_cidr              = ""
+budget_alert_recipients = "owner@example.com"
+project_key             = "learning-platform"
