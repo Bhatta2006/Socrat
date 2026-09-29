@@ -24,8 +24,8 @@ write_files:
       They are deliberately absent from Terraform state and instance metadata.
 
 runcmd:
-  - [mkdir, -p, /opt/learning-platform/releases, /opt/learning-platform/shared, /var/lib/learning-platform/postgres]
-  - [chmod, "0700", /opt/learning-platform/shared, /var/lib/learning-platform/postgres]
+  - [install, -d, -o, ubuntu, -g, ubuntu, -m, "0700", /opt/socrat/runtime, /opt/socrat/secrets, /var/lib/socrat/releases, /var/lib/socrat/backups]
+  - [usermod, -aG, docker, ubuntu]
   - [systemctl, enable, --now, docker]
   - [systemctl, enable, --now, unattended-upgrades]
   - [sysctl, --system]
@@ -34,6 +34,7 @@ runcmd:
   - [ufw, allow, OpenSSH]
   - [ufw, allow, "80/tcp"]
   - [ufw, allow, "443/tcp"]
+  - [ufw, allow, "443/udp"]
   - [ufw, --force, enable]
 
 final_message: "Staging host baseline is ready. Application deployment remains a separate authenticated release step."

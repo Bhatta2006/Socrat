@@ -153,6 +153,78 @@ def test_deployed_settings_accept_only_complete_secure_configuration():
         Settings(session_ttl_seconds=60)
 
 
+def test_deployed_settings_load_service_scoped_secret_files(tmp_path):
+    from pydantic import SecretStr
+
+    from socrat.config import Settings
+
+    session_secret = tmp_path / "session-secret"
+    oidc_secret = tmp_path / "oidc-secret"
+    metrics_token = tmp_path / "metrics-token"
+    session_secret.write_text("s" * 48 + "\n", encoding="utf-8")
+    oidc_secret.write_text("provider-secret\n", encoding="utf-8")
+    metrics_token.write_text("m" * 32 + "\n", encoding="utf-8")
+
+    deployed = Settings(
+        environment="staging",
+        database_url="postgresql+psycopg://socrat@database:5432/socrat",
+        public_origin="https://staging.socrat.example",
+        session_secret_file=str(session_secret),
+        oidc_issuer="https://identity.socrat.example",
+        oidc_client_id="socrat-staging",
+        oidc_client_secret_file=str(oidc_secret),
+        metrics_token_file=str(metrics_token),
+    )
+
+    assert isinstance(deployed.session_secret, SecretStr)
+    assert deployed.session_secret.get_secret_value() == "s" * 48
+    assert deployed.oidc_client_secret.get_secret_value() == "provider-secret"
+    assert deployed.metrics_token.get_secret_value() == "m" * 32
+    assert "provider-secret" not in repr(deployed)
+
+
+def test_secret_files_reject_ambiguous_or_multiline_values(tmp_path):
+    from pydantic import ValidationError
+
+    from socrat.config import Settings
+
+    secret = tmp_path / "session-secret"
+    secret.write_text("first-line\nsecond-line\n", encoding="utf-8")
+    base = {
+        "environment": "staging",
+        "database_url": "postgresql+psycopg://socrat@database:5432/socrat",
+        "public_origin": "https://staging.socrat.example",
+        "session_secret_file": str(secret),
+        "oidc_issuer": "https://identity.socrat.example",
+        "oidc_client_id": "socrat-staging",
+        "oidc_client_secret": "provider-secret",
+        "metrics_token": "m" * 32,
+    }
+    with pytest.raises(ValidationError, match="single line"):
+        Settings(**base)
+
+    secret.write_text("s" * 48, encoding="utf-8")
+    with pytest.raises(ValidationError, match="both directly and by file"):
+        Settings(**base, session_secret="different-secret-value")
+
+
+def test_worker_database_settings_do_not_require_web_secrets(tmp_path):
+    from socrat.config import DatabaseSettings
+
+    password = tmp_path / "postgres-password"
+    password.write_text("reserved:/?#[]@!$&'()*+,;= value\n", encoding="utf-8")
+    settings = DatabaseSettings(
+        database_host="database",
+        database_name="socrat",
+        database_user="socrat",
+        database_password_file=str(password),
+    )
+    assert settings.database_url_value.startswith("postgresql+psycopg://socrat:")
+    assert settings.database_url_value.endswith("@database:5432/socrat")
+    assert "reserved%3A%2F%3F%23%5B%5D%40" in settings.database_url_value
+    assert "reserved:/?#[]" not in repr(settings)
+
+
 def test_outbox_delivery_idempotent_and_rollback(platform):
     from sqlalchemy import func, select
     from sqlalchemy.orm import Session

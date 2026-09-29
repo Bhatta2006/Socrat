@@ -1,5 +1,7 @@
 FROM python:3.12.14-slim AS runtime
 
+LABEL org.opencontainers.image.source="https://github.com/Bhatta2006/Socrat"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 

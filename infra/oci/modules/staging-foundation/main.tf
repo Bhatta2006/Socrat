@@ -92,6 +92,22 @@ resource "oci_core_network_security_group_security_rule" "web" {
   }
 }
 
+resource "oci_core_network_security_group_security_rule" "web_quic" {
+  network_security_group_id = oci_core_network_security_group.application.id
+  direction                 = "INGRESS"
+  protocol                  = "17"
+  source                    = "0.0.0.0/0"
+  source_type               = "CIDR_BLOCK"
+  description               = "Public HTTP/3 traffic"
+
+  udp_options {
+    destination_port_range {
+      min = 443
+      max = 443
+    }
+  }
+}
+
 resource "oci_core_network_security_group_security_rule" "ssh" {
   count = var.admin_cidr == "" ? 0 : 1
 
