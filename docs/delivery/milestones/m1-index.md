@@ -25,7 +25,8 @@
 
 - The managed identity provider has not been selected or tested.
 - OCI Hyderabad and the USD 55 planning ceiling are approved; Terraform validates locally, but no cloud resources have been created.
-- Hosted CI passed for pull request 11, including real PostgreSQL dump/restore and both production container builds; repository protection is being applied before merge.
+- Pull request 11 and protected `main` both passed hosted CI, including real PostgreSQL dump/restore and both production container builds. `main` requires up-to-date `secret-scan` and `verify` checks, pull requests, resolved conversations, and linear history; force-push and deletion are disabled.
+- The protected-main run published attested AMD64/ARM64 API and web images to GHCR by commit tag and immutable manifest digest.
 - Telemetry configuration, dashboards, and alerts validate, but no external notification receiver has been approved or exercised.
 - Deploy and rollback behavior is unit-tested, but cannot be operationally demonstrated until an owned hostname, managed OIDC application, OCI compartment/access, and alert recipient exist.
 
