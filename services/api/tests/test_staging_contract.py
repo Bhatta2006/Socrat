@@ -134,7 +134,7 @@ def test_ci_validates_operations_and_publishes_attested_multiarch_images():
     assert "infra/runtime/staging/compose.yaml config --quiet" in verify_commands
     assert "--entrypoint /bin/promtool" in verify_commands
     assert "check config /etc/prometheus/prometheus.yml" in verify_commands
-    assert "validate --config /etc/caddy/Caddyfile" in verify_commands
+    assert "caddy validate --config /etc/caddy/Caddyfile" in verify_commands
 
     publish = workflow["jobs"]["publish-images"]
     assert set(publish["needs"]) == {"secret-scan", "verify"}

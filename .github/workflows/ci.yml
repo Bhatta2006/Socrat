@@ -106,7 +106,7 @@ jobs:
           --env TLS_EMAIL=operations@example.test
           --volume "${{ github.workspace }}/infra/runtime/staging/Caddyfile:/etc/caddy/Caddyfile:ro"
           caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
-          validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - run: terraform fmt -check -recursive infra/oci
       - run: terraform -chdir=infra/oci/environments/staging init -backend=false
       - run: terraform -chdir=infra/oci/environments/staging validate
