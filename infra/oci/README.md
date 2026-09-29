@@ -32,4 +32,6 @@ terraform -chdir=infra/oci/modules/staging-foundation test
 
 ## Domain boundary
 
-The instance initially exposes an ephemeral IP. A purchased domain and approved certificate strategy are required before enabling staging OIDC, `Secure` browser sessions, or claiming the M1 HTTPS gate. Ports 80 and 443 are reserved for the later reverse proxy; the API and database are never exposed directly.
+The instance initially exposes an ephemeral IP. An owned staging hostname and approved certificate strategy are required before enabling staging OIDC, `Secure` browser sessions, or claiming the M1 HTTPS gate. Ports 80 and 443 are reserved for the later reverse proxy; the API and database are never exposed directly.
+
+The final brand domain is not required for M1. Any deliberately selected, owned staging hostname is sufficient if DNS control, TLS issuance, OIDC callbacks, and later migration are documented. Runtime deployment and rollback are governed by the [M1 staging runbook](../../docs/operations/m1-staging-runbook.md).
