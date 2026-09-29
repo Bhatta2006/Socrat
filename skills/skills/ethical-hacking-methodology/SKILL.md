@@ -113,7 +113,7 @@ site:target.com filetype:env
 - Login portals
 
 **Social Media Reconnaissance**
-- LinkedIn: Organizational charts, technologies used
+- Professional-network profiles: organizational charts, technologies used
 - Twitter: Company announcements, employee info
 - Facebook: Personal information, relationships
 - Job postings: Technology stack revelations
