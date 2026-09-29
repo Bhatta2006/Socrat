@@ -3,10 +3,17 @@ import os
 from alembic import context
 from sqlalchemy import create_engine, pool
 
+from socrat.config import DatabaseSettings
 from socrat.models import Base
 
 config = context.config
-url = os.environ.get("SOCRAT_DATABASE_URL", config.get_main_option("sqlalchemy.url"))
+database_environment_present = any(name.startswith("SOCRAT_DATABASE_") for name in os.environ)
+settings = (
+    DatabaseSettings()
+    if database_environment_present
+    else DatabaseSettings(database_url=config.get_main_option("sqlalchemy.url"))
+)
+url = settings.database_url_value
 if context.is_offline_mode():
     context.configure(url=url, target_metadata=Base.metadata, literal_binds=True)
     with context.begin_transaction():

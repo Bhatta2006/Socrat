@@ -7,6 +7,7 @@ COPY apps/web apps/web
 RUN npm run build --workspace @socrat/web
 
 FROM node:24-alpine AS runtime
+LABEL org.opencontainers.image.source="https://github.com/Bhatta2006/Socrat"
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app/package.json /app/package-lock.json ./

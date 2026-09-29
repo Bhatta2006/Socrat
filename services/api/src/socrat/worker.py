@@ -6,7 +6,7 @@ import time
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
-from socrat.config import Settings
+from socrat.config import DatabaseSettings
 from socrat.database import make_engine
 from socrat.models import DeliveredEvent, OutboxEvent, now
 
@@ -28,7 +28,7 @@ def drain_once(engine: Engine) -> int:
 
 
 def main():
-    engine = make_engine(Settings().database_url)
+    engine = make_engine(DatabaseSettings().database_url_value)
     try:
         while True:
             try:

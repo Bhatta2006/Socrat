@@ -1,0 +1,300 @@
+name: socrat-staging
+
+x-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-database-environment: &database-environment
+  SOCRAT_DATABASE_HOST: postgres
+  SOCRAT_DATABASE_PORT: "5432"
+  SOCRAT_DATABASE_NAME: socrat
+  SOCRAT_DATABASE_USER: socrat
+  SOCRAT_DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+
+services:
+  postgres:
+    image: postgres:17.10-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: socrat
+      POSTGRES_USER: socrat
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    secrets:
+      - postgres_password
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socrat -d socrat"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    deploy:
+      resources:
+        limits: { cpus: "1.00", memory: 2G }
+    security_opt:
+      - no-new-privileges:true
+    logging: *bounded-logging
+
+  migrate:
+    image: "${SOCRAT_API_IMAGE:?Set SOCRAT_API_IMAGE to an immutable ghcr.io reference@sha256:...}"
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    environment: *database-environment
+    secrets:
+      - postgres_password
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    logging: *bounded-logging
+
+  api:
+    image: "${SOCRAT_API_IMAGE:?Set SOCRAT_API_IMAGE to an immutable ghcr.io reference@sha256:...}"
+    restart: unless-stopped
+    environment:
+      <<: *database-environment
+      SOCRAT_ENVIRONMENT: staging
+      SOCRAT_PUBLIC_ORIGIN: "https://${STAGING_HOST:?Set STAGING_HOST to owned DNS}"
+      SOCRAT_DEV_LOGIN_ENABLED: "false"
+      SOCRAT_SESSION_SECRET_FILE: /run/secrets/session_secret
+      SOCRAT_OIDC_ISSUER: "${SOCRAT_OIDC_ISSUER:?Set the approved OIDC issuer}"
+      SOCRAT_OIDC_CLIENT_ID: "${SOCRAT_OIDC_CLIENT_ID:?Set the staging OIDC client ID}"
+      SOCRAT_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+      SOCRAT_METRICS_TOKEN_FILE: /run/secrets/metrics_token
+    secrets:
+      - postgres_password
+      - session_secret
+      - oidc_client_secret
+      - metrics_token
+    networks:
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose: ["8000"]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready')"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "1.00", memory: 1G }
+    logging: *bounded-logging
+
+  worker:
+    image: "${SOCRAT_API_IMAGE:?Set SOCRAT_API_IMAGE to an immutable ghcr.io reference@sha256:...}"
+    command: ["python", "-m", "socrat.worker"]
+    restart: unless-stopped
+    environment:
+      <<: *database-environment
+      PYTHONPATH: services/api/src
+    secrets:
+      - postgres_password
+    networks:
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "0.50", memory: 512M }
+    logging: *bounded-logging
+
+  web:
+    image: "${SOCRAT_WEB_IMAGE:?Set SOCRAT_WEB_IMAGE to an immutable ghcr.io reference@sha256:...}"
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    networks:
+      - backend
+    depends_on:
+      api:
+        condition: service_healthy
+    expose: ["3000"]
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+      - /app/apps/web/.next/cache:size=64m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "1.00", memory: 1G }
+    logging: *bounded-logging
+
+  caddy:
+    image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
+    restart: unless-stopped
+    environment:
+      STAGING_HOST: "${STAGING_HOST:?Set STAGING_HOST to owned DNS}"
+      TLS_EMAIL: "${TLS_EMAIL:?Set TLS_EMAIL for certificate expiry notices}"
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+      - backend
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -q --spider --no-check-certificate --header=Host:$${STAGING_HOST} https://127.0.0.1/api/health/live"
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    read_only: true
+    cap_drop: ["ALL"]
+    cap_add: ["NET_BIND_SERVICE"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "0.50", memory: 256M }
+    logging: *bounded-logging
+
+  prometheus:
+    image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=1GB
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    secrets:
+      - metrics_token
+    networks:
+      - backend
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9090/-/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "0.75", memory: 1G }
+    logging: *bounded-logging
+
+  grafana:
+    image: grafana/grafana:13.2.3@sha256:b28bae15e219c998fb0e0424ed724930cc61b1f61fb404d47c862f9a23f9e572
+    restart: unless-stopped
+    environment:
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_HTTP_ADDR: 0.0.0.0
+    ports:
+      - 127.0.0.1:3001:3000
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    secrets:
+      - grafana_admin_password
+    networks:
+      - backend
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "0.75", memory: 768M }
+    logging: *bounded-logging
+
+secrets:
+  postgres_password:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/postgres_password"
+  session_secret:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/session_secret"
+  oidc_client_secret:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/oidc_client_secret"
+  metrics_token:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/metrics_token"
+  grafana_admin_password:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/grafana_admin_password"
+
+networks:
+  edge:
+  backend:
+    internal: true
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:
+  prometheus-data:
+  grafana-data:

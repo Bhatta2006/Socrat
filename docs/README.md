@@ -40,6 +40,11 @@ Current ADRs:
 
 - [V1 threat model](security/threat-model.md) — assets, trust boundaries, risk register, and verification program
 
+## Operations
+
+- [M1 staging runbook](operations/m1-staging-runbook.md) — immutable deploy, backup/restore, rollback, telemetry access, and incident response
+- [`infra/runtime/staging`](../infra/runtime/staging/) — executable private-staging runtime contract
+
 ## Delivery
 
 - [M0 index](delivery/milestones/m0-index.md)

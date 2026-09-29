@@ -59,7 +59,7 @@ def profile_view(user: User | None, csrf: str) -> dict:
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
-    engine = make_engine(settings.database_url)
+    engine = make_engine(settings.database_url_value)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -77,7 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.add_middleware(
         SessionMiddleware,
-        secret_key=settings.session_secret,
+        secret_key=settings.session_secret.get_secret_value(),
         session_cookie="socrat_oidc",
         same_site="lax",
         https_only=settings.secure,
@@ -98,7 +98,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         oauth.register(
             "identity",
             client_id=settings.oidc_client_id,
-            client_secret=settings.oidc_client_secret,
+            client_secret=settings.oidc_client_secret.get_secret_value(),
             server_metadata_url=f"{settings.oidc_issuer.rstrip('/')}/.well-known/openid-configuration",
             client_kwargs={"scope": "openid", "code_challenge_method": "S256"},
         )
@@ -173,8 +173,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/metrics", include_in_schema=False)
     def metrics(request: Request):
-        if not settings.metrics_token or not secrets.compare_digest(
-            request.headers.get("authorization", ""), f"Bearer {settings.metrics_token}"
+        metrics_token = settings.metrics_token.get_secret_value()
+        if not metrics_token or not secrets.compare_digest(
+            request.headers.get("authorization", ""), f"Bearer {metrics_token}"
         ):
             raise HTTPException(404, "not_found")
         return Response(generate_latest(registry), media_type="text/plain; version=0.0.4")

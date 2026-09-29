@@ -4,7 +4,7 @@ Socrat is a deterministic-first personalized learning platform. V1 delivers Data
 
 ## Repository status
 
-M0 product validation remains in progress. The product owner authorized a scoped M1 engineering start while retaining the unpassed learner-pilot and human sign-off gates. The local M1 foundation is implemented; cloud staging and operational proof remain pending in the [M1 gate](docs/delivery/milestones/m1-gate.md).
+M0 product validation remains in progress. The product owner authorized a scoped M1 engineering start while retaining the unpassed learner-pilot and human sign-off gates. The repository-side M1 foundation and hosted quality gates are implemented; cloud staging and operational proof remain pending in the [M1 gate](docs/delivery/milestones/m1-gate.md).
 
 ## Repository map
 

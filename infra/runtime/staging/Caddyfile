@@ -1,0 +1,31 @@
+{
+  admin off
+  servers {
+    protocols h1 h2 h3
+  }
+}
+
+{$STAGING_HOST} {
+  tls {$TLS_EMAIL}
+  encode zstd gzip
+
+  @metrics path /api/metrics
+  respond @metrics 404
+
+  @api path /api/*
+  reverse_proxy @api api:8000
+  reverse_proxy web:3000
+
+  header {
+    -Server
+    Strict-Transport-Security "max-age=31536000"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "same-origin"
+  }
+
+  log {
+    output stdout
+    format json
+  }
+}
