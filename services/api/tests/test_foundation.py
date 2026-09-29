@@ -153,10 +153,13 @@ def test_deployed_settings_accept_only_complete_secure_configuration():
         Settings(session_ttl_seconds=60)
 
 
-def test_deployed_settings_load_service_scoped_secret_files(tmp_path):
+def test_deployed_settings_load_service_scoped_secret_files(tmp_path, monkeypatch):
     from pydantic import SecretStr
 
     from socrat.config import Settings
+
+    for name in ("SOCRAT_SESSION_SECRET", "SOCRAT_OIDC_CLIENT_SECRET", "SOCRAT_METRICS_TOKEN"):
+        monkeypatch.delenv(name, raising=False)
 
     session_secret = tmp_path / "session-secret"
     oidc_secret = tmp_path / "oidc-secret"
@@ -183,10 +186,12 @@ def test_deployed_settings_load_service_scoped_secret_files(tmp_path):
     assert "provider-secret" not in repr(deployed)
 
 
-def test_secret_files_reject_ambiguous_or_multiline_values(tmp_path):
+def test_secret_files_reject_ambiguous_or_multiline_values(tmp_path, monkeypatch):
     from pydantic import ValidationError
 
     from socrat.config import Settings
+
+    monkeypatch.delenv("SOCRAT_SESSION_SECRET", raising=False)
 
     secret = tmp_path / "session-secret"
     secret.write_text("first-line\nsecond-line\n", encoding="utf-8")
