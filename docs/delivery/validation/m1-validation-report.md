@@ -20,7 +20,12 @@
 | Runtime configuration | Production API/web image builds, staging Compose render, Prometheus config/rules, and Caddy config passed on hosted Linux |
 | M0 regression suite | 13 model tests and 127 document/contract checks passed |
 
-Hosted evidence: [GitHub Actions run 36575689963](https://github.com/Bhatta2006/Socrat/actions/runs/36575689963), pull request 11, commit `5f98cd2`.
+Hosted evidence:
+
+- [pull-request run 36575689963](https://github.com/Bhatta2006/Socrat/actions/runs/36575689963), commit `5f98cd2`;
+- [protected-main run 36601938034](https://github.com/Bhatta2006/Socrat/actions/runs/36601938034), commit `b69ec31`;
+- API manifest `sha256:555568e1369087f539db85832952fa0110316e7b2ab13570e52e9c4e68965158`, [attestation 51197638](https://github.com/Bhatta2006/Socrat/attestations/51197638);
+- web manifest `sha256:c4621beecdb76ccf66ee129316f6167992304bf0849a74bea628fa89506aad01`, [attestation 51198743](https://github.com/Bhatta2006/Socrat/attestations/51198743).
 
 ## Acceptance behavior exercised
 
@@ -36,6 +41,6 @@ Hosted evidence: [GitHub Actions run 36575689963](https://github.com/Bhatta2006/
 
 ## Environment limitations
 
-Docker is not installed on this workstation, so container and PostgreSQL evidence comes from the hosted Ubuntu runner rather than a local daemon. Terraform was downloaded locally with its published SHA-256 checksum and used only to format, validate, and run mocked tests. No OCI account plan/apply, managed OIDC integration, off-host backup, alert delivery, staging deploy, or staging rollback is claimed. Multi-architecture image publication is intentionally limited to verified pushes to `main`, so it was skipped on the pull request. See [the M1 gate](../milestones/m1-gate.md).
+Docker is not installed on this workstation, so container and PostgreSQL evidence comes from the hosted Ubuntu runner rather than a local daemon. Terraform was downloaded locally with its published SHA-256 checksum and used only to format, validate, and run mocked tests. No OCI account plan/apply, managed OIDC integration, off-host backup, alert delivery, staging deploy, or staging rollback is claimed. Multi-architecture image publication correctly skipped the pull request and passed only after protected `main` verification. See [the M1 gate](../milestones/m1-gate.md).
 
 The passing API run emits upstream deprecation warnings from FastAPI's current test client and Authlib's HTTPX compatibility layer. They do not affect the tested behavior, but dependency updates must keep this warning set from becoming an ignored baseline.
