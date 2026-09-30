@@ -1,0 +1,826 @@
+{
+  "$defs": {
+    "AssessmentBlueprint": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "track": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Track",
+          "type": "string"
+        },
+        "concept_keys": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Concept Keys",
+          "type": "array"
+        },
+        "evidence_modes": {
+          "items": {
+            "enum": [
+              "recognize",
+              "trace",
+              "explain",
+              "implement",
+              "analyze",
+              "transfer",
+              "retain"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Modes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "track",
+        "concept_keys",
+        "evidence_modes"
+      ],
+      "title": "AssessmentBlueprint",
+      "type": "object"
+    },
+    "Concept": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Name",
+          "type": "string"
+        },
+        "competency": {
+          "maxLength": 500,
+          "minLength": 10,
+          "title": "Competency",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 500,
+          "minLength": 3,
+          "title": "Scope",
+          "type": "string"
+        },
+        "exclusions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclusions",
+          "type": "array"
+        },
+        "objectives": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Objectives",
+          "type": "array"
+        },
+        "evidence_modes": {
+          "items": {
+            "enum": [
+              "recognize",
+              "trace",
+              "explain",
+              "implement",
+              "analyze",
+              "transfer",
+              "retain"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Modes",
+          "type": "array"
+        },
+        "prerequisites": {
+          "items": {
+            "$ref": "#/$defs/Prerequisite"
+          },
+          "title": "Prerequisites",
+          "type": "array"
+        },
+        "misconceptions": {
+          "items": {
+            "$ref": "#/$defs/Misconception"
+          },
+          "title": "Misconceptions",
+          "type": "array"
+        },
+        "mastery": {
+          "$ref": "#/$defs/MasteryPolicy"
+        },
+        "expected_minutes": {
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Expected Minutes",
+          "type": "integer"
+        },
+        "accessibility_notes": {
+          "maxLength": 1000,
+          "minLength": 3,
+          "title": "Accessibility Notes",
+          "type": "string"
+        },
+        "author": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "provenance": {
+          "maxLength": 1000,
+          "minLength": 3,
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "competency",
+        "scope",
+        "exclusions",
+        "objectives",
+        "evidence_modes",
+        "prerequisites",
+        "misconceptions",
+        "mastery",
+        "expected_minutes",
+        "accessibility_notes",
+        "author",
+        "provenance"
+      ],
+      "title": "Concept",
+      "type": "object"
+    },
+    "ConceptMapping": {
+      "additionalProperties": false,
+      "properties": {
+        "old_key": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Old Key",
+          "type": "string"
+        },
+        "new_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "New Keys",
+          "type": "array"
+        },
+        "disposition": {
+          "enum": [
+            "replaced",
+            "retired"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 500,
+          "minLength": 10,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "old_key",
+        "new_keys",
+        "disposition",
+        "rationale"
+      ],
+      "title": "ConceptMapping",
+      "type": "object"
+    },
+    "ContentItem": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "lesson",
+            "exercise",
+            "assessment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "concept_keys": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Concept Keys",
+          "type": "array"
+        },
+        "evidence_modes": {
+          "items": {
+            "enum": [
+              "recognize",
+              "trace",
+              "explain",
+              "implement",
+              "analyze",
+              "transfer",
+              "retain"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Modes",
+          "type": "array"
+        },
+        "language_variants": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Language Variants",
+          "type": "array"
+        },
+        "title": {
+          "maxLength": 160,
+          "minLength": 3,
+          "title": "Title",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/Source"
+        },
+        "accessibility_notes": {
+          "maxLength": 1000,
+          "minLength": 3,
+          "title": "Accessibility Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "kind",
+        "concept_keys",
+        "evidence_modes",
+        "language_variants",
+        "title",
+        "source",
+        "accessibility_notes"
+      ],
+      "title": "ContentItem",
+      "type": "object"
+    },
+    "CoverageCell": {
+      "additionalProperties": false,
+      "properties": {
+        "track": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Track",
+          "type": "string"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_+]{1,31}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "released",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 10,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "track",
+        "status"
+      ],
+      "title": "CoverageCell",
+      "type": "object"
+    },
+    "EvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "uri": {
+          "maxLength": 500,
+          "minLength": 3,
+          "title": "Uri",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 1000,
+          "minLength": 20,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "summary"
+      ],
+      "title": "EvidenceReference",
+      "type": "object"
+    },
+    "GoalTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "track": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Track",
+          "type": "string"
+        },
+        "outcome": {
+          "maxLength": 500,
+          "minLength": 10,
+          "title": "Outcome",
+          "type": "string"
+        },
+        "required_concepts": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Required Concepts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "track",
+        "outcome",
+        "required_concepts"
+      ],
+      "title": "GoalTemplate",
+      "type": "object"
+    },
+    "LanguageAdapter": {
+      "additionalProperties": false,
+      "properties": {
+        "language": {
+          "pattern": "^[a-z][a-z0-9_+]{1,31}$",
+          "title": "Language",
+          "type": "string"
+        },
+        "tool": {
+          "enum": [
+            "code_execution",
+            "manual"
+          ],
+          "title": "Tool",
+          "type": "string"
+        },
+        "runtime_key": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Runtime Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "language",
+        "tool",
+        "runtime_key"
+      ],
+      "title": "LanguageAdapter",
+      "type": "object"
+    },
+    "MasteryPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "min_independent": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Min Independent",
+          "type": "integer"
+        },
+        "min_diverse_modes": {
+          "maximum": 7,
+          "minimum": 1,
+          "title": "Min Diverse Modes",
+          "type": "integer"
+        },
+        "assessment_required": {
+          "title": "Assessment Required",
+          "type": "boolean"
+        },
+        "retention_days": {
+          "maximum": 365,
+          "minimum": 1,
+          "title": "Retention Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "min_independent",
+        "min_diverse_modes",
+        "assessment_required",
+        "retention_days"
+      ],
+      "title": "MasteryPolicy",
+      "type": "object"
+    },
+    "Misconception": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "pattern": "^[a-z][a-z0-9_]{1,63}$",
+          "title": "Code",
+          "type": "string"
+        },
+        "signal": {
+          "maxLength": 500,
+          "minLength": 3,
+          "title": "Signal",
+          "type": "string"
+        },
+        "repair_concept": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Repair Concept",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "signal",
+        "repair_concept"
+      ],
+      "title": "Misconception",
+      "type": "object"
+    },
+    "Prerequisite": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "threshold": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "strength": {
+          "enum": [
+            "required",
+            "recommended"
+          ],
+          "title": "Strength",
+          "type": "string"
+        },
+        "rationale": {
+          "maxLength": 500,
+          "minLength": 3,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "threshold",
+        "strength",
+        "rationale"
+      ],
+      "title": "Prerequisite",
+      "type": "object"
+    },
+    "ReleaseEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "rights": {
+          "$ref": "#/$defs/EvidenceReference"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/EvidenceReference"
+        },
+        "concept_quality": {
+          "$ref": "#/$defs/EvidenceReference"
+        },
+        "exercise_quality": {
+          "$ref": "#/$defs/EvidenceReference"
+        },
+        "assessment_separation": {
+          "$ref": "#/$defs/EvidenceReference"
+        },
+        "canary": {
+          "$ref": "#/$defs/EvidenceReference"
+        },
+        "language_coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "rights",
+        "accessibility",
+        "concept_quality",
+        "exercise_quality",
+        "assessment_separation",
+        "canary"
+      ],
+      "title": "ReleaseEvidence",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "license": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "License",
+          "type": "string"
+        },
+        "rights_checked_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Rights Checked At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "author",
+        "license",
+        "rights_checked_at"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "TrackPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "goal_keys": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Goal Keys",
+          "type": "array"
+        },
+        "required_concepts": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Required Concepts",
+          "type": "array"
+        },
+        "optional_concepts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Optional Concepts",
+          "type": "array"
+        },
+        "languages": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Languages",
+          "type": "array"
+        },
+        "difficulty_ceiling": {
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Difficulty Ceiling",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "key",
+        "goal_keys",
+        "required_concepts",
+        "optional_concepts",
+        "languages",
+        "difficulty_ceiling"
+      ],
+      "title": "TrackPolicy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "enum": [
+        1,
+        2
+      ],
+      "title": "Contract Version",
+      "type": "integer"
+    },
+    "release_stage": {
+      "enum": [
+        "draft",
+        "candidate"
+      ],
+      "title": "Release Stage",
+      "type": "string"
+    },
+    "key": {
+      "pattern": "^[a-z][a-z0-9-]{1,63}$",
+      "title": "Key",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 120,
+      "minLength": 3,
+      "title": "Name",
+      "type": "string"
+    },
+    "domain": {
+      "maxLength": 120,
+      "minLength": 3,
+      "title": "Domain",
+      "type": "string"
+    },
+    "evidence_modalities": {
+      "items": {
+        "enum": [
+          "recognize",
+          "trace",
+          "explain",
+          "implement",
+          "analyze",
+          "transfer",
+          "retain"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Modalities",
+      "type": "array"
+    },
+    "language_adapters": {
+      "items": {
+        "$ref": "#/$defs/LanguageAdapter"
+      },
+      "title": "Language Adapters",
+      "type": "array"
+    },
+    "concepts": {
+      "items": {
+        "$ref": "#/$defs/Concept"
+      },
+      "minItems": 1,
+      "title": "Concepts",
+      "type": "array"
+    },
+    "goal_templates": {
+      "items": {
+        "$ref": "#/$defs/GoalTemplate"
+      },
+      "minItems": 1,
+      "title": "Goal Templates",
+      "type": "array"
+    },
+    "track_policies": {
+      "items": {
+        "$ref": "#/$defs/TrackPolicy"
+      },
+      "minItems": 1,
+      "title": "Track Policies",
+      "type": "array"
+    },
+    "coverage": {
+      "items": {
+        "$ref": "#/$defs/CoverageCell"
+      },
+      "title": "Coverage",
+      "type": "array"
+    },
+    "migration_from_version": {
+      "anyOf": [
+        {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Migration From Version"
+    },
+    "concept_mappings": {
+      "items": {
+        "$ref": "#/$defs/ConceptMapping"
+      },
+      "title": "Concept Mappings",
+      "type": "array"
+    },
+    "release_evidence": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReleaseEvidence"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "content": {
+      "items": {
+        "$ref": "#/$defs/ContentItem"
+      },
+      "title": "Content",
+      "type": "array"
+    },
+    "assessment_blueprints": {
+      "items": {
+        "$ref": "#/$defs/AssessmentBlueprint"
+      },
+      "minItems": 1,
+      "title": "Assessment Blueprints",
+      "type": "array"
+    }
+  },
+  "required": [
+    "contract_version",
+    "release_stage",
+    "key",
+    "version",
+    "name",
+    "domain",
+    "evidence_modalities",
+    "language_adapters",
+    "concepts",
+    "goal_templates",
+    "track_policies",
+    "content",
+    "assessment_blueprints"
+  ],
+  "title": "PackManifest",
+  "type": "object"
+}

@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "resource_count": 5779,
+  "company_signal_count": 37714,
+  "source_reference_count": 8059,
+  "company_count": 429,
+  "kind_counts": {
+    "implementation": 361,
+    "lesson": 180,
+    "problem": 3792,
+    "roadmap": 101,
+    "solution": 1345
+  },
+  "provider_counts": {
+    "cpalg": 167,
+    "cses": 400,
+    "ishaan": 901,
+    "leetcode": 3392,
+    "practical": 38,
+    "roadmap": 226,
+    "striver": 295,
+    "thealg": 360
+  },
+  "source_reference_counts": {
+    "companies": 3392,
+    "cpalg": 167,
+    "cses": 400,
+    "ishaan": 2989,
+    "practical": 38,
+    "roadmap": 344,
+    "striver": 369,
+    "thealg": 360
+  },
+  "difficulty_band_counts": {
+    "2": 904,
+    "3": 57,
+    "4": 54,
+    "5": 1956,
+    "6": 144,
+    "7": 140,
+    "8": 899,
+    "unclassified": 1625
+  },
+  "topic_counts": {
+    "advanced-algorithms": 25,
+    "arrays": 2135,
+    "backtracking": 139,
+    "binary-search": 401,
+    "binary-search-trees": 43,
+    "bit-manipulation": 283,
+    "combinatorics": 59,
+    "constructive-algorithms": 8,
+    "counting-problems": 18,
+    "dsu": 99,
+    "dynamic-programming": 731,
+    "game-theory": 29,
+    "geometry": 87,
+    "graphs": 389,
+    "greedy": 441,
+    "hash-maps": 746,
+    "heaps": 247,
+    "interactive-problems": 6,
+    "introductory-problems": 24,
+    "linked-lists": 133,
+    "minimum-spanning-trees": 10,
+    "number-theory": 686,
+    "prefix-sums": 226,
+    "probability": 16,
+    "range-queries": 32,
+    "recursion": 69,
+    "segment-trees": 74,
+    "shortest-paths": 67,
+    "sliding-window": 202,
+    "sorting": 640,
+    "sorting-searching": 35,
+    "stacks-queues": 441,
+    "string-algorithms": 21,
+    "strings": 918,
+    "topological-sort": 41,
+    "trees": 489,
+    "tries": 61,
+    "two-pointers": 225
+  },
+  "scope_counts": {
+    "dsa_candidate": 4559,
+    "out_of_scope": 211,
+    "unknown": 1009
+  },
+  "unclassified_topic_count": 1208,
+  "unclassified_difficulty_count": 1625,
+  "taxonomy_topic_count": 41,
+  "m2_draft_concept_match_count": 16,
+  "snapshots": [
+    {
+      "key": "striver",
+      "url": "https://github.com/Codensity30/Strivers-A2Z-DSA-Sheet",
+      "revision": "c42ee6ecac700e1171e99d2d3e2b0cb27c2f597d",
+      "rights": "unverified_no_license"
+    },
+    {
+      "key": "practical",
+      "url": "https://github.com/namphuongtran/practical-dsa",
+      "revision": "cd7e7c00fbde43ac51b81735fc23ba79da15d7ce",
+      "rights": "MIT_repo; linked_problems_separate"
+    },
+    {
+      "key": "cpalg",
+      "url": "https://github.com/cp-algorithms/cp-algorithms",
+      "revision": "f06f7d5e5630f0b811e37d9e657562ba38c41f6a",
+      "rights": "CC-BY-SA-4.0_repo; links_only"
+    },
+    {
+      "key": "thealg",
+      "url": "https://github.com/TheAlgorithms/C-Plus-Plus",
+      "revision": "b64d5ecd022e4eb6b7f3f9a1157f13eccbfa6b78",
+      "rights": "MIT_code; generated_docs_CC-BY-SA-4.0"
+    },
+    {
+      "key": "roadmap",
+      "url": "https://github.com/maroofiums/DSA_Roadmap",
+      "revision": "2964dae7396e514430e2cadd24c0404321dc4027",
+      "rights": "unverified_no_license"
+    },
+    {
+      "key": "ishaan",
+      "url": "https://github.com/ishaanbuildsthings/leetcode",
+      "revision": "7e27de97c505005c8e78654c9a4e84bb9fdfc3a5",
+      "rights": "unverified_no_license"
+    },
+    {
+      "key": "companies",
+      "url": "https://github.com/liquidslr/leetcode-company-wise-problems",
+      "revision": "03850eb5d16892514491cf1381c32ec0330a2719",
+      "rights": "unverified_no_license; company_tags_unverified"
+    },
+    {
+      "key": "cses",
+      "url": "https://cses.fi/problemset/",
+      "revision": "31eaa4435f45796dc5d08d370a871165b9f312832038750f4d97a795d7d16aed",
+      "rights": "external_site_terms_unverified"
+    }
+  ],
+  "release_status": "review_required"
+}

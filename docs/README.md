@@ -8,6 +8,7 @@
 - [Deterministic policy matrices](product/deterministic-policy-matrices.md) — routing, selection, help, mastery, and fallback authority
 - [Metric contract](product/metric-contract.md) — outcome, funnel, quality, and guardrail definitions
 - [Content standard](product/content-standard.md) — concept/exercise/assessment authoring and release bar
+- [DSA resource hub](product/dsa-resource-hub.md) — indexed source pool, classification, and bounded assignment contract
 
 ## Research
 
@@ -43,6 +44,7 @@ Current ADRs:
 ## Operations
 
 - [M1 staging runbook](operations/m1-staging-runbook.md) — immutable deploy, backup/restore, rollback, telemetry access, and incident response
+- [M2 content operator guide](operations/m2-content-admin.md) — role provisioning, import, review, publish, and quarantine API workflow
 - [`infra/runtime/staging`](../infra/runtime/staging/) — executable private-staging runtime contract
 
 ## Delivery
@@ -53,6 +55,9 @@ Current ADRs:
 - [M1 index](delivery/milestones/m1-index.md)
 - [M1 gate](delivery/milestones/m1-gate.md)
 - [M1 local validation report](delivery/validation/m1-validation-report.md)
+- [M2 index](delivery/milestones/m2-index.md)
+- [M2 gate](delivery/milestones/m2-gate.md)
+- [M2 local validation report](delivery/validation/m2-validation-report.md)
 
 ## Machine-readable contracts
 
@@ -60,6 +65,13 @@ Machine contracts live outside `docs` so CI and application tooling can consume 
 
 - [`contracts/product/m0-contracts.json`](../contracts/product/m0-contracts.json)
 - [`contracts/schemas/m0-contracts.schema.json`](../contracts/schemas/m0-contracts.schema.json)
+- [`contracts/schemas/skill-pack.schema.json`](../contracts/schemas/skill-pack.schema.json)
+- [`contracts/skill-packs/dsa-sample.json`](../contracts/skill-packs/dsa-sample.json)
+- [`contracts/skill-packs/non-dsa-fixture.json`](../contracts/skill-packs/non-dsa-fixture.json)
+- [`contracts/resource-pool/dsa-resource-summary.json`](../contracts/resource-pool/dsa-resource-summary.json)
+- [`contracts/resource-pool/dsa-resources.jsonl`](../contracts/resource-pool/dsa-resources.jsonl)
+- [`contracts/resource-pool/dsa-topic-taxonomy.json`](../contracts/resource-pool/dsa-topic-taxonomy.json)
+- [`contracts/resource-pool/dsa-topic-difficulty-matrix.json`](../contracts/resource-pool/dsa-topic-difficulty-matrix.json)
 
 ## Documentation rules
 

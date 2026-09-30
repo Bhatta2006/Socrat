@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "topics": {
+    "language-readiness": {
+      "prerequisites": [],
+      "m2_draft_concept_key": "language-readiness"
+    },
+    "complexity": {
+      "prerequisites": [
+        "language-readiness"
+      ],
+      "m2_draft_concept_key": "complexity"
+    },
+    "arrays": {
+      "prerequisites": [
+        "language-readiness"
+      ],
+      "m2_draft_concept_key": "arrays"
+    },
+    "strings": {
+      "prerequisites": [
+        "language-readiness"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "hash-maps": {
+      "prerequisites": [
+        "arrays"
+      ],
+      "m2_draft_concept_key": "hash-maps"
+    },
+    "sorting": {
+      "prerequisites": [
+        "arrays",
+        "complexity"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "binary-search": {
+      "prerequisites": [
+        "arrays",
+        "complexity"
+      ],
+      "m2_draft_concept_key": "binary-search"
+    },
+    "two-pointers": {
+      "prerequisites": [
+        "arrays"
+      ],
+      "m2_draft_concept_key": "two-pointers"
+    },
+    "sliding-window": {
+      "prerequisites": [
+        "arrays",
+        "two-pointers"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "prefix-sums": {
+      "prerequisites": [
+        "arrays"
+      ],
+      "m2_draft_concept_key": "prefix-sums"
+    },
+    "linked-lists": {
+      "prerequisites": [
+        "language-readiness"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "stacks-queues": {
+      "prerequisites": [
+        "arrays"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "heaps": {
+      "prerequisites": [
+        "trees"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "recursion": {
+      "prerequisites": [
+        "language-readiness"
+      ],
+      "m2_draft_concept_key": "recursion"
+    },
+    "backtracking": {
+      "prerequisites": [
+        "recursion"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "trees": {
+      "prerequisites": [
+        "recursion"
+      ],
+      "m2_draft_concept_key": "trees"
+    },
+    "binary-search-trees": {
+      "prerequisites": [
+        "trees",
+        "binary-search"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "tries": {
+      "prerequisites": [
+        "trees",
+        "strings"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "graphs": {
+      "prerequisites": [
+        "trees"
+      ],
+      "m2_draft_concept_key": "graphs"
+    },
+    "dsu": {
+      "prerequisites": [
+        "graphs"
+      ],
+      "m2_draft_concept_key": "dsu"
+    },
+    "shortest-paths": {
+      "prerequisites": [
+        "graphs"
+      ],
+      "m2_draft_concept_key": "shortest-paths"
+    },
+    "minimum-spanning-trees": {
+      "prerequisites": [
+        "graphs",
+        "dsu"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "topological-sort": {
+      "prerequisites": [
+        "graphs"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "greedy": {
+      "prerequisites": [
+        "complexity"
+      ],
+      "m2_draft_concept_key": "greedy"
+    },
+    "dynamic-programming": {
+      "prerequisites": [
+        "recursion",
+        "arrays"
+      ],
+      "m2_draft_concept_key": "dynamic-programming"
+    },
+    "bit-manipulation": {
+      "prerequisites": [
+        "language-readiness"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "number-theory": {
+      "prerequisites": [
+        "complexity"
+      ],
+      "m2_draft_concept_key": "number-theory"
+    },
+    "combinatorics": {
+      "prerequisites": [
+        "number-theory"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "range-queries": {
+      "prerequisites": [
+        "arrays",
+        "trees"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "segment-trees": {
+      "prerequisites": [
+        "range-queries"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "string-algorithms": {
+      "prerequisites": [
+        "strings"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "geometry": {
+      "prerequisites": [
+        "complexity"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "probability": {
+      "prerequisites": [
+        "combinatorics"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "game-theory": {
+      "prerequisites": [
+        "dynamic-programming"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "sorting-searching": {
+      "prerequisites": [
+        "arrays",
+        "complexity"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "contest-strategy": {
+      "prerequisites": [
+        "greedy"
+      ],
+      "m2_draft_concept_key": "contest-strategy"
+    },
+    "introductory-problems": {
+      "prerequisites": [
+        "language-readiness"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "advanced-algorithms": {
+      "prerequisites": [
+        "complexity"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "counting-problems": {
+      "prerequisites": [
+        "combinatorics"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "constructive-algorithms": {
+      "prerequisites": [
+        "greedy"
+      ],
+      "m2_draft_concept_key": null
+    },
+    "interactive-problems": {
+      "prerequisites": [
+        "contest-strategy"
+      ],
+      "m2_draft_concept_key": null
+    }
+  }
+}

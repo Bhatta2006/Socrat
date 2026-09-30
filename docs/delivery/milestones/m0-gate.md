@@ -30,7 +30,7 @@
 | Content standard | Concept, exercise, assessment, language variant, review, licensing, accessibility, and quarantine contracts approved | Candidate ready; learning-design review pending |
 | Architecture decisions | ADR-0001 through ADR-0006 accepted, including consequences and revisit triggers | Candidate ready; engineering/security review pending |
 | Critical risks owned | Every critical/high M0 risk has one accountable role and target milestone; no anonymous “team” owner | Candidate threat register ready; people not assigned |
-| Controlled progression | The product owner explicitly authorized M1 foundation engineering on 2026-09-29 while retaining all human M0 gates as pending | Exception recorded — does not convert M0 to PASS |
+| Controlled progression | The product owner authorized M1 foundation engineering on 2026-09-29, then closed M1 and authorized M2 work on 2026-09-30 while retaining all human M0 gates as pending | Exceptions recorded — do not convert M0 to PASS |
 
 ## Required sign-off
 
@@ -46,7 +46,7 @@ Names cannot be replaced by tool output or an AI-generated approval.
 
 ## Stop conditions
 
-Do not enter M1 if any condition is true:
+Under the ordinary milestone sequence, do not enter the next engineering milestone if any condition is true:
 
 - Fewer than five valid pilot sessions exist for any track.
 - A participant can be routed to unsupported content without an explicit waitlist outcome.
@@ -65,4 +65,4 @@ Do not enter M1 if any condition is true:
 4. Update affected contracts and rerun validation.
 5. Obtain the five sign-offs above.
 6. Change the machine contract status from `candidate` to `approved` and record the approved version.
-7. Ordinarily start M1 only after the final gate result is `PASS`. The product owner authorized a scoped engineering exception on 2026-09-29; it permits reversible M1 foundation work but does not waive learner validation, accountable sign-off, or any production-launch gate.
+7. Ordinarily start engineering milestones only after the final M0 gate result is `PASS`. The product owner authorized scoped M1 work on 2026-09-29 and M2 progression on 2026-09-30. These decisions do not waive learner validation, accountable sign-off, or any production-launch gate.

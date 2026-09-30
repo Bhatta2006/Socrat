@@ -43,8 +43,8 @@ trap cleanup EXIT
 "${compose[@]}" exec -T postgres createdb -U socrat "$smoke_database"
 "${compose[@]}" exec -T postgres pg_restore -U socrat -d "$smoke_database" --exit-on-error "$remote_archive"
 revision="$("${compose[@]}" exec -T postgres psql -U socrat -d "$smoke_database" -Atc 'SELECT version_num FROM alembic_version;' | tr -d '\r[:space:]')"
-if [[ "$revision" != "0001" ]]; then
+if [[ "$revision" != "0003" ]]; then
   printf 'Restored schema revision is invalid: %s\n' "$revision" >&2
   exit 1
 fi
-printf '%s\n' '[PASS] Backup restored into an isolated database at schema revision 0001.'
+printf '%s\n' '[PASS] Backup restored into an isolated database at schema revision 0003.'

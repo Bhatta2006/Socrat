@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-29  
 **Overall local result:** PASS  
-**M1 milestone result:** NOT YET PASSED — external staging and operational gates remain
+**M1 milestone result:** COMPLETED by product-owner decision on 2026-09-30; external staging and operational evidence deferred
 
 ## Verified
 

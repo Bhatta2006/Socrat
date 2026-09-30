@@ -20,6 +20,7 @@ from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
 from socrat.models import User
+from socrat.skill_pack_api import register_skill_pack_routes
 
 logger = logging.getLogger("socrat.requests")
 
@@ -165,7 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def ready():
         try:
             with engine.connect() as connection:
-                if connection.scalar(text("SELECT version_num FROM alembic_version")) != "0001":
+                if connection.scalar(text("SELECT version_num FROM alembic_version")) != "0003":
                     raise ValueError("Schema mismatch")
         except Exception as exc:
             raise HTTPException(503, "database_not_ready") from exc
@@ -264,4 +265,5 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         return response
 
+    register_skill_pack_routes(app)
     return app

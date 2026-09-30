@@ -3,13 +3,17 @@ import path from 'node:path';
 
 const scripts = path.resolve('.venv', process.platform === 'win32' ? 'Scripts' : 'bin');
 const executable = (name: string) => `"${path.join(scripts, `${name}${process.platform === 'win32' ? '.exe' : ''}`)}"`;
+const webPort = Number(process.env.PLAYWRIGHT_WEB_PORT || '3000');
+const webOrigin = `http://127.0.0.1:${webPort}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
+  // The browser suite shares one migrated SQLite database across projects.
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: 'list',
-  use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure' },
+  use: { baseURL: webOrigin, trace: 'retain-on-failure' },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' } },
@@ -23,9 +27,9 @@ export default defineConfig({
       env: {
         SOCRAT_DATABASE_URL: 'sqlite:///socrat.e2e.db',
         SOCRAT_DEV_LOGIN_ENABLED: 'true',
-        SOCRAT_PUBLIC_ORIGIN: 'http://localhost:3000',
+        SOCRAT_PUBLIC_ORIGIN: webOrigin,
       },
     },
-    { command: 'npm run dev', url: 'http://localhost:3000', reuseExistingServer: !process.env.CI, timeout: 120_000 },
+    { command: `npm run dev --workspace @socrat/web -- --port ${webPort}`, url: webOrigin, reuseExistingServer: !process.env.CI, timeout: 120_000 },
   ],
 });

@@ -30,8 +30,8 @@ try {
     & docker @composeArguments exec -T postgres pg_restore -U socrat -d $smokeDatabase --exit-on-error $remoteArchive
     if ($LASTEXITCODE -ne 0) { throw 'pg_restore failed.' }
     $revision = & docker @composeArguments exec -T postgres psql -U socrat -d $smokeDatabase -Atc 'SELECT version_num FROM alembic_version;'
-    if ($LASTEXITCODE -ne 0 -or $revision.Trim() -ne '0001') { throw 'Restored schema revision is invalid.' }
-    Write-Host '[PASS] Backup restored into an isolated database at schema revision 0001.'
+    if ($LASTEXITCODE -ne 0 -or $revision.Trim() -ne '0003') { throw 'Restored schema revision is invalid.' }
+    Write-Host '[PASS] Backup restored into an isolated database at schema revision 0003.'
 }
 finally {
     & docker @composeArguments exec -T postgres dropdb -U socrat --if-exists $smokeDatabase 2>$null

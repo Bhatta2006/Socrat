@@ -1,6 +1,6 @@
 # M1 — Platform foundation
 
-**Status:** IN PROGRESS  
+**Status:** COMPLETED by product-owner decision on 2026-09-30; server-dependent verification deferred
 **Scope:** Monorepo, environments, delivery controls, identity/profile, feature flags, audit/outbox, API conventions, and base design system.
 
 ## Implemented and repository-verified
@@ -21,7 +21,7 @@
 - health-gated immutable release promotion, automatic recovery, explicit rollback, and Linux/Windows backup/restore tools;
 - GHCR multi-architecture publishing and GitHub artifact attestations after successful `main` verification.
 
-## Not represented as complete
+## Deferred verification
 
 - The managed identity provider has not been selected or tested.
 - OCI Hyderabad and the USD 55 planning ceiling are approved; Terraform validates locally, but no cloud resources have been created.
@@ -30,4 +30,4 @@
 - Telemetry configuration, dashboards, and alerts validate, but no external notification receiver has been approved or exercised.
 - Deploy and rollback behavior is unit-tested, but cannot be operationally demonstrated until an owned hostname, managed OIDC application, OCI compartment/access, and alert recipient exist.
 
-The authoritative decision is in [the M1 gate](m1-gate.md). Research and vendor choices are recorded in [M1 foundation research](../../research/m1-foundation-research.md).
+The closure decision and remaining evidence are in [the M1 gate](m1-gate.md). Research and vendor choices are recorded in [M1 foundation research](../../research/m1-foundation-research.md).

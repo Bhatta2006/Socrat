@@ -15,7 +15,12 @@ def make_engine(url: str):
     return engine
 
 
-def record_event(db: Session, actor_id: str, kind: str):
+def record_event(db: Session, actor_id: str, kind: str, target_id: str | None = None):
     """No commit here: event and domain mutation share their caller's transaction."""
-    db.add(AuditEvent(actor_id=actor_id, kind=kind))
-    db.add(OutboxEvent(kind=kind, payload={"schema_version": 1, "actor_id": actor_id}))
+    db.add(AuditEvent(actor_id=actor_id, kind=kind, target_id=target_id))
+    db.add(
+        OutboxEvent(
+            kind=kind,
+            payload={"schema_version": 1, "actor_id": actor_id, "target_id": target_id},
+        )
+    )
