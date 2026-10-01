@@ -11,26 +11,6 @@ def test_platform_factory_exists():
     assert importlib.util.find_spec("socrat") is not None, "M1 application package is missing"
 
 
-@pytest.fixture
-def platform(tmp_path):
-    from alembic import command
-    from alembic.config import Config
-    from fastapi.testclient import TestClient
-
-    from socrat.config import Settings
-    from socrat.main import create_app
-
-    url = f"sqlite:///{tmp_path / 'test.db'}"
-    config = Config("alembic.ini")
-    config.set_main_option("sqlalchemy.url", url)
-    command.upgrade(config, "head")
-    settings = Settings(database_url=url, environment="test", dev_login_enabled=True)
-    app = create_app(settings)
-    with TestClient(app, base_url="http://localhost:3000") as client:
-        yield app, client
-    app.state.engine.dispose()
-
-
 def login(client, subject="alice"):
     response = client.post(
         "/api/v1/auth/dev-login",
@@ -273,7 +253,7 @@ def test_migration_and_backup_restore(tmp_path):
     command.upgrade(config, "head")
     with sqlite3.connect(source) as db, sqlite3.connect(backup) as restored:
         db.backup(restored)
-        assert restored.execute("select version_num from alembic_version").fetchone()[0] == "0001"
+        assert restored.execute("select version_num from alembic_version").fetchone()[0] == "0003"
         assert restored.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     command.downgrade(config, "base")
     command.upgrade(config, "head")

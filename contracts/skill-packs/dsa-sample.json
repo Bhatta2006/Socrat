@@ -1,0 +1,982 @@
+{
+  "contract_version": 2,
+  "release_stage": "draft",
+  "key": "dsa",
+  "version": "0.1.0",
+  "name": "Data structures and algorithms",
+  "domain": "computer-science",
+  "evidence_modalities": [
+    "recognize",
+    "trace",
+    "explain",
+    "implement",
+    "analyze",
+    "transfer",
+    "retain"
+  ],
+  "language_adapters": [
+    {
+      "language": "python",
+      "tool": "code_execution",
+      "runtime_key": "python-pending-m6"
+    },
+    {
+      "language": "cpp",
+      "tool": "code_execution",
+      "runtime_key": "cpp-pending-m6"
+    },
+    {
+      "language": "java",
+      "tool": "code_execution",
+      "runtime_key": "java-pending-m6"
+    }
+  ],
+  "concepts": [
+    {
+      "key": "language-readiness",
+      "name": "Language readiness",
+      "competency": "Demonstrate language readiness on an unfamiliar task",
+      "scope": "Foundational language readiness tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply language readiness and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "debugging",
+      "name": "Debugging and testing",
+      "competency": "Demonstrate debugging and testing on an unfamiliar task",
+      "scope": "Foundational debugging and testing tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply debugging and testing and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "language-readiness",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "language-readiness supports debugging"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "complexity",
+      "name": "Complexity analysis",
+      "competency": "Demonstrate complexity analysis on an unfamiliar task",
+      "scope": "Foundational complexity analysis tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply complexity analysis and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "analyze"
+      ],
+      "prerequisites": [
+        {
+          "key": "language-readiness",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "language-readiness supports complexity"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "arrays",
+      "name": "Arrays and strings",
+      "competency": "Demonstrate arrays and strings on an unfamiliar task",
+      "scope": "Foundational arrays and strings tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply arrays and strings and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "language-readiness",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "language-readiness supports arrays"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "hash-maps",
+      "name": "Hash maps and sets",
+      "competency": "Demonstrate hash maps and sets on an unfamiliar task",
+      "scope": "Foundational hash maps and sets tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply hash maps and sets and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "arrays",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "arrays supports hash-maps"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "binary-search",
+      "name": "Binary search",
+      "competency": "Demonstrate binary search on an unfamiliar task",
+      "scope": "Foundational binary search tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply binary search and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "complexity",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "complexity supports binary-search"
+        },
+        {
+          "key": "arrays",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "arrays supports binary-search"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "two-pointers",
+      "name": "Two pointers",
+      "competency": "Demonstrate two pointers on an unfamiliar task",
+      "scope": "Foundational two pointers tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply two pointers and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "arrays",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "arrays supports two-pointers"
+        },
+        {
+          "key": "hash-maps",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "hash-maps supports two-pointers"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "recursion",
+      "name": "Recursion and call stack",
+      "competency": "Demonstrate recursion and call stack on an unfamiliar task",
+      "scope": "Foundational recursion and call stack tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply recursion and call stack and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "language-readiness",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "language-readiness supports recursion"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "trees",
+      "name": "Tree traversal",
+      "competency": "Demonstrate tree traversal on an unfamiliar task",
+      "scope": "Foundational tree traversal tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply tree traversal and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "recursion",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "recursion supports trees"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "graphs",
+      "name": "Graph traversal",
+      "competency": "Demonstrate graph traversal on an unfamiliar task",
+      "scope": "Foundational graph traversal tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply graph traversal and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "trees",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "trees supports graphs"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "interview-tradeoffs",
+      "name": "Interview strategy tradeoffs",
+      "competency": "Demonstrate interview strategy tradeoffs on an unfamiliar task",
+      "scope": "Foundational interview strategy tradeoffs tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply interview strategy tradeoffs and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "analyze"
+      ],
+      "prerequisites": [
+        {
+          "key": "binary-search",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "binary-search supports interview-tradeoffs"
+        },
+        {
+          "key": "two-pointers",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "two-pointers supports interview-tradeoffs"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "number-theory",
+      "name": "Number theory basics",
+      "competency": "Demonstrate number theory basics on an unfamiliar task",
+      "scope": "Foundational number theory basics tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply number theory basics and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "complexity",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "complexity supports number-theory"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "prefix-sums",
+      "name": "Prefix sums",
+      "competency": "Demonstrate prefix sums on an unfamiliar task",
+      "scope": "Foundational prefix sums tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply prefix sums and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "arrays",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "arrays supports prefix-sums"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "greedy",
+      "name": "Greedy reasoning",
+      "competency": "Demonstrate greedy reasoning on an unfamiliar task",
+      "scope": "Foundational greedy reasoning tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply greedy reasoning and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "complexity",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "complexity supports greedy"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "dsu",
+      "name": "Disjoint set union",
+      "competency": "Demonstrate disjoint set union on an unfamiliar task",
+      "scope": "Foundational disjoint set union tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply disjoint set union and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "graphs",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "graphs supports dsu"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "shortest-paths",
+      "name": "Shortest paths",
+      "competency": "Demonstrate shortest paths on an unfamiliar task",
+      "scope": "Foundational shortest paths tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply shortest paths and explain the result"
+      ],
+      "evidence_modes": [
+        "trace",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "graphs",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "graphs supports shortest-paths"
+        },
+        {
+          "key": "greedy",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "greedy supports shortest-paths"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "dynamic-programming",
+      "name": "Dynamic programming",
+      "competency": "Demonstrate dynamic programming on an unfamiliar task",
+      "scope": "Foundational dynamic programming tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply dynamic programming and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "implement"
+      ],
+      "prerequisites": [
+        {
+          "key": "recursion",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "recursion supports dynamic-programming"
+        },
+        {
+          "key": "arrays",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "arrays supports dynamic-programming"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "contest-strategy",
+      "name": "Contest strategy",
+      "competency": "Demonstrate contest strategy on an unfamiliar task",
+      "scope": "Foundational contest strategy tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply contest strategy and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "analyze"
+      ],
+      "prerequisites": [
+        {
+          "key": "greedy",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "greedy supports contest-strategy"
+        },
+        {
+          "key": "prefix-sums",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "prefix-sums supports contest-strategy"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    }
+  ],
+  "goal_templates": [
+    {
+      "key": "foundations-goal",
+      "track": "foundations",
+      "outcome": "Demonstrate independent foundations DSA capability",
+      "required_concepts": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion"
+      ]
+    },
+    {
+      "key": "interview-goal",
+      "track": "interview",
+      "outcome": "Demonstrate independent interview DSA capability",
+      "required_concepts": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion",
+        "trees",
+        "graphs",
+        "interview-tradeoffs"
+      ]
+    },
+    {
+      "key": "competitive-goal",
+      "track": "competitive",
+      "outcome": "Demonstrate independent competitive DSA capability",
+      "required_concepts": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion",
+        "trees",
+        "graphs",
+        "interview-tradeoffs",
+        "number-theory",
+        "prefix-sums",
+        "greedy",
+        "dsu",
+        "shortest-paths",
+        "dynamic-programming",
+        "contest-strategy"
+      ]
+    }
+  ],
+  "track_policies": [
+    {
+      "key": "foundations",
+      "goal_keys": [
+        "foundations-goal"
+      ],
+      "required_concepts": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion"
+      ],
+      "optional_concepts": [],
+      "languages": [
+        "python",
+        "cpp",
+        "java"
+      ],
+      "difficulty_ceiling": 2
+    },
+    {
+      "key": "interview",
+      "goal_keys": [
+        "interview-goal"
+      ],
+      "required_concepts": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion",
+        "trees",
+        "graphs",
+        "interview-tradeoffs"
+      ],
+      "optional_concepts": [],
+      "languages": [
+        "python",
+        "cpp",
+        "java"
+      ],
+      "difficulty_ceiling": 5
+    },
+    {
+      "key": "competitive",
+      "goal_keys": [
+        "competitive-goal"
+      ],
+      "required_concepts": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion",
+        "trees",
+        "graphs",
+        "interview-tradeoffs",
+        "number-theory",
+        "prefix-sums",
+        "greedy",
+        "dsu",
+        "shortest-paths",
+        "dynamic-programming",
+        "contest-strategy"
+      ],
+      "optional_concepts": [],
+      "languages": [
+        "python",
+        "cpp",
+        "java"
+      ],
+      "difficulty_ceiling": 8
+    }
+  ],
+  "coverage": [
+    {
+      "track": "foundations",
+      "language": "python",
+      "status": "draft"
+    },
+    {
+      "track": "foundations",
+      "language": "cpp",
+      "status": "draft"
+    },
+    {
+      "track": "foundations",
+      "language": "java",
+      "status": "draft"
+    },
+    {
+      "track": "interview",
+      "language": "python",
+      "status": "draft"
+    },
+    {
+      "track": "interview",
+      "language": "cpp",
+      "status": "draft"
+    },
+    {
+      "track": "interview",
+      "language": "java",
+      "status": "draft"
+    },
+    {
+      "track": "competitive",
+      "language": "python",
+      "status": "draft"
+    },
+    {
+      "track": "competitive",
+      "language": "cpp",
+      "status": "draft"
+    },
+    {
+      "track": "competitive",
+      "language": "java",
+      "status": "draft"
+    }
+  ],
+  "content": [
+    {
+      "key": "readiness-lesson",
+      "kind": "lesson",
+      "concept_keys": [
+        "language-readiness"
+      ],
+      "evidence_modes": [
+        "trace"
+      ],
+      "language_variants": [
+        "python",
+        "cpp",
+        "java"
+      ],
+      "title": "Trace a simple loop",
+      "source": {
+        "author": "Socrat learning design",
+        "license": "original",
+        "rights_checked_at": "2026-09-30"
+      },
+      "accessibility_notes": "Trace table has a text equivalent"
+    }
+  ],
+  "assessment_blueprints": [
+    {
+      "key": "foundations-baseline",
+      "track": "foundations",
+      "concept_keys": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion"
+      ],
+      "evidence_modes": [
+        "trace",
+        "explain",
+        "implement"
+      ]
+    },
+    {
+      "key": "interview-baseline",
+      "track": "interview",
+      "concept_keys": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion",
+        "trees",
+        "graphs",
+        "interview-tradeoffs"
+      ],
+      "evidence_modes": [
+        "trace",
+        "explain",
+        "implement"
+      ]
+    },
+    {
+      "key": "competitive-baseline",
+      "track": "competitive",
+      "concept_keys": [
+        "language-readiness",
+        "debugging",
+        "complexity",
+        "arrays",
+        "hash-maps",
+        "binary-search",
+        "two-pointers",
+        "recursion",
+        "trees",
+        "graphs",
+        "interview-tradeoffs",
+        "number-theory",
+        "prefix-sums",
+        "greedy",
+        "dsu",
+        "shortest-paths",
+        "dynamic-programming",
+        "contest-strategy"
+      ],
+      "evidence_modes": [
+        "trace",
+        "explain",
+        "implement"
+      ]
+    }
+  ]
+}

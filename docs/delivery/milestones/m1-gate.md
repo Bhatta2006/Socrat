@@ -1,7 +1,7 @@
 # M1 gate — Platform foundation
 
-**Decision:** NOT YET PASSED  
-**Reason:** The local vertical slice is implemented and verified, but the milestone explicitly requires a real IaC-created staging environment and operational evidence.
+**Decision:** COMPLETED by product-owner exception on 2026-09-30; operational gate not yet passed
+**Reason:** The product owner directed M1 closure and M2 progression. The local vertical slice and hosted quality checks passed. A real IaC-created staging environment and operational evidence remain deferred; this decision does not assert those checks passed.
 
 | Exit criterion | Evidence | Result |
 |---|---|---|
@@ -15,7 +15,7 @@
 | Telemetry visible and actionable | Private Prometheus/Grafana configuration, dashboard, three alert rules, and runbook validate in hosted CI | Partial — real data and delivered notification test pending |
 | Human M0 obligations retained | M0 gate remains `NOT YET PASSED` | Pass — no false completion |
 
-## Inputs needed to finish the gate
+## Deferred server-dependent evidence
 
 1. Confirm the account is a persistent OCI tenancy and create a dedicated staging compartment in the Hyderabad home region.
 2. Provide an owned staging hostname (the final company name is not required), then approve managed identity and the alert-notification route after security/privacy review.
@@ -23,4 +23,4 @@
 4. Run the Terraform plan/apply, deployment, OIDC, PostgreSQL backup/restore, telemetry, and rollback drills; attach timestamps and immutable release IDs.
 5. Obtain named Engineering, Security/Privacy, and Operations sign-off.
 
-Local test success is necessary evidence, not a substitute for these operational gates.
+These checks remain open for later verification. The M1 closure is a scheduling decision, not evidence of staging readiness or permission to launch. M0's learner-pilot and accountable sign-off gates also remain open.

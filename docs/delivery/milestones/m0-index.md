@@ -6,7 +6,7 @@
 **Target duration:** Two weeks  
 **Normative parent:** [V1 product requirements](../../product/v1-product-requirements.md)
 
-M0 converts the V1 PRD into contracts that product, engineering, learning design, security, and operations can implement without inventing product behavior. Documents in this directory are normative for M1 unless a later architecture decision record explicitly supersedes them.
+M0 converts the V1 PRD into contracts that product, engineering, learning design, security, and operations can implement without inventing product behavior. Documents in this directory remain normative for later milestones unless a formally accepted, newer architecture decision record explicitly supersedes them.
 
 ## Deliverables
 

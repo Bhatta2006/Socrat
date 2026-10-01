@@ -1,0 +1,126 @@
+{
+  "contract_version": 2,
+  "release_stage": "draft",
+  "key": "argument-reasoning",
+  "version": "0.1.0",
+  "name": "Argument reasoning test fixture",
+  "domain": "critical-thinking",
+  "evidence_modalities": [
+    "explain",
+    "trace"
+  ],
+  "language_adapters": [],
+  "concepts": [
+    {
+      "key": "premises",
+      "name": "Identifying premises",
+      "competency": "Demonstrate identifying premises on an unfamiliar task",
+      "scope": "Foundational identifying premises tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply identifying premises and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "trace"
+      ],
+      "prerequisites": [],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    },
+    {
+      "key": "conclusions",
+      "name": "Identifying conclusions",
+      "competency": "Demonstrate identifying conclusions on an unfamiliar task",
+      "scope": "Foundational identifying conclusions tasks",
+      "exclusions": [
+        "Unreleased advanced variants"
+      ],
+      "objectives": [
+        "Apply identifying conclusions and explain the result"
+      ],
+      "evidence_modes": [
+        "explain",
+        "trace"
+      ],
+      "prerequisites": [
+        {
+          "key": "premises",
+          "threshold": 0.65,
+          "strength": "required",
+          "rationale": "premises supports conclusions"
+        }
+      ],
+      "misconceptions": [],
+      "mastery": {
+        "min_independent": 2,
+        "min_diverse_modes": 2,
+        "assessment_required": true,
+        "retention_days": 7
+      },
+      "expected_minutes": 45,
+      "accessibility_notes": "Provide a text equivalent for every trace or diagram",
+      "author": "Socrat learning design",
+      "provenance": "Original Socrat M2 draft concept map"
+    }
+  ],
+  "goal_templates": [
+    {
+      "key": "reasoning-goal",
+      "track": "foundations",
+      "outcome": "Identify premises and conclusions independently",
+      "required_concepts": [
+        "premises",
+        "conclusions"
+      ]
+    }
+  ],
+  "track_policies": [
+    {
+      "key": "foundations",
+      "goal_keys": [
+        "reasoning-goal"
+      ],
+      "required_concepts": [
+        "premises",
+        "conclusions"
+      ],
+      "optional_concepts": [],
+      "languages": [],
+      "difficulty_ceiling": 1
+    }
+  ],
+  "coverage": [
+    {
+      "track": "foundations",
+      "language": null,
+      "status": "draft"
+    }
+  ],
+  "content": [],
+  "assessment_blueprints": [
+    {
+      "key": "reasoning-check",
+      "track": "foundations",
+      "concept_keys": [
+        "premises",
+        "conclusions"
+      ],
+      "evidence_modes": [
+        "explain",
+        "trace"
+      ]
+    }
+  ]
+}
