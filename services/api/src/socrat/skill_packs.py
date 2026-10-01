@@ -311,7 +311,10 @@ def verify_concept_migration(previous: PackManifest, current: PackManifest) -> N
     mappings = {mapping.old_key: mapping for mapping in current.concept_mappings}
     if removed != mappings.keys():
         raise ValueError("concept migration must account for every removed key")
-    if current.migration_from_version is not None and current.migration_from_version != previous.version:
+    if (
+        current.migration_from_version is not None
+        and current.migration_from_version != previous.version
+    ):
         raise ValueError("concept migration source does not match active version")
     if removed and current.migration_from_version is None:
         raise ValueError("concept migration source does not match active version")

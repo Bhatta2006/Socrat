@@ -51,6 +51,10 @@ jobs:
       - run: uv run alembic upgrade head
         env:
           SOCRAT_DATABASE_URL: postgresql+psycopg://socrat:ci-only-password@127.0.0.1:5432/socrat
+      - name: Rehearse the M2 content lifecycle on PostgreSQL
+        run: uv run pytest services/api/tests/test_skill_pack_postgres.py -q -rs
+        env:
+          SOCRAT_M2_POSTGRES_TEST_URL: postgresql+psycopg://socrat:ci-only-password@127.0.0.1:5432/socrat
       - name: Exercise PostgreSQL backup and restore
         shell: bash
         run: |
