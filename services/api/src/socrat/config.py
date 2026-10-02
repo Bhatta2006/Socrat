@@ -2,11 +2,17 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import quote, urlparse
 
-from pydantic import SecretStr, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LOCAL_SESSION_SECRET = "local-development-only-change-before-deploy"
 LOCAL_DATABASE_URL = "sqlite:///socrat.local.db"
+
+
+class ContentAdminIdentity(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    issuer: str = Field(min_length=1, max_length=512)
+    subject: str = Field(min_length=1, max_length=255)
 
 
 def _read_secret_file(name: str, file_name: str) -> str:
@@ -74,6 +80,9 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
+    content_admin_identities: list[ContentAdminIdentity] = Field(
+        default_factory=list, max_length=100
+    )
     environment: Literal["development", "test", "staging", "production"] = "development"
     public_origin: str = "http://localhost:3000"
     session_secret: SecretStr = SecretStr(LOCAL_SESSION_SECRET)

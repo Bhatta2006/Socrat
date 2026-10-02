@@ -4,6 +4,12 @@
 **Reason:** The specification package exists, but representative learner validation and accountable sign-off require real people and have not occurred.  
 **Next review:** After 15 valid pilot sessions and disposition of all critical findings.
 
+## Owner update — 2026-10-02
+
+Sathish confirmed no learner sessions have happened yet. He will guide fifteen adults in India, targeting completion by 12 October 2026, with unpaid online/in-person sessions and written notes only. Private Google Drive records will be deleted 30 days after actual completion. Required track/language, beginner, and accessibility recruitment coverage was confirmed as achievable; the intended V1 scope was reconfirmed.
+
+Reviews will happen with reviewer identities kept private. No completed approval has been supplied. See the [pilot plan](../../research/m0-pilot-plan.md) and [private review record](../../research/m0-private-review-record-template.md). Privacy approval of the prepared notice is still required before recruitment. Confirmed arrangements do not pass learner-evidence or sign-off gates.
+
 ## Entry criteria
 
 | Criterion | Evidence | Result |
@@ -18,7 +24,7 @@
 | Gate | Required evidence | Current result |
 |---|---|---|
 | Representative validation | Five valid sessions each for Foundations, Interview, and Competitive; all nine track-language cells represented; participant log and recordings/notes consented | Blocked — recruitment and sessions not performed |
-| Testable concierge prototype | Goal, routing, diagnostic adaptation, daily plan, assistance classification, evidence explanation, and missed-day recovery | Pass — 13/13 model tests, 116/116 contract checks, browser golden journey; see validation report |
+| Testable concierge prototype | Goal, routing, diagnostic adaptation, daily plan, assistance classification, evidence explanation, and missed-day recovery | Pass — model/contract checks and recorded browser golden journey; see validation report |
 | Problem proof | At least 12/15 participants demonstrate the planning/help/proof problem without being led; at least 10/15 prefer the proposed loop to their current self-study workflow | Pending pilot |
 | Flow usability | At least 12/15 can state their confirmed goal and next action; at least 11/15 understand assisted vs independent evidence | Pending pilot |
 | Scope freeze | Product, Engineering, and Learning Design approve V1 must-have and not-V1 boundaries | Awaiting accountable sign-off |
@@ -35,6 +41,8 @@
 ## Required sign-off
 
 Names cannot be replaced by tool output or an AI-generated approval.
+
+Reviewer names may be held in a private register instead of this repository. Each approval must be attributable to an actual person and include date, decision, reviewed versions, and an opaque evidence reference accessible to authorized gate reviewers. Public rows remain pending until that evidence exists. Withholding names does not waive reviews.
 
 | Role | Accountable decision | Name | Date | Decision |
 |---|---|---|---|---|

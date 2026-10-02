@@ -1,0 +1,284 @@
+{
+  "schema_version": "1.0.0",
+  "key": "dsa",
+  "version": "1.1.0",
+  "domain": "data_structures_and_algorithms",
+  "title": "DSA kernel fixture",
+  "purpose": "fixture",
+  "change_log": "Synthetic clarity revision for immutable version and rollback tests.",
+  "modalities": [
+    "text",
+    "code"
+  ],
+  "languages": [
+    "python",
+    "cpp",
+    "java"
+  ],
+  "provenance": {
+    "author": "Socrat fixture authors",
+    "source": "Original synthetic M2 test content",
+    "license": "Internal test fixture; not licensed launch content",
+    "rights_reference": "fixture-original-work",
+    "attribution": "Socrat M2 fixture"
+  },
+  "concepts": [
+    {
+      "id": "sequence_iteration",
+      "title": "Sequence iteration",
+      "competency": "Explain and demonstrate sequence iteration.",
+      "explanation": "A small fixture for sequence iteration; not a validated lesson.",
+      "examples": [
+        "Explain a small example in your own words."
+      ],
+      "misconceptions": [
+        "Confusing a completed example with independent ability."
+      ],
+      "evidence_modes": [
+        "implement",
+        "trace",
+        "explain"
+      ],
+      "estimated_minutes": 10,
+      "accessibility": "Plain-text explanation; keyboard-compatible content."
+    },
+    {
+      "id": "linear_search",
+      "title": "Linear search",
+      "competency": "Explain and demonstrate linear search.",
+      "explanation": "A small fixture for linear search; not a validated lesson.",
+      "examples": [
+        "Explain a small example in your own words."
+      ],
+      "misconceptions": [
+        "Confusing a completed example with independent ability."
+      ],
+      "evidence_modes": [
+        "trace",
+        "explain",
+        "analyze"
+      ],
+      "estimated_minutes": 10,
+      "accessibility": "Plain-text explanation; keyboard-compatible content."
+    }
+  ],
+  "edges": [
+    {
+      "prerequisite": "sequence_iteration",
+      "concept": "linear_search",
+      "minimum_mastery": 0.7,
+      "rationale": "Searching a sequence requires reliable iteration."
+    }
+  ],
+  "goals": [
+    {
+      "id": "foundations",
+      "title": "foundations fixture goal",
+      "outcome": "Demonstrate a small sequence competency.",
+      "track_id": "foundations",
+      "required_fields": [
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone",
+        "language"
+      ]
+    },
+    {
+      "id": "interview",
+      "title": "interview fixture goal",
+      "outcome": "Demonstrate a small sequence competency.",
+      "track_id": "interview",
+      "required_fields": [
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone",
+        "language"
+      ]
+    },
+    {
+      "id": "competitive",
+      "title": "competitive fixture goal",
+      "outcome": "Demonstrate a small sequence competency.",
+      "track_id": "competitive",
+      "required_fields": [
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone",
+        "language"
+      ]
+    }
+  ],
+  "tracks": [
+    {
+      "id": "foundations",
+      "goals": [
+        "foundations"
+      ],
+      "concept_ids": [
+        "sequence_iteration",
+        "linear_search"
+      ],
+      "prerequisite_rule": "require_all",
+      "help_ceiling": 2,
+      "maximum_daily_minutes": 45
+    },
+    {
+      "id": "interview",
+      "goals": [
+        "interview"
+      ],
+      "concept_ids": [
+        "sequence_iteration",
+        "linear_search"
+      ],
+      "prerequisite_rule": "require_all",
+      "help_ceiling": 2,
+      "maximum_daily_minutes": 45
+    },
+    {
+      "id": "competitive",
+      "goals": [
+        "competitive"
+      ],
+      "concept_ids": [
+        "sequence_iteration",
+        "linear_search"
+      ],
+      "prerequisite_rule": "require_all",
+      "help_ceiling": 2,
+      "maximum_daily_minutes": 45
+    }
+  ],
+  "exercises": [
+    {
+      "id": "sum_sequence",
+      "title": "Sum a short sequence",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "inventory": "practice",
+      "modality": "code",
+      "evidence_mode": "implement",
+      "statement": "Return the integer sum of every element in the supplied sequence. An empty sequence has sum zero.",
+      "rubric": "The reference result is the integer sum; runtime execution is deferred to M6.",
+      "difficulty": 1,
+      "calibration": "uncalibrated",
+      "estimated_minutes": 10,
+      "family_id": "sum_practice",
+      "variants": [
+        {
+          "language": "python",
+          "adapter_version": "1.0.0",
+          "starter_code": "def solve(values):\n    pass",
+          "reference_solution": "def solve(values):\n    return sum(values)",
+          "interface": "Return the sum of a sequence of integers; fixture only.",
+          "runtime_ref": "fixture/python@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "time_limit_ms": 1000,
+          "memory_limit_mb": 128
+        },
+        {
+          "language": "cpp",
+          "adapter_version": "1.0.0",
+          "starter_code": "long long solve(const std::vector<int>& values);",
+          "reference_solution": "long long solve(const std::vector<int>& values) { long long total = 0; for (int value : values) total += value; return total; }",
+          "interface": "Return the sum of a sequence of integers; fixture only.",
+          "runtime_ref": "fixture/cpp@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "time_limit_ms": 1000,
+          "memory_limit_mb": 128
+        },
+        {
+          "language": "java",
+          "adapter_version": "1.0.0",
+          "starter_code": "static long solve(int[] values) { throw new UnsupportedOperationException(); }",
+          "reference_solution": "static long solve(int[] values) { long total = 0; for (int value : values) total += value; return total; }",
+          "interface": "Return the sum of a sequence of integers; fixture only.",
+          "runtime_ref": "fixture/java@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "time_limit_ms": 1000,
+          "memory_limit_mb": 128
+        }
+      ],
+      "tests": [
+        {
+          "input": "[1,2,3]",
+          "expected": "6",
+          "visibility": "public"
+        },
+        {
+          "input": "[]",
+          "expected": "0",
+          "visibility": "hidden"
+        },
+        {
+          "input": "[-2,2]",
+          "expected": "0",
+          "visibility": "hidden"
+        }
+      ],
+      "provenance": {
+        "author": "Socrat fixture authors",
+        "source": "Original synthetic M2 test content",
+        "license": "Internal test fixture; not licensed launch content",
+        "rights_reference": "fixture-original-work",
+        "attribution": "Socrat M2 fixture"
+      },
+      "accessibility": "Statement and examples available as plain text."
+    },
+    {
+      "id": "search_trace",
+      "title": "Explain a fresh search trace",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "inventory": "assessment",
+      "modality": "text",
+      "evidence_mode": "trace",
+      "statement": "List the indices inspected when searching [8,3,6] for 6, stopping at the first match.",
+      "rubric": "Expected trace: 0, 1, 2; explain why inspection stops at index 2.",
+      "difficulty": 1,
+      "calibration": "uncalibrated",
+      "estimated_minutes": 5,
+      "family_id": "search_assessment",
+      "variants": [],
+      "tests": [],
+      "provenance": {
+        "author": "Socrat fixture authors",
+        "source": "Original synthetic M2 test content",
+        "license": "Internal test fixture; not licensed launch content",
+        "rights_reference": "fixture-original-work",
+        "attribution": "Socrat M2 fixture"
+      },
+      "accessibility": "Plain-text trace; no timing requirement."
+    }
+  ],
+  "blueprints": [
+    {
+      "id": "search_diagnostic",
+      "kind": "diagnostic",
+      "exercise_ids": [
+        "search_trace"
+      ],
+      "concept_ids": [
+        "linear_search"
+      ],
+      "scoring": "human_rubric"
+    }
+  ],
+  "mastery_policy": {
+    "rule": "independent_unseen_and_delayed",
+    "minimum_independent": 2,
+    "minimum_families": 2,
+    "retention_days": 7,
+    "passive_weight": 0
+  },
+  "migration": {
+    "from_version": "1.0.0",
+    "concept_mapping": {
+      "sequence_iteration": "sequence_iteration",
+      "linear_search": "linear_search"
+    },
+    "rationale": "Concept meanings are retained; exercise wording is clarified."
+  }
+}

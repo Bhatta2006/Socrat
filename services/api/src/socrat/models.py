@@ -58,3 +58,39 @@ class DeliveredEvent(Base):
     __tablename__ = "delivered_events"
     event_id: Mapped[str] = mapped_column(ForeignKey("outbox_events.id"), primary_key=True)
     delivered_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class SkillPackVersion(Base):
+    __tablename__ = "skill_pack_versions"
+    __table_args__ = (UniqueConstraint("pack_key", "version"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    pack_key: Mapped[str] = mapped_column(String(64), index=True)
+    version: Mapped[str] = mapped_column(String(64))
+    domain: Mapped[str] = mapped_column(String(64))
+    payload: Mapped[dict] = mapped_column(JSON)
+    digest: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(32), default="draft")
+    author_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class SkillPackHead(Base):
+    __tablename__ = "skill_pack_heads"
+    pack_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    active_id: Mapped[str | None] = mapped_column(
+        ForeignKey("skill_pack_versions.id"), nullable=True
+    )
+    previous_id: Mapped[str | None] = mapped_column(
+        ForeignKey("skill_pack_versions.id"), nullable=True
+    )
+
+
+class ContentReview(Base):
+    __tablename__ = "content_reviews"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    version_id: Mapped[str] = mapped_column(ForeignKey("skill_pack_versions.id"), index=True)
+    actor_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    action: Mapped[str] = mapped_column(String(32))
+    evidence_reference: Mapped[str] = mapped_column(String(512))
+    reason: Mapped[str] = mapped_column(String(2000))
+    created_at: Mapped[int] = mapped_column(Integer, default=now)

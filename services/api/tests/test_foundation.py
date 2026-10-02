@@ -266,6 +266,8 @@ def test_migration_and_backup_restore(tmp_path):
     from alembic import command
     from alembic.config import Config
 
+    from socrat.schema_revision import SCHEMA_REVISION
+
     source = tmp_path / "source.db"
     backup = tmp_path / "backup.db"
     config = Config("alembic.ini")
@@ -273,7 +275,10 @@ def test_migration_and_backup_restore(tmp_path):
     command.upgrade(config, "head")
     with sqlite3.connect(source) as db, sqlite3.connect(backup) as restored:
         db.backup(restored)
-        assert restored.execute("select version_num from alembic_version").fetchone()[0] == "0001"
+        assert (
+            restored.execute("select version_num from alembic_version").fetchone()[0]
+            == SCHEMA_REVISION
+        )
         assert restored.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     command.downgrade(config, "base")
     command.upgrade(config, "head")

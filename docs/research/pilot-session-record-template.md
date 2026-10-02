@@ -2,6 +2,8 @@
 
 Copy this file outside the repository for each session. Use an opaque participant ID; never add direct identifiers or recording URLs to source control.
 
+For the October 2026 pilot, use written notes only and record recording consent as `Not requested; no recording`. Follow the [pilot plan](m0-pilot-plan.md) and record the actual deletion date, 30 days after pilot completion, privately.
+
 ## Session metadata
 
 | Field | Entry |
@@ -34,6 +36,7 @@ Copy this file outside the repository for each session. Use an opaque participan
 | Explained provisional mastery/uncertainty | Yes / No | |
 | Understood missed-day replanning | Yes / No | |
 | Chose product, current alternative, waitlist, or no action | Choice | |
+| Preferred proposed loop over current planning workflow | Yes / No | Reason stated without prompting |
 | Made a concrete 14-day follow-up commitment | Yes / No | |
 
 ## Facilitator interventions
@@ -56,4 +59,3 @@ List every unplanned explanation, correction, hint, technical workaround, or lea
 ## Facilitator synthesis
 
 Separate observation from interpretation. Do not infer ability, motivation, or demographic traits that were not directly relevant and consented.
-

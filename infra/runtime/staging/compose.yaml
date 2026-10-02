@@ -68,6 +68,7 @@ services:
       SOCRAT_ENVIRONMENT: staging
       SOCRAT_PUBLIC_ORIGIN: "https://${STAGING_HOST:?Set STAGING_HOST to owned DNS}"
       SOCRAT_DEV_LOGIN_ENABLED: "false"
+      SOCRAT_CONTENT_ADMIN_IDENTITIES: "${SOCRAT_CONTENT_ADMIN_IDENTITIES:-[]}"
       SOCRAT_SESSION_SECRET_FILE: /run/secrets/session_secret
       SOCRAT_OIDC_ISSUER: "${SOCRAT_OIDC_ISSUER:?Set the approved OIDC issuer}"
       SOCRAT_OIDC_CLIENT_ID: "${SOCRAT_OIDC_CLIENT_ID:?Set the staging OIDC client ID}"
@@ -80,6 +81,7 @@ services:
       - metrics_token
     networks:
       - backend
+      - identity-egress
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -289,6 +291,10 @@ secrets:
 
 networks:
   edge:
+  # OIDC discovery, token exchange, and signing keys require outbound access.
+  # This is not a destination allow-list; only the API joins this network.
+  identity-egress:
+    driver: bridge
   backend:
     internal: true
 

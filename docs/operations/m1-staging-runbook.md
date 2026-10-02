@@ -13,6 +13,7 @@ This runbook governs the first external environment. It does not authorize a Ter
 - The OCI host was created from the reviewed Terraform plan and cloud-init completed successfully.
 - An owned DNS name resolves to the host and ports 80/443 reach Caddy.
 - The approved OIDC application has the exact HTTPS callback URL and logout URL.
+- The API's dedicated outbound bridge can reach the approved OIDC discovery, token, and signing-key endpoints. Internal services remain isolated; the API publishes no host port. This bridge does not enforce a provider-only destination allow-list.
 - `/opt/socrat/runtime` contains the repository's `infra/runtime/staging` and `scripts/operations` trees from the release commit.
 - `/opt/socrat/secrets` contains the five files listed in the [runtime contract](../../infra/runtime/staging/README.md), owned by the deployment account with mode `0600`.
 - The operator can authenticate to GHCR without printing the token and has verified the server's SSH host key out of band.
@@ -84,7 +85,7 @@ bash scripts/operations/restore-smoke.sh \
   --env-file "$env_file"
 ```
 
-The success condition is schema revision `0001` in the isolated restore database. Record archive checksum, byte size, start/end UTC timestamps, release ID, and result. Uploading encrypted backups to the private OCI bucket and exercising download restoration remain mandatory before the milestone gate can pass; do not claim an off-host backup until that has been observed.
+The success condition is the expected schema revision in the isolated restore database: M2 uses `0002`. For historical M1 archives, pass `--expected-revision 0001` (PowerShell: `-ExpectedRevision 0001`). Record archive checksum, byte size, start/end UTC timestamps, release ID, and result. Uploading encrypted backups to the private OCI bucket and exercising download restoration remain mandatory before the milestone gate can pass; do not claim an off-host backup until that has been observed.
 
 ## Roll back
 
@@ -146,6 +147,8 @@ For the M1 gate, store a redacted evidence note under `docs/delivery/validation`
 - backup upload, isolated restore, checksum, and measured duration;
 - rollback release IDs and recovery duration;
 - dashboard screenshots or query results and a delivered test notification;
-- Engineering, Security/Privacy, and Operations approver names and UTC dates.
+- Engineering, Security/Privacy, and Operations decisions, reviewed versions, UTC dates, and opaque private evidence references. Actual approver identities and authenticated approvals may be held in a restricted register rather than published.
+
+Use the [staging evidence record](../delivery/validation/m1-staging-evidence.md) for redacted results, including PostgreSQL worker concurrency and off-host restoration. No live drill is marked passed before it is observed.
 
 The milestone remains `NOT YET PASSED` until every item is observed in the real staging environment.

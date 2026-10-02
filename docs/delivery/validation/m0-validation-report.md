@@ -1,5 +1,16 @@
 # M0 automated and prototype validation report
 
+## Revalidation — 2026-10-02
+
+After recording owner-confirmed pilot arrangements and preparing the execution plan, consent wording, and private review template:
+
+- Prototype model tests: **13 passed, 0 failed**.
+- Document and contract checks: **129 passed, 0 failed**. The count now includes the two new research documents.
+- No new browser journey or real learner session is claimed.
+- M0 remains **NOT YET PASSED**. Privacy notice approval, learner evidence, findings/retests, and five accountable role approvals remain outstanding. Reviewer names will be held privately.
+
+The evidence below is the historical 29 September run, including its original check count and browser observation.
+
 **Date:** 2026-09-29  
 **Scope:** Authored M0 contracts and disposable concierge prototype  
 **Overall automated result:** PASS  

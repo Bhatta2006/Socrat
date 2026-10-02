@@ -12,6 +12,8 @@
 ## Research
 
 - [M0 concierge pilot](research/concierge-pilot.md) — recruitment, protocol, observations, and pass criteria
+- [M0 pilot plan](research/m0-pilot-plan.md) — confirmed arrangements, recruitment targets, session checklist, and closeout
+- [Private review record](research/m0-private-review-record-template.md) — approval evidence with identities outside the repository
 - [Recruitment and consent template](research/pilot-recruitment-and-consent.md) — must be completed and privacy-approved before use
 - [Session record template](research/pilot-session-record-template.md) — copy outside the repository for each participant
 - [Pilot synthesis template](research/pilot-synthesis-template.md) — redacted aggregate evidence and decision
@@ -43,6 +45,8 @@ Current ADRs:
 ## Operations
 
 - [M1 staging runbook](operations/m1-staging-runbook.md) — immutable deploy, backup/restore, rollback, telemetry access, and incident response
+- [M1 account setup](operations/m1-account-setup.md) — confirmed hostname/account inputs and pending identity, DNS, and access configuration
+- [M2 content authoring](operations/m2-content-authoring.md) — schema validation, editorial API, publication, quarantine, and rollback
 - [`infra/runtime/staging`](../infra/runtime/staging/) — executable private-staging runtime contract
 
 ## Delivery
@@ -53,6 +57,10 @@ Current ADRs:
 - [M1 index](delivery/milestones/m1-index.md)
 - [M1 gate](delivery/milestones/m1-gate.md)
 - [M1 local validation report](delivery/validation/m1-validation-report.md)
+- [M1 staging evidence record](delivery/validation/m1-staging-evidence.md) — live drills and private sign-off references; not yet exercised
+- [M2 index](delivery/milestones/m2-index.md)
+- [M2 gate](delivery/milestones/m2-gate.md)
+- [M2 validation report](delivery/validation/m2-validation-report.md)
 
 ## Machine-readable contracts
 

@@ -4,6 +4,8 @@
 **Pilot version:**  
 **Analysis owners:** Product, Learning Design, Design/Research
 
+For the pilot planned by Sathish for completion by 12 October 2026, follow the [execution plan](m0-pilot-plan.md). No sessions or approvals have been completed. Keep this template unpopulated until real evidence is available; recruitment targets must not be entered as observed counts. Include anonymous totals for zero-experience Foundations learners and participants using/requesting an accommodation.
+
 ## Coverage
 
 | Track | Python | C++ | Java | Total valid |
@@ -45,9 +47,10 @@ List exact changes to goals, policies, metrics, content rules, threat model, ADR
 
 ## Sign-off
 
-| Role | Name | Decision | Date |
-|---|---|---|---|
-| Product | | | |
-| Learning Design | | | |
-| Design/Research | | | |
+Reviewer identities and authenticated decisions belong in the private register. Publish only the opaque evidence reference and reviewed version below; blank rows are not approvals.
 
+| Role | Private record ID | Reviewed version | Decision | Date |
+|---|---|---|---|---|
+| Product | | | | |
+| Learning Design | | | | |
+| Design/Research | | | | |

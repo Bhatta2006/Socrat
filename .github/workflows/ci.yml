@@ -48,6 +48,8 @@ jobs:
       - run: uv run ruff check services/api
       - run: uv run mypy services/api/src
       - run: uv run pytest --cov=socrat --cov-report=term-missing --cov-fail-under=85
+        env:
+          SOCRAT_TEST_POSTGRES_URL: postgresql+psycopg://socrat:ci-only-password@127.0.0.1:5432/socrat
       - run: uv run alembic upgrade head
         env:
           SOCRAT_DATABASE_URL: postgresql+psycopg://socrat:ci-only-password@127.0.0.1:5432/socrat

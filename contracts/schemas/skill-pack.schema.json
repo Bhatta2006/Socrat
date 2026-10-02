@@ -1,0 +1,810 @@
+{
+  "$defs": {
+    "Blueprint": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "diagnostic",
+            "baseline",
+            "weekly",
+            "final"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "exercise_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Exercise Ids",
+          "type": "array"
+        },
+        "concept_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Concept Ids",
+          "type": "array"
+        },
+        "scoring": {
+          "enum": [
+            "deterministic",
+            "human_rubric"
+          ],
+          "title": "Scoring",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "exercise_ids",
+        "concept_ids",
+        "scoring"
+      ],
+      "title": "Blueprint",
+      "type": "object"
+    },
+    "Concept": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "competency": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Competency",
+          "type": "string"
+        },
+        "explanation": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "examples": {
+          "items": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Examples",
+          "type": "array"
+        },
+        "misconceptions": {
+          "items": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Misconceptions",
+          "type": "array"
+        },
+        "evidence_modes": {
+          "items": {
+            "enum": [
+              "recognize",
+              "trace",
+              "explain",
+              "implement",
+              "analyze",
+              "transfer",
+              "retain"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "minItems": 1,
+          "title": "Evidence Modes",
+          "type": "array"
+        },
+        "estimated_minutes": {
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Estimated Minutes",
+          "type": "integer"
+        },
+        "accessibility": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Accessibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "competency",
+        "explanation",
+        "examples",
+        "misconceptions",
+        "evidence_modes",
+        "estimated_minutes",
+        "accessibility"
+      ],
+      "title": "Concept",
+      "type": "object"
+    },
+    "Edge": {
+      "additionalProperties": false,
+      "properties": {
+        "prerequisite": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Prerequisite",
+          "type": "string"
+        },
+        "concept": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Concept",
+          "type": "string"
+        },
+        "minimum_mastery": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Minimum Mastery",
+          "type": "number"
+        },
+        "rationale": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "prerequisite",
+        "concept",
+        "minimum_mastery",
+        "rationale"
+      ],
+      "title": "Edge",
+      "type": "object"
+    },
+    "Exercise": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "concept_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Concept Ids",
+          "type": "array"
+        },
+        "inventory": {
+          "enum": [
+            "practice",
+            "assessment"
+          ],
+          "title": "Inventory",
+          "type": "string"
+        },
+        "modality": {
+          "enum": [
+            "text",
+            "code"
+          ],
+          "title": "Modality",
+          "type": "string"
+        },
+        "evidence_mode": {
+          "enum": [
+            "recognize",
+            "trace",
+            "explain",
+            "implement",
+            "analyze",
+            "transfer",
+            "retain"
+          ],
+          "title": "Evidence Mode",
+          "type": "string"
+        },
+        "statement": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        },
+        "rubric": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Rubric",
+          "type": "string"
+        },
+        "difficulty": {
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Difficulty",
+          "type": "integer"
+        },
+        "calibration": {
+          "default": "uncalibrated",
+          "enum": [
+            "uncalibrated",
+            "reviewed"
+          ],
+          "title": "Calibration",
+          "type": "string"
+        },
+        "estimated_minutes": {
+          "maximum": 180,
+          "minimum": 1,
+          "title": "Estimated Minutes",
+          "type": "integer"
+        },
+        "family_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Family Id",
+          "type": "string"
+        },
+        "variants": {
+          "items": {
+            "$ref": "#/$defs/LanguageVariant"
+          },
+          "maxItems": 3,
+          "title": "Variants",
+          "type": "array"
+        },
+        "tests": {
+          "items": {
+            "$ref": "#/$defs/TestCase"
+          },
+          "maxItems": 1000,
+          "title": "Tests",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "accessibility": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Accessibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "concept_ids",
+        "inventory",
+        "modality",
+        "evidence_mode",
+        "statement",
+        "rubric",
+        "difficulty",
+        "estimated_minutes",
+        "family_id",
+        "provenance",
+        "accessibility"
+      ],
+      "title": "Exercise",
+      "type": "object"
+    },
+    "GoalTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "outcome": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Outcome",
+          "type": "string"
+        },
+        "track_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Track Id",
+          "type": "string"
+        },
+        "required_fields": {
+          "items": {
+            "enum": [
+              "target_date",
+              "days_per_week",
+              "minutes_per_session",
+              "timezone",
+              "language"
+            ],
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Required Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "outcome",
+        "track_id",
+        "required_fields"
+      ],
+      "title": "GoalTemplate",
+      "type": "object"
+    },
+    "LanguageVariant": {
+      "additionalProperties": false,
+      "properties": {
+        "language": {
+          "enum": [
+            "python",
+            "cpp",
+            "java"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "adapter_version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "starter_code": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Starter Code",
+          "type": "string"
+        },
+        "reference_solution": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Reference Solution",
+          "type": "string"
+        },
+        "interface": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Interface",
+          "type": "string"
+        },
+        "runtime_ref": {
+          "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
+          "title": "Runtime Ref",
+          "type": "string"
+        },
+        "time_limit_ms": {
+          "maximum": 30000,
+          "minimum": 10,
+          "title": "Time Limit Ms",
+          "type": "integer"
+        },
+        "memory_limit_mb": {
+          "maximum": 1024,
+          "minimum": 16,
+          "title": "Memory Limit Mb",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "language",
+        "starter_code",
+        "reference_solution",
+        "interface",
+        "runtime_ref",
+        "time_limit_ms",
+        "memory_limit_mb"
+      ],
+      "title": "LanguageVariant",
+      "type": "object"
+    },
+    "MasteryPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "const": "independent_unseen_and_delayed",
+          "default": "independent_unseen_and_delayed",
+          "title": "Rule",
+          "type": "string"
+        },
+        "minimum_independent": {
+          "maximum": 100,
+          "minimum": 2,
+          "title": "Minimum Independent",
+          "type": "integer"
+        },
+        "minimum_families": {
+          "maximum": 100,
+          "minimum": 2,
+          "title": "Minimum Families",
+          "type": "integer"
+        },
+        "retention_days": {
+          "maximum": 365,
+          "minimum": 1,
+          "title": "Retention Days",
+          "type": "integer"
+        },
+        "passive_weight": {
+          "const": 0,
+          "default": 0,
+          "title": "Passive Weight",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_independent",
+        "minimum_families",
+        "retention_days"
+      ],
+      "title": "MasteryPolicy",
+      "type": "object"
+    },
+    "Migration": {
+      "additionalProperties": false,
+      "properties": {
+        "from_version": {
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "From Version",
+          "type": "string"
+        },
+        "concept_mapping": {
+          "maxProperties": 1000,
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]{0,63}$": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            }
+          },
+          "title": "Concept Mapping",
+          "type": "object"
+        },
+        "rationale": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_version",
+        "concept_mapping",
+        "rationale"
+      ],
+      "title": "Migration",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Author",
+          "type": "string"
+        },
+        "source": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "license": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "License",
+          "type": "string"
+        },
+        "rights_reference": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Rights Reference",
+          "type": "string"
+        },
+        "attribution": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Attribution",
+          "type": "string"
+        }
+      },
+      "required": [
+        "author",
+        "source",
+        "license",
+        "rights_reference",
+        "attribution"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "TestCase": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "maxLength": 8000,
+          "minLength": 0,
+          "title": "Input",
+          "type": "string"
+        },
+        "expected": {
+          "maxLength": 8000,
+          "minLength": 0,
+          "title": "Expected",
+          "type": "string"
+        },
+        "visibility": {
+          "enum": [
+            "public",
+            "hidden"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input",
+        "expected",
+        "visibility"
+      ],
+      "title": "TestCase",
+      "type": "object"
+    },
+    "TrackPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "goals": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Goals",
+          "type": "array"
+        },
+        "concept_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Concept Ids",
+          "type": "array"
+        },
+        "prerequisite_rule": {
+          "const": "require_all",
+          "default": "require_all",
+          "title": "Prerequisite Rule",
+          "type": "string"
+        },
+        "help_ceiling": {
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Help Ceiling",
+          "type": "integer"
+        },
+        "maximum_daily_minutes": {
+          "maximum": 180,
+          "minimum": 1,
+          "title": "Maximum Daily Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "goals",
+        "concept_ids",
+        "help_ceiling",
+        "maximum_daily_minutes"
+      ],
+      "title": "TrackPolicy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "key": {
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+      "title": "Key",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "title": "Version",
+      "type": "string"
+    },
+    "domain": {
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+      "title": "Domain",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "purpose": {
+      "enum": [
+        "fixture",
+        "launch"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "change_log": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Change Log",
+      "type": "string"
+    },
+    "modalities": {
+      "items": {
+        "enum": [
+          "text",
+          "code"
+        ],
+        "type": "string"
+      },
+      "maxItems": 2,
+      "minItems": 1,
+      "title": "Modalities",
+      "type": "array"
+    },
+    "languages": {
+      "items": {
+        "enum": [
+          "python",
+          "cpp",
+          "java"
+        ],
+        "type": "string"
+      },
+      "maxItems": 3,
+      "title": "Languages",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "concepts": {
+      "items": {
+        "$ref": "#/$defs/Concept"
+      },
+      "maxItems": 1000,
+      "minItems": 1,
+      "title": "Concepts",
+      "type": "array"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/Edge"
+      },
+      "maxItems": 5000,
+      "title": "Edges",
+      "type": "array"
+    },
+    "goals": {
+      "items": {
+        "$ref": "#/$defs/GoalTemplate"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Goals",
+      "type": "array"
+    },
+    "tracks": {
+      "items": {
+        "$ref": "#/$defs/TrackPolicy"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Tracks",
+      "type": "array"
+    },
+    "exercises": {
+      "items": {
+        "$ref": "#/$defs/Exercise"
+      },
+      "maxItems": 5000,
+      "minItems": 1,
+      "title": "Exercises",
+      "type": "array"
+    },
+    "blueprints": {
+      "items": {
+        "$ref": "#/$defs/Blueprint"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Blueprints",
+      "type": "array"
+    },
+    "mastery_policy": {
+      "$ref": "#/$defs/MasteryPolicy"
+    },
+    "migration": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Migration"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "key",
+    "version",
+    "domain",
+    "title",
+    "purpose",
+    "change_log",
+    "modalities",
+    "languages",
+    "provenance",
+    "concepts",
+    "edges",
+    "goals",
+    "tracks",
+    "exercises",
+    "blueprints",
+    "mastery_policy"
+  ],
+  "title": "SkillPack",
+  "type": "object"
+}

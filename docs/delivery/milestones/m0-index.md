@@ -13,7 +13,8 @@ M0 converts the V1 PRD into contracts that product, engineering, learning design
 | Artifact | Purpose | State |
 |---|---|---|
 | [M0 gate](m0-gate.md) | Evidence-based entry and exit decision | In progress |
-| [Concierge pilot](../../research/concierge-pilot.md) | Fifteen-person validation protocol | Ready to recruit |
+| [Concierge pilot](../../research/concierge-pilot.md) | Fifteen-person validation protocol | Arrangements confirmed; privacy review and recruitment pending |
+| [Pilot execution plan](../../research/m0-pilot-plan.md) | Recruitment, session checklist, and closeout | Prepared 2026-10-02; completion target 2026-10-12 |
 | [Concierge prototype](../../../prototypes/concierge/) | Goal → routing → diagnostic → plan → help → evidence → recovery walkthrough | Built; automated and browser golden-path checks passing |
 | [Domain glossary](../../product/domain-glossary.md) | Shared product and learning vocabulary | Candidate |
 | [Goal templates](../../product/goal-templates.md) | Exact contracts for the three launch goals | Candidate |
@@ -23,7 +24,7 @@ M0 converts the V1 PRD into contracts that product, engineering, learning design
 | [Content standard](../../product/content-standard.md) | Authoring, review, release, and quarantine requirements | Candidate |
 | [Architecture decisions](../../architecture/adr/) | Binding technical boundaries | Candidate |
 | [Machine contract](../../../contracts/product/m0-contracts.json) | Testable product constants and policies | Candidate |
-| [M0 contract tests](../../../scripts/validation/test-m0-contracts.ps1) | Automated structural and consistency checks | 116/116 passing |
+| [M0 contract tests](../../../scripts/validation/test-m0-contracts.ps1) | Automated structural and consistency checks | Passing; current evidence in validation report |
 | [Validation report](../validation/m0-validation-report.md) | Reproducible automated and browser evidence | Passing; human gates excluded |
 
 ## Authority order

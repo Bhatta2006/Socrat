@@ -1,5 +1,13 @@
 # M1 local validation report
 
+## Closeout revalidation — 2026-10-02
+
+The API now has a dedicated outbound bridge for managed OIDC while internal services retain their isolated network and the API publishes no host port. The targeted staging/release suite passed **13 tests**. This establishes configuration and release-controller behavior only; no live Docker, OCI, or identity-provider drill is claimed.
+
+The workstation currently has a Docker client but no running Docker daemon, and GitHub CLI is not authenticated. The full locked Python environment has not been reproduced in this session. External account/domain/identity/notification inputs remain needed; see the [staging evidence record](m1-staging-evidence.md).
+
+The evidence below is the historical 29 September validation and hosted artifact record.
+
 **Date:** 2026-09-29  
 **Overall local result:** PASS  
 **M1 milestone result:** NOT YET PASSED — external staging and operational gates remain

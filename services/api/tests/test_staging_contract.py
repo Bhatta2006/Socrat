@@ -35,7 +35,16 @@ def test_staging_compose_uses_immutable_images_and_private_networks():
     assert "@sha256:" in services["web"]["image"]
     assert compose["networks"]["backend"]["internal"] is True
     assert services["postgres"]["networks"] == ["backend"]
-    assert services["api"]["networks"] == ["backend"]
+    assert services["api"]["networks"] == ["backend", "identity-egress"]
+    assert compose["networks"]["identity-egress"]["driver"] == "bridge"
+    assert not compose["networks"]["identity-egress"].get("internal", False)
+    assert {
+        name
+        for name, service in services.items()
+        if "identity-egress" in service.get("networks", [])
+    } == {"api"}
+    for name in {"postgres", "migrate", "worker", "web", "prometheus", "grafana"}:
+        assert services[name]["networks"] == ["backend"]
     assert services["web"]["networks"] == ["backend"]
     assert services["caddy"]["ports"] == ["80:80", "443:443", "443:443/udp"]
     assert services["grafana"]["ports"] == ["127.0.0.1:3001:3000"]

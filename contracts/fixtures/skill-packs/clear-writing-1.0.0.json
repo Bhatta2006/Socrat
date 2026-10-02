@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0.0",
+  "key": "clear_writing",
+  "version": "1.0.0",
+  "domain": "writing",
+  "title": "Clear writing kernel fixture",
+  "purpose": "fixture",
+  "change_log": "Non-DSA synthetic fixture; not launch content.",
+  "modalities": [
+    "text"
+  ],
+  "languages": [],
+  "provenance": {
+    "author": "Socrat fixture authors",
+    "source": "Original synthetic M2 test content",
+    "license": "Internal test fixture; not licensed launch content",
+    "rights_reference": "fixture-original-work",
+    "attribution": "Socrat M2 fixture"
+  },
+  "concepts": [
+    {
+      "id": "main_claim",
+      "title": "Main claim",
+      "competency": "Explain and demonstrate main claim.",
+      "explanation": "A small fixture for main claim; not a validated lesson.",
+      "examples": [
+        "Explain a small example in your own words."
+      ],
+      "misconceptions": [
+        "Confusing a completed example with independent ability."
+      ],
+      "evidence_modes": [
+        "recognize",
+        "explain"
+      ],
+      "estimated_minutes": 10,
+      "accessibility": "Plain-text explanation; keyboard-compatible content."
+    },
+    {
+      "id": "support_claim",
+      "title": "Supporting a claim",
+      "competency": "Explain and demonstrate supporting a claim.",
+      "explanation": "A small fixture for supporting a claim; not a validated lesson.",
+      "examples": [
+        "Explain a small example in your own words."
+      ],
+      "misconceptions": [
+        "Confusing a completed example with independent ability."
+      ],
+      "evidence_modes": [
+        "explain",
+        "analyze"
+      ],
+      "estimated_minutes": 10,
+      "accessibility": "Plain-text explanation; keyboard-compatible content."
+    }
+  ],
+  "edges": [
+    {
+      "prerequisite": "main_claim",
+      "concept": "support_claim",
+      "minimum_mastery": 0.7,
+      "rationale": "Identify a claim before judging whether evidence supports it."
+    }
+  ],
+  "goals": [
+    {
+      "id": "clear_argument",
+      "title": "Explain a clear argument",
+      "outcome": "Identify and support a claim.",
+      "track_id": "writing_basics",
+      "required_fields": [
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone"
+      ]
+    }
+  ],
+  "tracks": [
+    {
+      "id": "writing_basics",
+      "goals": [
+        "clear_argument"
+      ],
+      "concept_ids": [
+        "main_claim",
+        "support_claim"
+      ],
+      "prerequisite_rule": "require_all",
+      "help_ceiling": 1,
+      "maximum_daily_minutes": 20
+    }
+  ],
+  "exercises": [
+    {
+      "id": "identify_claim",
+      "title": "Find the main claim",
+      "concept_ids": [
+        "main_claim"
+      ],
+      "inventory": "practice",
+      "modality": "text",
+      "evidence_mode": "recognize",
+      "statement": "In 'Trees provide shade, so the courtyard should have trees', identify the recommendation.",
+      "rubric": "The recommendation is that the courtyard should have trees.",
+      "difficulty": 1,
+      "calibration": "uncalibrated",
+      "estimated_minutes": 5,
+      "family_id": "trees_practice",
+      "variants": [],
+      "tests": [],
+      "provenance": {
+        "author": "Socrat fixture authors",
+        "source": "Original synthetic M2 test content",
+        "license": "Internal test fixture; not licensed launch content",
+        "rights_reference": "fixture-original-work",
+        "attribution": "Socrat M2 fixture"
+      },
+      "accessibility": "Plain text without color-dependent information."
+    },
+    {
+      "id": "support_library",
+      "title": "Explain support for a claim",
+      "concept_ids": [
+        "support_claim"
+      ],
+      "inventory": "assessment",
+      "modality": "text",
+      "evidence_mode": "explain",
+      "statement": "Suggest one relevant piece of evidence for extending library opening hours.",
+      "rubric": "The evidence must relate directly to demand outside current opening hours.",
+      "difficulty": 1,
+      "calibration": "uncalibrated",
+      "estimated_minutes": 5,
+      "family_id": "library_assessment",
+      "variants": [],
+      "tests": [],
+      "provenance": {
+        "author": "Socrat fixture authors",
+        "source": "Original synthetic M2 test content",
+        "license": "Internal test fixture; not licensed launch content",
+        "rights_reference": "fixture-original-work",
+        "attribution": "Socrat M2 fixture"
+      },
+      "accessibility": "Plain text; allow breaks."
+    }
+  ],
+  "blueprints": [
+    {
+      "id": "writing_baseline",
+      "kind": "baseline",
+      "exercise_ids": [
+        "support_library"
+      ],
+      "concept_ids": [
+        "support_claim"
+      ],
+      "scoring": "human_rubric"
+    }
+  ],
+  "mastery_policy": {
+    "rule": "independent_unseen_and_delayed",
+    "minimum_independent": 2,
+    "minimum_families": 2,
+    "retention_days": 7,
+    "passive_weight": 0
+  },
+  "migration": null
+}

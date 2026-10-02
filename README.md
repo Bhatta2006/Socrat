@@ -6,6 +6,8 @@ Socrat is a deterministic-first personalized learning platform. V1 delivers Data
 
 M0 product validation remains in progress. The product owner authorized a scoped M1 engineering start while retaining the unpassed learner-pilot and human sign-off gates. The repository-side M1 foundation and hosted quality gates are implemented; cloud staging and operational proof remain pending in the [M1 gate](docs/delivery/milestones/m1-gate.md).
 
+On 2 October 2026, the owner chose Google sign-in and deferred the remaining M1 operational work to proceed with [M2 skill-pack engineering](docs/delivery/milestones/m2-index.md). The kernel includes declarative schemas, graph validation, immutable versioning, editorial review/release/quarantine APIs, and DSA/non-DSA fixtures. M0, M1, and the M2 staging/human gates remain unpassed.
+
 ## Repository map
 
 ```text
@@ -42,6 +44,7 @@ Future learning capabilities remain disabled until their milestone contracts and
 3. [M0 milestone index](docs/delivery/milestones/m0-index.md)
 4. [M0 gate](docs/delivery/milestones/m0-gate.md)
 5. [M1 platform foundation](docs/delivery/milestones/m1-index.md)
+6. [M2 skill-pack kernel](docs/delivery/milestones/m2-index.md)
 
 ## Run the M1 foundation
 
