@@ -391,7 +391,11 @@ def test_additive_migration_preserves_m1_identity_and_supports_development_downg
             ).fetchone()[0]
             == "Existing learner"
         )
-        assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0002"
+        from socrat.schema_revision import SCHEMA_REVISION
+
+        assert (
+            db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == SCHEMA_REVISION
+        )
     command.downgrade(config, "0001")
     with sqlite3.connect(database) as db:
         assert db.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 1

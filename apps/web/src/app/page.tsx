@@ -9,7 +9,7 @@ export default function Home() {
       <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-6 sm:px-8 sm:py-10">
         <header className="flex items-center justify-between border-b border-base-300 pb-5">
           <span className="text-lg font-bold tracking-tight">SOCRAT</span>
-          <span className="text-xs uppercase tracking-[0.18em] text-base-content/60">M1 foundation</span>
+          <span className="text-xs uppercase tracking-[0.18em] text-base-content/60">Learning workspace</span>
         </header>
 
         <section className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[1.1fr_0.9fr]">
@@ -28,8 +28,7 @@ export default function Home() {
         </section>
 
         <footer className="border-t border-base-300 pt-5 text-sm text-base-content/60">
-          This milestone establishes identity, profiles, auditability, and safe release controls. Learning sessions are
-          not enabled yet.
+          Choose and confirm your learning goal when onboarding is available. Learning sessions are not enabled yet.
         </footer>
       </div>
     </main>

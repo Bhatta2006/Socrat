@@ -5,7 +5,7 @@ archive=""
 compose_file="compose.yaml"
 project_name="socrat"
 env_file=""
-expected_revision="0002"
+expected_revision="0003"
 
 while (($#)); do
   case "$1" in

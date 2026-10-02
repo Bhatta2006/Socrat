@@ -61,6 +61,10 @@ Current ADRs:
 - [M2 index](delivery/milestones/m2-index.md)
 - [M2 gate](delivery/milestones/m2-gate.md)
 - [M2 validation report](delivery/validation/m2-validation-report.md)
+- [M3 index](delivery/milestones/m3-index.md)
+- [M3 gate](delivery/milestones/m3-gate.md)
+- [M3 validation report](delivery/validation/m3-validation-report.md)
+- [M3 onboarding operations](operations/m3-onboarding.md)
 
 ## Machine-readable contracts
 

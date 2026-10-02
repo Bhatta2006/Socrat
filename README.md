@@ -8,6 +8,8 @@ M0 product validation remains in progress. The product owner authorized a scoped
 
 On 2 October 2026, the owner chose Google sign-in and deferred the remaining M1 operational work to proceed with [M2 skill-pack engineering](docs/delivery/milestones/m2-index.md). The kernel includes declarative schemas, graph validation, immutable versioning, editorial review/release/quarantine APIs, and DSA/non-DSA fixtures. M0, M1, and the M2 staging/human gates remain unpassed.
 
+M3 onboarding and deterministic routing is implemented locally: reviewed goals, explicit target/language coverage, beginner bridges, version-pinned confirmation, and atomic funnel events. See the [M3 index](docs/delivery/milestones/m3-index.md) and [gate](docs/delivery/milestones/m3-gate.md). Onboarding is enabled in local Compose and defaults off in staging. No real launch content or completed hosted/staging M3 gate is claimed.
+
 ## Repository map
 
 ```text
@@ -45,6 +47,7 @@ Future learning capabilities remain disabled until their milestone contracts and
 4. [M0 gate](docs/delivery/milestones/m0-gate.md)
 5. [M1 platform foundation](docs/delivery/milestones/m1-index.md)
 6. [M2 skill-pack kernel](docs/delivery/milestones/m2-index.md)
+7. [M3 onboarding and routing](docs/delivery/milestones/m3-index.md)
 
 ## Run the M1 foundation
 

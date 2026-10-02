@@ -60,11 +60,19 @@ class TrackPolicy(Contract):
     maximum_daily_minutes: int = Field(ge=1, le=180)
 
 
+class ReleasedTarget(Contract):
+    outcome: Key
+    value: Text | None = None
+    role_level: Key | None = None
+    platform_or_format: Key | None = None
+
+
 class GoalTemplate(Contract):
     id: Key
     title: Text
     outcome: Text
     track_id: Key
+    released_targets: list[ReleasedTarget] = Field(default_factory=list, max_length=100)
     required_fields: list[
         Literal["target_date", "days_per_week", "minutes_per_session", "timezone", "language"]
     ] = Field(min_length=1, max_length=5)
@@ -289,8 +297,13 @@ class SkillPack(Contract):
         return ordered
 
     def canonical_json(self) -> str:
+        payload = self.model_dump(mode="json")
+        # Preserve pre-M3 immutable release digests. Empty target declarations add no coverage.
+        for goal in payload["goals"]:
+            if not goal["released_targets"]:
+                del goal["released_targets"]
         return json.dumps(
-            self.model_dump(mode="json"),
+            payload,
             sort_keys=True,
             separators=(",", ":"),
             ensure_ascii=False,

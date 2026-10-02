@@ -20,6 +20,7 @@ from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
 from socrat.models import User
+from socrat.onboarding.routes import router as onboarding_router
 from socrat.schema_revision import SCHEMA_REVISION
 from socrat.skillpacks.routes import router as skill_pack_router
 
@@ -78,6 +79,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.settings = settings
     app.include_router(skill_pack_router)
+    app.include_router(onboarding_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -158,6 +160,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, exc):
         # Never echo submitted profile values or auth credentials in errors.
+        if request.url.path.startswith("/api/v1/onboarding/"):
+            return error("input_confirmation_required", 422, request.state.request_id)
         return error("validation_failed", 422, request.state.request_id)
 
     @app.get("/api/health/live")
@@ -194,6 +198,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "learning_sessions": False,
             "dev_login": settings.dev_login_enabled,
             "oidc_login": bool(settings.oidc_issuer),
+            "onboarding": settings.onboarding_enabled,
         }
 
     @app.post("/api/v1/auth/dev-login")

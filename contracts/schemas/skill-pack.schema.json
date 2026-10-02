@@ -344,6 +344,14 @@
           "title": "Track Id",
           "type": "string"
         },
+        "released_targets": {
+          "items": {
+            "$ref": "#/$defs/ReleasedTarget"
+          },
+          "maxItems": 100,
+          "title": "Released Targets",
+          "type": "array"
+        },
         "required_fields": {
           "items": {
             "enum": [
@@ -555,6 +563,61 @@
         "attribution"
       ],
       "title": "Provenance",
+      "type": "object"
+    },
+    "ReleasedTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Outcome",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "role_level": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role Level"
+        },
+        "platform_or_format": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Platform Or Format"
+        }
+      },
+      "required": [
+        "outcome"
+      ],
+      "title": "ReleasedTarget",
       "type": "object"
     },
     "TestCase": {

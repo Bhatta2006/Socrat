@@ -94,3 +94,14 @@ class ContentReview(Base):
     evidence_reference: Mapped[str] = mapped_column(String(512))
     reason: Mapped[str] = mapped_column(String(2000))
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class LearnerGoal(Base):
+    __tablename__ = "learner_goals"
+    __table_args__ = (UniqueConstraint("user_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    review_digest: Mapped[str] = mapped_column(String(64))
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    confirmation_at: Mapped[int] = mapped_column(Integer, default=now)

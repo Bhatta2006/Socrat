@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import Onboarding from './onboarding';
 
 type Profile = {
   id: string;
@@ -10,7 +11,7 @@ type Profile = {
   csrf_token: string;
 };
 
-type Features = { dev_login: boolean; oidc_login: boolean };
+type Features = { dev_login: boolean; oidc_login: boolean; onboarding: boolean };
 
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, credentials: 'same-origin' });
@@ -135,7 +136,7 @@ export default function Workspace() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-base-content/60">Account foundation</p>
               <h2 className="mt-2 text-2xl font-bold">Your profile</h2>
-              <p className="mt-2 text-sm leading-6 text-base-content/65">Only the identity and preferences layer is active in M1.</p>
+              <p className="mt-2 text-sm leading-6 text-base-content/65">Save your preferences before choosing a learning goal.</p>
             </div>
             <form className="space-y-5" onSubmit={save} noValidate>
               <fieldset className="fieldset">
@@ -146,7 +147,7 @@ export default function Workspace() {
               <label className="label cursor-pointer justify-start gap-3">
                 <input className="checkbox" type="checkbox" checked={adultConfirmed}
                   onChange={(event) => setAdultConfirmed(event.target.checked)} />
-                <span>I confirm I meet the age requirement for the future learner beta.</span>
+                <span>I confirm I am 18 or older.</span>
               </label>
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">Timezone</legend>
@@ -160,6 +161,7 @@ export default function Workspace() {
                 <button className="btn" type="button" onClick={logout} disabled={pending}>Sign out</button>
               </div>
             </form>
+            {features?.onboarding && <Onboarding csrfToken={profile.csrf_token} timezone={profile.timezone} adultConfirmed={profile.adult_confirmed} />}
           </>
         ) : (
           <>
