@@ -81,10 +81,17 @@ Current ADRs:
 - [M6 execution operations](operations/m6-execution.md)
 - [Execution threat model](security/execution-threat-model.md)
 
+- [M7 learning-session implementation](delivery/milestones/m7-index.md)
+- [M7 gate](delivery/milestones/m7-gate.md)
+- [M7 initial validation](delivery/validation/m7-validation-report.md)
+- [M7 learning-session operations](operations/m7-learning-sessions.md)
+
 ## Machine-readable contracts
 
 - [`contracts/product/m5-planning-policy.json`](../contracts/product/m5-planning-policy.json)
 - [`contracts/schemas/planning-command.schema.json`](../contracts/schemas/planning-command.schema.json)
+- [`contracts/schemas/learning-session-start.schema.json`](../contracts/schemas/learning-session-start.schema.json)
+- [`contracts/schemas/learning-session-command.schema.json`](../contracts/schemas/learning-session-command.schema.json)
 
 Machine contracts live outside `docs` so CI and application tooling can consume them directly:
 

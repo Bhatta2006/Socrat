@@ -127,6 +127,34 @@ class CurriculumHead(Base):
     status: Mapped[str] = mapped_column(String(32), default="draft")
 
 
+class LearningSession(Base):
+    __tablename__ = "learning_sessions"
+    __table_args__ = (UniqueConstraint("goal_id", "local_date"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"))
+    curriculum_id: Mapped[str] = mapped_column(ForeignKey("curriculum_revisions.id"))
+    pack_id: Mapped[str] = mapped_column(ForeignKey("skill_pack_versions.id"))
+    local_date: Mapped[str] = mapped_column(String(10))
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    progress: Mapped[list] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(32), default="in_progress")
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    completed_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class SessionCommand(Base):
+    __tablename__ = "session_commands"
+    __table_args__ = (UniqueConstraint("session_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    session_id: Mapped[str] = mapped_column(ForeignKey("learning_sessions.id"))
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    outcome: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
 class CodeAttempt(Base):
     __tablename__ = "code_attempts"
     __table_args__ = (UniqueConstraint("user_id", "idempotency_key"),)

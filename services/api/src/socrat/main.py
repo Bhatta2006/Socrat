@@ -21,6 +21,7 @@ from socrat.config import Settings
 from socrat.database import make_engine, record_event
 from socrat.diagnostics.routes import router as diagnostic_router
 from socrat.execution.routes import router as execution_router
+from socrat.learning.routes import router as learning_router
 from socrat.models import DiagnosticSession, User
 from socrat.onboarding.routes import router as onboarding_router
 from socrat.planning.routes import router as planning_router
@@ -86,6 +87,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(diagnostic_router)
     app.include_router(planning_router)
     app.include_router(execution_router)
+    app.include_router(learning_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -219,7 +221,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {
             "llm_advisor": False,
             "code_execution": settings.execution_enabled,
-            "learning_sessions": False,
+            "learning_sessions": settings.learning_sessions_enabled,
             "dev_login": settings.dev_login_enabled,
             "oidc_login": bool(settings.oidc_issuer),
             "onboarding": settings.onboarding_enabled,

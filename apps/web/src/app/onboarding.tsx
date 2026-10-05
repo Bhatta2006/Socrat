@@ -133,7 +133,7 @@ export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagno
       {review.reason_codes.map(reason => <p key={reason}>{reasons[reason] ?? 'Your chosen goal is supported.'}</p>)}
       {review.active_track && <p>Starting route: {label(review.active_track)}. First check: {label(review.first_diagnostic_stage ?? '')}.</p>}
       {review.warnings.length > 0 && <div className="alert alert-warning">This date may be too soon. Consider a later date, a smaller goal, or more practice time.</div>}
-      <p className="text-sm">Progress requires independent work and later checks. Job, interview and rating results are never guaranteed. Learning sessions are not available yet.</p>
+      <p className="text-sm">Progress requires independent work and later checks. Job, interview and rating results are never guaranteed.</p>
       <label className="label justify-start gap-3"><input type="checkbox" className="checkbox" checked={reviewed}
         onChange={event => setReviewed(event.target.checked)} />I reviewed this goal and starting route.</label>
       <div className="card-actions"><button type="button" className="btn btn-neutral" onClick={confirm}

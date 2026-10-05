@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import CodeWorkspace from './code-workspace';
+import TodaySession from './learning-session';
 
 type Block = { mode: string; minutes: number; title: string; timed: boolean; modality?: string; exercise_ids: string[] };
 type Plan = { revision: number; review_digest: string; status: string; feasibility: string;
@@ -25,6 +26,7 @@ const messages: Record<string, string> = {
 
 export default function Planner({ goalId, csrfToken }: { goalId: string; csrfToken: string }) {
   const [enabled, setEnabled] = useState(false);
+  const [sessionsEnabled, setSessionsEnabled] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -38,6 +40,7 @@ export default function Planner({ goalId, csrfToken }: { goalId: string; csrfTok
     fetch('/api/v1/features').then(response => response.json()).then(async features => {
       if (!active || !features.planning) return;
       setEnabled(true);
+      setSessionsEnabled(Boolean(features.learning_sessions));
       const response = await fetch(`/api/v1/goals/${goalId}/curriculum`);
       if (response.ok && active) {
         const value = await response.json(); setPlan(value);
@@ -71,10 +74,11 @@ export default function Planner({ goalId, csrfToken }: { goalId: string; csrfTok
   if (!enabled) return null;
   return <section className="card card-border mt-6" aria-label="Learning plan" aria-busy={pending}>
     <div className="card-body">
-      <h3 className="card-title">Your learning plan</h3>
+        <h3 className="card-title">Your learning plan</h3>
       {error && <div className="alert alert-error" role="alert">{error}</div>}
       {!plan ? <><p>Build the next two weeks from your saved evidence and available time.</p>
         <button className="btn" disabled={pending} onClick={() => act('generate')}>Create learning plan</button></> : <>
+        <TodaySession goalId={goalId} csrfToken={csrfToken} curriculumRevision={plan.revision} />
         <p role="status">{label(plan.status)} · {label(plan.feasibility)} · {plan.controller.workload_minutes} minutes per planned day</p>
         {plan.provisional && <p>Some skills have limited evidence. Future lessons stay locked until their prerequisites are verified.</p>}
         {plan.needs_refresh && <div className="alert">New evidence changed your readiness. Refresh your plan.</div>}
@@ -85,7 +89,7 @@ export default function Planner({ goalId, csrfToken }: { goalId: string; csrfTok
           <div className="card-body p-4"><h4 className="font-semibold">{day.date} · {label(day.status === 'draft' ? plan.status === 'confirmed' ? 'scheduled' : plan.status : day.status)}</h4>
             {day.status === 'content_gap' && <p>Waiting for reviewed practice that fits your readiness and time.</p>}
             {day.blocks.map(block => <p key={block.mode}>{label(block.mode)}: {block.title} · {block.minutes} min{block.timed ? ' · timed' : ''}</p>)}
-            {plan.status === 'confirmed' && day.date === plan.start_date && day.blocks.filter(block => block.mode === 'independent' && block.modality === 'code').map(block => <CodeWorkspace key={block.exercise_ids[0]} goalId={goalId} exerciseId={block.exercise_ids[0]} csrfToken={csrfToken} />)}
+            {!sessionsEnabled && plan.status === 'confirmed' && day.date === plan.start_date && day.blocks.filter(block => block.mode === 'independent' && block.modality === 'code').map(block => <CodeWorkspace key={block.exercise_ids[0]} goalId={goalId} exerciseId={block.exercise_ids[0]} csrfToken={csrfToken} />)}
             {day.deferred_reviews.length > 0 && <p>Reviews deferred within your time limit: {day.deferred_reviews.map(label).join(', ')}.</p>}
           </div></article>)}</div>
         <details><summary>Why this path</summary>{plan.nodes.map(node => <p key={node.concept_id}>{label(node.concept_id)}: {label(node.state)}{node.blocked_by.length ? `; first verify ${node.blocked_by.map(label).join(', ')}` : ''}.</p>)}</details>
@@ -102,7 +106,7 @@ export default function Planner({ goalId, csrfToken }: { goalId: string; csrfTok
         <button className="btn" disabled={pending} onClick={() => act('recover', { target_date: target || 'no_fixed_date' })}>Review revised date</button>
         <fieldset><legend>Practice days</legend><div className="flex flex-wrap gap-2">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => <button className="btn" type="button" aria-pressed={weekdays.includes(index)} key={day} onClick={() => setWeekdays(weekdays.includes(index) ? weekdays.filter(value => value !== index) : [...weekdays, index])}>{day}</button>)}</div></fieldset>
         <button className="btn" disabled={pending || weekdays.length < 3 || weekdays.length > 6} onClick={() => act('recover', { weekdays })}>Review practice days</button>
-        <p>Confirming a plan records your schedule. Independent submissions and full learning sessions become available with the learning workspace.</p>
+        <p>Confirming a plan records your schedule. Start today’s session to work through the selected practice.</p>
       </>}
     </div>
   </section>;

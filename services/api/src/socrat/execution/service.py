@@ -92,9 +92,15 @@ def create_attempt(
     diagnostic_attempt_id: str | None,
     settings: Settings,
     stamp: int,
+    learning_context: dict | None = None,
 ):
     request_digest = digest(
-        dict(goal_id=goal.id, exercise_id=exercise_id, diagnostic_attempt_id=diagnostic_attempt_id)
+        dict(
+            goal_id=goal.id,
+            exercise_id=exercise_id,
+            diagnostic_attempt_id=diagnostic_attempt_id,
+            **({"learning_context": learning_context} if learning_context else {}),
+        )
     )
     existing = db.scalar(
         select(CodeAttempt).where(
@@ -245,6 +251,7 @@ def create_attempt(
             diagnostic_attempt_id=diagnostic_attempt_id,
             hint_level=0,
             unseen=unseen,
+            **({"learning_context": learning_context} if learning_context else {}),
         ),
     )
     db.add(attempt)
@@ -274,6 +281,33 @@ def attempt_view(db: Session, attempt: CodeAttempt):
     )
 
 
+def create_upsolve_attempt(db, parent, session_id, index, settings, stamp):
+    """Internal repair of an already-issued practice item; never a new unseen item."""
+    pack, exercise = content(db, parent)
+    if exercise.inventory != "practice" or parent.snapshot["mode"] != "practice":
+        raise ExecutionError("protected_inventory", 403)
+    if parent.snapshot["runtime"]["image"] not in healthy_images(db, settings, stamp):
+        raise ExecutionError("sandbox_unavailable", 503)
+    draft = db.get(CodeDraft, parent.id)
+    assert draft is not None
+    context = dict(session_id=session_id, block_index=index, phase="upsolve", parent_id=parent.id)
+    attempt = CodeAttempt(
+        user_id=parent.user_id,
+        goal_id=parent.goal_id,
+        pack_id=parent.pack_id,
+        exercise_id=parent.exercise_id,
+        idempotency_key="session_" + session_id + "_upsolve",
+        request_digest=digest(context),
+        created_at=stamp,
+        snapshot={**parent.snapshot, "unseen": False, "learning_context": context},
+    )
+    db.add(attempt)
+    db.flush()
+    db.add(CodeDraft(attempt_id=attempt.id, source=draft.source, revision=0, updated_at=stamp))
+    record_event(db, parent.user_id, "execution.upsolve_created", attempt.id)
+    return attempt
+
+
 def enqueue(
     db: Session,
     attempt: CodeAttempt,
@@ -293,6 +327,11 @@ def enqueue(
         if existing.request_digest != request_digest:
             raise ExecutionError("idempotency_key_reused")
         return existing
+    from socrat.learning.admission import admission_error
+
+    rejection = admission_error(db, attempt, stamp, settings.learning_sessions_enabled)
+    if rejection:
+        raise ExecutionError(rejection)
     db.scalar(select(ExecutionCapacity).where(ExecutionCapacity.id == 1).with_for_update())
     pack, exercise = content(db, attempt)
     if attempt.snapshot["runtime"]["image"] not in healthy_images(db, settings, stamp):
@@ -552,6 +591,9 @@ def finalize(db: Session, worker_id: str, envelope: ResultEnvelope, settings: Se
         facts = facts_for(db, attempt.user_id)
         goal = db.get(LearnerGoal, attempt.goal_id)
         assert goal is not None
+        from socrat.learning.admission import solve_seconds
+
+        learner_seconds = solve_seconds(db, attempt, run.created_at)
         fact = EvidenceFact(
             event_id=identifier(),
             user_id=attempt.user_id,
@@ -569,7 +611,9 @@ def finalize(db: Session, worker_id: str, envelope: ResultEnvelope, settings: Se
             score=score,
             quality=evaluation.quality,
             hint_level=attempt.snapshot["hint_level"],
-            elapsed_seconds=float(min(2700, stamp - attempt.created_at)),
+            elapsed_seconds=learner_seconds
+            if learner_seconds is not None
+            else float(min(2700, stamp - attempt.created_at)),
             expected_seconds=float(exercise.estimated_minutes * 60),
             difficulty=exercise.difficulty,
             valid=True,

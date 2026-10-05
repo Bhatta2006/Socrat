@@ -80,6 +80,7 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
+    learning_sessions_enabled: bool = False
     execution_enabled: bool = False
     execution_signing_secret: SecretStr = SecretStr("")
     execution_worker_secret: SecretStr = SecretStr("")

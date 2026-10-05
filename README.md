@@ -16,6 +16,8 @@ M5 implements the deterministic curriculum and fourteen-day planner, with prereq
 
 M6 adds self-hosted Monaco, autosave/resume, a durable signed execution broker, quotas, and separate gVisor-only Python/C++20/Java21 workers. Verified Submit results feed learning evidence and diagnostics; Run never changes mastery. Execution stays disabled until attested runtime images, dedicated-host security/load tests, and external review pass. See the [M6 index](docs/delivery/milestones/m6-index.md), [gate](docs/delivery/milestones/m6-gate.md), and [operations guide](docs/operations/m6-execution.md).
 
+M7 implementation includes durable Today sessions with ordered blocks, pause/resume, pinned plans/content, session-owned code attempts, verified Submit advancement, and ungraded reflection. Competitive timed practice has server-enforced admission deadlines, a labelled untimed option, and error-classified upsolve that preserves saved source and the original timed outcome. Reviewed track-complete content and mixed/variant workflows remain pending. Local Compose enables sessions; staging defaults off. See the [M7 implementation status](docs/delivery/milestones/m7-index.md) and [gate](docs/delivery/milestones/m7-gate.md). Deferred M6 gVisor tests remain open.
+
 ## Repository map
 
 ```text

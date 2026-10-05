@@ -27,10 +27,17 @@ const messages: Record<string, string> = {
   attempt_already_submitted: 'This independent attempt has already been submitted. You can still run samples.',
   source_required: 'Add source code before running or submitting.',
   execution_content_withdrawn: 'This exercise is under review. Your code is preserved.',
+  timed_window_ended: 'The timed window has ended. Your code is saved; continue in upsolve.',
+  timed_block_not_started: 'Start the timed window before running or submitting.',
+  session_not_active: 'Resume your learning session before running or submitting.',
+  learning_sessions_unavailable: 'Learning sessions are temporarily unavailable. Your code is saved.',
+  session_block_locked: 'Complete the earlier session blocks before running this attempt.',
+  session_attempt_mismatch: 'This attempt belongs to an earlier session phase. Reload your session.',
+  session_day_ended: 'This session’s day has ended. Your saved code remains available.',
 };
 
-export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosticAttemptId, onSubmitted }: {
-  goalId: string; exerciseId: string; csrfToken: string; diagnosticAttemptId?: string; onSubmitted?: () => void;
+export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosticAttemptId, sessionAttemptId, executionDisabled = false, saveHandle, onSubmitted }: {
+  goalId: string; exerciseId: string; csrfToken: string; diagnosticAttemptId?: string; sessionAttemptId?: string; executionDisabled?: boolean; saveHandle?: { current: (() => Promise<void>) | null }; onSubmitted?: () => void;
 }) {
   const [enabled, setEnabled] = useState(false);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
@@ -61,8 +68,8 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
   async function open() {
     setPending(true); setError('');
     try {
-      const old = await request<{ items: { id: string; exercise_id: string; diagnostic_attempt_id: string | null }[] }>(`/api/v1/goals/${goalId}/code-attempts`);
-      const existing = old.items.find(item => item.exercise_id === exerciseId && item.diagnostic_attempt_id === (diagnosticAttemptId ?? null));
+      const old = sessionAttemptId ? { items: [] } : await request<{ items: { id: string; exercise_id: string; diagnostic_attempt_id: string | null }[] }>(`/api/v1/goals/${goalId}/code-attempts`);
+      const existing = sessionAttemptId ? { id: sessionAttemptId } : old.items.find(item => item.exercise_id === exerciseId && item.diagnostic_attempt_id === (diagnosticAttemptId ?? null));
       const value = existing ? await request<Attempt>(`/api/v1/attempts/${existing.id}`) :
         await request<Attempt>(`/api/v1/goals/${goalId}/code-attempts`, 'POST', { exercise_id: exerciseId,
           idempotency_key: creationKey.current, diagnostic_attempt_id: diagnosticAttemptId ?? null });
@@ -84,6 +91,14 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
     });
     saveChain.current = task; return task;
   }
+
+  useEffect(() => {
+    if (!saveHandle) return;
+    const save = () => autosave();
+    saveHandle.current = save;
+    return () => { if (saveHandle.current === save) saveHandle.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attempt?.id, saveHandle]);
 
   useEffect(() => {
     if (!attempt || !editorHost.current) return;
@@ -141,9 +156,9 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
         <p role="status">{status || 'Code saved.'}</p>
         <p>Samples: {attempt.samples.map((sample, index) => <span key={index}>{JSON.stringify(sample.input)} → {JSON.stringify(sample.expected)}. </span>)}</p>
         <label>Custom input <textarea className="textarea w-full" maxLength={8000} value={stdin} onChange={event => setStdin(event.target.value)} /></label>
-        <div className="flex flex-wrap gap-3"><button className="btn" disabled={pending} onClick={() => run('runs')}>Run samples</button>
-          <button className="btn" disabled={pending} onClick={() => run('runs', true)}>Run custom input</button>
-          <button className="btn" disabled={pending} onClick={() => run('submit')}>Submit independent attempt</button></div>
+        <div className="flex flex-wrap gap-3"><button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs')}>Run samples</button>
+          <button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs', true)}>Run custom input</button>
+          <button className="btn" disabled={pending || executionDisabled} onClick={() => run('submit')}>Submit independent attempt</button></div>
         <p>Sample runs do not change mastery. Hidden-test inputs and output are kept private.</p>
         {history.map(item => <article className="card card-border" key={item.id}><div className="card-body p-3"><p>{item.mode} · {item.status}</p>
           {item.result?.operational_status === 'failed' && <p>Your code is preserved. This execution produced no learning evidence.</p>}
