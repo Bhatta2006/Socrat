@@ -22,6 +22,7 @@ from socrat.models import (
 from socrat.planning.contracts import PlanCommand
 from socrat.planning.engine import build_plan
 from socrat.planning.policy import POLICY, POLICY_DIGEST
+from socrat.planning.sessions import SESSION_POLICY, SESSION_POLICY_DIGEST
 from socrat.skillpacks.service import load
 
 
@@ -232,7 +233,14 @@ def command(db: Session, goal: LearnerGoal, body: PlanCommand, as_of: int) -> di
             previous=previous_controller,
             missed_days=missed,
         )
+        if (
+            db.info.get("execution_settings")
+            and db.info["execution_settings"].learning_sessions_enabled
+        ):
+            replay_inputs["session_policy"] = SESSION_POLICY["version"]
         plan = build_plan(pack, **{**replay_inputs, "today": today})
+        if "session_policy" in replay_inputs:
+            plan["session_planning_policy"] = {**SESSION_POLICY, "digest": SESSION_POLICY_DIGEST}
         old_nodes = {x["concept_id"]: x for x in before["nodes"]} if before else {}
         plan.update(
             dict(

@@ -12,10 +12,12 @@ The second increment implements Competitive timed independent practice and post-
 
 Learners may choose `timing=untimed` when starting low-stakes practice. That choice is immutable and visibly labelled; it does not create timed-performance evidence or claim an approved assessment accommodation. Existing JSON storage at schema `0007` supports this increment without another migration.
 
+The third increment adds session planning policy `1.0.0`, pinned in new plans when learning sessions are enabled. Competitive sessions with at least 60 minutes of effective capacity select two different concept sets and problem families when safe reviewed inventory fits. Shorter sessions keep one primary problem. Verified sessions reserve 20% of their working budget for optional upsolve, within the existing weekly reserve. Every code block owns a separate attempt. Concept-gap, wrong-answer, and complexity repair can select a pinned reviewed task with matching concepts, no higher difficulty, a different family, and an estimate that fits the repair allocation. Other categories, or missing eligible inventory, retain the saved solution. Repair attempts are conservatively marked seen; family metadata does not prove structural novelty. Original drafts and timed outcomes remain preserved. Historical M5 plans replay with their original algorithm.
+
 ## Remaining implementation
 
 1. Reviewed language-foundation lessons and Interview pattern-specific session content, rather than relying solely on existing concept explanations/examples.
-2. Competitive mixed-problem sets, penalty policy, targeted variant selection, and planner budgeting for upsolve. Approved assessment accommodations remain with M9; this increment offers labelled untimed practice.
+2. Competitive penalty policy, reviewed structural-variant mappings, and mixed-set content coverage. Basic concept-matched repair selection and upsolve allocation are implemented; allocations are planning guides rather than hard repair deadlines. Approved assessment accommodations remain with M9; low-stakes practice offers a labelled untimed choice.
 3. Deterministic objective learning checks and their reviewed validators; qualitative explanation grading stays with M9.
 4. Historical-session resume/expiry policy and recovery integration; current-day session retrieval is implemented.
 5. Reviewed content-bank coverage audit and publication checks for all nine cells, with no dead ends and sufficient structural variants. Existing synthetic fixtures are not launch content.

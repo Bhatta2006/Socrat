@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import CodeWorkspace from './code-workspace';
 import TodaySession from './learning-session';
 
-type Block = { mode: string; minutes: number; title: string; timed: boolean; modality?: string; exercise_ids: string[] };
+type Block = { mode: string; minutes: number; upsolve_minutes?: number; title: string; timed: boolean; modality?: string; exercise_ids: string[] };
 type Plan = { revision: number; review_digest: string; status: string; feasibility: string;
   start_date: string;
   feasible_target_date: string; provisional: boolean; reason_codes: string[]; needs_refresh?: boolean;
@@ -88,7 +88,7 @@ export default function Planner({ goalId, csrfToken }: { goalId: string; csrfTok
         <div className="grid gap-3 sm:grid-cols-2">{plan.days.map(day => <article className="card card-border" key={day.date}>
           <div className="card-body p-4"><h4 className="font-semibold">{day.date} · {label(day.status === 'draft' ? plan.status === 'confirmed' ? 'scheduled' : plan.status : day.status)}</h4>
             {day.status === 'content_gap' && <p>Waiting for reviewed practice that fits your readiness and time.</p>}
-            {day.blocks.map(block => <p key={block.mode}>{label(block.mode)}: {block.title} · {block.minutes} min{block.timed ? ' · timed' : ''}</p>)}
+            {day.blocks.map((block, index) => <p key={index}>{label(block.mode)}: {block.title} · {block.minutes} min{block.timed ? ' · timed' : ''}{block.upsolve_minutes ? ` + ${block.upsolve_minutes} min optional upsolve` : ''}</p>)}
             {!sessionsEnabled && plan.status === 'confirmed' && day.date === plan.start_date && day.blocks.filter(block => block.mode === 'independent' && block.modality === 'code').map(block => <CodeWorkspace key={block.exercise_ids[0]} goalId={goalId} exerciseId={block.exercise_ids[0]} csrfToken={csrfToken} />)}
             {day.deferred_reviews.length > 0 && <p>Reviews deferred within your time limit: {day.deferred_reviews.map(label).join(', ')}.</p>}
           </div></article>)}</div>

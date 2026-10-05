@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // UI-shaped fixtures exercise timer/reload/editor handoff; Python tests enforce real broker admission.
-test('timed window survives reload and upsolve flushes the latest editor source', async ({ page }) => {
+for (const variant of [false, true]) test(`timed window survives reload and saves source before ${variant ? 'a repair variant' : 'upsolve'}`, async ({ page }) => {
   let serverNow = Math.floor(Date.now() / 1000);
   let deadline: number | undefined;
   let revision = 0;
@@ -13,14 +13,14 @@ test('timed window survives reload and upsolve flushes the latest editor source'
   let completed = false;
   const commands: Record<string, unknown>[] = [];
   const sessionView = () => ({ id: 'session', revision, status: completed ? 'completed' : 'in_progress',
-    local_date: '2026-10-05', track: 'competitive', language: 'python', planned_minutes: 6,
+    local_date: '2026-10-05', track: 'competitive', language: 'python', planned_minutes: 6, upsolve_reserved_minutes: 1,
     timing: 'standard', ...(phase === 'independent' ? { server_now: serverNow } : {}),
     blocks: [
-      { mode: phase, title: 'Double', minutes: 5, modality: 'code', timed: phase === 'independent',
-        status: completed ? 'submitted' : 'available', exercise_ids: ['exercise'],
+      { mode: phase, title: variant && phase === 'upsolve' ? 'Repair task' : 'Double', minutes: phase === 'upsolve' ? 1 : 5, modality: 'code', timed: phase === 'independent',
+        status: completed ? 'submitted' : 'available', exercise_ids: [variant && phase === 'upsolve' ? 'repair-exercise' : 'exercise'],
         attempt_id: phase === 'upsolve' ? 'repair' : 'parent',
         ...(deadline === undefined ? {} : { deadline_at: deadline }),
-        ...(phase === 'upsolve' ? { error_classification: 'time_pressure', timed_outcome: { outcome: 'timed_out' } } : {}),
+        ...(phase === 'upsolve' ? { error_classification: variant ? 'concept_gap' : 'time_pressure', repair_selection: variant ? 'concept_matched_variant' : 'saved_solution', timed_outcome: { outcome: 'timed_out' } } : {}),
         content: { prompt: 'Print twice the input.', explanations: [], examples: [] } },
     ],
   });
@@ -47,8 +47,9 @@ test('timed window survives reload and upsolve flushes the latest editor source'
       expect(body.expected_revision).toBe(revision);
       if (body.action === 'start_timed') { deadline = serverNow + 300; }
       else if (body.action === 'upsolve') {
-        expect(body.error_classification).toBe('time_pressure');
-        repairSource = source; phase = 'upsolve';
+        expect(body.error_classification).toBe(variant ? 'concept_gap' : 'time_pressure');
+        expect(source).toBe('# last unsaved edit before upsolve\n');
+        repairSource = variant ? '# repair starter\n' : source; phase = 'upsolve';
       }
       revision++; json = sessionView();
     } else if (pathname.endsWith('/draft')) {
@@ -70,6 +71,7 @@ test('timed window survives reload and upsolve flushes the latest editor source'
   await page.clock.install();
   await page.goto('/');
   const today = page.getByRole('region', { name: 'Today’s learning session' });
+  await expect(today.getByText('Includes 1 minutes reserved for optional upsolve.', { exact: false })).toBeVisible();
   await today.getByRole('button', { name: 'Start timed practice' }).click();
   await expect(today.getByRole('button', { name: 'Pause session' })).toBeDisabled();
   await page.reload();
@@ -84,9 +86,11 @@ test('timed window survives reload and upsolve flushes the latest editor source'
     const win = window as unknown as { monaco: { editor: { getModels: () => { setValue: (value: string) => void }[] } } };
     win.monaco.editor.getModels()[0].setValue('# last unsaved edit before upsolve\n');
   });
+  if (variant) await today.getByLabel('What should you repair?').selectOption('concept_gap');
   await today.getByRole('button', { name: 'Start upsolve' }).click();
-  await expect(today.getByRole('heading', { name: 'upsolve: Double' })).toBeVisible();
-  expect(repairSource).toBe('# last unsaved edit before upsolve\n');
+  await expect(today.getByRole('heading', { name: variant ? 'upsolve: Repair task' : 'upsolve: Double' })).toBeVisible();
+  expect(repairSource).toBe(variant ? '# repair starter\n' : '# last unsaved edit before upsolve\n');
+  if (variant) await expect(today.getByText('Your original solution stays saved.', { exact: false })).toBeVisible();
   await today.getByRole('button', { name: 'Open code editor' }).click();
   await expect(page.locator('.monaco-editor')).toBeVisible();
   await expect(today.getByRole('button', { name: 'Submit independent attempt' })).toBeEnabled();

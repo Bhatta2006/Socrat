@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "mixed_minimum_capacity": 60,
+  "maximum_problems": 2,
+  "upsolve_fraction": 0.2,
+  "repair_categories": ["concept_gap", "wrong_answer", "complexity"]
+}

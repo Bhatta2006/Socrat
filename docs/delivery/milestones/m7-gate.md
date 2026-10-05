@@ -5,7 +5,7 @@
 | Requirement | Current evidence | Remaining acceptance |
 |---|---|---|
 | Resumable Today sessions | Owned API, immutable pins, sequential blocks, pause/resume, receipts, linked Submit; local PostgreSQL concurrency checks | Deployed journeys, accessibility review |
-| Track-complete experience | Generic concept-based normal sessions; explicit server timing, untimed choice, error-classified upsolve | Reviewed Foundations language lessons, Interview pattern sessions, mixed Competitive sets/targeted variants and upsolve budgeting |
+| Track-complete experience | Generic concept-based normal sessions; server timing, untimed choice, mixed Competitive planning, optional repair budgets and concept-matched variants | Reviewed Foundations language lessons, Interview pattern sessions, structural-variant reviews and full mixed inventory coverage |
 | Nine track/language cells | Synthetic normal-session API tests | Full browser/staging golden journeys using reviewed inventory and approved runtimes |
 | Evidence boundaries | Passive/text/reflection produce no evidence; verified coding Submit only | Reviewed objective exit/retrieval checks; M9 qualitative workflow |
 | Content coverage | Existing pack contracts and withdrawn-content checks | Reviewed bank with no published dead ends; language semantic verification |

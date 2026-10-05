@@ -6,10 +6,10 @@ import CodeWorkspace from './code-workspace';
 type Block = { mode: string; title: string; minutes: number; modality: string; status: string;
   exercise_ids: string[]; attempt_id?: string;
   timed: boolean; deadline_at?: number; timed_outcome?: { outcome: string; score?: number };
-  error_classification?: string;
+  error_classification?: string; repair_selection?: string; upsolve_minutes?: number;
   content: { prompt: string; explanations: string[]; examples: string[] } };
 type LearningSession = { id: string; revision: number; status: string; local_date: string;
-  track: string; language: string; planned_minutes: number; timing: string; server_now?: number; blocks: Block[] };
+  track: string; language: string; planned_minutes: number; upsolve_reserved_minutes?: number; timing: string; server_now?: number; blocks: Block[] };
 const label = (value: string) => value.replaceAll('_', ' ');
 const messages: Record<string, string> = {
   plan_evidence_stale: 'New evidence changed your plan. Refresh and confirm it before starting.',
@@ -156,7 +156,8 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
         <button className="btn" disabled={pending} onClick={() => act('start')}>Start today’s session</button></> : <>
         <p role="status">{label(session.track)} · {session.language} · {session.planned_minutes} min · {label(session.status)}</p>
         {session.timing === 'untimed' && <p>Untimed practice</p>}
-        <ol className="space-y-1">{session.blocks.map(item => <li key={item.mode}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
+        {!!session.upsolve_reserved_minutes && <p>Includes {session.upsolve_reserved_minutes} minutes reserved for optional upsolve. Repair time is a planning guide; it does not start another timer.</p>}
+        <ol className="space-y-1">{session.blocks.map((item, index) => <li key={index}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
         {session.status === 'completed' && <p>Your learning session is complete. Reading and reflection do not prove mastery; coding results are recorded separately.</p>}
         {session.status === 'paused' && <button className="btn" disabled={pending} onClick={() => act('resume')}>Resume session</button>}
         {block && session.status === 'in_progress' && <>
@@ -166,7 +167,7 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
             <button className="btn" disabled={pending} onClick={() => act('start_timed')}>Start timed practice</button></>}
           {timed && !waitingForTimer && <p aria-label="Time remaining">{expired ? 'Timed window ended. Your code is saved.' : `Time remaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`}</p>}
           {block.timed_outcome && <p>Timed outcome: {label(block.timed_outcome.outcome)}</p>}
-          {block.mode === 'upsolve' && <p>Upsolve: repair your saved solution without the timer. This repeats a seen problem and does not create another timed result. Error category: {label(block.error_classification ?? '')}.</p>}
+          {block.mode === 'upsolve' && <p>{block.repair_selection === 'concept_matched_variant' ? 'Upsolve: practise the same concepts on a reviewed repair task. Your original solution stays saved.' : 'Upsolve: repair your saved solution.'} This phase has no timer and creates no additional timed result. Error category: {label(block.error_classification ?? '')}.</p>}
           {block.content.explanations.map((text, index) => <p className="whitespace-pre-wrap" key={index}>{text}</p>)}
           {block.content.examples.map((text, index) => <pre className="overflow-auto whitespace-pre-wrap" key={index}>{text}</pre>)}
           {!waitingForTimer && (code ? <><CodeWorkspace key={block.attempt_id} goalId={goalId} exerciseId={block.exercise_ids[0]}

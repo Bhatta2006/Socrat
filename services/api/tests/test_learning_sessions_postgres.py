@@ -26,6 +26,23 @@ from socrat.models import CodeAttempt, LearningSession, SessionCommand
 pytestmark = pytest.mark.skipif(not POSTGRES_URL, reason="No isolated PostgreSQL configured")
 
 
+def test_postgres_mixed_session_variants(postgres_kernel, monkeypatch):
+    from test_competitive_sets import (
+        test_mixed_session_repairs_are_pinned_owned_seen_and_independently_admitted as verify_mixed,
+    )
+
+    engine, _ = postgres_kernel
+    app = create_app(
+        Settings(
+            database_url=engine.url.render_as_string(hide_password=False),
+            environment="test",
+            dev_login_enabled=True,
+        )
+    )
+    with TestClient(app, base_url="http://localhost:3000") as client:
+        verify_mixed((app, client), monkeypatch, "python")
+
+
 def test_postgres_learning_session_and_receipts(postgres_kernel, monkeypatch):
     engine, _ = postgres_kernel
     app = create_app(

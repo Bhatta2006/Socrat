@@ -4,6 +4,7 @@ import math
 from datetime import date, timedelta
 
 from socrat.planning.policy import POLICY, TRACKS
+from socrat.planning.sessions import SESSION_POLICY, competitive_blocks
 from socrat.skillpacks.schema import SkillPack
 
 
@@ -98,7 +99,10 @@ def build_plan(
     missed_days: int = 0,
     code_execution: bool = False,
     runtime_refs: list[str] | None = None,
+    session_policy: str | None = None,
 ) -> dict:
+    if session_policy not in {None, SESSION_POLICY["version"]}:
+        raise ValueError("unsupported session planning policy")
     overlay = next(x for x in pack.tracks if x.id == track)
     capacity = min(
         minutes, overlay.maximum_daily_minutes, (previous or {}).get("workload_minutes", minutes)
@@ -340,7 +344,35 @@ def build_plan(
                     (x for x in blocks if x["mode"] != "independent"), key=lambda x: x["minutes"]
                 )
                 block["minutes"] -= 1
-            seen[item.id] = dict(count=exposure.get("count", 0) + 1, last_date=day.isoformat())
+            if session_policy and track == "competitive":
+                blocks = (
+                    competitive_blocks(
+                        candidates, states, capacity, work_capacity, concept_map, ready
+                    )
+                    or blocks
+                )
+            if session_policy and track == "competitive":
+                for block in blocks:
+                    if block["timed"]:
+                        block["timed"] = all(
+                            ready(states.get(key, {})) for key in block["concept_ids"]
+                        )
+            issued = {
+                key
+                for block in blocks
+                for key in [*block["exercise_ids"], block.get("repair_exercise_id")]
+                if key is not None
+            }
+            # Reserve variants conservatively: all items in an issued family age together.
+            families = {x.family_id for x in pack.exercises if x.id in issued}
+            for selected_item in pack.exercises:
+                if selected_item.id in issued or (
+                    session_policy and selected_item.family_id in families
+                ):
+                    seen[selected_item.id] = dict(
+                        count=seen.get(selected_item.id, {}).get("count", 0) + 1,
+                        last_date=day.isoformat(),
+                    )
         days_out.append(
             dict(
                 date=day.isoformat(),

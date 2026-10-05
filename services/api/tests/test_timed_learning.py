@@ -1,5 +1,8 @@
 """Synthetic ready Competitive learners; no claim of live runtime/content acceptance."""
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import pytest
 from m6_support import profiles, setup
 from sqlalchemy import select
@@ -21,10 +24,21 @@ from socrat.models import (
 from socrat.skillpacks.service import load
 
 
-def prepared(platform, monkeypatch, language="python", timing="standard"):
+def prepared(
+    platform, monkeypatch, language="python", timing="standard", minutes=30, ready_all=False
+):
+    # Keep duration tests away from local midnight; expiry is tested separately.
+    clock = [
+        int(
+            datetime.fromtimestamp(now(), ZoneInfo("Asia/Kolkata"))
+            .replace(hour=9, minute=0, second=0)
+            .timestamp()
+        )
+    ]
+    for route in ("learning", "execution", "planning", "diagnostics"):
+        monkeypatch.setattr(f"socrat.{route}.routes.now", lambda: clock[0])
     app, client, headers, worker, goal = setup(platform, monkeypatch, "competitive", language)
     app.state.settings.learning_sessions_enabled = True
-    clock = [now()]
     monkeypatch.setattr("socrat.learning.routes.now", lambda: clock[0])
     monkeypatch.setattr("socrat.execution.routes.now", lambda: clock[0])
     path = f"/api/v1/goals/{goal['id']}/curriculum"
@@ -32,8 +46,10 @@ def prepared(platform, monkeypatch, language="python", timing="standard"):
     with Session(app.state.engine) as db, db.begin():
         owner = db.get(LearnerGoal, goal["id"])
         record = db.get(SkillPackVersion, plan["pack_id"])
-        root = load(record).topological_order()[0]
-        for index in range(10):
+        roots = (
+            load(record).topological_order() if ready_all else load(record).topological_order()[:1]
+        )
+        for index in range(10 * len(roots)):
             sequence = len(facts_for(db, owner.user_id)) + 1
             append_fact(
                 db,
@@ -47,7 +63,7 @@ def prepared(platform, monkeypatch, language="python", timing="standard"):
                     goal_id=goal["id"],
                     pack_id=record.id,
                     pack_digest=record.digest,
-                    concept_ids=[root],
+                    concept_ids=[roots[index // 10]],
                     track="competitive",
                     language=language,
                     family_id=f"ready_family_{index}",
@@ -61,6 +77,7 @@ def prepared(platform, monkeypatch, language="python", timing="standard"):
             action="refresh",
             expected_revision=plan["revision"],
             idempotency_key="ready-plan",
+            minutes=minutes,
         ),
     )
     assert refreshed.status_code == 200, refreshed.text

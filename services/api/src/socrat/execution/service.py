@@ -281,7 +281,7 @@ def attempt_view(db: Session, attempt: CodeAttempt):
     )
 
 
-def create_upsolve_attempt(db, parent, session_id, index, settings, stamp):
+def create_upsolve_attempt(db, parent, session_id, index, settings, stamp, repair_id=None):
     """Internal repair of an already-issued practice item; never a new unseen item."""
     pack, exercise = content(db, parent)
     if exercise.inventory != "practice" or parent.snapshot["mode"] != "practice":
@@ -290,20 +290,67 @@ def create_upsolve_attempt(db, parent, session_id, index, settings, stamp):
         raise ExecutionError("sandbox_unavailable", 503)
     draft = db.get(CodeDraft, parent.id)
     assert draft is not None
+    source, runtime = draft.source, parent.snapshot["runtime"]
+    if repair_id:
+        from socrat.models import LearningSession
+
+        session = db.get(LearningSession, session_id)
+        if (
+            session is None
+            or session.snapshot["blocks"][index].get("repair_exercise_id") != repair_id
+        ):
+            raise ExecutionError("session_attempt_mismatch")
+        repair = next((x for x in pack.exercises if x.id == repair_id), None)
+        if (
+            repair is None
+            or repair.inventory != "practice"
+            or repair.calibration != "reviewed"
+            or repair.modality != "code"
+            or set(repair.concept_ids) != set(exercise.concept_ids)
+            or repair.difficulty > exercise.difficulty
+        ):
+            raise ExecutionError("exercise_not_available")
+        variant = next(
+            (x for x in repair.variants if x.language == parent.snapshot["language"]), None
+        )
+        profile = next(
+            (
+                x
+                for x in settings.execution_profiles
+                if variant
+                and x["language"] == variant.language
+                and x["image"] == variant.runtime_ref
+            ),
+            None,
+        )
+        if (
+            variant is None
+            or profile is None
+            or profile["image"] not in healthy_images(db, settings, stamp)
+        ):
+            raise ExecutionError("sandbox_unavailable", 503)
+        exercise = repair
+        runtime = RuntimeProfile.model_validate(profile).model_dump()
+        source = variant.starter_code
     context = dict(session_id=session_id, block_index=index, phase="upsolve", parent_id=parent.id)
     attempt = CodeAttempt(
         user_id=parent.user_id,
         goal_id=parent.goal_id,
         pack_id=parent.pack_id,
-        exercise_id=parent.exercise_id,
-        idempotency_key="session_" + session_id + "_upsolve",
+        exercise_id=exercise.id,
+        idempotency_key="session_" + session_id + "_" + str(index) + "_upsolve",
         request_digest=digest(context),
         created_at=stamp,
-        snapshot={**parent.snapshot, "unseen": False, "learning_context": context},
+        snapshot={
+            **parent.snapshot,
+            "runtime": runtime,
+            "unseen": False,
+            "learning_context": context,
+        },
     )
     db.add(attempt)
     db.flush()
-    db.add(CodeDraft(attempt_id=attempt.id, source=draft.source, revision=0, updated_at=stamp))
+    db.add(CodeDraft(attempt_id=attempt.id, source=source, revision=0, updated_at=stamp))
     record_event(db, parent.user_id, "execution.upsolve_created", attempt.id)
     return attempt
 

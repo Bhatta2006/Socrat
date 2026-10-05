@@ -114,11 +114,15 @@ def view(db: Session, session: LearningSession, stamp: int | None = None):
                     "Explain your approach, why it works, and what made this task difficult."
                 )
             else:
-                exercise = exercises[block["exercise_ids"][0]]
+                exercise = exercises[progress.get("upsolve_exercise_id", block["exercise_ids"][0])]
                 content["prompt"] = exercise.statement
         value = dict(**block, **progress, content=content)
         if progress.get("phase") == "upsolve":
             value.update(mode="upsolve", timed=False, attempt_id=progress.get("upsolve_attempt_id"))
+            if progress.get("upsolve_exercise_id"):
+                repair = exercises[progress["upsolve_exercise_id"]]
+                value.update(exercise_ids=[repair.id], title=repair.title)
+            value["minutes"] = block.get("upsolve_minutes", block["minutes"])
         elif block["timed"] and "deadline_at" in progress:
             value["timed_outcome"] = progress.get("timed_outcome") or timed_outcome(
                 db, progress, stamp
@@ -133,7 +137,12 @@ def view(db: Session, session: LearningSession, stamp: int | None = None):
         curriculum_revision=session.snapshot["curriculum_revision"],
         track=session.snapshot["track"],
         language=session.snapshot["language"],
-        planned_minutes=sum(x["minutes"] for x in session.snapshot["blocks"]),
+        planned_minutes=sum(
+            x["minutes"] + x.get("upsolve_minutes", 0) for x in session.snapshot["blocks"]
+        ),
+        upsolve_reserved_minutes=sum(
+            x.get("upsolve_minutes", 0) for x in session.snapshot["blocks"]
+        ),
         active_seconds=sum(x.get("active_seconds", 0) for x in session.progress),
         completed_at=session.completed_at,
         blocks=blocks,
@@ -183,7 +192,7 @@ def start(db, goal, revision, settings, stamp, timing="standard"):
                 db,
                 goal,
                 block["exercise_ids"][0],
-                "session_" + session_id,
+                "session_" + session_id + "_" + str(index),
                 None,
                 settings,
                 stamp,
@@ -287,8 +296,24 @@ def command(db, goal, session, body: SessionAction, stamp, settings=None):
             parent = db.get(CodeAttempt, step["attempt_id"])
             if settings is None:
                 raise SessionError("sandbox_unavailable", 503)
-            attempt = create_upsolve_attempt(db, parent, session.id, index, settings, stamp)
+            repair_id = (
+                block.get("repair_exercise_id")
+                if body.error_classification in {"concept_gap", "wrong_answer", "complexity"}
+                else None
+            )
+            attempt = create_upsolve_attempt(
+                db, parent, session.id, index, settings, stamp, repair_id
+            )
             step["upsolve_attempt_id"] = attempt.id
+            step["upsolve_exercise_id"] = attempt.exercise_id
+            step["repair_selection"] = "concept_matched_variant" if repair_id else "saved_solution"
+        elif block.get("repair_exercise_id") and body.error_classification in {
+            "concept_gap",
+            "wrong_answer",
+            "complexity",
+        }:
+            step["upsolve_exercise_id"] = block["repair_exercise_id"]
+            step["repair_selection"] = "concept_matched_variant"
         step["active_seconds"] += max(
             0, min(stamp, step["deadline_at"]) - step.get("started_at", stamp)
         )

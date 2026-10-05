@@ -132,6 +132,19 @@ def daily_plan(goal_id: str, request: Request, date: str | None = None):
             selected_ids = {key for block in plan["blocks"] for key in block["exercise_ids"]}
             families = {x.family_id for x in pack.exercises if x.id in selected_ids}
             independent = any(x.family_id in families and x.hint_level == 0 for x in practice)
+            if value.get("session_planning_policy"):
+                exercise_map = {x.id: x for x in pack.exercises}
+                groups = [
+                    {
+                        exercise_map[key].family_id
+                        for key in [*block["exercise_ids"], block.get("repair_exercise_id")]
+                        if key
+                    }
+                    for block in plan["blocks"]
+                    if block["mode"] == "independent"
+                ]
+                completed_families = {x.family_id for x in practice if x.hint_level == 0}
+                independent = bool(groups) and all(group & completed_families for group in groups)
             selected_concepts = {key for block in plan["blocks"] for key in block["concept_ids"]}
             exit_check = any(
                 x.hint_level == 0
