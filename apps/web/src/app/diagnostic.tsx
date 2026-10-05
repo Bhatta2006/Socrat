@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import Planner from './planner';
+import CodeWorkspace from './code-workspace';
 
 type ConceptState = { band: string; confidence: number; evidence_count: number; independent_count: number;
   assisted_count: number; reason_codes: string[]; missing_gates: string[];
@@ -11,7 +12,7 @@ type Result = { scope: string; placement_sufficient: boolean; full_placement: bo
 type Diagnostic = { id: string; status: string; revision: number; answered: number; scope: string;
   deadline_at: number; server_time: number; active_track: string; declared_track: string; result: Result | null;
   item: { attempt_id: string; title: string; statement: string; kind: string; position: number;
-    choices: { id: string; label: string }[] } | null };
+    choices: { id: string; label: string }[]; exercise_id: string } | null };
 const label = (value: string) => value.replaceAll('_', ' ');
 const messages: Record<string, string> = {
   diagnostic_coverage_unavailable: 'The diagnostic for this goal and language is not released yet.',
@@ -104,7 +105,9 @@ export default function DiagnosticFlow({ goalId, csrfToken, enabled }: {
       {session?.item && !session.result && <>
         <p aria-live="polite">{session.answered} answers saved. Item {session.item.position}.</p>
         <p>Time window ends at {new Date(session.deadline_at * 1000).toLocaleTimeString()}. Reload to check the latest saved state.</p>
-        <form onSubmit={event => submit(event)} className="space-y-4">
+        {session.item.kind === 'implementation' ? <><CodeWorkspace key={session.item.attempt_id} goalId={goalId} exerciseId={session.item.exercise_id} diagnosticAttemptId={session.item.attempt_id} csrfToken={csrfToken}
+          onSubmitted={() => { request<Diagnostic>(`/api/v1/diagnostics/${session.id}`).then(setSession).catch(err => setError((err as Error).message)); }} />
+          <button className="btn mt-3" type="button" disabled={pending || !enabled} onClick={() => submit(undefined, true)}>Report unclear item</button></> : <form onSubmit={event => submit(event)} className="space-y-4">
           <fieldset className="space-y-3" disabled={pending || !enabled}>
             <legend className="font-semibold">{session.item.title}</legend>
             <p className="whitespace-pre-wrap">{session.item.statement}</p>
@@ -119,7 +122,7 @@ export default function DiagnosticFlow({ goalId, csrfToken, enabled }: {
             <button className="btn" type="submit" disabled={pending || !enabled || !answer}>Save answer and continue</button>
             <button className="btn" type="button" disabled={pending || !enabled} onClick={() => submit(undefined, true)}>Report unclear item</button>
           </div>
-        </form>
+        </form>}
       </>}
       {session && !session.item && !session.result && <>
         <div className="alert" role="status">{session.status === 'ready_to_complete' ? 'Your available placement evidence is ready.'

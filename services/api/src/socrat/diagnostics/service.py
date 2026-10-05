@@ -174,8 +174,15 @@ def select_next(
         if exercise.family_id in families or exercise.calibration != "reviewed":
             continue
         if item.response.kind == "implementation":
-            blocked_runtime = True
-            continue
+            from socrat.execution.service import healthy_images
+
+            settings = db.info.get("execution_settings")
+            images = healthy_images(db, settings, as_of) if settings else []
+            if not any(
+                v.language == language and v.runtime_ref in images for v in exercise.variants
+            ):
+                blocked_runtime = True
+                continue
         if exercise.estimated_minutes * 60 > session.deadline_at - as_of:
             continue
         # Diagnostic probes may inspect unready prerequisites only within the authored blueprint.
@@ -344,6 +351,7 @@ def public_view(db: Session, session: DiagnosticSession, as_of: int) -> dict:
             "attempt_id": attempt.id,
             "title": exercise.title,
             "statement": exercise.statement,
+            "exercise_id": exercise.id,
             "kind": spec.response.kind,
             "choices": [choice.model_dump() for choice in spec.response.choices],
             "position": attempt.position,
@@ -401,6 +409,8 @@ def respond(db: Session, session: DiagnosticSession, body: dict, as_of: int) -> 
         withdrawn = False
     exercise = next(item for item in pack.exercises if item.id == attempts[-1].exercise_id)
     spec = next(item for item in definition.items if item.exercise_id == exercise.id).response
+    if spec.kind == "implementation" and not withdrawn and not body["report_problem"]:
+        raise DiagnosticError("implementation_requires_verified_submission", 422)
     answer = body["answer"]
     if (
         not withdrawn

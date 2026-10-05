@@ -83,4 +83,4 @@ def test_postgres_creation_response_and_replay_races(postgres_kernel):
             with pytest.raises(DBAPIError):
                 db.execute(update(LearningEvidence).values(payload={"tampered": True}))
             db.rollback()
-            assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0005"
+            assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0006"

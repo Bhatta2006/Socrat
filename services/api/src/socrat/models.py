@@ -127,6 +127,68 @@ class CurriculumHead(Base):
     status: Mapped[str] = mapped_column(String(32), default="draft")
 
 
+class CodeAttempt(Base):
+    __tablename__ = "code_attempts"
+    __table_args__ = (UniqueConstraint("user_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"))
+    pack_id: Mapped[str] = mapped_column(ForeignKey("skill_pack_versions.id"))
+    exercise_id: Mapped[str] = mapped_column(String(64))
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class CodeDraft(Base):
+    __tablename__ = "code_drafts"
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("code_attempts.id"), primary_key=True)
+    source: Mapped[str] = mapped_column(String(64000))
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class CodeRun(Base):
+    __tablename__ = "code_runs"
+    __table_args__ = (UniqueConstraint("attempt_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("code_attempts.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    client_key: Mapped[str] = mapped_column(String(64), index=True)
+    manifest: Mapped[dict] = mapped_column(JSON)
+    signature: Mapped[str] = mapped_column(String(64))
+    tests: Mapped[list] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(32), default="queued", index=True)
+    worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    lease_until: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    result_signature: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class CodeRunSource(Base):
+    __tablename__ = "code_run_sources"
+    run_id: Mapped[str] = mapped_column(ForeignKey("code_runs.id"), primary_key=True)
+    source: Mapped[str] = mapped_column(String(64000))
+
+
+class ExecutionWorker(Base):
+    __tablename__ = "execution_workers"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    images: Mapped[list] = mapped_column(JSON)
+    seen_at: Mapped[int] = mapped_column(Integer)
+
+
+class ExecutionCapacity(Base):
+    """Singleton lock serializes admission across learners and IP quotas."""
+
+    __tablename__ = "execution_capacity"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+
 class PlanningCommand(Base):
     __tablename__ = "planning_commands"
     __table_args__ = (UniqueConstraint("goal_id", "idempotency_key"),)

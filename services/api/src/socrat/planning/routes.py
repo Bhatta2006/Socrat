@@ -57,6 +57,7 @@ def boundary(exc):
 def mutate(goal_id: str, body: PlanCommand, request: Request):
     try:
         with Session(request.app.state.engine) as db, db.begin():
+            db.info["execution_settings"] = request.app.state.settings
             user_id = identity(request, db, True)
             return command(db, owned(db, goal_id, user_id), body, now())
     except (PlanningError, PackError, IntegrityError) as exc:

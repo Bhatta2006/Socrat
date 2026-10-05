@@ -63,6 +63,7 @@ class CorrectionInput(Contract):
 
 
 def identity(request: Request, db: Session, write: bool = False) -> str:
+    db.info["execution_settings"] = request.app.state.settings
     session = require_session(request, db)
     if write:
         if not request.app.state.settings.diagnostics_enabled:

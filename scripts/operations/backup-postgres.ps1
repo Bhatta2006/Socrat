@@ -8,16 +8,16 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-$outputRoot = if ([System.IO.Path]::IsPathFullyQualified($OutputDirectory)) {
+$outputRoot = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     [System.IO.Path]::GetFullPath($OutputDirectory)
 } else { [System.IO.Path]::GetFullPath((Join-Path $repoRoot $OutputDirectory)) }
-$composePath = if ([System.IO.Path]::IsPathFullyQualified($ComposeFile)) {
+$composePath = if ([System.IO.Path]::IsPathRooted($ComposeFile)) {
     [System.IO.Path]::GetFullPath($ComposeFile)
 } else { [System.IO.Path]::GetFullPath((Join-Path $repoRoot $ComposeFile)) }
 if (-not (Test-Path -LiteralPath $composePath -PathType Leaf)) { throw 'Compose file does not exist.' }
 $composeArguments = @('compose', '--project-name', $ProjectName)
 if ($EnvFile) {
-    $envPath = if ([System.IO.Path]::IsPathFullyQualified($EnvFile)) { $EnvFile } else { Join-Path $repoRoot $EnvFile }
+    $envPath = if ([System.IO.Path]::IsPathRooted($EnvFile)) { $EnvFile } else { Join-Path $repoRoot $EnvFile }
     $composeArguments += @('--env-file', [System.IO.Path]::GetFullPath($envPath))
 }
 $composeArguments += @('--file', $composePath)

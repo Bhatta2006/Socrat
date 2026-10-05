@@ -1,0 +1,21 @@
+[Unit]
+Description=Socrat isolated execution worker
+After=network-online.target docker.service
+
+[Service]
+User=socrat-execution
+Group=socrat-execution
+SupplementaryGroups=docker
+EnvironmentFile=/etc/socrat-execution/worker.env
+WorkingDirectory=/opt/socrat-execution
+ExecStart=/opt/socrat-execution/.venv/bin/python -m runner.worker
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

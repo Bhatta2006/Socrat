@@ -1,3 +1,3 @@
 """Supported schema heads for readiness and recovery checks."""
 
-SCHEMA_REVISION = "0005"
+SCHEMA_REVISION = "0006"

@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from socrat.database import record_event
+from socrat.execution.service import healthy_images
 from socrat.learnerstate.policy import digest
 from socrat.learnerstate.projector import state_key
 from socrat.learnerstate.service import facts_for, project
@@ -211,6 +212,13 @@ def command(db: Session, goal: LearnerGoal, body: PlanCommand, as_of: int) -> di
         if previous_controller is not None and body.minutes is not None:
             previous_controller["workload_minutes"] = minutes
         replay_inputs = dict(
+            code_execution=bool(
+                db.info.get("execution_settings")
+                and db.info["execution_settings"].execution_enabled
+            ),
+            runtime_refs=healthy_images(db, db.info["execution_settings"], as_of)
+            if db.info.get("execution_settings")
+            else [],
             track=goal.snapshot["active_track"],
             language=selected["language"],
             states=states,

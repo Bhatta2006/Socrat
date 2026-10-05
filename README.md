@@ -14,6 +14,8 @@ M4 adds resumable objective diagnostics, append-only evidence, deterministic lea
 
 M5 implements the deterministic curriculum and fourteen-day planner, with prerequisite-safe practice selection, immutable decisions/replay, confirmation, feasibility, workload controls, and missed-day recovery. Local Compose enables planning; staging defaults off. Code practice awaits M6 and full learning sessions await M7. See the [M5 index](docs/delivery/milestones/m5-index.md), [gate](docs/delivery/milestones/m5-gate.md), and [operations guide](docs/operations/m5-planning.md).
 
+M6 adds self-hosted Monaco, autosave/resume, a durable signed execution broker, quotas, and separate gVisor-only Python/C++20/Java21 workers. Verified Submit results feed learning evidence and diagnostics; Run never changes mastery. Execution stays disabled until attested runtime images, dedicated-host security/load tests, and external review pass. See the [M6 index](docs/delivery/milestones/m6-index.md), [gate](docs/delivery/milestones/m6-gate.md), and [operations guide](docs/operations/m6-execution.md).
+
 ## Repository map
 
 ```text

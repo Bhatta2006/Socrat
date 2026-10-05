@@ -1,0 +1,234 @@
+{
+  "$defs": {
+    "JobManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "pattern": "^[a-f0-9-]{36}$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "code_hash": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Code Hash",
+          "type": "string"
+        },
+        "compile_config": {
+          "additionalProperties": true,
+          "title": "Compile Config",
+          "type": "object"
+        },
+        "expires_at": {
+          "minimum": 0,
+          "title": "Expires At",
+          "type": "integer"
+        },
+        "image": {
+          "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
+          "title": "Image",
+          "type": "string"
+        },
+        "issued_at": {
+          "minimum": 0,
+          "title": "Issued At",
+          "type": "integer"
+        },
+        "job_id": {
+          "pattern": "^[a-f0-9-]{36}$",
+          "title": "Job Id",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "python",
+            "cpp",
+            "java"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        },
+        "mode": {
+          "enum": [
+            "run",
+            "submit"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "nonce": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Nonce",
+          "type": "string"
+        },
+        "pack_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Pack Digest",
+          "type": "string"
+        },
+        "runtime_id": {
+          "title": "Runtime Id",
+          "type": "string"
+        },
+        "test_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Test Digest",
+          "type": "string"
+        },
+        "version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "attempt_id",
+        "nonce",
+        "issued_at",
+        "expires_at",
+        "language",
+        "image",
+        "runtime_id",
+        "code_hash",
+        "test_digest",
+        "pack_digest",
+        "mode",
+        "limits",
+        "compile_config"
+      ],
+      "title": "JobManifest",
+      "type": "object"
+    },
+    "Limits": {
+      "additionalProperties": false,
+      "properties": {
+        "compile_seconds": {
+          "default": 15,
+          "maximum": 30,
+          "minimum": 1,
+          "title": "Compile Seconds",
+          "type": "integer"
+        },
+        "cpu_seconds": {
+          "default": 2,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Cpu Seconds",
+          "type": "integer"
+        },
+        "disk_mb": {
+          "default": 10,
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Disk Mb",
+          "type": "integer"
+        },
+        "memory_mb": {
+          "default": 256,
+          "maximum": 1024,
+          "minimum": 64,
+          "title": "Memory Mb",
+          "type": "integer"
+        },
+        "output_bytes": {
+          "default": 10000000,
+          "maximum": 10000000,
+          "minimum": 1024,
+          "title": "Output Bytes",
+          "type": "integer"
+        },
+        "pids": {
+          "default": 64,
+          "maximum": 128,
+          "minimum": 8,
+          "title": "Pids",
+          "type": "integer"
+        },
+        "wall_seconds": {
+          "default": 5,
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Wall Seconds",
+          "type": "integer"
+        }
+      },
+      "title": "Limits",
+      "type": "object"
+    },
+    "TestInput": {
+      "additionalProperties": false,
+      "properties": {
+        "expected": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected"
+        },
+        "input": {
+          "maxLength": 8000,
+          "title": "Input",
+          "type": "string"
+        },
+        "visibility": {
+          "enum": [
+            "public",
+            "hidden"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input",
+        "visibility"
+      ],
+      "title": "TestInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "manifest": {
+      "$ref": "#/$defs/JobManifest"
+    },
+    "signature": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Signature",
+      "type": "string"
+    },
+    "source": {
+      "maxLength": 64000,
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "tests": {
+      "items": {
+        "$ref": "#/$defs/TestInput"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Tests",
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest",
+    "signature",
+    "source",
+    "tests"
+  ],
+  "title": "JobEnvelope",
+  "type": "object"
+}

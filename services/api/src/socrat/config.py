@@ -80,6 +80,16 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
+    execution_enabled: bool = False
+    execution_signing_secret: SecretStr = SecretStr("")
+    execution_worker_secret: SecretStr = SecretStr("")
+    execution_signing_secret_file: str = ""
+    execution_worker_secret_file: str = ""
+    execution_profiles: list[dict] = Field(default_factory=list, max_length=3)
+    execution_daily_quota: int = Field(default=100, ge=1, le=1000)
+    execution_queue_limit: int = Field(default=4, ge=1, le=20)
+    execution_ip_daily_quota: int = Field(default=500, ge=1, le=10000)
+    execution_global_queue_limit: int = Field(default=100, ge=1, le=1000)
     planning_enabled: bool = False
     diagnostics_enabled: bool = False
     onboarding_enabled: bool = False
@@ -105,6 +115,34 @@ class Settings(DatabaseSettings):
 
     @model_validator(mode="after")
     def enforce_boundaries(self):
+        self.execution_signing_secret = _secret_from_file(
+            "execution_signing_secret",
+            self.execution_signing_secret,
+            self.execution_signing_secret_file,
+            "",
+        )
+        self.execution_worker_secret = _secret_from_file(
+            "execution_worker_secret",
+            self.execution_worker_secret,
+            self.execution_worker_secret_file,
+            "",
+        )
+        if self.execution_enabled:
+            if (
+                len(self.execution_signing_secret.get_secret_value()) < 48
+                or len(self.execution_worker_secret.get_secret_value()) < 48
+                or self.execution_signing_secret == self.execution_worker_secret
+            ):
+                raise ValueError("Execution requires distinct strong signing and worker secrets")
+            from socrat.execution.protocol import RuntimeProfile
+
+            profiles = [RuntimeProfile.model_validate(x) for x in self.execution_profiles]
+            if (
+                not profiles
+                or len({x.language for x in profiles}) != len(profiles)
+                or len({x.id for x in profiles}) != len(profiles)
+            ):
+                raise ValueError("Execution requires unique immutable runtime profiles")
         self.session_secret = _secret_from_file(
             "session_secret",
             self.session_secret,

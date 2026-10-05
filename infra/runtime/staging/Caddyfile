@@ -12,6 +12,9 @@
   @metrics path /api/metrics
   respond @metrics 404
 
+  @execution_worker path /api/v1/execution/worker/*
+  respond @execution_worker 404
+
   @api path /api/*
   reverse_proxy @api api:8000
   reverse_proxy web:3000

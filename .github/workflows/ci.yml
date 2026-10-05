@@ -44,9 +44,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Start the CI database
         run: docker compose up --detach --wait postgres
-      - run: uv run ruff format --check services/api
-      - run: uv run ruff check services/api
-      - run: uv run mypy services/api/src
+      - run: uv run ruff format --check services/api services/execution
+      - run: uv run ruff check services/api services/execution
+      - run: uv run mypy services/api/src services/execution/src
       - run: uv run pytest --cov=socrat --cov-report=term-missing --cov-fail-under=85
         env:
           SOCRAT_TEST_POSTGRES_URL: postgresql+psycopg://socrat:ci-only-password@127.0.0.1:5432/socrat

@@ -75,6 +75,12 @@ Current ADRs:
 - [M5 validation](delivery/validation/m5-validation-report.md)
 - [M5 planning operations](operations/m5-planning.md)
 
+- [M6 execution platform](delivery/milestones/m6-index.md)
+- [M6 gate](delivery/milestones/m6-gate.md)
+- [M6 validation](delivery/validation/m6-validation-report.md)
+- [M6 execution operations](operations/m6-execution.md)
+- [Execution threat model](security/execution-threat-model.md)
+
 ## Machine-readable contracts
 
 - [`contracts/product/m5-planning-policy.json`](../contracts/product/m5-planning-policy.json)

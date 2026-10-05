@@ -97,6 +97,7 @@ def build_plan(
     previous: dict | None = None,
     missed_days: int = 0,
     code_execution: bool = False,
+    runtime_refs: list[str] | None = None,
 ) -> dict:
     overlay = next(x for x in pack.tracks if x.id == track)
     capacity = min(
@@ -238,6 +239,14 @@ def build_plan(
                 not code_execution or language not in {v.language for v in item.variants}
             ):
                 rejection.append("runtime_unavailable")
+            if (
+                item.modality == "code"
+                and runtime_refs is not None
+                and not any(
+                    v.language == language and v.runtime_ref in runtime_refs for v in item.variants
+                )
+            ):
+                rejection.append("runtime_unavailable")
             if item.estimated_minutes > capacity // 2:
                 rejection.append("time_budget")
             if item.difficulty > controller["difficulty"]:
@@ -318,6 +327,7 @@ def build_plan(
                         concept_ids=item.concept_ids,
                         exercise_ids=refs,
                         title=item.title if refs else concept_map[concept].title,
+                        modality=item.modality if refs else "text",
                         timed=track == "competitive"
                         and ready(states.get(concept, {}))
                         and mode == "independent",

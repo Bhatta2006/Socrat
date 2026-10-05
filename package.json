@@ -2,6 +2,7 @@
   "name": "socrat", "private": true,
   "workspaces": ["apps/web"],
   "engines": {"node": ">=22.0.0 <25"},
+  "overrides": {"dompurify": "3.4.16"},
   "scripts": {
     "dev": "npm run dev --workspace @socrat/web",
     "build": "npm run build --workspace @socrat/web",

@@ -4,19 +4,19 @@ param(
     [string]$ComposeFile = "compose.yaml",
     [string]$ProjectName = "socrat",
     [string]$EnvFile = "",
-    [ValidatePattern('^[0-9]{4}$')][string]$ExpectedRevision = "0005"
+    [ValidatePattern('^[0-9]{4}$')][string]$ExpectedRevision = "0006"
 )
 
 $ErrorActionPreference = 'Stop'
 $resolved = (Resolve-Path -LiteralPath $Archive).Path
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-$composePath = if ([System.IO.Path]::IsPathFullyQualified($ComposeFile)) {
+$composePath = if ([System.IO.Path]::IsPathRooted($ComposeFile)) {
     [System.IO.Path]::GetFullPath($ComposeFile)
 } else { [System.IO.Path]::GetFullPath((Join-Path $repoRoot $ComposeFile)) }
 if (-not (Test-Path -LiteralPath $composePath -PathType Leaf)) { throw 'Compose file does not exist.' }
 $composeArguments = @('compose', '--project-name', $ProjectName)
 if ($EnvFile) {
-    $envPath = if ([System.IO.Path]::IsPathFullyQualified($EnvFile)) { $EnvFile } else { Join-Path $repoRoot $EnvFile }
+    $envPath = if ([System.IO.Path]::IsPathRooted($EnvFile)) { $EnvFile } else { Join-Path $repoRoot $EnvFile }
     $composeArguments += @('--env-file', [System.IO.Path]::GetFullPath($envPath))
 }
 $composeArguments += @('--file', $composePath)

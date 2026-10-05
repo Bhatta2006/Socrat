@@ -1,0 +1,17 @@
+# Execution threat model
+
+Scope: M6 repository design, subject to ADR-0005 and external review before learner exposure.
+
+Treat learner source, stdin, compiler diagnostics, and all output as adversarial. A learner may fork, allocate memory, flood output/disk, probe processes/files/environment/network, forge protocol fields, submit stale/repeated requests, or try to recover hidden tests. Protect application/cloud credentials, host/kernel integrity, learner ownership, hidden expected values, and learning-evidence integrity.
+
+The browser receives statement, starter/saved source, public samples, sanitized status, and public output only. The API authenticates owner/session/CSRF and freezes the approved image/source/test/content pins. It stores jobs in a durable queue but has no code executor or Docker socket. Worker endpoints are denied by the public staging reverse proxy; deployment needs a private HTTPS ingress and authenticated worker credentials.
+
+The trusted execution worker runs on dedicated Linux hosts/accounts, separated from API/database infrastructure. It can control its local Docker daemon and read cgroup accounting; this privilege belongs only to the execution plane. Learner containers receive neither that socket nor worker credentials. Jobs require distinct broker signing and worker authentication secrets. The worker verifies cosign signatures against a provisioned public key and rejects missing `runsc`, cgroup-v2 accounting, or resource controllers. There is no plain-container fallback.
+
+Each test gets a new non-root sandbox with no network, host/shared mounts, or application secrets; read-only root; bounded tmpfs; dropped capabilities; no-new-privileges; PID/memory/swap/CPU/file/output/wall/compile limits. The helper contains no expected values or test corpus. A child sees only its current stdin. Default Docker security policy and gVisor must be reviewed on the actual host. Aggregate CPU accounting includes sandbox startup and compilation; language profiles must be calibrated before release. Killing/removing the container reaps its whole security context.
+
+Signed callbacks bind the leased job, nonce, image, source, and tests. Missing or failed infrastructure results never affect mastery. Hidden output is stripped before API persistence and rendering. Application logs/events contain identifiers and event types, not code, stdin, bearer credentials, or hidden artifacts. Source is stored separately for future retention/deletion workflows; hidden test storage inherits the restricted skill-pack database boundary and production encryption/access policies.
+
+Residual review areas: gVisor/kernel vulnerabilities; signer or worker compromise; timing/side-channel leakage; Docker/control-plane compromise; Java startup and compilation overhead; mobile Monaco usability; physical network/metadata isolation; corpus completeness; access/encryption/retention operations. Authenticated worker facts are trusted, so a compromised worker or signing key requires disabling execution and auditing evidence. Test doubles and command inspections do not prove containment. The external gate requires corpus, scans, load/soak, incident drills, and independent review.
+
+Reference design sources: [gVisor Docker setup](https://gvisor.dev/docs/user_guide/quick_start/docker/), [gVisor resource compatibility](https://gvisor.dev/docs/user_guide/compatibility/), [Docker run controls](https://docs.docker.com/reference/cli/docker/container/run/).
