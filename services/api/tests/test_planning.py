@@ -69,6 +69,8 @@ def test_daily_progress_comes_only_from_owned_valid_independent_evidence(platfor
             .timestamp()
         )
         timestamp = max(timestamp, now()) if day["date"] == draft["start_date"] else timestamp
+        # Synthetic noon evidence can be ahead of the real clock after midnight.
+        monkeypatch.setattr("socrat.planning.routes.now", lambda: timestamp)
         independent = EvidenceFact.model_validate(
             {
                 **base.model_dump(),

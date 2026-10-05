@@ -347,7 +347,19 @@ def build_plan(
             if session_policy and track == "competitive":
                 blocks = (
                     competitive_blocks(
-                        candidates, states, capacity, work_capacity, concept_map, ready
+                        candidates,
+                        states,
+                        capacity,
+                        work_capacity,
+                        concept_map,
+                        ready,
+                        {
+                            (x.exercise_id, x.variant_id)
+                            for x in pack.structural_repairs
+                            if x.calibration == "reviewed"
+                        }
+                        if pack.session_content_version
+                        else None,
                     )
                     or blocks
                 )

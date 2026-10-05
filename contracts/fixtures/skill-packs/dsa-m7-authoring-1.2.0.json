@@ -1,0 +1,1205 @@
+{
+  "schema_version": "1.0.0",
+  "key": "dsa",
+  "version": "1.2.0",
+  "domain": "data_structures_and_algorithms",
+  "title": "M7 language and pattern authoring examples",
+  "purpose": "fixture",
+  "change_log": "Unreviewed M7 authoring examples in synthetic fixture inventory; not launch content or semantic/runtime approval.",
+  "modalities": [
+    "text",
+    "code"
+  ],
+  "languages": [
+    "python",
+    "cpp",
+    "java"
+  ],
+  "provenance": {
+    "author": "Socrat fixture authors",
+    "source": "Original synthetic M2 test content",
+    "license": "Internal test fixture; not licensed launch content",
+    "rights_reference": "fixture-original-work",
+    "attribution": "Socrat M2 fixture"
+  },
+  "concepts": [
+    {
+      "id": "sequence_iteration",
+      "title": "Sequence iteration",
+      "competency": "Explain and demonstrate sequence iteration.",
+      "explanation": "A small fixture for sequence iteration; not a validated lesson.",
+      "examples": [
+        "Explain a small example in your own words."
+      ],
+      "misconceptions": [
+        "Confusing a completed example with independent ability."
+      ],
+      "evidence_modes": [
+        "implement",
+        "trace",
+        "explain"
+      ],
+      "estimated_minutes": 10,
+      "accessibility": "Plain-text explanation; keyboard-compatible content."
+    },
+    {
+      "id": "linear_search",
+      "title": "Linear search",
+      "competency": "Explain and demonstrate linear search.",
+      "explanation": "A small fixture for linear search; not a validated lesson.",
+      "examples": [
+        "Explain a small example in your own words."
+      ],
+      "misconceptions": [
+        "Confusing a completed example with independent ability."
+      ],
+      "evidence_modes": [
+        "trace",
+        "explain",
+        "analyze"
+      ],
+      "estimated_minutes": 10,
+      "accessibility": "Plain-text explanation; keyboard-compatible content."
+    }
+  ],
+  "edges": [
+    {
+      "prerequisite": "sequence_iteration",
+      "concept": "linear_search",
+      "minimum_mastery": 0.7,
+      "rationale": "Searching a sequence requires reliable iteration."
+    }
+  ],
+  "goals": [
+    {
+      "id": "foundations",
+      "title": "foundations fixture goal",
+      "outcome": "Demonstrate a small sequence competency.",
+      "track_id": "foundations",
+      "released_targets": [],
+      "required_fields": [
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone",
+        "language"
+      ]
+    },
+    {
+      "id": "interview",
+      "title": "interview fixture goal",
+      "outcome": "Demonstrate a small sequence competency.",
+      "track_id": "interview",
+      "released_targets": [],
+      "required_fields": [
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone",
+        "language"
+      ]
+    },
+    {
+      "id": "competitive",
+      "title": "competitive fixture goal",
+      "outcome": "Demonstrate a small sequence competency.",
+      "track_id": "competitive",
+      "released_targets": [],
+      "required_fields": [
+        "target_date",
+        "days_per_week",
+        "minutes_per_session",
+        "timezone",
+        "language"
+      ]
+    }
+  ],
+  "tracks": [
+    {
+      "id": "foundations",
+      "goals": [
+        "foundations"
+      ],
+      "concept_ids": [
+        "sequence_iteration",
+        "linear_search"
+      ],
+      "prerequisite_rule": "require_all",
+      "help_ceiling": 2,
+      "maximum_daily_minutes": 45
+    },
+    {
+      "id": "interview",
+      "goals": [
+        "interview"
+      ],
+      "concept_ids": [
+        "sequence_iteration",
+        "linear_search"
+      ],
+      "prerequisite_rule": "require_all",
+      "help_ceiling": 2,
+      "maximum_daily_minutes": 45
+    },
+    {
+      "id": "competitive",
+      "goals": [
+        "competitive"
+      ],
+      "concept_ids": [
+        "sequence_iteration",
+        "linear_search"
+      ],
+      "prerequisite_rule": "require_all",
+      "help_ceiling": 2,
+      "maximum_daily_minutes": 45
+    }
+  ],
+  "exercises": [
+    {
+      "id": "sum_sequence",
+      "title": "Sum a short sequence",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "inventory": "practice",
+      "modality": "code",
+      "evidence_mode": "implement",
+      "statement": "Return the sum of the supplied integers. This is a synthetic fixture.",
+      "rubric": "The reference result is the integer sum; runtime execution is deferred to M6.",
+      "difficulty": 1,
+      "calibration": "uncalibrated",
+      "estimated_minutes": 10,
+      "family_id": "sum_practice",
+      "variants": [
+        {
+          "language": "python",
+          "adapter_version": "1.0.0",
+          "starter_code": "def solve(values):\n    pass",
+          "reference_solution": "def solve(values):\n    return sum(values)",
+          "interface": "Return the sum of a sequence of integers; fixture only.",
+          "runtime_ref": "fixture/python@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "time_limit_ms": 1000,
+          "memory_limit_mb": 128
+        },
+        {
+          "language": "cpp",
+          "adapter_version": "1.0.0",
+          "starter_code": "long long solve(const std::vector<int>& values);",
+          "reference_solution": "long long solve(const std::vector<int>& values) { long long total = 0; for (int value : values) total += value; return total; }",
+          "interface": "Return the sum of a sequence of integers; fixture only.",
+          "runtime_ref": "fixture/cpp@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "time_limit_ms": 1000,
+          "memory_limit_mb": 128
+        },
+        {
+          "language": "java",
+          "adapter_version": "1.0.0",
+          "starter_code": "static long solve(int[] values) { throw new UnsupportedOperationException(); }",
+          "reference_solution": "static long solve(int[] values) { long total = 0; for (int value : values) total += value; return total; }",
+          "interface": "Return the sum of a sequence of integers; fixture only.",
+          "runtime_ref": "fixture/java@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "time_limit_ms": 1000,
+          "memory_limit_mb": 128
+        }
+      ],
+      "tests": [
+        {
+          "input": "[1,2,3]",
+          "expected": "6",
+          "visibility": "public"
+        },
+        {
+          "input": "[]",
+          "expected": "0",
+          "visibility": "hidden"
+        },
+        {
+          "input": "[-2,2]",
+          "expected": "0",
+          "visibility": "hidden"
+        }
+      ],
+      "provenance": {
+        "author": "Socrat fixture authors",
+        "source": "Original synthetic M2 test content",
+        "license": "Internal test fixture; not licensed launch content",
+        "rights_reference": "fixture-original-work",
+        "attribution": "Socrat M2 fixture"
+      },
+      "accessibility": "Statement and examples available as plain text."
+    },
+    {
+      "id": "search_trace",
+      "title": "Explain a fresh search trace",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "inventory": "assessment",
+      "modality": "text",
+      "evidence_mode": "trace",
+      "statement": "List the indices inspected when searching [8,3,6] for 6, stopping at the first match.",
+      "rubric": "Expected trace: 0, 1, 2; explain why inspection stops at index 2.",
+      "difficulty": 1,
+      "calibration": "uncalibrated",
+      "estimated_minutes": 5,
+      "family_id": "search_assessment",
+      "variants": [],
+      "tests": [],
+      "provenance": {
+        "author": "Socrat fixture authors",
+        "source": "Original synthetic M2 test content",
+        "license": "Internal test fixture; not licensed launch content",
+        "rights_reference": "fixture-original-work",
+        "attribution": "Socrat M2 fixture"
+      },
+      "accessibility": "Plain-text trace; no timing requirement."
+    }
+  ],
+  "blueprints": [
+    {
+      "id": "search_diagnostic",
+      "kind": "diagnostic",
+      "exercise_ids": [
+        "search_trace"
+      ],
+      "concept_ids": [
+        "linear_search"
+      ],
+      "scoring": "human_rubric"
+    }
+  ],
+  "mastery_policy": {
+    "rule": "independent_unseen_and_delayed",
+    "minimum_independent": 2,
+    "minimum_families": 2,
+    "retention_days": 7,
+    "passive_weight": 0
+  },
+  "migration": null,
+  "diagnostics": [],
+  "misconception_taxonomy": [],
+  "session_content_version": "1.0.0",
+  "learning_lessons": [
+    {
+      "id": "foundations_python_sequence_iteration",
+      "track": "foundations",
+      "language": "python",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "python sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "total = 0\nfor value in [2, 3, -1]:\n    total += value\n# After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "Python lists are indexed from zero. A for loop can visit values directly. Integers grow beyond fixed-width bounds, but time and memory limits still apply. Empty lists perform zero loop iterations.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "foundations_python_linear_search",
+      "track": "foundations",
+      "language": "python",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "python linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "values = [9, 5, 9]\nfor index, value in enumerate(values):\n    # Visit index 0 first. It already matches target 9.\n    pass"
+      ],
+      "language_notes": "Python lists are indexed from zero. A for loop can visit values directly. Integers grow beyond fixed-width bounds, but time and memory limits still apply. Empty lists perform zero loop iterations.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "foundations_cpp_sequence_iteration",
+      "track": "foundations",
+      "language": "cpp",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "cpp sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "long long total = 0;\nfor (int value : std::vector<int>{2, 3, -1}) {\n    total += value;\n}\n// After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "std::vector elements are indexed from zero. A range-based for loop visits each element. Choose an integer type whose range fits the stated input bounds; signed overflow is not a valid arithmetic strategy. Empty vectors perform zero iterations.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "foundations_cpp_linear_search",
+      "track": "foundations",
+      "language": "cpp",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "cpp linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "std::vector<int> values{9, 5, 9};\nfor (std::size_t i = 0; i < values.size(); ++i) {\n    // Visit index 0 first. It already matches target 9.\n}"
+      ],
+      "language_notes": "std::vector elements are indexed from zero. A range-based for loop visits each element. Choose an integer type whose range fits the stated input bounds; signed overflow is not a valid arithmetic strategy. Empty vectors perform zero iterations.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "foundations_java_sequence_iteration",
+      "track": "foundations",
+      "language": "java",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "java sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "long total = 0;\nfor (int value : new int[]{2, 3, -1}) {\n    total += value;\n}\n// After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "Java arrays are indexed from zero. An enhanced for loop visits values; an indexed loop is useful when a position is needed. int and long have fixed ranges, so use the problem bounds to select a type. An empty array has length zero.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "foundations_java_linear_search",
+      "track": "foundations",
+      "language": "java",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "java linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "int[] values = {9, 5, 9};\nfor (int i = 0; i < values.length; i++) {\n    // Visit index 0 first. It already matches target 9.\n}"
+      ],
+      "language_notes": "Java arrays are indexed from zero. An enhanced for loop visits values; an indexed loop is useful when a position is needed. int and long have fixed ranges, so use the problem bounds to select a type. An empty array has length zero.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "interview_python_sequence_iteration",
+      "track": "interview",
+      "language": "python",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "python sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "total = 0\nfor value in [2, 3, -1]:\n    total += value\n# After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "Python lists are indexed from zero. A for loop can visit values directly. Integers grow beyond fixed-width bounds, but time and memory limits still apply. Empty lists perform zero loop iterations.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "interview_python_linear_search",
+      "track": "interview",
+      "language": "python",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "python linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "values = [9, 5, 9]\nfor index, value in enumerate(values):\n    # Visit index 0 first. It already matches target 9.\n    pass"
+      ],
+      "language_notes": "Python lists are indexed from zero. A for loop can visit values directly. Integers grow beyond fixed-width bounds, but time and memory limits still apply. Empty lists perform zero loop iterations.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "interview_cpp_sequence_iteration",
+      "track": "interview",
+      "language": "cpp",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "cpp sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "long long total = 0;\nfor (int value : std::vector<int>{2, 3, -1}) {\n    total += value;\n}\n// After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "std::vector elements are indexed from zero. A range-based for loop visits each element. Choose an integer type whose range fits the stated input bounds; signed overflow is not a valid arithmetic strategy. Empty vectors perform zero iterations.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "interview_cpp_linear_search",
+      "track": "interview",
+      "language": "cpp",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "cpp linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "std::vector<int> values{9, 5, 9};\nfor (std::size_t i = 0; i < values.size(); ++i) {\n    // Visit index 0 first. It already matches target 9.\n}"
+      ],
+      "language_notes": "std::vector elements are indexed from zero. A range-based for loop visits each element. Choose an integer type whose range fits the stated input bounds; signed overflow is not a valid arithmetic strategy. Empty vectors perform zero iterations.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "interview_java_sequence_iteration",
+      "track": "interview",
+      "language": "java",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "java sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "long total = 0;\nfor (int value : new int[]{2, 3, -1}) {\n    total += value;\n}\n// After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "Java arrays are indexed from zero. An enhanced for loop visits values; an indexed loop is useful when a position is needed. int and long have fixed ranges, so use the problem bounds to select a type. An empty array has length zero.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "interview_java_linear_search",
+      "track": "interview",
+      "language": "java",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "java linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "int[] values = {9, 5, 9};\nfor (int i = 0; i < values.length; i++) {\n    // Visit index 0 first. It already matches target 9.\n}"
+      ],
+      "language_notes": "Java arrays are indexed from zero. An enhanced for loop visits values; an indexed loop is useful when a position is needed. int and long have fixed ranges, so use the problem bounds to select a type. An empty array has length zero.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "competitive_python_sequence_iteration",
+      "track": "competitive",
+      "language": "python",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "python sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "total = 0\nfor value in [2, 3, -1]:\n    total += value\n# After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "Python lists are indexed from zero. A for loop can visit values directly. Integers grow beyond fixed-width bounds, but time and memory limits still apply. Empty lists perform zero loop iterations.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "competitive_python_linear_search",
+      "track": "competitive",
+      "language": "python",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "python linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "values = [9, 5, 9]\nfor index, value in enumerate(values):\n    # Visit index 0 first. It already matches target 9.\n    pass"
+      ],
+      "language_notes": "Python lists are indexed from zero. A for loop can visit values directly. Integers grow beyond fixed-width bounds, but time and memory limits still apply. Empty lists perform zero loop iterations.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "competitive_cpp_sequence_iteration",
+      "track": "competitive",
+      "language": "cpp",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "cpp sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "long long total = 0;\nfor (int value : std::vector<int>{2, 3, -1}) {\n    total += value;\n}\n// After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "std::vector elements are indexed from zero. A range-based for loop visits each element. Choose an integer type whose range fits the stated input bounds; signed overflow is not a valid arithmetic strategy. Empty vectors perform zero iterations.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "competitive_cpp_linear_search",
+      "track": "competitive",
+      "language": "cpp",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "cpp linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "std::vector<int> values{9, 5, 9};\nfor (std::size_t i = 0; i < values.size(); ++i) {\n    // Visit index 0 first. It already matches target 9.\n}"
+      ],
+      "language_notes": "std::vector elements are indexed from zero. A range-based for loop visits each element. Choose an integer type whose range fits the stated input bounds; signed overflow is not a valid arithmetic strategy. Empty vectors perform zero iterations.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "competitive_java_sequence_iteration",
+      "track": "competitive",
+      "language": "java",
+      "concept_ids": [
+        "sequence_iteration"
+      ],
+      "title": "java sequence iteration",
+      "instruction": "A loop visits a sequence in order. Initialize any accumulated state before the loop. On each iteration, read the current value and update that state once. Trace the state after every visit; check empty and one-element inputs separately.",
+      "examples": [
+        "long total = 0;\nfor (int value : new int[]{2, 3, -1}) {\n    total += value;\n}\n// After each iteration: 2, 5, 4."
+      ],
+      "language_notes": "Java arrays are indexed from zero. An enhanced for loop visits values; an indexed loop is useful when a position is needed. int and long have fixed ranges, so use the problem bounds to select a type. An empty array has length zero.",
+      "pattern_recognition": "Use traversal when the requested result depends on inspecting each element. Decide what small state describes the already processed prefix; distinguish an aggregate from a position-dependent result.",
+      "correctness": "For the sum trace, total equals the sum of the already processed prefix. It is zero for an empty prefix; adding the next value preserves the invariant. When traversal ends, the prefix is the whole sequence.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_sequence_iteration",
+        "prompt": "Start total at zero, add 2, then 3. What is total?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "five",
+              "label": "5"
+            },
+            {
+              "id": "six",
+              "label": "6"
+            }
+          ],
+          "answer": "five",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_sequence_iteration",
+        "prompt": "Start total at zero. Add 2, then 3, then -1. Write the final value as one digit.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "4",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    },
+    {
+      "id": "competitive_java_linear_search",
+      "track": "competitive",
+      "language": "java",
+      "concept_ids": [
+        "linear_search"
+      ],
+      "title": "java linear search",
+      "instruction": "Inspect positions from left to right. Before visiting position i, earlier positions have already been checked. Compare the current value with the target. Stop at the first match when the task requests the first position; report absence only after every position has been checked.",
+      "examples": [
+        "int[] values = {9, 5, 9};\nfor (int i = 0; i < values.length; i++) {\n    // Visit index 0 first. It already matches target 9.\n}"
+      ],
+      "language_notes": "Java arrays are indexed from zero. An enhanced for loop visits values; an indexed loop is useful when a position is needed. int and long have fixed ranges, so use the problem bounds to select a type. An empty array has length zero.",
+      "pattern_recognition": "Use a linear scan when input has no useful order or index and any position might match. A first-occurrence requirement changes the stopping rule; duplicates and absence are separate test cases.",
+      "correctness": "Before visiting position i, no earlier position equals the target. A match at i is therefore the first match. If the scan ends without a match, every position has been checked and absence is justified.",
+      "complexity": "For n elements, traversal takes O(n) time and uses O(1) auxiliary state, excluding input storage. Search can stop earlier but still has O(n) worst-case time.",
+      "retrieval_check": {
+        "id": "retrieve_linear_search",
+        "prompt": "In [9, 5, 9], which zero-based index is the first match for 9?",
+        "response": {
+          "kind": "choice",
+          "choices": [
+            {
+              "id": "zero",
+              "label": "0"
+            },
+            {
+              "id": "two",
+              "label": "2"
+            }
+          ],
+          "answer": "zero",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "exit_check": {
+        "id": "exit_linear_search",
+        "prompt": "Search [2, 4] for 3. Use -1 for absence. Write the returned integer.",
+        "response": {
+          "kind": "trace",
+          "choices": [],
+          "answer": "-1",
+          "misconception_answers": {}
+        },
+        "validator_version": "objective_exact_1.0.0"
+      },
+      "calibration": "uncalibrated",
+      "accessibility": "Plain-text code and narrated state traces; no color or pointing-device dependency.",
+      "source_reference": "Original unreviewed Socrat authoring example; code fragments are not standalone runtime programs."
+    }
+  ],
+  "structural_repairs": [],
+  "competitive_penalty": null
+}

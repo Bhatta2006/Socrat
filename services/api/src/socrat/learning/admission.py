@@ -52,7 +52,7 @@ def admission_error(db, attempt, stamp, enabled=True) -> str | None:
     return None
 
 
-def solve_seconds(db, attempt, submitted_at) -> float | None:
+def solve_seconds(db, attempt, submitted_at, bounded=True) -> float | None:
     """Measure learner work at admission, excluding queue/worker latency and pauses."""
     context = attempt.snapshot.get("learning_context")
     if context is None:
@@ -82,4 +82,4 @@ def solve_seconds(db, attempt, submitted_at) -> float | None:
             - step.get("timed_active_seconds", 0)
             + max(0, submitted_at - step.get("started_at", submitted_at))
         )
-    return float(min(2700, max(0, seconds)))
+    return float(min(2700, max(0, seconds)) if bounded else max(0, seconds))

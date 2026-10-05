@@ -61,7 +61,9 @@ def release(client, pack, auth):
         assert response.status_code == 200, response.text
 
 
-@pytest.mark.parametrize("name", ["dsa-1.0.0", "dsa-1.1.0", "clear-writing-1.0.0"])
+@pytest.mark.parametrize(
+    "name", ["dsa-1.0.0", "dsa-1.1.0", "clear-writing-1.0.0", "dsa-m7-authoring-1.2.0"]
+)
 def test_domain_neutral_contract_and_determinism(name):
     pack = SkillPack.model_validate(fixture(name))
     reordered = dict(reversed(list(pack.model_dump(mode="json").items())))

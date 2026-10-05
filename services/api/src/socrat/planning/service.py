@@ -15,6 +15,7 @@ from socrat.models import (
     DiagnosticSession,
     LearnerGoal,
     LearnerState,
+    LearningSession,
     PlanningCommand,
     SkillPackHead,
     SkillPackVersion,
@@ -185,6 +186,33 @@ def command(db: Session, goal: LearnerGoal, body: PlanCommand, as_of: int) -> di
                         .isoformat(),
                     )
         missed = 0
+        participated_days = set()
+        if before and before.get("session_planning_policy"):
+            valid_sources = {f["source_id"] for f in history if f["valid"] and f["finalized"]}
+            for learning in db.scalars(
+                select(LearningSession).where(
+                    LearningSession.goal_id == goal.id,
+                    LearningSession.pack_id == record.id,
+                    LearningSession.status == "completed",
+                )
+            ):
+                independent_steps = [
+                    step
+                    for block, step in zip(
+                        learning.snapshot["blocks"], learning.progress, strict=True
+                    )
+                    if block["mode"] == "independent"
+                ]
+                if (
+                    learning.snapshot["language"] == selected["language"]
+                    and independent_steps
+                    and all(
+                        step.get("scoring") == "verified_implementation"
+                        and step.get("upsolve_attempt_id", step.get("attempt_id")) in valid_sources
+                        for step in independent_steps
+                    )
+                ):
+                    participated_days.add(learning.local_date)
         if before:
             for day in before["days"]:
                 if day["date"] >= today.isoformat() or not day["blocks"]:
@@ -204,7 +232,31 @@ def command(db: Session, goal: LearnerGoal, body: PlanCommand, as_of: int) -> di
                     == day["date"]
                     for f in history
                 )
-                missed += int(not completed)
+                if before.get("session_planning_policy"):
+                    completed_families = {
+                        f["family_id"]
+                        for f in history
+                        if f["valid"]
+                        and f["finalized"]
+                        and f["goal_id"] == goal.id
+                        and f["mode"] in {"practice", "retention"}
+                        and f["hint_level"] == 0
+                        and datetime.fromtimestamp(f["occurred_at"], ZoneInfo(selected["timezone"]))
+                        .date()
+                        .isoformat()
+                        == day["date"]
+                    }
+                    groups = [
+                        {
+                            exercises[key].family_id
+                            for key in [*block["exercise_ids"], block.get("repair_exercise_id")]
+                            if key
+                        }
+                        for block in day["blocks"]
+                        if block["mode"] == "independent"
+                    ]
+                    completed = bool(groups) and all(group & completed_families for group in groups)
+                missed += int(not completed and day["date"] not in participated_days)
         states = {
             x.id: projection["concepts"].get(state_key(record.id, selected["language"], x.id), {})
             for x in pack.concepts

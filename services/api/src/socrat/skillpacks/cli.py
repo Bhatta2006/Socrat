@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from socrat.learning.content import coverage_audit
 from socrat.skillpacks.schema import SkillPack
 
 
@@ -13,7 +14,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate declarative skill packs without executing content"
     )
-    parser.add_argument("command", choices=["validate", "schema"])
+    parser.add_argument("command", choices=["validate", "schema", "learning-audit"])
     parser.add_argument("path", type=Path, nargs="?")
     args = parser.parse_args()
     if args.command == "schema":
@@ -31,6 +32,10 @@ def main() -> int:
     except (ValidationError, ValueError):
         print("Invalid skill-pack contract; inspect it privately (input values are not echoed).")
         return 1
+    if args.command == "learning-audit":
+        audit = coverage_audit(pack)
+        print(json.dumps(audit))
+        return 0 if audit["ready"] else 1
     print(
         json.dumps(
             {

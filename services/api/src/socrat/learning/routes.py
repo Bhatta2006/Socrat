@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -7,6 +7,7 @@ from socrat.auth import require_csrf, require_session
 from socrat.execution.service import ExecutionError
 from socrat.learning.contracts import SessionAction, StartSession
 from socrat.learning.service import SessionError, command, local_day, start, view
+from socrat.learning.telemetry import export_sessions, session_summary
 from socrat.models import LearnerGoal, LearningSession, User, now
 from socrat.planning.service import PlanningError
 from socrat.skillpacks.service import PackError
@@ -53,6 +54,43 @@ def today(goal_id: str, request: Request):
             return {"session": view(db, session, now()) if session else None}
     except (SessionError, PackError) as exc:
         boundary(exc)
+
+
+@router.get("/goals/{goal_id}/learning-sessions")
+def history(goal_id: str, request: Request, limit: int = Query(default=20, ge=1, le=100)):
+    with Session(request.app.state.engine) as db:
+        goal = owned_goal(db, goal_id, identity(request, db))
+        sessions = db.scalars(
+            select(LearningSession)
+            .where(LearningSession.goal_id == goal.id)
+            .order_by(LearningSession.local_date.desc(), LearningSession.id)
+            .limit(limit)
+        ).all()
+        return {"items": [session_summary(db, goal, x, now()) for x in sessions]}
+
+
+@router.get("/learning-sessions/{session_id}")
+def saved(session_id: str, request: Request):
+    try:
+        with Session(request.app.state.engine) as db:
+            user_id = identity(request, db)
+            session = db.scalar(
+                select(LearningSession).where(
+                    LearningSession.id == session_id, LearningSession.user_id == user_id
+                )
+            )
+            if session is None:
+                raise HTTPException(404, "not_found")
+            return view(db, session, now())
+    except (SessionError, PackError) as exc:
+        boundary(exc)
+
+
+@router.get("/goals/{goal_id}/learning-session-telemetry")
+def telemetry(goal_id: str, request: Request):
+    with Session(request.app.state.engine) as db:
+        goal = owned_goal(db, goal_id, identity(request, db))
+        return export_sessions(db, goal, now())
 
 
 @router.post("/goals/{goal_id}/learning-session")

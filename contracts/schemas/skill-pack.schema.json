@@ -79,6 +79,50 @@
       "title": "Choice",
       "type": "object"
     },
+    "CompetitivePenalty": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Version",
+          "type": "string"
+        },
+        "basis": {
+          "const": "healthy_incorrect_submit",
+          "default": "healthy_incorrect_submit",
+          "title": "Basis",
+          "type": "string"
+        },
+        "wrong_submit_seconds": {
+          "maximum": 3600,
+          "minimum": 0,
+          "title": "Wrong Submit Seconds",
+          "type": "integer"
+        },
+        "calibration": {
+          "default": "uncalibrated",
+          "enum": [
+            "uncalibrated",
+            "reviewed"
+          ],
+          "title": "Calibration",
+          "type": "string"
+        },
+        "review_reference": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Review Reference",
+          "type": "string"
+        }
+      },
+      "required": [
+        "wrong_submit_seconds",
+        "review_reference"
+      ],
+      "title": "CompetitivePenalty",
+      "type": "object"
+    },
     "Concept": {
       "additionalProperties": false,
       "properties": {
@@ -594,6 +638,190 @@
       "title": "LanguageVariant",
       "type": "object"
     },
+    "LearningCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "response": {
+          "$ref": "#/$defs/ResponseSpec"
+        },
+        "validator_version": {
+          "const": "objective_exact_1.0.0",
+          "default": "objective_exact_1.0.0",
+          "title": "Validator Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "prompt",
+        "response"
+      ],
+      "title": "LearningCheck",
+      "type": "object"
+    },
+    "LearningLesson": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "track": {
+          "enum": [
+            "foundations",
+            "interview",
+            "competitive"
+          ],
+          "title": "Track",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "python",
+            "cpp",
+            "java"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "concept_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Concept Ids",
+          "type": "array"
+        },
+        "title": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "instruction": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Instruction",
+          "type": "string"
+        },
+        "examples": {
+          "items": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Examples",
+          "type": "array"
+        },
+        "language_notes": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Language Notes",
+          "type": "string"
+        },
+        "pattern_recognition": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern Recognition"
+        },
+        "correctness": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Correctness"
+        },
+        "complexity": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Complexity"
+        },
+        "retrieval_check": {
+          "$ref": "#/$defs/LearningCheck"
+        },
+        "exit_check": {
+          "$ref": "#/$defs/LearningCheck"
+        },
+        "calibration": {
+          "default": "uncalibrated",
+          "enum": [
+            "uncalibrated",
+            "reviewed"
+          ],
+          "title": "Calibration",
+          "type": "string"
+        },
+        "accessibility": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Accessibility",
+          "type": "string"
+        },
+        "source_reference": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Source Reference",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "track",
+        "language",
+        "concept_ids",
+        "title",
+        "instruction",
+        "examples",
+        "language_notes",
+        "retrieval_check",
+        "exit_check",
+        "accessibility",
+        "source_reference"
+      ],
+      "title": "LearningLesson",
+      "type": "object"
+    },
     "MasteryPolicy": {
       "additionalProperties": false,
       "properties": {
@@ -854,6 +1082,50 @@
       "title": "ResponseSpec",
       "type": "object"
     },
+    "StructuralRepair": {
+      "additionalProperties": false,
+      "properties": {
+        "exercise_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Exercise Id",
+          "type": "string"
+        },
+        "variant_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Variant Id",
+          "type": "string"
+        },
+        "structural_change": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Structural Change",
+          "type": "string"
+        },
+        "review_reference": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Review Reference",
+          "type": "string"
+        },
+        "calibration": {
+          "default": "uncalibrated",
+          "enum": [
+            "uncalibrated",
+            "reviewed"
+          ],
+          "title": "Calibration",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exercise_id",
+        "variant_id",
+        "structural_change",
+        "review_reference"
+      ],
+      "title": "StructuralRepair",
+      "type": "object"
+    },
     "TestCase": {
       "additionalProperties": false,
       "properties": {
@@ -1098,6 +1370,46 @@
       "maxItems": 1000,
       "title": "Misconception Taxonomy",
       "type": "array"
+    },
+    "session_content_version": {
+      "anyOf": [
+        {
+          "const": "1.0.0",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Session Content Version"
+    },
+    "learning_lessons": {
+      "items": {
+        "$ref": "#/$defs/LearningLesson"
+      },
+      "maxItems": 3000,
+      "title": "Learning Lessons",
+      "type": "array"
+    },
+    "structural_repairs": {
+      "items": {
+        "$ref": "#/$defs/StructuralRepair"
+      },
+      "maxItems": 5000,
+      "title": "Structural Repairs",
+      "type": "array"
+    },
+    "competitive_penalty": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CompetitivePenalty"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

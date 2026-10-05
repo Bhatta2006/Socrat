@@ -24,6 +24,7 @@ parser.add_argument("track", choices=["foundations", "interview", "competitive"]
 parser.add_argument("language", choices=["python", "cpp", "java"])
 parser.add_argument("subject")
 parser.add_argument("--planning", action="store_true")
+parser.add_argument("--learning-content", action="store_true")
 args = parser.parse_args()
 if not args.subject.startswith(("m4-e2e-", "m5-e2e-")) or not (ROOT / "socrat.e2e.db").is_file():
     parser.error("Requires an existing isolated browser database and m4-e2e subject")
@@ -33,6 +34,14 @@ if args.planning:
 
     payload = planner_pack().model_dump()
     payload["version"] = "1.0.5"
+if args.learning_content:
+    if not args.planning:
+        parser.error("--learning-content requires --planning")
+    from m7_support import lesson_pack
+
+    payload["version"] = "1.0.7"
+    payload["session_content_version"] = "1.0.0"
+    payload["learning_lessons"] = lesson_pack().model_dump()["learning_lessons"]
 payload["purpose"] = "launch"  # This copy exists only inside socrat.e2e.db.
 for template in payload["goals"]:
     value = goal(template["id"])
@@ -54,7 +63,8 @@ with Session(engine) as db, db.begin():
         db.flush()
     if db.get(SkillPackHead, pack.key) is None:
         db.add(SkillPackHead(pack_key=pack.key))  # No active head: inherited waitlist journeys stay isolated.
-    value = goal(args.track, language=args.language)
+    value = goal(args.track, language=args.language,
+                 **({"language_experience": "professional"} if args.learning_content else {}))
     snapshot = route(value, True, [pack], date(2026, 10, 2))
     db.add(LearnerGoal(user_id=user.id, idempotency_key=args.subject,
         review_digest=digest({"user_id": user.id, "snapshot": snapshot}), snapshot=snapshot))

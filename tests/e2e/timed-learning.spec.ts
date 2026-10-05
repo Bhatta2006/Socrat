@@ -20,7 +20,7 @@ for (const variant of [false, true]) test(`timed window survives reload and save
         status: completed ? 'submitted' : 'available', exercise_ids: [variant && phase === 'upsolve' ? 'repair-exercise' : 'exercise'],
         attempt_id: phase === 'upsolve' ? 'repair' : 'parent',
         ...(deadline === undefined ? {} : { deadline_at: deadline }),
-        ...(phase === 'upsolve' ? { error_classification: variant ? 'concept_gap' : 'time_pressure', repair_selection: variant ? 'concept_matched_variant' : 'saved_solution', timed_outcome: { outcome: 'timed_out' } } : {}),
+        ...(phase === 'upsolve' ? { original_attempt_id: 'parent', error_classification: variant ? 'concept_gap' : 'time_pressure', repair_selection: variant ? 'concept_matched_variant' : 'saved_solution', timed_outcome: { outcome: 'timed_out' } } : {}),
         content: { prompt: 'Print twice the input.', explanations: [], examples: [] } },
     ],
   });
@@ -42,6 +42,8 @@ for (const variant of [false, true]) test(`timed window survives reload and save
       schedule: { minutes: 30, weekdays: [0, 2, 4], target_date: 'no_fixed_date' }, nodes: [], days: [],
     };
     else if (pathname.endsWith('/learning-session')) json = { session: sessionView() };
+    else if (pathname.endsWith('/learning-sessions')) json = { items: [{ id: 'session', local_date: '2026-10-05', status: 'in_progress', recovery_required: false }] };
+    else if (pathname.endsWith('/learning-sessions/session')) json = sessionView();
     else if (pathname.endsWith('/commands')) {
       const body = route.request().postDataJSON(); commands.push(body);
       expect(body.expected_revision).toBe(revision);
@@ -95,4 +97,10 @@ for (const variant of [false, true]) test(`timed window survives reload and save
   await expect(page.locator('.monaco-editor')).toBeVisible();
   await expect(today.getByRole('button', { name: 'Submit independent attempt' })).toBeEnabled();
   expect(commands.map(body => body.action)).toEqual(['start_timed', 'upsolve']);
+  await today.getByRole('button', { name: 'View past sessions' }).click();
+  await today.getByRole('button', { name: '2026-10-05 · in progress', exact: true }).click();
+  const saved = today.getByRole('region', { name: 'Saved learning session' });
+  await expect(saved.getByLabel('Original timed source')).toContainText('# last unsaved edit before upsolve');
+  await expect(saved.getByLabel('Saved source', { exact: true })).toContainText(variant ? '# repair starter' : '# last unsaved edit before upsolve');
+  await expect(saved.getByRole('button')).toHaveCount(0);
 });

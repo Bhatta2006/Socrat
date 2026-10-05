@@ -85,6 +85,7 @@ Current ADRs:
 - [M7 gate](delivery/milestones/m7-gate.md)
 - [M7 initial validation](delivery/validation/m7-validation-report.md)
 - [M7 learning-session operations](operations/m7-learning-sessions.md)
+- [M7 session content authoring](operations/m7-content-authoring.md)
 
 ## Machine-readable contracts
 

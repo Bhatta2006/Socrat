@@ -4,11 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import CodeWorkspace from './code-workspace';
 
 type Block = { mode: string; title: string; minutes: number; modality: string; status: string;
-  exercise_ids: string[]; attempt_id?: string;
+  exercise_ids: string[]; attempt_id?: string; original_attempt_id?: string;
   timed: boolean; deadline_at?: number; timed_outcome?: { outcome: string; score?: number };
   error_classification?: string; repair_selection?: string; upsolve_minutes?: number;
-  content: { prompt: string; explanations: string[]; examples: string[] } };
+  answer?: string;
+  check_result?: { score: number; check_id: string };
+  content: { prompt: string; explanations: string[]; examples: string[];
+    objective_check?: { id: string; kind: string; choices: { id: string; label: string }[] } } };
 type LearningSession = { id: string; revision: number; status: string; local_date: string;
+  competitive_result?: { wrong_submissions: number; penalty_seconds: number };
   track: string; language: string; planned_minutes: number; upsolve_reserved_minutes?: number; timing: string; server_now?: number; blocks: Block[] };
 const label = (value: string) => value.replaceAll('_', ' ');
 const messages: Record<string, string> = {
@@ -18,6 +22,8 @@ const messages: Record<string, string> = {
   session_revision_stale: 'Your session changed in another window. Reload today’s session.',
   verified_submit_required: 'Submit your solution and wait for a scored result before continuing.',
   session_content_unavailable: 'This content is under review. Your work is preserved.',
+  session_lesson_unavailable: 'A reviewed lesson is missing for this track and language. Your plan is preserved.',
+  invalid_learning_choice: 'Choose one of the listed answers before continuing.',
   sandbox_unavailable: 'Code execution is unavailable. Your saved work is preserved.',
   timed_session_not_available: 'Timed practice is still being prepared for this track.',
   session_day_ended: 'This session’s day has ended. Refresh your plan for today.',
@@ -43,6 +49,9 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
   const [timing, setTiming] = useState('standard');
   const [errorClass, setErrorClass] = useState('time_pressure');
   const [clock, setClock] = useState(Date.now());
+  const [history, setHistory] = useState<{ id: string; local_date: string; status: string; recovery_required: boolean }[]>([]);
+  const [historical, setHistorical] = useState<LearningSession | null>(null);
+  const [savedSources, setSavedSources] = useState<Record<string, string>>({});
   const clockAnchor = useRef({ server: 0, local: 0 });
   const key = useRef<{ signature: string; value: string } | null>(null);
   const saveCode = useRef<(() => Promise<void>) | null>(null);
@@ -59,7 +68,32 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
 
   async function reload() {
     setPending(true); setError('');
-    try { setSession((await request<{ session: LearningSession | null }>(`/api/v1/goals/${goalId}/learning-session`)).session); }
+    try { setSession((await request<{ session: LearningSession | null }>(`/api/v1/goals/${goalId}/learning-session`)).session); setHistorical(null); }
+    catch (err) { setError((err as Error).message); }
+    finally { setPending(false); }
+  }
+
+  async function loadHistory() {
+    setPending(true); setError('');
+    try { setHistory((await request<{ items: typeof history }>(`/api/v1/goals/${goalId}/learning-sessions`)).items); }
+    catch (err) { setError((err as Error).message); }
+    finally { setPending(false); }
+  }
+
+  async function openSaved(id: string) {
+    setPending(true); setError('');
+    try {
+      const saved = await request<LearningSession>(`/api/v1/learning-sessions/${id}`);
+      const sources: Record<string, string> = {};
+      for (const item of saved.blocks) {
+        for (const attemptId of [item.attempt_id, item.original_attempt_id]) {
+          if (attemptId && item.status !== 'locked') {
+            sources[attemptId] = (await request<{ source: string }>(`/api/v1/attempts/${attemptId}`)).source;
+          }
+        }
+      }
+      setSavedSources(sources); setHistorical(saved);
+    }
     catch (err) { setError((err as Error).message); }
     finally { setPending(false); }
   }
@@ -156,9 +190,14 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
         <button className="btn" disabled={pending} onClick={() => act('start')}>Start today’s session</button></> : <>
         <p role="status">{label(session.track)} · {session.language} · {session.planned_minutes} min · {label(session.status)}</p>
         {session.timing === 'untimed' && <p>Untimed practice</p>}
+        {session.competitive_result && <p>Timed practice: {session.competitive_result.wrong_submissions} wrong submissions · {session.competitive_result.penalty_seconds} penalty seconds. Upsolve keeps the original result.</p>}
         {!!session.upsolve_reserved_minutes && <p>Includes {session.upsolve_reserved_minutes} minutes reserved for optional upsolve. Repair time is a planning guide; it does not start another timer.</p>}
         <ol className="space-y-1">{session.blocks.map((item, index) => <li key={index}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
         {session.status === 'completed' && <p>Your learning session is complete. Reading and reflection do not prove mastery; coding results are recorded separately.</p>}
+        {session.status === 'expired' && <p>This session ended at local midnight. Your saved work remains available in past sessions. Refresh and confirm your plan to recover without adding a backlog.</p>}
+        {session.blocks.filter(item => item.check_result).map((item, index) => <p role="status" key={`check-${index}`}>
+          {label(item.mode.replace('_check', ''))} check: {item.check_result?.score === 1 ? 'Correct' : 'Review this concept'}. This check does not establish mastery.
+        </p>)}
         {session.status === 'paused' && <button className="btn" disabled={pending} onClick={() => act('resume')}>Resume session</button>}
         {block && session.status === 'in_progress' && <>
           <h4 className="font-semibold">{label(block.mode)}: {block.title}</h4>
@@ -174,7 +213,10 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
             csrfToken={csrfToken} sessionAttemptId={block.attempt_id} executionDisabled={expired} saveHandle={saveCode} />
             <button className="btn" disabled={pending} onClick={finishCode}>Continue after Submit</button></> : <>
             {block.mode !== 'instruction' && <label>Your response
-              <textarea className="textarea w-full" value={answer} maxLength={8000} onChange={event => setAnswer(event.target.value)} />
+              {block.content.objective_check?.kind === 'choice' ? <select className="select w-full" disabled={pending} value={answer} onChange={event => setAnswer(event.target.value)}>
+                <option value="">Choose an answer</option>
+                {block.content.objective_check.choices.map(choice => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
+              </select> : <textarea className="textarea w-full" disabled={pending} value={answer} maxLength={8000} onChange={event => setAnswer(event.target.value)} />}
             </label>}
             {block.mode === 'exit_check' && <label>What made this task difficult?
               <select className="select w-full" value={reflection} onChange={event => setReflection(event.target.value)}>
@@ -182,7 +224,7 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
               </select>
             </label>}
             <button className="btn" disabled={pending || expired || (block.mode !== 'instruction' && !answer.trim())} onClick={() => act('advance')}>Save and continue</button>
-            {block.mode !== 'instruction' && <p className="text-sm">Your response is saved without a mastery score.</p>}
+            {block.mode !== 'instruction' && <p className="text-sm">{block.content.objective_check ? 'This objective check uses a reviewed answer key. Its result does not establish mastery.' : 'Your response is saved without a mastery score.'}</p>}
           </>)}
           {needsUpsolve && block.timed_outcome?.outcome !== 'solved' && <>
             <label>What should you repair?
@@ -199,6 +241,21 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
         </>}
       </>}
       <button className="btn" disabled={pending} onClick={reload}>Reload today’s session</button>
+      <button className="btn" disabled={pending} onClick={loadHistory}>View past sessions</button>
+      {history.length > 0 && <ul>{history.map(item => <li key={item.id}>
+        <button className="btn btn-ghost" disabled={pending} onClick={() => openSaved(item.id)}>{item.local_date} · {label(item.status)}</button>
+        {item.recovery_required && <span>Refresh your plan for recovery.</span>}
+      </li>)}</ul>}
+      {historical && <section aria-label="Saved learning session">
+        <h4 className="font-semibold">Saved session · {historical.local_date} · {label(historical.status)}</h4>
+        <p>Past sessions keep their original content and outcomes. Return to today to continue current work.</p>
+        <ol>{historical.blocks.map((item, index) => <li key={index}>{label(item.mode)} · {label(item.status)}
+          <p className="whitespace-pre-wrap">{item.content.prompt}</p>
+          {item.answer && <p className="whitespace-pre-wrap">Saved response: {item.answer}</p>}
+          {item.attempt_id && savedSources[item.attempt_id] !== undefined && <pre className="overflow-auto whitespace-pre-wrap" aria-label="Saved source">{savedSources[item.attempt_id]}</pre>}
+          {item.original_attempt_id && savedSources[item.original_attempt_id] !== undefined && <pre className="overflow-auto whitespace-pre-wrap" aria-label="Original timed source">{savedSources[item.original_attempt_id]}</pre>}
+        </li>)}</ol>
+      </section>}
     </div>
   </section>;
 }

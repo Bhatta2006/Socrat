@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from socrat.database import record_event
+from socrat.learning.content import coverage_audit
 from socrat.models import ContentReview, SkillPackHead, SkillPackVersion
 from socrat.skillpacks.schema import SkillPack
 
@@ -104,6 +105,12 @@ def transition(
         if action == "language_verified" and set(verified_languages) != set(pack.languages):
             raise PackError("language_verification_incomplete", 422)
         if action == "publish":
+            if (
+                pack.purpose == "launch"
+                and pack.session_content_version
+                and not coverage_audit(pack)["ready"]
+            ):
+                raise PackError("learning_content_coverage_incomplete", 422)
             sources = [pack.provenance, *(item.provenance for item in pack.exercises)]
             if any(
                 value.lower() in {"unknown", "unverified", "pending"}

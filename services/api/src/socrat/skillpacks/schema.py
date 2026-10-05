@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 from pydantic import Field, StringConstraints, model_validator
 
 from socrat.diagnostics.contracts import DiagnosticDefinition, MisconceptionDefinition
+from socrat.learning.content import CompetitivePenalty, LearningLesson, StructuralRepair
 from socrat.skillpacks.types import Contract as Contract
 from socrat.skillpacks.types import Key as Key
 from socrat.skillpacks.types import Language as Language
@@ -176,6 +177,10 @@ class SkillPack(Contract):
     misconception_taxonomy: list[MisconceptionDefinition] = Field(
         default_factory=list, max_length=1000
     )
+    session_content_version: Literal["1.0.0"] | None = None
+    learning_lessons: list[LearningLesson] = Field(default_factory=list, max_length=3000)
+    structural_repairs: list[StructuralRepair] = Field(default_factory=list, max_length=5000)
+    competitive_penalty: CompetitivePenalty | None = None
 
     @model_validator(mode="after")
     def validate_references(self):
@@ -196,6 +201,36 @@ class SkillPack(Contract):
         goals = {goal.id: goal for goal in self.goals}
         tracks = {track.id: track for track in self.tracks}
         exercises = {exercise.id: exercise for exercise in self.exercises}
+        unique([x.id for x in self.learning_lessons], "learning lessons")
+        unique(
+            [f"{x.exercise_id}/{x.variant_id}" for x in self.structural_repairs],
+            "structural repairs",
+        )
+        for lesson in self.learning_lessons:
+            overlay = tracks.get(lesson.track)
+            if (
+                overlay is None
+                or lesson.language not in self.languages
+                or not set(lesson.concept_ids) <= set(overlay.concept_ids)
+            ):
+                raise ValueError("Lesson exceeds track/language coverage")
+        for repair in self.structural_repairs:
+            source, target = exercises.get(repair.exercise_id), exercises.get(repair.variant_id)
+            if (
+                source is None
+                or target is None
+                or source.inventory != "practice"
+                or target.inventory != "practice"
+                or source.family_id == target.family_id
+                or set(source.concept_ids) != set(target.concept_ids)
+                or source.modality != target.modality
+                or target.difficulty > source.difficulty
+            ):
+                raise ValueError("Invalid structural repair mapping")
+        if (
+            self.learning_lessons or self.structural_repairs or self.competitive_penalty
+        ) and not self.session_content_version:
+            raise ValueError("Learning content requires an explicit session content version")
         for edge in self.edges:
             if edge.prerequisite not in concepts or edge.concept not in concepts:
                 raise ValueError("Unknown prerequisite concept")
@@ -370,7 +405,14 @@ class SkillPack(Contract):
 
     def canonical_json(self) -> str:
         payload = self.model_dump(mode="json")
-        for key in ("diagnostics", "misconception_taxonomy"):
+        for key in (
+            "diagnostics",
+            "misconception_taxonomy",
+            "learning_lessons",
+            "structural_repairs",
+            "session_content_version",
+            "competitive_penalty",
+        ):
             if not payload[key]:
                 del payload[key]
         # Preserve pre-M3 immutable release digests. Empty target declarations add no coverage.

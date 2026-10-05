@@ -4,12 +4,12 @@
 
 | Requirement | Current evidence | Remaining acceptance |
 |---|---|---|
-| Resumable Today sessions | Owned API, immutable pins, sequential blocks, pause/resume, receipts, linked Submit; local PostgreSQL concurrency checks | Deployed journeys, accessibility review |
-| Track-complete experience | Generic concept-based normal sessions; server timing, untimed choice, mixed Competitive planning, optional repair budgets and concept-matched variants | Reviewed Foundations language lessons, Interview pattern sessions, structural-variant reviews and full mixed inventory coverage |
+| Resumable Today sessions | Owned API, immutable pins, sequential blocks, pause/resume, receipts, linked Submit; history, local-day expiry and recovery integration; local PostgreSQL concurrency checks | Deployed journeys, accessibility review |
+| Track-complete experience | Language/track lesson contracts, Interview pattern sections, private objective checks; server timing, untimed choice, mixed planning, pinned penalties and reviewed-mapping repair selection | Actual independently reviewed Foundations/Interview lessons, calibrated penalty values, structural-variant reviews and full mixed inventory coverage |
 | Nine track/language cells | Synthetic normal-session API tests | Full browser/staging golden journeys using reviewed inventory and approved runtimes |
-| Evidence boundaries | Passive/text/reflection produce no evidence; verified coding Submit only | Reviewed objective exit/retrieval checks; M9 qualitative workflow |
-| Content coverage | Existing pack contracts and withdrawn-content checks | Reviewed bank with no published dead ends; language semantic verification |
-| Duration | Saved active block intervals exclude explicit pauses | Median plan duration error ≤20% after calibration |
+| Evidence boundaries | Passive/text/reflection and objective feedback produce no mastery evidence; verified coding Submit only | Actual reviewed objective keys/validators; M9 qualitative workflow |
+| Content coverage | Nine-cell audit and opt-in session-content publication gate; legacy pack digests preserved | Reviewed bank with no published dead ends; language semantic verification |
+| Duration | Saved intervals exclude pauses; code duration stops at Submit admission; versioned owned-goal export | Median plan duration error ≤20% after calibration; activation/cohort definition sign-off |
 | Quality | Regression and failure-path checks | Staff dogfood content defect rate <2%, named owners and approvals |
 | Execution safety | Existing M6 gate and kill switch retained | Deferred dedicated-host gVisor proof and other M6 external requirements |
 

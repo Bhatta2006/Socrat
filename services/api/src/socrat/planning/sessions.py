@@ -12,7 +12,9 @@ SESSION_POLICY = {
 SESSION_POLICY_DIGEST = digest(SESSION_POLICY)
 
 
-def competitive_blocks(candidates, states, capacity, work_capacity, concepts, ready):
+def competitive_blocks(
+    candidates, states, capacity, work_capacity, concepts, ready, structural_repairs=None
+):
     """Only verified concepts receive timers. Repairs use reviewed safe inventory.
 
     Reserved repair time is optional, not a second timed deadline. A different
@@ -69,6 +71,7 @@ def competitive_blocks(candidates, states, capacity, work_capacity, concepts, re
             and x.modality == item.modality
             and x.difficulty <= item.difficulty
             and x.estimated_minutes <= repair_minutes
+            and (structural_repairs is None or (item.id, x.id) in structural_repairs)
         ]
         blocks.append(
             dict(
@@ -76,6 +79,11 @@ def competitive_blocks(candidates, states, capacity, work_capacity, concepts, re
                 minutes=practice // len(selected) + int(index < practice % len(selected)),
                 upsolve_minutes=repair_minutes,
                 repair_exercise_id=repairs[0].id if repairs else None,
+                **(
+                    {"repair_review": "reviewed_structural_variant"}
+                    if repairs and structural_repairs is not None
+                    else {}
+                ),
                 concept_ids=item.concept_ids,
                 exercise_ids=[item.id],
                 title=item.title,

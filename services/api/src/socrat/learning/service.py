@@ -1,20 +1,23 @@
 """Owned, version-pinned session transitions. Completion is not mastery."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from socrat.database import record_event
+from socrat.diagnostics.scoring import score_response
 from socrat.execution.service import create_attempt, create_upsolve_attempt
 from socrat.learnerstate.policy import digest
 from socrat.learnerstate.service import facts_for
+from socrat.learning.content import lesson_for
 from socrat.learning.contracts import SessionAction
 from socrat.models import (
     CodeAttempt,
     CodeRun,
     CurriculumHead,
+    LearnerGoal,
     LearnerState,
     LearningSession,
     SessionCommand,
@@ -38,6 +41,33 @@ def local_day(goal, stamp):
         .date()
         .isoformat()
     )
+
+
+def day_end(goal, session):
+    zone = ZoneInfo(session.snapshot.get("timezone", goal.snapshot["goal"]["timezone"]))
+    return int(
+        (datetime.fromisoformat(session.local_date) + timedelta(days=1))
+        .replace(tzinfo=zone)
+        .timestamp()
+    )
+
+
+def expire_session(db, goal, session, stamp):
+    """Close saved intervals at local midnight without rolling work into a new plan."""
+    if session.status not in {"in_progress", "paused"} or stamp < day_end(goal, session):
+        return False
+    progress = [dict(x) for x in session.progress]
+    for step in progress:
+        if "started_at" in step:
+            end = min(day_end(goal, session), step.get("deadline_at", day_end(goal, session)))
+            if step.get("phase") == "upsolve":
+                end = day_end(goal, session)
+            step["active_seconds"] += max(0, end - step.pop("started_at"))
+    session.progress = progress
+    session.status = "expired"
+    session.revision += 1
+    record_event(db, session.user_id, "learning.session_expired", session.id)
+    return True
 
 
 def session_content(db: Session, session: LearningSession):
@@ -92,14 +122,17 @@ def timed_outcome(db, step, stamp):
 
 def view(db: Session, session: LearningSession, stamp: int | None = None):
     stamp = now() if stamp is None else stamp
+    goal = db.get(LearnerGoal, session.goal_id)
     pack = session_content(db, session)
     concepts = {x.id: x for x in pack.concepts}
     exercises = {x.id: x for x in pack.exercises}
+    lessons = {x.id: x for x in pack.learning_lessons}
     blocks = []
     for block, progress in zip(session.snapshot["blocks"], session.progress, strict=True):
         content = dict(prompt="", explanations=[], examples=[])
         if progress["status"] != "locked":
             selected = [concepts[key] for key in block["concept_ids"]]
+            teaching = [lessons[key] for key in block.get("lesson_ids", [])]
             if block["mode"] == "instruction":
                 content.update(explanations=[x.explanation for x in selected])
             elif block["mode"] == "guided":
@@ -116,9 +149,33 @@ def view(db: Session, session: LearningSession, stamp: int | None = None):
             else:
                 exercise = exercises[progress.get("upsolve_exercise_id", block["exercise_ids"][0])]
                 content["prompt"] = exercise.statement
+            if teaching and block["mode"] == "instruction":
+                content["explanations"] = [
+                    part
+                    for lesson in teaching
+                    for part in (
+                        lesson.instruction,
+                        lesson.language_notes,
+                        lesson.pattern_recognition,
+                        lesson.correctness,
+                        lesson.complexity,
+                    )
+                    if part is not None
+                ]
+            elif teaching and block["mode"] == "guided":
+                content["examples"] = [
+                    example for lesson in teaching for example in lesson.examples
+                ]
+            elif teaching and block["mode"] in {"retrieval", "exit_check"}:
+                check = getattr(
+                    teaching[0],
+                    block["mode"] if block["mode"] == "exit_check" else "retrieval_check",
+                )
+                content.update(prompt=check.prompt, objective_check=check.public())
         value = dict(**block, **progress, content=content)
         if progress.get("phase") == "upsolve":
             value.update(mode="upsolve", timed=False, attempt_id=progress.get("upsolve_attempt_id"))
+            value["original_attempt_id"] = progress.get("attempt_id")
             if progress.get("upsolve_exercise_id"):
                 repair = exercises[progress["upsolve_exercise_id"]]
                 value.update(exercise_ids=[repair.id], title=repair.title)
@@ -133,7 +190,9 @@ def view(db: Session, session: LearningSession, stamp: int | None = None):
         goal_id=session.goal_id,
         local_date=session.local_date,
         revision=session.revision,
-        status=session.status,
+        status="expired"
+        if session.status in {"in_progress", "paused"} and stamp >= day_end(goal, session)
+        else session.status,
         curriculum_revision=session.snapshot["curriculum_revision"],
         track=session.snapshot["track"],
         language=session.snapshot["language"],
@@ -149,9 +208,36 @@ def view(db: Session, session: LearningSession, stamp: int | None = None):
         completion_scope="learning_participation",
         mastery_claim=False,
         timing=session.snapshot.get("timing", "standard"),
+        expiry_policy="local_day_1.0.0",
     )
     if any(x["timed"] and x["status"] == "available" for x in blocks):
         value["server_now"] = stamp
+    penalty = session.snapshot.get("competitive_penalty")
+    if penalty:
+        results = []
+        for index, (block, step) in enumerate(
+            zip(session.snapshot["blocks"], session.progress, strict=True)
+        ):
+            if not block["timed"] or "deadline_at" not in step:
+                continue
+            outcome = step.get("timed_outcome") or timed_outcome(db, step, stamp)
+            wrong = int(outcome["outcome"] == "unsuccessful" and outcome.get("eligible", False))
+            results.append(
+                dict(
+                    block_index=index,
+                    outcome=outcome["outcome"],
+                    wrong_submissions=wrong,
+                    penalty_seconds=wrong * penalty["wrong_submit_seconds"],
+                )
+            )
+        value["competitive_result"] = dict(
+            policy_version=penalty["version"],
+            problems=results,
+            wrong_submissions=sum(x["wrong_submissions"] for x in results),
+            penalty_seconds=sum(x["penalty_seconds"] for x in results),
+            scope="low_stakes_practice",
+            ranking=False,
+        )
     return value
 
 
@@ -167,6 +253,14 @@ def start(db, goal, revision, settings, stamp, timing="standard"):
         if timing != existing.snapshot.get("timing", "standard"):
             raise SessionError("session_timing_already_chosen")
         return view(db, existing, stamp)
+    for previous in db.scalars(
+        select(LearningSession).where(
+            LearningSession.goal_id == goal.id,
+            LearningSession.local_date < day,
+            LearningSession.status.in_(["in_progress", "paused"]),
+        )
+    ):
+        expire_session(db, goal, previous, stamp)
     plan = current(db, goal)
     if plan["status"] != "confirmed" or plan["revision"] != revision:
         raise SessionError("reviewed_plan_required")
@@ -179,6 +273,22 @@ def start(db, goal, revision, settings, stamp, timing="standard"):
     if planned is None or not planned["blocks"]:
         raise SessionError("no_session_today")
     blocks = [{**x, "timed": x["timed"] and timing == "standard"} for x in planned["blocks"]]
+    pack = load(db.get(SkillPackVersion, plan["pack_id"]))
+    if pack.session_content_version:
+        for block in blocks:
+            selected_lessons = [
+                lesson_for(
+                    pack,
+                    plan["active_track"],
+                    plan["schedule"]["language"],
+                    [key],
+                    block["concept_ids"],
+                )
+                for key in block["concept_ids"]
+            ]
+            if any(x is None for x in selected_lessons):
+                raise SessionError("session_lesson_unavailable")
+            block["lesson_ids"] = sorted({x.id for x in selected_lessons if x is not None})
     progress = [
         dict(status="available" if i == 0 else "locked", active_seconds=0)
         for i in range(len(blocks))
@@ -218,6 +328,15 @@ def start(db, goal, revision, settings, stamp, timing="standard"):
             track=plan["active_track"],
             language=plan["schedule"]["language"],
             timing=timing,
+            timezone=goal.snapshot["goal"]["timezone"],
+            **(
+                {"competitive_penalty": pack.competitive_penalty.model_dump()}
+                if plan["active_track"] == "competitive"
+                and timing == "standard"
+                and pack.competitive_penalty is not None
+                and pack.competitive_penalty.calibration == "reviewed"
+                else {}
+            ),
         ),
         progress=progress,
         status="in_progress",
@@ -243,7 +362,7 @@ def command(db, goal, session, body: SessionAction, stamp, settings=None):
             raise SessionError("idempotency_key_reused")
         session_content(db, session)
         return receipt.outcome
-    session_content(db, session)
+    pack = session_content(db, session)
     if session.revision != body.expected_revision:
         raise SessionError("session_revision_stale")
     if session.status in {"completed", "abandoned", "expired"}:
@@ -364,6 +483,12 @@ def command(db, goal, session, body: SessionAction, stamp, settings=None):
                         raise SessionError("upsolve_required")
                     step["timed_outcome"] = outcome
                 step.update(run_id=run.id, scoring="verified_implementation")
+                from socrat.learning.admission import solve_seconds
+
+                attempt = db.get(CodeAttempt, run.attempt_id)
+                work_seconds = solve_seconds(db, attempt, run.created_at, bounded=False)
+                if work_seconds is not None:
+                    step["active_seconds"] = step.get("timed_active_seconds", 0) + int(work_seconds)
                 if body.answer is not None:
                     raise SessionError("unexpected_session_response", 422)
             elif block["mode"] != "instruction":
@@ -371,7 +496,30 @@ def command(db, goal, session, body: SessionAction, stamp, settings=None):
                     raise SessionError("timed_window_ended")
                 if not body.answer:
                     raise SessionError("session_response_required", 422)
-                step.update(answer=body.answer, scoring="ungraded")
+                teaching = {x.id: x for x in pack.learning_lessons}
+                lesson = teaching.get(block.get("lesson_ids", [None])[0])
+                if lesson and block["mode"] in {"retrieval", "exit_check"}:
+                    check = (
+                        lesson.retrieval_check
+                        if block["mode"] == "retrieval"
+                        else lesson.exit_check
+                    )
+                    if check.response.kind == "choice" and body.answer not in {
+                        x.id for x in check.response.choices
+                    }:
+                        raise SessionError("invalid_learning_choice", 422)
+                    scored = score_response(check.response, body.answer, False, False)
+                    step.update(
+                        answer=body.answer,
+                        scoring="objective_learning_check",
+                        check_result=dict(
+                            check_id=check.id,
+                            score=scored.score,
+                            validator_version=scored.scoring_version,
+                        ),
+                    )
+                else:
+                    step.update(answer=body.answer, scoring="ungraded")
                 if timed:
                     step["timed_outcome"] = dict(outcome="ungraded_submission", submitted_at=stamp)
             elif body.answer is not None:
