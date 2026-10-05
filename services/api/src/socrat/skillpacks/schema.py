@@ -6,22 +6,21 @@ import json
 from collections.abc import Iterable, Sequence
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import Field, StringConstraints, model_validator
 
-Key = Annotated[str, Field(pattern=r"^[a-z][a-z0-9_-]{0,63}$")]
+from socrat.diagnostics.contracts import DiagnosticDefinition, MisconceptionDefinition
+from socrat.skillpacks.types import Contract as Contract
+from socrat.skillpacks.types import Key as Key
+from socrat.skillpacks.types import Language as Language
+from socrat.skillpacks.types import Text as Text
+
 Version = Annotated[str, Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")]
-Text = Annotated[str, Field(min_length=1, max_length=8000)]
 CodeText = Annotated[str, StringConstraints(strip_whitespace=False, min_length=1, max_length=8000)]
 IOText = Annotated[str, StringConstraints(strip_whitespace=False, min_length=0, max_length=8000)]
 EvidenceMode = Literal[
     "recognize", "trace", "explain", "implement", "analyze", "transfer", "retain"
 ]
 Modality = Literal["text", "code"]
-Language = Literal["python", "cpp", "java"]
-
-
-class Contract(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
 
 
 class Provenance(Contract):
@@ -173,6 +172,10 @@ class SkillPack(Contract):
     blueprints: list[Blueprint] = Field(min_length=1, max_length=100)
     mastery_policy: MasteryPolicy
     migration: Migration | None = None
+    diagnostics: list[DiagnosticDefinition] = Field(default_factory=list, max_length=100)
+    misconception_taxonomy: list[MisconceptionDefinition] = Field(
+        default_factory=list, max_length=1000
+    )
 
     @model_validator(mode="after")
     def validate_references(self):
@@ -267,6 +270,75 @@ class SkillPack(Contract):
         }
         if baseline_families & final_families:
             raise ValueError("Baseline and final forms cannot reuse item families")
+        unique([item.id for item in self.misconception_taxonomy], "misconception codes")
+        taxonomy = {item.id: item for item in self.misconception_taxonomy}
+        for misconception in taxonomy.values():
+            if (
+                misconception.concept_id not in concepts
+                or misconception.repair_concept_id not in concepts
+            ):
+                raise ValueError("Unknown misconception concept")
+        unique([item.blueprint_id for item in self.diagnostics], "diagnostic definitions")
+        blueprints = {item.id: item for item in self.blueprints}
+        for definition in self.diagnostics:
+            diagnostic_blueprint = blueprints.get(definition.blueprint_id)
+            if diagnostic_blueprint is None or diagnostic_blueprint.kind != "diagnostic":
+                raise ValueError("Unknown diagnostic blueprint")
+            if definition.track not in goals:
+                raise ValueError("Unknown diagnostic track")
+            diagnostic_track = tracks[goals[definition.track].track_id]
+            if not set(diagnostic_blueprint.concept_ids) <= set(diagnostic_track.concept_ids):
+                raise ValueError("Diagnostic exceeds released track overlay")
+            if self.languages and not definition.languages:
+                raise ValueError("Language packs require explicit diagnostic coverage")
+            unique(definition.languages, "diagnostic languages")
+            if not set(definition.languages) <= set(self.languages):
+                raise ValueError("Undeclared diagnostic language")
+            if {item.exercise_id for item in definition.items} != set(
+                diagnostic_blueprint.exercise_ids
+            ):
+                raise ValueError("Diagnostic items do not match blueprint")
+            for diagnostic_item in definition.items:
+                exercise = exercises[diagnostic_item.exercise_id]
+                if not set(exercise.concept_ids) <= set(diagnostic_blueprint.concept_ids):
+                    raise ValueError("Diagnostic item exceeds blueprint scope")
+                unique(diagnostic_item.languages, "diagnostic item languages")
+                if not set(diagnostic_item.languages) <= set(definition.languages):
+                    raise ValueError("Undeclared item language")
+                if (exercise.modality == "code") != (
+                    diagnostic_item.response.kind == "implementation"
+                ):
+                    raise ValueError("Diagnostic response modality mismatch")
+                if (
+                    diagnostic_item.response.kind == "human_rubric"
+                    and diagnostic_blueprint.scoring != "human_rubric"
+                ):
+                    raise ValueError("Qualitative diagnostic requires a human-rubric blueprint")
+                if diagnostic_item.response.kind == "implementation" and not set(
+                    diagnostic_item.languages
+                ) <= {variant.language for variant in exercise.variants}:
+                    raise ValueError("Missing diagnostic implementation variant")
+                if (
+                    diagnostic_item.response.kind == "implementation"
+                    and not diagnostic_item.languages
+                ):
+                    raise ValueError("Implementation items require explicit language coverage")
+                if any(
+                    code not in taxonomy or taxonomy[code].concept_id not in exercise.concept_ids
+                    for code in diagnostic_item.response.misconception_answers.values()
+                ):
+                    raise ValueError("Unknown or mismatched misconception signature")
+            # A diagnostic must not consume a protected future assessment form.
+            other_families = {
+                exercises[key].family_id
+                for form in self.blueprints
+                if form.kind != "diagnostic"
+                for key in form.exercise_ids
+            }
+            if any(
+                exercises[item.exercise_id].family_id in other_families for item in definition.items
+            ):
+                raise ValueError("Diagnostic overlaps protected assessment families")
         if self.migration:
             if tuple(map(int, self.migration.from_version.split("."))) >= tuple(
                 map(int, self.version.split("."))
@@ -298,6 +370,9 @@ class SkillPack(Contract):
 
     def canonical_json(self) -> str:
         payload = self.model_dump(mode="json")
+        for key in ("diagnostics", "misconception_taxonomy"):
+            if not payload[key]:
+                del payload[key]
         # Preserve pre-M3 immutable release digests. Empty target declarations add no coverage.
         for goal in payload["goals"]:
             if not goal["released_targets"]:

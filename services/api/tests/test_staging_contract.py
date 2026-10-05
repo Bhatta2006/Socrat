@@ -99,9 +99,15 @@ def test_prometheus_scrape_and_alert_contracts_are_private_and_actionable():
         "SocratApiUnavailable",
         "SocratHighServerErrorRate",
         "SocratHighLatency",
+        "SocratDiagnosticContentBlocked",
+        "SocratDiagnosticReviewBacklog",
     }
     assert alerts["SocratApiUnavailable"]["labels"]["severity"] == "page"
     assert alerts["SocratHighServerErrorRate"]["labels"]["severity"] == "ticket"
+    assert (
+        alerts["SocratDiagnosticContentBlocked"]["annotations"]["runbook"]
+        == "docs/operations/m4-diagnostics.md#blocked-diagnostics"
+    )
 
 
 def test_caddy_terminates_tls_and_hides_the_metrics_endpoint():

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Onboarding from './onboarding';
+import CalibrationPanel from './calibration';
 
 type Profile = {
   id: string;
@@ -11,7 +12,7 @@ type Profile = {
   csrf_token: string;
 };
 
-type Features = { dev_login: boolean; oidc_login: boolean; onboarding: boolean };
+type Features = { dev_login: boolean; oidc_login: boolean; onboarding: boolean; diagnostics: boolean };
 
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, credentials: 'same-origin' });
@@ -161,7 +162,8 @@ export default function Workspace() {
                 <button className="btn" type="button" onClick={logout} disabled={pending}>Sign out</button>
               </div>
             </form>
-            {features?.onboarding && <Onboarding csrfToken={profile.csrf_token} timezone={profile.timezone} adultConfirmed={profile.adult_confirmed} />}
+            {features?.onboarding && <Onboarding csrfToken={profile.csrf_token} timezone={profile.timezone} adultConfirmed={profile.adult_confirmed} diagnosticsEnabled={features.diagnostics} />}
+            <CalibrationPanel />
           </>
         ) : (
           <>

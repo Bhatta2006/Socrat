@@ -17,6 +17,7 @@ dev = [
     "mypy>=1.15,<2",
     "pip-audit>=2.8,<3",
     "pyyaml>=6.0.3,<7",
+    "hypothesis>=6,<7",
 ]
 
 [tool.pytest.ini_options]

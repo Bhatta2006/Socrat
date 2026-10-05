@@ -105,3 +105,132 @@ class LearnerGoal(Base):
     review_digest: Mapped[str] = mapped_column(String(64))
     snapshot: Mapped[dict] = mapped_column(JSON)
     confirmation_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class CurriculumRevision(Base):
+    __tablename__ = "curriculum_revisions"
+    __table_args__ = (UniqueConstraint("goal_id", "revision"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    digest: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class CurriculumHead(Base):
+    __tablename__ = "curriculum_heads"
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"), primary_key=True)
+    active_id: Mapped[str] = mapped_column(ForeignKey("curriculum_revisions.id"))
+    revision: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(32), default="draft")
+
+
+class PlanningCommand(Base):
+    __tablename__ = "planning_commands"
+    __table_args__ = (UniqueConstraint("goal_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"), index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    outcome: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class DiagnosticSession(Base):
+    __tablename__ = "diagnostic_sessions"
+    __table_args__ = (UniqueConstraint("goal_id"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"))
+    pack_id: Mapped[str] = mapped_column(ForeignKey("skill_pack_versions.id"))
+    blueprint_id: Mapped[str] = mapped_column(String(64))
+    policy_version: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(32), default="in_progress")
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    started_at: Mapped[int] = mapped_column(Integer, default=now)
+    deadline_at: Mapped[int] = mapped_column(Integer)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+
+class DiagnosticAttempt(Base):
+    __tablename__ = "diagnostic_attempts"
+    __table_args__ = (UniqueConstraint("diagnostic_id", "position"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    diagnostic_id: Mapped[str] = mapped_column(ForeignKey("diagnostic_sessions.id"), index=True)
+    exercise_id: Mapped[str] = mapped_column(String(64))
+    position: Mapped[int] = mapped_column(Integer)
+    selection: Mapped[dict] = mapped_column(JSON)
+    issued_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class DiagnosticResponse(Base):
+    __tablename__ = "diagnostic_responses"
+    __table_args__ = (UniqueConstraint("diagnostic_id", "idempotency_key"),)
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("diagnostic_attempts.id"), primary_key=True)
+    diagnostic_id: Mapped[str] = mapped_column(ForeignKey("diagnostic_sessions.id"), index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    answer_digest: Mapped[str] = mapped_column(String(64))
+    outcome: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class DiagnosticAnswer(Base):
+    """Restricted response artifact, separable from retained scoring/audit facts."""
+
+    __tablename__ = "diagnostic_answers"
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("diagnostic_attempts.id"), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    answer: Mapped[str] = mapped_column(String(2000))
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class LearningEvidence(Base):
+    __tablename__ = "learning_evidence"
+    __table_args__ = (
+        UniqueConstraint("user_id", "sequence"),
+        UniqueConstraint("user_id", "source_id", "kind"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    sequence: Mapped[int] = mapped_column(Integer)
+    source_id: Mapped[str] = mapped_column(String(36))
+    kind: Mapped[str] = mapped_column(String(32))
+    payload: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class LearnerState(Base):
+    __tablename__ = "learner_states"
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    active_policy: Mapped[str] = mapped_column(String(64), default="1.0.0")
+    previous_policy: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    projection: Mapped[dict] = mapped_column(JSON)
+
+
+class MasteryEvent(Base):
+    __tablename__ = "mastery_events"
+    __table_args__ = (UniqueConstraint("evidence_id", "concept_key", "policy_version"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    evidence_id: Mapped[str] = mapped_column(ForeignKey("learning_evidence.id"))
+    concept_key: Mapped[str] = mapped_column(String(160))
+    policy_version: Mapped[str] = mapped_column(String(64))
+    before_state: Mapped[dict] = mapped_column(JSON)
+    after_state: Mapped[dict] = mapped_column(JSON)
+    reason_code: Mapped[str] = mapped_column(String(64))
+
+
+class LearningPolicyReview(Base):
+    __tablename__ = "learning_policy_reviews"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    actor_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    policy_version: Mapped[str] = mapped_column(String(64))
+    policy_digest: Mapped[str] = mapped_column(String(64))
+    evidence_reference: Mapped[str] = mapped_column(String(512))
+    projection_digest: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[int] = mapped_column(Integer, default=now)

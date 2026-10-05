@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import DiagnosticFlow from './diagnostic';
 
 const outcomes = {
   foundations: ['programming_readiness', 'foundational_dsa', 'interview_entry_readiness'],
@@ -30,8 +31,8 @@ const reasons: Record<string, string> = {
   foundation_prerequisites_required: 'Start with programming foundations while keeping your chosen goal.',
 };
 
-export default function Onboarding({ csrfToken, timezone, adultConfirmed }: {
-  csrfToken: string; timezone: string; adultConfirmed: boolean;
+export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagnosticsEnabled }: {
+  csrfToken: string; timezone: string; adultConfirmed: boolean; diagnosticsEnabled: boolean;
 }) {
   const [track, setTrack] = useState<Track>('foundations');
   const [language, setLanguage] = useState('python');
@@ -121,6 +122,8 @@ export default function Onboarding({ csrfToken, timezone, adultConfirmed }: {
       <div><p className="font-semibold">Goal saved{confirmed.routing_outcome === 'waitlist' ? ' on the waitlist' : ''}.</p>
         <p>{confirmed.normalized_statement}</p></div>
     </div>}
+    {confirmed?.id && confirmed.routing_outcome.startsWith('accept_') &&
+      <DiagnosticFlow key={confirmed.id} goalId={confirmed.id} csrfToken={csrfToken} enabled={diagnosticsEnabled} />}
     {error && <div className="alert alert-error mt-4" role="alert">{error}</div>}
     {review ? <div className="card mt-4 border border-base-300"><div className="card-body">
       <h3 className="card-title">Review your goal</h3>

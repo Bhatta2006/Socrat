@@ -35,3 +35,21 @@ groups:
         annotations:
           summary: Socrat staging API p95 latency exceeds one second
           runbook: docs/operations/m1-staging-runbook.md#high-latency
+
+      - alert: SocratDiagnosticContentBlocked
+        expr: sum(socrat_diagnostic_sessions{status=~"blocked_content|blocked_runtime"}) > 0
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: A diagnostic needs content or runtime review
+          runbook: docs/operations/m4-diagnostics.md#blocked-diagnostics
+
+      - alert: SocratDiagnosticReviewBacklog
+        expr: sum(socrat_diagnostic_sessions{status="pending_review"}) > 10
+        for: 30m
+        labels:
+          severity: ticket
+        annotations:
+          summary: Diagnostic qualitative review backlog exceeds ten sessions
+          runbook: docs/operations/m4-diagnostics.md#pending-review

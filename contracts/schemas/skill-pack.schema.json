@@ -57,6 +57,28 @@
       "title": "Blueprint",
       "type": "object"
     },
+    "Choice": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "Choice",
+      "type": "object"
+    },
     "Concept": {
       "additionalProperties": false,
       "properties": {
@@ -147,6 +169,133 @@
         "accessibility"
       ],
       "title": "Concept",
+      "type": "object"
+    },
+    "DiagnosticDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "blueprint_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Blueprint Id",
+          "type": "string"
+        },
+        "track": {
+          "enum": [
+            "foundations",
+            "interview",
+            "competitive"
+          ],
+          "title": "Track",
+          "type": "string"
+        },
+        "languages": {
+          "items": {
+            "enum": [
+              "python",
+              "cpp",
+              "java"
+            ],
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Languages",
+          "type": "array"
+        },
+        "scope": {
+          "enum": [
+            "objective_readiness",
+            "full_placement"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "minimum_per_concept": {
+          "maximum": 20,
+          "minimum": 2,
+          "title": "Minimum Per Concept",
+          "type": "integer"
+        },
+        "maximum_items": {
+          "maximum": 100,
+          "minimum": 2,
+          "title": "Maximum Items",
+          "type": "integer"
+        },
+        "maximum_seconds": {
+          "maximum": 2700,
+          "minimum": 60,
+          "title": "Maximum Seconds",
+          "type": "integer"
+        },
+        "uncertainty_margin": {
+          "maximum": 0.25,
+          "minimum": 0,
+          "title": "Uncertainty Margin",
+          "type": "number"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/DiagnosticItem"
+          },
+          "maxItems": 1000,
+          "minItems": 2,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "blueprint_id",
+        "track",
+        "scope",
+        "minimum_per_concept",
+        "maximum_items",
+        "maximum_seconds",
+        "uncertainty_margin",
+        "items"
+      ],
+      "title": "DiagnosticDefinition",
+      "type": "object"
+    },
+    "DiagnosticItem": {
+      "additionalProperties": false,
+      "properties": {
+        "exercise_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Exercise Id",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "no_code_trace_and_reasoning",
+            "dsa_trace_and_reasoning",
+            "implementation_diagnostic"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "languages": {
+          "items": {
+            "enum": [
+              "python",
+              "cpp",
+              "java"
+            ],
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Languages",
+          "type": "array"
+        },
+        "response": {
+          "$ref": "#/$defs/ResponseSpec"
+        }
+      },
+      "required": [
+        "exercise_id",
+        "stage",
+        "response"
+      ],
+      "title": "DiagnosticItem",
       "type": "object"
     },
     "Edge": {
@@ -521,6 +670,40 @@
       "title": "Migration",
       "type": "object"
     },
+    "MisconceptionDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "concept_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Concept Id",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 8000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "repair_concept_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Repair Concept Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "concept_id",
+        "description",
+        "repair_concept_id"
+      ],
+      "title": "MisconceptionDefinition",
+      "type": "object"
+    },
     "Provenance": {
       "additionalProperties": false,
       "properties": {
@@ -618,6 +801,57 @@
         "outcome"
       ],
       "title": "ReleasedTarget",
+      "type": "object"
+    },
+    "ResponseSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "choice",
+            "trace",
+            "human_rubric",
+            "implementation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "choices": {
+          "items": {
+            "$ref": "#/$defs/Choice"
+          },
+          "maxItems": 12,
+          "title": "Choices",
+          "type": "array"
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Answer"
+        },
+        "misconception_answers": {
+          "additionalProperties": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxProperties": 12,
+          "title": "Misconception Answers",
+          "type": "object"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ResponseSpec",
       "type": "object"
     },
     "TestCase": {
@@ -848,6 +1082,22 @@
         }
       ],
       "default": null
+    },
+    "diagnostics": {
+      "items": {
+        "$ref": "#/$defs/DiagnosticDefinition"
+      },
+      "maxItems": 100,
+      "title": "Diagnostics",
+      "type": "array"
+    },
+    "misconception_taxonomy": {
+      "items": {
+        "$ref": "#/$defs/MisconceptionDefinition"
+      },
+      "maxItems": 1000,
+      "title": "Misconception Taxonomy",
+      "type": "array"
     }
   },
   "required": [

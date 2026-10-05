@@ -4,7 +4,7 @@ param(
     [string]$ComposeFile = "compose.yaml",
     [string]$ProjectName = "socrat",
     [string]$EnvFile = "",
-    [ValidatePattern('^[0-9]{4}$')][string]$ExpectedRevision = "0003"
+    [ValidatePattern('^[0-9]{4}$')][string]$ExpectedRevision = "0005"
 )
 
 $ErrorActionPreference = 'Stop'

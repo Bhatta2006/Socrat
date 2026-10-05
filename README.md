@@ -10,6 +10,10 @@ On 2 October 2026, the owner chose Google sign-in and deferred the remaining M1 
 
 M3 onboarding and deterministic routing is implemented locally: reviewed goals, explicit target/language coverage, beginner bridges, version-pinned confirmation, and atomic funnel events. See the [M3 index](docs/delivery/milestones/m3-index.md) and [gate](docs/delivery/milestones/m3-gate.md). Onboarding is enabled in local Compose and defaults off in staging. No real launch content or completed hosted/staging M3 gate is claimed.
 
+M4 adds resumable objective diagnostics, append-only evidence, deterministic learner-state projections, retention/misconception rules, and protected replay/correction/policy/calibration operations. Diagnostics are enabled in local Compose and default off in staging. Implementation-based placement awaits M6; live content and operational/human approvals remain in the [M4 gate](docs/delivery/milestones/m4-gate.md). See the [operations guide](docs/operations/m4-diagnostics.md).
+
+M5 implements the deterministic curriculum and fourteen-day planner, with prerequisite-safe practice selection, immutable decisions/replay, confirmation, feasibility, workload controls, and missed-day recovery. Local Compose enables planning; staging defaults off. Code practice awaits M6 and full learning sessions await M7. See the [M5 index](docs/delivery/milestones/m5-index.md), [gate](docs/delivery/milestones/m5-gate.md), and [operations guide](docs/operations/m5-planning.md).
+
 ## Repository map
 
 ```text
@@ -48,6 +52,7 @@ Future learning capabilities remain disabled until their milestone contracts and
 5. [M1 platform foundation](docs/delivery/milestones/m1-index.md)
 6. [M2 skill-pack kernel](docs/delivery/milestones/m2-index.md)
 7. [M3 onboarding and routing](docs/delivery/milestones/m3-index.md)
+8. [M4 diagnostic and learner-state implementation plan](docs/delivery/milestones/m4-index.md)
 
 ## Run the M1 foundation
 

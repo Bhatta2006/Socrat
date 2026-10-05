@@ -29,6 +29,8 @@ services:
       SOCRAT_SESSION_SECRET: ${SOCRAT_SESSION_SECRET:-local-development-only-change-before-deploy}
       SOCRAT_DEV_LOGIN_ENABLED: "true"
       SOCRAT_ONBOARDING_ENABLED: "true"
+      SOCRAT_DIAGNOSTICS_ENABLED: "true"
+      SOCRAT_PLANNING_ENABLED: "true"
       SOCRAT_CONTENT_ADMIN_IDENTITIES: "${SOCRAT_CONTENT_ADMIN_IDENTITIES:-[]}"
     depends_on:
       postgres:

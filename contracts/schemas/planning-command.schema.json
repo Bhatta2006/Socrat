@@ -1,0 +1,91 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "generate",
+        "confirm",
+        "refresh",
+        "lighter",
+        "recover",
+        "pause",
+        "resume"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 0,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "idempotency_key": {
+      "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "minutes": {
+      "anyOf": [
+        {
+          "maximum": 90,
+          "minimum": 20,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Minutes"
+    },
+    "reviewed_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reviewed Digest"
+    },
+    "target_date": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Date"
+    },
+    "weekdays": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 6,
+          "minItems": 3,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Weekdays"
+    }
+  },
+  "required": [
+    "action",
+    "expected_revision",
+    "idempotency_key"
+  ],
+  "title": "PlanCommand",
+  "type": "object"
+}

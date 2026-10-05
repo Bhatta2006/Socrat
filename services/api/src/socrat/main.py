@@ -10,17 +10,19 @@ from authlib.integrations.starlette_client import OAuth
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
-from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
 from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
-from socrat.models import User
+from socrat.diagnostics.routes import router as diagnostic_router
+from socrat.models import DiagnosticSession, User
 from socrat.onboarding.routes import router as onboarding_router
+from socrat.planning.routes import router as planning_router
 from socrat.schema_revision import SCHEMA_REVISION
 from socrat.skillpacks.routes import router as skill_pack_router
 
@@ -80,6 +82,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.include_router(skill_pack_router)
     app.include_router(onboarding_router)
+    app.include_router(diagnostic_router)
+    app.include_router(planning_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -97,6 +101,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     latency = Histogram(
         "socrat_http_duration_seconds", "HTTP latency", ["route"], registry=registry
+    )
+    diagnostic_sessions = Gauge(
+        "socrat_diagnostic_sessions",
+        "Diagnostic sessions by track, language and status",
+        ["track", "language", "status"],
+        registry=registry,
     )
     oauth = OAuth()
     if settings.oidc_issuer:
@@ -188,6 +198,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             request.headers.get("authorization", ""), f"Bearer {metrics_token}"
         ):
             raise HTTPException(404, "not_found")
+        diagnostic_sessions.clear()
+        with Session(engine) as db:
+            counts: dict[tuple[str, str, str], int] = {}
+            for diagnostic in db.scalars(select(DiagnosticSession)):
+                key = (
+                    diagnostic.snapshot["declared_track"],
+                    diagnostic.snapshot["language"],
+                    diagnostic.status,
+                )
+                counts[key] = counts.get(key, 0) + 1
+            for key, count in counts.items():
+                diagnostic_sessions.labels(*key).set(count)
         return Response(generate_latest(registry), media_type="text/plain; version=0.0.4")
 
     @app.get("/api/v1/features")
@@ -199,6 +221,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "dev_login": settings.dev_login_enabled,
             "oidc_login": bool(settings.oidc_issuer),
             "onboarding": settings.onboarding_enabled,
+            "diagnostics": settings.diagnostics_enabled,
+            "planning": settings.planning_enabled,
         }
 
     @app.post("/api/v1/auth/dev-login")

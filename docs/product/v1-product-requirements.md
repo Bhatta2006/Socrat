@@ -424,7 +424,7 @@ confidence = min(0.95, diversity_factor * (1 - exp(-(alpha' + beta' - 4) / 8)))
 effective_mastery = mastery_mean * retention_factor
 ```
 
-`quality` accounts for item calibration and execution reliability. `diversity_factor` rises when evidence spans implementation, explanation/debugging, assessment, and delayed recall; repeated near-duplicate items cannot manufacture confidence. A hint multiplier is `1.0, .85, .70, .50, .30, .10` for levels 0–5. Failures are not down-weighted because a hint was absent.
+`quality` accounts for item calibration and execution reliability. `diversity_factor` rises when evidence spans implementation, explanation/debugging, assessment, and delayed recall; repeated near-duplicate items cannot manufacture confidence. The M4 evidence contract uses hint multipliers `1.0, .85, .65, .35, 0, 0` for levels 0–5, matching the deterministic policy matrix. Levels 4–5 create learning records only. Failures are not down-weighted because a hint was absent. Diagnostic base weight is capped at .8 and does not implicitly inherit weekly-assessment authority. Machine-readable defaults live in `contracts/product/m4-learning-policies.json`; calibration and accountable policy approval remain release gates.
 
 This method is deliberately simple, inspectable, and replaceable. The parameters are configuration, versioned with every `MasteryEvent`. Later, calibrated item response or Bayesian knowledge tracing models may be tested only against better predictive validity.
 
@@ -434,7 +434,7 @@ Misconceptions use a controlled taxonomy such as `binary_search_boundary`, `comp
 
 ### 10.5 Example transition
 
-For recursion, prior `Beta(2,3)` yields 0.40 with low confidence. A failed independent base-case item (`s=.2,w=1.2`), a level-2-assisted trace (`s=.8,w=.49`), an independent implementation (`s=1,w=1.2`), and an assessment score of .72 (`w=1.8`) yield an updated estimate near the developing/capable boundary, with moderate—not high—confidence. The decision engine assigns two targeted exercises and defers backtracking. Exact UI wording is “Developing; evidence from 4 activities,” not “58% mastered.”
+For recursion, default prior `Beta(2,2)` yields 0.50 with no earned evidence confidence. A failed independent base-case item (`s=.2,w=1.2`), a level-2-assisted trace (`s=.8,w=.52` before quality/caps), an independent implementation (`s=1,w=1.2`), and an assessment score of .72 (`w=1.8`) yield an updated estimate near the developing/capable boundary, with moderate—not high—confidence. The decision engine assigns two targeted exercises and defers backtracking. Exact UI wording is “Developing; evidence from 4 activities,” not “58% mastered.” Self-report may choose the first item but cannot improve the prior or earn evidence.
 
 ### 10.6 Update timing and safeguards
 
@@ -625,12 +625,12 @@ The tutor’s objective is the smallest intervention that enables the learner’
 
 | Level | Behavior | Example | Evidence multiplier |
 |---|---|---|---:|
-| 0 | Elicit current reasoning | “What have you tried, and where does it stop matching the example?” | 1.00 |
+| 0 | No tutor assistance | Independent attempt; neutral interface instructions only | 1.00 |
 | 1 | Targeted question | “Which values must be remembered as you scan?” | .85 |
-| 2 | Conceptual hint | “A set can answer whether a value has appeared in constant average time.” | .70 |
-| 3 | Technique direction | “Track complements in a hash map as you make one pass.” | .50 |
-| 4 | Partial scaffold | Pseudocode with a missing core condition | .30 |
-| 5 | Full walkthrough/solution | Explanation and reference solution after an attempt | .10 |
+| 2 | Conceptual hint | “A set can answer whether a value has appeared in constant average time.” | .65 |
+| 3 | Technique direction | “Track complements in a hash map as you make one pass.” | .35 |
+| 4 | Partial scaffold | Pseudocode with a missing core condition | 0 (learning-only) |
+| 5 | Full walkthrough/solution | Explanation and reference solution after an attempt | 0 (learning-only) |
 
 Learners can request escalation. The tutor may skip upward only when the user reports an accessibility issue, the problem is found defective, or two lower-level interventions failed. In an independent challenge, levels 4–5 are locked until submission or timeout; assessment mode disables all hints.
 

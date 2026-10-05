@@ -138,7 +138,9 @@ def reconciliation(request: Request):
                     func.count().label("event_count"),
                 )
                 .where(OutboxEvent.kind == kind)
-                .group_by(OutboxEvent.payload["resource_id"].as_string())
+                # Group by the selected alias: PostgreSQL treats separate bound JSON
+                # path parameters as different expressions even when values match.
+                .group_by("goal_id")
                 .subquery()
             )
             matched = (

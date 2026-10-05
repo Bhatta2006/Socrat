@@ -24,6 +24,8 @@ export default defineConfig({
         SOCRAT_DATABASE_URL: 'sqlite:///socrat.e2e.db',
         SOCRAT_DEV_LOGIN_ENABLED: 'true',
         SOCRAT_ONBOARDING_ENABLED: 'true',
+        SOCRAT_DIAGNOSTICS_ENABLED: 'true',
+        SOCRAT_PLANNING_ENABLED: 'true',
         SOCRAT_PUBLIC_ORIGIN: 'http://localhost:3000',
       },
     },

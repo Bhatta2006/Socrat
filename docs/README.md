@@ -65,13 +65,28 @@ Current ADRs:
 - [M3 gate](delivery/milestones/m3-gate.md)
 - [M3 validation report](delivery/validation/m3-validation-report.md)
 - [M3 onboarding operations](operations/m3-onboarding.md)
+- [M4 diagnostic and evidence operations](operations/m4-diagnostics.md)
+- [M4 implementation plan](delivery/milestones/m4-index.md)
+- [M4 gate](delivery/milestones/m4-gate.md)
+- [M4 validation report](delivery/validation/m4-validation-report.md)
+
+- [M5 deterministic planner](delivery/milestones/m5-index.md)
+- [M5 gate](delivery/milestones/m5-gate.md)
+- [M5 validation](delivery/validation/m5-validation-report.md)
+- [M5 planning operations](operations/m5-planning.md)
 
 ## Machine-readable contracts
+
+- [`contracts/product/m5-planning-policy.json`](../contracts/product/m5-planning-policy.json)
+- [`contracts/schemas/planning-command.schema.json`](../contracts/schemas/planning-command.schema.json)
 
 Machine contracts live outside `docs` so CI and application tooling can consume them directly:
 
 - [`contracts/product/m0-contracts.json`](../contracts/product/m0-contracts.json)
 - [`contracts/schemas/m0-contracts.schema.json`](../contracts/schemas/m0-contracts.schema.json)
+- [`contracts/schemas/skill-pack.schema.json`](../contracts/schemas/skill-pack.schema.json)
+- [`contracts/schemas/learning-evidence.schema.json`](../contracts/schemas/learning-evidence.schema.json)
+- [`contracts/product/m4-learning-policies.json`](../contracts/product/m4-learning-policies.json)
 
 ## Documentation rules
 

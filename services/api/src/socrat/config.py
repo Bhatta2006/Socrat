@@ -80,6 +80,8 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
+    planning_enabled: bool = False
+    diagnostics_enabled: bool = False
     onboarding_enabled: bool = False
     content_admin_identities: list[ContentAdminIdentity] = Field(
         default_factory=list, max_length=100
