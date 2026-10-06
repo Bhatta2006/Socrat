@@ -51,6 +51,12 @@ Current ADRs:
 
 ## Delivery
 
+- [M8 bounded assistance](delivery/milestones/m8-index.md)
+- [M8 gate](delivery/milestones/m8-gate.md)
+- [M8 validation record](delivery/validation/m8-validation-report.md)
+- [M8 assistance operations](operations/m8-assistance.md)
+- [M7/M8 owner decisions and reviewer handoff](operations/m7-m8-completion.md)
+
 - [M0 index](delivery/milestones/m0-index.md)
 - [M0 gate](delivery/milestones/m0-gate.md)
 - [M0 validation report](delivery/validation/m0-validation-report.md)
@@ -88,6 +94,7 @@ Current ADRs:
 - [M7 session content authoring](operations/m7-content-authoring.md)
 - [M7 private acceptance records](operations/m7-acceptance.md)
 - [M7 limited pilot content and policy proposal](operations/m7-limited-pilot.md)
+- [M9 prerequisite review](delivery/milestones/m9-readiness.md)
 
 ## Machine-readable contracts
 

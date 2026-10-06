@@ -14,6 +14,7 @@ from socrat.skillpacks.types import Contract as Contract
 from socrat.skillpacks.types import Key as Key
 from socrat.skillpacks.types import Language as Language
 from socrat.skillpacks.types import Text as Text
+from socrat.tutor.contracts import AuthoredHint
 
 Version = Annotated[str, Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")]
 CodeText = Annotated[str, StringConstraints(strip_whitespace=False, min_length=1, max_length=8000)]
@@ -181,9 +182,19 @@ class SkillPack(Contract):
     learning_lessons: list[LearningLesson] = Field(default_factory=list, max_length=3000)
     structural_repairs: list[StructuralRepair] = Field(default_factory=list, max_length=5000)
     competitive_penalty: CompetitivePenalty | None = None
+    tutor_hints: list[AuthoredHint] = Field(default_factory=list, max_length=10000)
 
     @model_validator(mode="after")
     def validate_references(self):
+        unique([f"{x.exercise_id}:{x.language}:{x.level}" for x in self.tutor_hints], "tutor hints")
+        for hint in self.tutor_hints:
+            exercise = next((x for x in self.exercises if x.id == hint.exercise_id), None)
+            if (
+                exercise is None
+                or exercise.inventory != "practice"
+                or hint.language not in {x.language for x in exercise.variants}
+            ):
+                raise ValueError("Tutor hints require a practice language variant")
         groups: dict[str, Sequence[Concept | GoalTemplate | TrackPolicy | Exercise | Blueprint]] = {
             "concepts": self.concepts,
             "goals": self.goals,
@@ -412,6 +423,7 @@ class SkillPack(Contract):
             "structural_repairs",
             "session_content_version",
             "competitive_penalty",
+            "tutor_hints",
         ):
             if not payload[key]:
                 del payload[key]

@@ -1,0 +1,138 @@
+{
+  "$defs": {
+    "ReviewedCase": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Case Id",
+          "type": "string"
+        },
+        "track": {
+          "enum": [
+            "foundations",
+            "interview",
+            "competitive"
+          ],
+          "title": "Track",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "python",
+            "cpp",
+            "java"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "material_error": {
+          "title": "Material Error",
+          "type": "boolean"
+        },
+        "premature_solution": {
+          "title": "Premature Solution",
+          "type": "boolean"
+        },
+        "assessment_access": {
+          "title": "Assessment Access",
+          "type": "boolean"
+        },
+        "useful": {
+          "title": "Useful",
+          "type": "boolean"
+        },
+        "latency_ms": {
+          "maximum": 120000,
+          "minimum": 0,
+          "title": "Latency Ms",
+          "type": "integer"
+        },
+        "reviewer_reference": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Reviewer Reference",
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "track",
+        "language",
+        "material_error",
+        "premature_solution",
+        "assessment_access",
+        "useful",
+        "latency_ms",
+        "reviewer_reference"
+      ],
+      "title": "ReviewedCase",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "m8_evaluation_1.0.0",
+      "default": "m8_evaluation_1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "prompt_version": {
+      "enum": [
+        "tutor_1.0.0",
+        "tutor_1.0.1",
+        "tutor_1.0.2"
+      ],
+      "title": "Prompt Version",
+      "type": "string"
+    },
+    "model": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Model",
+      "type": "string"
+    },
+    "content_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Content Digest",
+      "type": "string"
+    },
+    "sampling_plan_reference": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Sampling Plan Reference",
+      "type": "string"
+    },
+    "minimum_per_cell": {
+      "maximum": 500,
+      "minimum": 25,
+      "title": "Minimum Per Cell",
+      "type": "integer"
+    },
+    "expert_reviewed": {
+      "title": "Expert Reviewed",
+      "type": "boolean"
+    },
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/ReviewedCase"
+      },
+      "maxItems": 10000,
+      "title": "Cases",
+      "type": "array"
+    }
+  },
+  "required": [
+    "prompt_version",
+    "model",
+    "content_digest",
+    "sampling_plan_reference",
+    "minimum_per_cell",
+    "expert_reviewed",
+    "cases"
+  ],
+  "title": "TutorEvaluation",
+  "type": "object"
+}

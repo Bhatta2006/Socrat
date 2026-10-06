@@ -116,6 +116,10 @@ def command(db: Session, goal: LearnerGoal, body: PlanCommand, as_of: int) -> di
         if head is None or before is None:
             raise PlanningError("plan_not_generated")
         if body.action == "confirm":
+            from socrat.tutor.service import exposure_watermark
+
+            if before.get("tutor_watermark", 0) != exposure_watermark(db, goal.user_id):
+                raise PlanningError("plan_evidence_stale")
             if head.status != "draft" or body.reviewed_digest != before["review_digest"]:
                 raise PlanningError("plan_review_stale")
             local_date = (
@@ -264,6 +268,9 @@ def command(db: Session, goal: LearnerGoal, body: PlanCommand, as_of: int) -> di
         previous_controller = dict(before["controller"]) if before else None
         if previous_controller is not None and body.minutes is not None:
             previous_controller["workload_minutes"] = minutes
+        from socrat.tutor.service import exposure_watermark, protect_exposed_families
+
+        protect_exposed_families(db, goal, pack, record.id, selected["language"], exposures)
         replay_inputs = dict(
             code_execution=bool(
                 db.info.get("execution_settings")
@@ -303,6 +310,7 @@ def command(db: Session, goal: LearnerGoal, body: PlanCommand, as_of: int) -> di
                 planner_policy_digest=POLICY_DIGEST,
                 learning_policy_version=policy,
                 evidence_watermark=projection["watermark"],
+                tutor_watermark=exposure_watermark(db, goal.user_id),
                 as_of=as_of,
                 start_date=today.isoformat(),
                 declared_track=goal.snapshot["declared_track"],

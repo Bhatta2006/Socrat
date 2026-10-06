@@ -2489,8 +2489,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long s=0; for(auto x:a) s+=x; return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long s=0; for(auto x:a) s+=x; return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -2702,8 +2702,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long s=0; for(auto x:a) s+=x>0; return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long s=0; for(auto x:a) s+=x>0; return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -2915,8 +2915,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long s=0; for(size_t i=0;i<a.size();i++) s+=(i%2==0?a[i]:-a[i]); return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long s=0; for(size_t i=0;i<a.size();i++) s+=(i%2==0?a[i]:-a[i]); return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -3128,8 +3128,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long s=0; for(size_t i=1;i<a.size();i++) s=max(s,llabs(a[i]-a[i-1])); return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long s=0; for(size_t i=1;i<a.size();i++) s=max(s,llabs(a[i]-a[i-1])); return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -3341,8 +3341,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long s=0; for(size_t i=1;i<a.size();i++) s+=(a[i]>0&&a[i-1]<0)||(a[i]<0&&a[i-1]>0); return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long s=0; for(size_t i=1;i<a.size();i++) s+=(a[i]>0&&a[i-1]<0)||(a[i]<0&&a[i-1]>0); return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -3554,8 +3554,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nif(a.empty()) return {-1}; size_t b=0; for(size_t i=1;i<a.size();i++) if(a[i]<a[b]) b=i; return {(long long)b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nif(a.empty()) return {-1}; size_t b=0; for(size_t i=1;i<a.size();i++) if(a[i]<a[b]) b=i; return {(long long)b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -3767,8 +3767,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nfor(size_t i=1;i<a.size();i++) if(a[i]<a[i-1]) return {(long long)i}; return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nfor(size_t i=1;i<a.size();i++) if(a[i]<a[i-1]) return {(long long)i}; return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -3980,8 +3980,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long b=0,r=0; for(auto x:a){r=x>0?r+1:0; b=max(b,r);} return {b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long b=0,r=0; for(auto x:a){r=x>0?r+1:0; b=max(b,r);} return {b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -4193,8 +4193,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nfor(size_t i=0;i<a.size();i++) if(a[i]==p) return {(long long)i}; return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nfor(size_t i=0;i<a.size();i++) if(a[i]==p) return {(long long)i}; return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -5006,8 +5006,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long b=-1; for(size_t i=0;i<a.size();i++) if(a[i]==p) b=i; return {b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long b=-1; for(size_t i=0;i<a.size();i++) if(a[i]==p) b=i; return {b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -5819,8 +5819,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long s=0; for(auto x:a) s+=x==p; return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long s=0; for(auto x:a) s+=x==p; return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -6632,8 +6632,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nif(a.empty())return {-1};size_t b=0;for(size_t i=1;i<a.size();i++)if(llabs(a[i]-p)<llabs(a[b]-p))b=i;return {(long long)b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nif(a.empty())return {-1};size_t b=0;for(size_t i=1;i<a.size();i++)if(llabs(a[i]-p)<llabs(a[b]-p))b=i;return {(long long)b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -7445,8 +7445,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nunordered_set<long long> s(a.begin(),a.end()); return {(long long)s.size()};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nunordered_set<long long> s(a.begin(),a.end()); return {(long long)s.size()};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -7658,8 +7658,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nunordered_map<long long,long long> f; long long s=0; for(auto x:a){s+=f[x]; f[x]++;} return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nunordered_map<long long,long long> f; long long s=0; for(auto x:a){s+=f[x]; f[x]++;} return {s};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -7871,8 +7871,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nunordered_map<long long,long long> f; for(auto x:a) f[x]++; for(size_t i=0;i<a.size();i++) if(f[a[i]]==1) return {(long long)i}; return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nunordered_map<long long,long long> f; for(auto x:a) f[x]++; for(size_t i=0;i<a.size();i++) if(f[a[i]]==1) return {(long long)i}; return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -8084,8 +8084,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nvector<long long> out; long long s=0; for(auto x:a){s+=x; out.push_back(s);} return out;\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nvector<long long> out; long long s=0; for(auto x:a){s+=x; out.push_back(s);} return out;\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -8297,8 +8297,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long s=0; for(size_t i=0;i<a.size();i++){s+=a[i]; if(s==p) return {(long long)i+1};} return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long s=0; for(size_t i=0;i<a.size();i++){s+=a[i]; if(s==p) return {(long long)i+1};} return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -9110,8 +9110,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nlong long t=0,l=0; for(auto x:a)t+=x; for(size_t c=0;c<=a.size();c++){if(l==t-l)return {(long long)c}; if(c<a.size())l+=a[c];} return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nlong long t=0,l=0; for(auto x:a)t+=x; for(size_t c=0;c<=a.size();c++){if(l==t-l)return {(long long)c}; if(c<a.size())l+=a[c];} return {-1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -9323,8 +9323,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nint l=0,r=(int)a.size()-1; while(l<r){long long s=a[l]+a[r]; if(s==p)return {1}; if(s<p)l++; else r--;} return {0};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nint l=0,r=(int)a.size()-1; while(l<r){long long s=a[l]+a[r]; if(s==p)return {1}; if(s<p)l++; else r--;} return {0};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -10141,8 +10141,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nint l=0,r=(int)a.size()-1; while(l<r){if(a[l]!=a[r])return {0}; l++;r--;} return {1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nint l=0,r=(int)a.size()-1; while(l<r){if(a[l]!=a[r])return {0}; l++;r--;} return {1};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -10354,8 +10354,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nsize_t w=0; for(size_t r=0;r<a.size();r++)if(w==0||a[r]!=a[w-1])a[w++]=a[r]; a.resize(w); return a;\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nsize_t w=0; for(size_t r=0;r<a.size();r++)if(w==0||a[r]!=a[w-1])a[w++]=a[r]; a.resize(w); return a;\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -10562,13 +10562,13 @@
         {
           "language": "python",
           "starter_code": "import sys\n\ndef solve(a, p):\n    raise NotImplementedError('Implement solve')\n\ndata=list(map(int,sys.stdin.buffer.read().split()))\nn,p=data[:2]\na=data[2:]\nassert len(a)==n\nprint(' '.join(map(str,solve(a,p))))\n",
-          "reference_solution": "import sys\n\ndef solve(a, p):\n    k=p\n    s=sum(a[:k])\n    best=s\n    for i in range(k,len(a)):\n        s+=a[i]-a[i-k]\n        best=max(best,s)\n    return [best]\n\ndata=list(map(int,sys.stdin.buffer.read().split()))\nn,p=data[:2]\na=data[2:]\nassert len(a)==n\nprint(' '.join(map(str,solve(a,p))))\n",
+          "reference_solution": "import sys\n\ndef solve(a, p):\n    k=p\n    s=sum(a[i] for i in range(k))\n    best=s\n    for i in range(k,len(a)):\n        s+=a[i]-a[i-k]\n        best=max(best,s)\n    return [best]\n\ndata=list(map(int,sys.stdin.buffer.read().split()))\nn,p=data[:2]\na=data[2:]\nassert len(a)==n\nprint(' '.join(map(str,solve(a,p))))\n",
           "target": "Python 3.12"
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nsize_t k=(size_t)p; long long s=0; for(size_t i=0;i<k;i++)s+=a[i]; long long b=s; for(size_t i=k;i<a.size();i++){s+=a[i]-a[i-k];b=max(b,s);}return {b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nsize_t k=(size_t)p; long long s=0; for(size_t i=0;i<k;i++)s+=a[i]; long long b=s; for(size_t i=k;i<a.size();i++){s+=a[i]-a[i-k];b=max(b,s);}return {b};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -11035,13 +11035,13 @@
         {
           "language": "python",
           "starter_code": "import sys\n\ndef solve(a, p):\n    raise NotImplementedError('Implement solve')\n\ndata=list(map(int,sys.stdin.buffer.read().split()))\nn,p=data[:2]\na=data[2:]\nassert len(a)==n\nprint(' '.join(map(str,solve(a,p))))\n",
-          "reference_solution": "import sys\n\ndef solve(a, p):\n    k=p\n    s=sum(a[:k])\n    count=int(s==0)\n    for i in range(k,len(a)):\n        s+=a[i]-a[i-k]\n        count+=s==0\n    return [count]\n\ndata=list(map(int,sys.stdin.buffer.read().split()))\nn,p=data[:2]\na=data[2:]\nassert len(a)==n\nprint(' '.join(map(str,solve(a,p))))\n",
+          "reference_solution": "import sys\n\ndef solve(a, p):\n    k=p\n    s=sum(a[i] for i in range(k))\n    count=int(s==0)\n    for i in range(k,len(a)):\n        s+=a[i]-a[i-k]\n        count+=s==0\n    return [count]\n\ndata=list(map(int,sys.stdin.buffer.read().split()))\nn,p=data[:2]\na=data[2:]\nassert len(a)==n\nprint(' '.join(map(str,solve(a,p))))\n",
           "target": "Python 3.12"
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nsize_t k=p;long long s=0;for(size_t i=0;i<k;i++)s+=a[i];long long c=s==0;for(size_t i=k;i<a.size();i++){s+=a[i]-a[i-k];c+=s==0;}return {c};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nsize_t k=p;long long s=0;for(size_t i=0;i<k;i++)s+=a[i];long long c=s==0;for(size_t i=k;i<a.size();i++){s+=a[i]-a[i-k];c+=s==0;}return {c};\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -11513,8 +11513,8 @@
         },
         {
           "language": "cpp",
-          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
-          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\nsize_t k=p;long long c=0;for(size_t i=1;i<k;i++)c+=a[i]!=a[i-1];vector<long long> out{c};for(size_t e=k;e<a.size();e++){c-=a[e-k+1]!=a[e-k];c+=a[e]!=a[e-1];out.push_back(c);}return out;\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "starter_code": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nthrow \"Implement solve\";\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
+          "reference_solution": "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\nsize_t k=p;long long c=0;for(size_t i=1;i<k;i++)c+=a[i]!=a[i-1];vector<long long> out{c};for(size_t e=k;e<a.size();e++){c-=a[e-k+1]!=a[e-k];c+=a[e]!=a[e-1];out.push_back(c);}return out;\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n",
           "target": "C++20"
         },
         {
@@ -12013,9 +12013,9 @@
   "competitive_penalty": {
     "version": "1.0.0",
     "basis": "healthy_incorrect_submit",
-    "wrong_submit_seconds": 60,
+    "wrong_submit_seconds": 0,
     "calibration": "uncalibrated",
-    "review_reference": "pending independent pilot policy review"
+    "review_reference": "Owner selected zero penalty on 2026-10-06; independent review pending"
   },
   "promotion_requirements": [
     "Named independent content, rights, language and structural-family/repair reviews against the exact draft digest",

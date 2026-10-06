@@ -137,6 +137,7 @@ def test_legacy_pack_digest_unchanged_by_empty_m7_fields():
         "competitive_penalty",
         "diagnostics",
         "misconception_taxonomy",
+        "tutor_hints",
     ):
         legacy.pop(key)
     for template in legacy["goals"]:

@@ -101,6 +101,8 @@ def test_prometheus_scrape_and_alert_contracts_are_private_and_actionable():
         "SocratHighLatency",
         "SocratDiagnosticContentBlocked",
         "SocratDiagnosticReviewBacklog",
+        "SocratTutorBudgetExhausted",
+        "SocratTutorLatency",
     }
     assert alerts["SocratApiUnavailable"]["labels"]["severity"] == "page"
     assert alerts["SocratHighServerErrorRate"]["labels"]["severity"] == "ticket"

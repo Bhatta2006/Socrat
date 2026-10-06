@@ -102,7 +102,8 @@ def test_committed_draft_matches_original_authoring_and_critical_oracle_edges():
 
 def test_proposed_policy_matches_existing_candidate_and_stays_unapproved():
     policy = json.loads((ROOT / "contracts/product/m7-pilot-policy.json").read_text())
-    assert policy["status"] == "proposed_pending_review"
+    assert policy["status"] == "owner_selected_pending_independent_review"
+    assert policy["competitive_penalty"]["wrong_submit_seconds"] == 0
     assert policy["activation"]["window_seconds"] == 48 * 3600
     assert policy["activation"]["correct_answer_required"] is False
     assert policy["reporting"]["global_reporting"].startswith("deferred_")
@@ -110,6 +111,16 @@ def test_proposed_policy_matches_existing_candidate_and_stays_unapproved():
         policy["competitive_penalty"]["wrong_submit_seconds"]
         == draft().competitive_penalty.wrong_submit_seconds
     )
+
+
+def test_reference_state_space_matches_the_lesson_claims():
+    for exercise in draft().exercises:
+        cpp = next(x for x in exercise.variants if x.language == "cpp")
+        assert "solve(vector<long long>& a," in cpp.reference_solution
+        if exercise.id in {"window_max", "window_zero"}:
+            python = next(x for x in exercise.variants if x.language == "python")
+            assert "sum(a[:k])" not in python.reference_solution
+            assert "sum(a[i] for i in range(k))" in python.reference_solution
 
 
 def test_original_python_stdin_stdout_references_match_all_vectors(monkeypatch):

@@ -203,6 +203,54 @@ class CodeRunSource(Base):
     source: Mapped[str] = mapped_column(String(64000))
 
 
+class TutorTurn(Base):
+    __tablename__ = "tutor_turns"
+    __table_args__ = (
+        UniqueConstraint("attempt_id", "idempotency_key"),
+        UniqueConstraint("attempt_id", "position"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("code_attempts.id"), index=True)
+    scope_id: Mapped[str] = mapped_column(String(36), index=True)
+    position: Mapped[int] = mapped_column(Integer)
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    context_digest: Mapped[str] = mapped_column(String(64))
+    action_digest: Mapped[str] = mapped_column(String(64))
+    granted_level: Mapped[int] = mapped_column(Integer)
+    outcome: Mapped[dict] = mapped_column(JSON)
+    telemetry: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class TutorArtifact(Base):
+    """Separable sensitive content; never copied to analytics or audit payloads."""
+
+    __tablename__ = "tutor_artifacts"
+    turn_id: Mapped[str] = mapped_column(ForeignKey("tutor_turns.id"), primary_key=True)
+    reasoning: Mapped[str] = mapped_column(String(2000))
+    context: Mapped[dict] = mapped_column(JSON)
+    response: Mapped[dict] = mapped_column(JSON)
+
+
+class SubmitAssistance(Base):
+    __tablename__ = "submit_assistance"
+    run_id: Mapped[str] = mapped_column(ForeignKey("code_runs.id"), primary_key=True)
+    hint_level: Mapped[int] = mapped_column(Integer)
+
+
+class AdvisorShadow(Base):
+    __tablename__ = "advisor_shadows"
+    __table_args__ = (UniqueConstraint("curriculum_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    curriculum_id: Mapped[str] = mapped_column(ForeignKey("curriculum_revisions.id"))
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    outcome: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
 class ExecutionWorker(Base):
     __tablename__ = "execution_workers"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)

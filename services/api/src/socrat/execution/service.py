@@ -264,6 +264,8 @@ def create_attempt(
 
 
 def attempt_view(db: Session, attempt: CodeAttempt):
+    from socrat.tutor.service import assistance_level
+
     pack, exercise = content(db, attempt)
     draft = db.get(CodeDraft, attempt.id)
     assert draft is not None
@@ -277,6 +279,7 @@ def attempt_view(db: Session, attempt: CodeAttempt):
         revision=draft.revision,
         samples=[x.model_dump() for x in exercise.tests if x.visibility == "public"],
         mode=attempt.snapshot["mode"],
+        assistance_level=assistance_level(db, attempt),
         runtime_id=attempt.snapshot["runtime"]["id"],
     )
 
@@ -481,6 +484,11 @@ def enqueue(
     db.add(run)
     db.flush()
     db.add(CodeRunSource(run_id=run.id, source=draft.source))
+    if mode == "submit":
+        from socrat.models import SubmitAssistance
+        from socrat.tutor.service import assistance_level
+
+        db.add(SubmitAssistance(run_id=run.id, hint_level=assistance_level(db, attempt)))
     record_event(db, attempt.user_id, "execution.queued", run.id)
     return run
 
@@ -641,6 +649,8 @@ def finalize(db: Session, worker_id: str, envelope: ResultEnvelope, settings: Se
         from socrat.learning.admission import solve_seconds
 
         learner_seconds = solve_seconds(db, attempt, run.created_at)
+        from socrat.tutor.service import submitted_level
+
         fact = EvidenceFact(
             event_id=identifier(),
             user_id=attempt.user_id,
@@ -657,7 +667,7 @@ def finalize(db: Session, worker_id: str, envelope: ResultEnvelope, settings: Se
             family_id=exercise.family_id,
             score=score,
             quality=evaluation.quality,
-            hint_level=attempt.snapshot["hint_level"],
+            hint_level=submitted_level(db, run, attempt),
             elapsed_seconds=learner_seconds
             if learner_seconds is not None
             else float(min(2700, stamp - attempt.created_at)),

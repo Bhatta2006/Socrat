@@ -80,6 +80,28 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
+    tutor_enabled: bool = False
+    tutor_model_enabled: bool = False
+    tutor_model_rollout_percent: int = Field(default=100, ge=0, le=100)
+    tutor_advisor_shadow_enabled: bool = False
+    tutor_prompt_version: Literal["tutor_1.0.0", "tutor_1.0.1", "tutor_1.0.2"] = "tutor_1.0.1"
+    tutor_model: str = ""
+    tutor_provider: Literal["structured_gateway", "openai_responses", "openai_chat"] = (
+        "structured_gateway"
+    )
+    tutor_model_allowlist: list[str] = Field(default_factory=list, max_length=10)
+    tutor_gateway_url: str = ""
+    tutor_reasoning_effort: Literal["", "none", "low", "medium", "high"] = ""
+    tutor_temperature: float | None = Field(default=None, ge=0, le=2, allow_inf_nan=False)
+    tutor_top_p: float | None = Field(default=None, gt=0, le=1, allow_inf_nan=False)
+    tutor_gateway_secret: SecretStr = SecretStr("")
+    tutor_gateway_secret_file: str = ""
+    tutor_timeout_seconds: float = Field(default=4, ge=0.1, le=4)
+    tutor_output_tokens: int = Field(default=600, ge=100, le=2000)
+    tutor_session_calls: int = Field(default=12, ge=1, le=50)
+    tutor_daily_calls: int = Field(default=40, ge=1, le=200)
+    tutor_call_reserve_microusd: int = Field(default=10000, ge=1, le=1000000)
+    tutor_daily_budget_microusd: int = Field(default=400000, ge=1, le=10000000)
     learning_sessions_enabled: bool = False
     execution_enabled: bool = False
     execution_signing_secret: SecretStr = SecretStr("")
@@ -116,6 +138,24 @@ class Settings(DatabaseSettings):
 
     @model_validator(mode="after")
     def enforce_boundaries(self):
+        self.tutor_gateway_secret = _secret_from_file(
+            "tutor_gateway_secret", self.tutor_gateway_secret, self.tutor_gateway_secret_file
+        )
+        if self.tutor_model_enabled:
+            gateway = urlparse(self.tutor_gateway_url)
+            if (
+                gateway.scheme != "https"
+                or not gateway.hostname
+                or gateway.username
+                or gateway.password
+                or gateway.query
+                or gateway.fragment
+                or self.tutor_model not in self.tutor_model_allowlist
+                or not self.tutor_gateway_secret.get_secret_value()
+            ):
+                raise ValueError(
+                    "Tutor models require an HTTPS adapter, secret and allow-listed model"
+                )
         self.execution_signing_secret = _secret_from_file(
             "execution_signing_secret",
             self.execution_signing_secret,

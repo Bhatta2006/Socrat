@@ -15,6 +15,8 @@
 
 No local synthetic result substitutes for runtime containment proof, content review, or human approval.
 
+Latest owner decisions, 6 October 2026: retain the six-topic/nine-cell pilot; assign Ramakrishna to DSA/C++/teaching and hints, Sathish to Python/Java; select the proposed activation definition and zero initial penalty. Reviews follow repository preparation. Two staff testers are available and learner recruitment is planned next week. Oracle staging and dedicated gVisor acceptance remain owner-deferred until after milestone implementations. The [review handoff](../../operations/m7-m8-completion.md) is prepared; assignments are not completed approvals and the gate remains open.
+
 Owner clarification, 6 October 2026: proceed with a **limited pilot** using public curriculum research and original content. The [pilot guide](../../operations/m7-limited-pilot.md) links the six-topic authoring draft and recommended activation/sixty-second penalty policy. Draft content is unreviewed and cannot be published. Reviewer assignments, learner/staff/human accessibility/staging records are explicitly deferred to the future; dedicated-host M6 remains deferred. These deferrals change the immediate work scope, not the acceptance thresholds above.
 
 PostgreSQL follow-up, 6 October 2026: all sixteen PostgreSQL acceptance checks passed, including nine M7 cases and new publication success/rollback checks. The disposable service was removed afterward. Docker is available, but this host has no `runsc`; dedicated-host runtime acceptance remains open. See the [validation record](../validation/m7-validation-report.md).

@@ -18,6 +18,8 @@ M6 adds self-hosted Monaco, autosave/resume, a durable signed execution broker, 
 
 M7 implementation includes durable Today sessions, pinned language/track lessons, private objective checks, mixed Competitive timed/upsolve practice, configurable practice penalties, reviewed structural-repair mappings, saved history/local-day expiry, and owned participation/duration exports. Nine-cell inventory and fourteen-day planner audits gate publication of packs declaring session content. An [original limited-pilot draft](docs/operations/m7-limited-pilot.md) and policy proposal are prepared; independent reviews, calibration and deployed acceptance are owner-deferred. Local Compose enables sessions; staging defaults off. See the [M7 implementation status](docs/delivery/milestones/m7-index.md) and [gate](docs/delivery/milestones/m7-gate.md). Deferred M6 gVisor tests remain open.
 
+M8 adds bounded tutoring, curated fallbacks, provider adapters, durable assistance at Submit, dependency fading, fresh-family planning safeguards and a shadow-only advisor. Models remain disabled by default; earlier external gates remain open. See the [M8 implementation](docs/delivery/milestones/m8-index.md), [gate](docs/delivery/milestones/m8-gate.md) and [operations](docs/operations/m8-assistance.md).
+
 ## Repository map
 
 ```text

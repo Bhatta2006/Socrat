@@ -4,6 +4,8 @@ The owner requested completing M7 content and acceptance while keeping the sixth
 
 ## Decisions and evidence required
 
+Latest owner decisions, 6 October 2026: Ramakrishna is assigned DSA/C++/teaching and hint review; Sathish is assigned Python/Java review. Reviews follow repository preparation. The owner selected the proposed activation definition and zero initial penalty, pending independent review. Two staff testers are available, learners are to be recruited next week, and Oracle staging/runtime acceptance remain explicitly deferred. See the [completion handoff](m7-m8-completion.md). These decisions supersede the earlier assignment and sixty-second proposal deferrals below, without approving content or measurements.
+
 The owner chose a limited pilot with newly authored content and public curriculum research. The [limited-pilot guide](m7-limited-pilot.md) records the six-topic scope, original draft bank and publisher links. The older two-concept authoring fixture cannot support full V1 DSA promises. All three tracks need Python, C++ and Java variants, with reviewed lesson/check content and genuinely distinct practice families and repairs. Changing family identifiers on copies is not a content bank. Draft preparation does not approve content or released goal promises.
 
 Reviewer assignments are explicitly deferred by the owner. When reviewers are available, name the content author and independent content, language, accessibility and release reviewers. Record review decisions against the exact pack digest and retain private references. Technical verification supports these decisions; generated metadata and automated test fixtures are not review records.

@@ -1,5 +1,51 @@
 {
   "$defs": {
+    "AuthoredHint": {
+      "additionalProperties": false,
+      "properties": {
+        "exercise_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Exercise Id",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "python",
+            "cpp",
+            "java"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "level": {
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Level",
+          "type": "integer"
+        },
+        "message": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "question": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exercise_id",
+        "language",
+        "level",
+        "message",
+        "question"
+      ],
+      "title": "AuthoredHint",
+      "type": "object"
+    },
     "Blueprint": {
       "additionalProperties": false,
       "properties": {
@@ -1410,6 +1456,14 @@
         }
       ],
       "default": null
+    },
+    "tutor_hints": {
+      "items": {
+        "$ref": "#/$defs/AuthoredHint"
+      },
+      "maxItems": 10000,
+      "title": "Tutor Hints",
+      "type": "array"
     }
   },
   "required": [

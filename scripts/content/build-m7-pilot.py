@@ -324,7 +324,7 @@ TASKS = [
         "fixed_window",
         "Largest fixed-span total",
         "Here p is the window size k with 1<=k<=n. Output the largest sum of any k consecutive values. All-negative arrays are valid.",
-        "k=p\ns=sum(a[:k])\nbest=s\nfor i in range(k,len(a)):\n    s+=a[i]-a[i-k]\n    best=max(best,s)\nreturn [best]",
+        "k=p\ns=sum(a[i] for i in range(k))\nbest=s\nfor i in range(k,len(a)):\n    s+=a[i]-a[i-k]\n    best=max(best,s)\nreturn [best]",
         "size_t k=(size_t)p; long long s=0; for(size_t i=0;i<k;i++)s+=a[i]; long long b=s; for(size_t i=k;i<a.size();i++){s+=a[i]-a[i-k];b=max(b,s);}return {b};",
         "int k=(int)p;long s=0;for(int i=0;i<k;i++)s+=a[i];long b=s;for(int i=k;i<a.length;i++){s+=a[i]-a[i-k];b=Math.max(b,s);}return new long[]{b};",
     ),
@@ -333,7 +333,7 @@ TASKS = [
         "fixed_window",
         "Count zero-total spans",
         "Here p is the window size k with 1<=k<=n. Output the number of k-value windows whose sum is zero, including overlapping windows.",
-        "k=p\ns=sum(a[:k])\ncount=int(s==0)\nfor i in range(k,len(a)):\n    s+=a[i]-a[i-k]\n    count+=s==0\nreturn [count]",
+        "k=p\ns=sum(a[i] for i in range(k))\ncount=int(s==0)\nfor i in range(k,len(a)):\n    s+=a[i]-a[i-k]\n    count+=s==0\nreturn [count]",
         "size_t k=p;long long s=0;for(size_t i=0;i<k;i++)s+=a[i];long long c=s==0;for(size_t i=k;i<a.size();i++){s+=a[i]-a[i-k];c+=s==0;}return {c};",
         "int k=(int)p;long s=0;for(int i=0;i<k;i++)s+=a[i];long c=s==0?1:0;for(int i=k;i<a.length;i++){s+=a[i]-a[i-k];if(s==0)c++;}return new long[]{c};",
     ),
@@ -480,7 +480,7 @@ def program(language, body):
         )
     if language == "cpp":
         return (
-            "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long> a,long long p){\n"
+            "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <unordered_map>\n#include <unordered_set>\n#include <cstdlib>\nusing namespace std;\nvector<long long> solve(vector<long long>& a,long long p){\n"
             + body
             + "\n}\nint main(){int n;long long p;if(!(cin>>n>>p))return 0;vector<long long>a(n);for(auto&x:a)cin>>x;auto out=solve(a,p);for(size_t i=0;i<out.size();i++){if(i)cout<<' ';cout<<out[i];}cout<<'\\n';return 0;}\n"
         )
@@ -705,7 +705,8 @@ def build():
                 ]
             ],
             competitive_penalty=dict(
-                wrong_submit_seconds=60, review_reference="pending independent pilot policy review"
+                wrong_submit_seconds=0,
+                review_reference="Owner selected zero penalty on 2026-10-06; independent review pending",
             ),
             promotion_requirements=[
                 "Named independent content, rights, language and structural-family/repair reviews against the exact draft digest",

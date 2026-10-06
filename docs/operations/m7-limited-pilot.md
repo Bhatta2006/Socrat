@@ -27,13 +27,13 @@ The draft deliberately uses a separate offline schema, with **no execution runti
 
 ## Proposed pilot policy
 
-The machine-readable [policy proposal](../../contracts/product/m7-pilot-policy.json) remains `proposed_pending_review`.
+The machine-readable [pilot policy](../../contracts/product/m7-pilot-policy.json) is `owner_selected_pending_independent_review`, revision `m7_pilot_policy_1.0.1`. The owner selected the proposed activation definition and zero initial penalty. See [current decisions and the private reviewer handoff](m7-m8-completion.md).
 
 - **Activation:** confirmed goal, completed/current diagnostic, confirmed plan, and first healthy finalized original independent Submit admitted within 48 hours of goal confirmation. Correctness is not required; hint level must be zero. Qualify only after signed finalization, using admission time. Run, pending/operational failures, upsolve-only work, invalidated evidence and withdrawn packs do not qualify. This matches the implemented owned-goal candidate and PRD's Submit milestone.
 - **Cohorts:** exclude test, staff, synthetic, deleted-before-eligibility and known-corrupt records with reason codes. Segment by track/language. Account deduplication and aggregate reporting remain future work; the owned-goal export does not implement a global cohort.
-- **Practice penalty:** propose **60 seconds** per healthy incorrect original timed Competitive Submit. It changes reported penalized practice time, preserves retries and leaves the deadline unchanged. Exclude Run, timeout, operational failure, untimed practice and upsolve. This small cost is a product hypothesis to review during the pilot, not an empirically established optimum or contest ranking rule.
+- **Practice penalty:** the owner selected **zero seconds initially**. Incorrect-result feedback and retries remain; the deadline is unchanged. The earlier sixty-second proposal was not accepted. Independent review and learner calibration remain pending.
 
-The older plan-start metric remains recorded in the historical candidate contract. The proposed Submit definition supersedes it only after explicit metric review/versioning; do not rewrite published historical cohorts. Reviewers will be assigned later. No reviewer identities, approvals or sampling minima are fabricated.
+The older plan-start metric remains recorded in the historical candidate contract. The owner-selected Submit definition remains pending independent metric review/versioning for aggregate reporting; do not rewrite published historical cohorts. Ramakrishna is assigned DSA/C++/teaching and hint review; Sathish is assigned Python/Java review, after repository preparation. No approvals or sampling minima are fabricated.
 
 ## Authoring and technical checks
 
@@ -56,6 +56,8 @@ The reference checker uses locally available official compiler images, resolves 
 The completed reference checks used Python 3.12.10, local GCC 16.1 in C++20 mode and a portable [Microsoft OpenJDK 21](https://learn.microsoft.com/en-us/java/openjdk/download) archive, version 21.0.12.1. Its SHA-256 matched the publisher's `192441a9d27da813bada974bb88b4cf64d37a9589ed37f204374d411ca5ce07f`. It was extracted only under ignored `.cache`; the system Java installation was not changed. All 1,693 vectors passed in each language, with twenty-four additional CLI smoke checks each for C++ and Java. Docker was unresponsive, so container/worker checks are not inferred from these host results.
 
 ## Deferred promotion and acceptance
+
+Current review follow-up: Codex-generated item reviews are available for the original and corrected packets. The corrected draft digest is `a840a7b5827b4135ccb2aa15a703581a6f2746cfed8e47061b769793d7a0aca7`; Python window initialization avoids a temporary slice and C++ solve functions take the input by reference. The corrected C++/Java checks again pass all vectors and CLI smoke cases. Generated reviews are preparation for the assigned independent reviewers, not their approval. See [completion coordination](m7-m8-completion.md).
 
 Before publication: assign independent reviewers; review original-content rights, all objective keys, language semantics, family groupings and structural mappings; add separate protected diagnostic/assessment families and limited goal targets; bind approved immutable worker runtimes; convert reviewed content to a launch SkillPack; run both static and fourteen-day planner audits. Inventory must be expanded if a supported history/schedule exhausts safe practice. Do not weaken the audit to release the seed bank.
 

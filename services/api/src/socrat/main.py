@@ -22,11 +22,12 @@ from socrat.database import make_engine, record_event
 from socrat.diagnostics.routes import router as diagnostic_router
 from socrat.execution.routes import router as execution_router
 from socrat.learning.routes import router as learning_router
-from socrat.models import DiagnosticSession, User
+from socrat.models import AdvisorShadow, DiagnosticSession, TutorTurn, User, now
 from socrat.onboarding.routes import router as onboarding_router
 from socrat.planning.routes import router as planning_router
 from socrat.schema_revision import SCHEMA_REVISION
 from socrat.skillpacks.routes import router as skill_pack_router
+from socrat.tutor.routes import router as tutor_router
 
 logger = logging.getLogger("socrat.requests")
 
@@ -88,6 +89,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(planning_router)
     app.include_router(execution_router)
     app.include_router(learning_router)
+    app.include_router(tutor_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -113,6 +115,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         registry=registry,
     )
     oauth = OAuth()
+    tutor_budget_alerts = Gauge(
+        "socrat_tutor_budget_exhaustions",
+        "Budget fallbacks in the last 15 minutes",
+        registry=registry,
+    )
+    tutor_reserved = Gauge(
+        "socrat_tutor_reserved_microusd",
+        "Conservative model spend reservations in the last 24 hours",
+        registry=registry,
+    )
     if settings.oidc_issuer:
         oauth.register(
             "identity",
@@ -214,12 +226,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 counts[key] = counts.get(key, 0) + 1
             for key, count in counts.items():
                 diagnostic_sessions.labels(*key).set(count)
+            turns = list(db.scalars(select(TutorTurn).where(TutorTurn.created_at >= now() - 86400)))
+            shadows = list(
+                db.scalars(select(AdvisorShadow).where(AdvisorShadow.created_at >= now() - 86400))
+            )
+            tutor_budget_alerts.set(
+                sum(x.telemetry["budget_alert"] for x in turns if x.created_at >= now() - 900)
+            )
+            tutor_reserved.set(
+                sum(x.telemetry["reserved_microusd"] for x in turns)
+                + sum(x.outcome["reserved_microusd"] for x in shadows)
+            )
         return Response(generate_latest(registry), media_type="text/plain; version=0.0.4")
 
     @app.get("/api/v1/features")
     def features():
         return {
             "llm_advisor": False,
+            "tutor": settings.tutor_enabled,
             "code_execution": settings.execution_enabled,
             "learning_sessions": settings.learning_sessions_enabled,
             "dev_login": settings.dev_login_enabled,

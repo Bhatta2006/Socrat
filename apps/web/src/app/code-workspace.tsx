@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type * as Monaco from 'monaco-editor';
+import Tutor from './tutor';
 
 type Attempt = { id: string; title: string; statement: string; language: string; source: string; revision: number;
-  samples: { input: string; expected: string }[] };
+  samples: { input: string; expected: string }[]; mode: string; assistance_level?: number };
 type Run = { id: string; status: string; mode: string; result: null | { operational_status: string; reason_code: string;
   cases: { index: number; status: string; wall_ms: number; stdout: string; stderr: string }[] } };
 type MonacoWindow = Window & { monaco?: typeof Monaco };
@@ -45,6 +46,7 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
   const [pending, setPending] = useState(false); const [stdin, setStdin] = useState('');
   const [font, setFont] = useState(16); const [theme, setTheme] = useState('vs');
   const [history, setHistory] = useState<Run[]>([]);
+  const [assistance, setAssistance] = useState(0);
   const editorHost = useRef<HTMLDivElement>(null);
   const editor = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const source = useRef(''); const saved = useRef(''); const revision = useRef(0);
@@ -74,6 +76,7 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
         await request<Attempt>(`/api/v1/goals/${goalId}/code-attempts`, 'POST', { exercise_id: exerciseId,
           idempotency_key: creationKey.current, diagnostic_attempt_id: diagnosticAttemptId ?? null });
       source.current = value.source; saved.current = value.source; revision.current = value.revision; setAttempt(value);
+      setAssistance(value.assistance_level ?? 0);
       setHistory((await request<{ items: Run[] }>(`/api/v1/attempts/${value.id}/runs`)).items);
     } catch (err) { setError((err as Error).message); }
     finally { setPending(false); }
@@ -158,8 +161,11 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
         <label>Custom input <textarea className="textarea w-full" maxLength={8000} value={stdin} onChange={event => setStdin(event.target.value)} /></label>
         <div className="flex flex-wrap gap-3"><button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs')}>Run samples</button>
           <button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs', true)}>Run custom input</button>
-          <button className="btn" disabled={pending || executionDisabled} onClick={() => run('submit')}>Submit independent attempt</button></div>
+          <button className="btn" disabled={pending || executionDisabled} onClick={() => run('submit')}>{assistance ? 'Submit assisted attempt' : 'Submit independent attempt'}</button></div>
         <p>Sample runs do not change mastery. Hidden-test inputs and output are kept private.</p>
+        {attempt.mode === 'practice' && <Tutor key={attempt.id} attemptId={attempt.id} csrfToken={csrfToken}
+          disabled={pending || executionDisabled || history.some(item => item.mode === 'submit' && ['queued', 'running'].includes(item.status))}
+          save={async () => { await autosave(); return revision.current; }} onAssistance={setAssistance} />}
         {history.map(item => <article className="card card-border" key={item.id}><div className="card-body p-3"><p>{item.mode} · {item.status}</p>
           {item.result?.operational_status === 'failed' && <p>Your code is preserved. This execution produced no learning evidence.</p>}
           {item.result?.cases.map(test => <div key={test.index}><p>Case {test.index + 1}: {test.status.replaceAll('_', ' ')} · {test.wall_ms} ms</p>

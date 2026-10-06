@@ -83,6 +83,11 @@ def curriculum(goal_id: str, request: Request):
             value["needs_refresh"] = latest != value["evidence_watermark"] or bool(
                 state and state.active_policy != value["learning_policy_version"]
             )
+            from socrat.tutor.service import exposure_watermark
+
+            value["needs_refresh"] |= value.get("tutor_watermark", 0) != exposure_watermark(
+                db, user_id
+            )
             return value
     except (PlanningError, PackError) as exc:
         boundary(exc)
