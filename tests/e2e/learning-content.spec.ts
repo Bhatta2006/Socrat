@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
-for (const [track, language] of [['foundations', 'python'], ['interview', 'java']]) {
+for (const track of ['foundations', 'interview', 'competitive']) for (const language of ['python', 'cpp', 'java']) {
   test(`${track} ${language} lesson checks keep private keys and saved history`, async ({ page }, info) => {
     const subject = `m5-e2e-m7-content-${track}-${info.project.name}-${Date.now()}`;
     const python = path.resolve('.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
@@ -39,13 +39,20 @@ for (const [track, language] of [['foundations', 'python'], ['interview', 'java'
     await page.goto('/');
     const today = page.getByRole('region', { name: 'Today’s learning session' });
     await today.getByRole('button', { name: 'Start today’s session' }).click();
-    await today.getByLabel('Your response').selectOption('four');
-    await today.getByRole('button', { name: 'Save and continue' }).click();
+    await expect(today.getByRole('heading', { level: 4 })).toBeFocused();
+    await today.getByLabel('Your response').focus();
+    await today.getByLabel('Your response').press('4');
+    await expect(today.getByLabel('Your response')).toHaveValue('four');
+    await today.getByLabel('Your response').press('Tab');
+    await expect(today.getByRole('button', { name: 'Save and continue' })).toBeFocused();
+    await today.getByRole('button', { name: 'Save and continue' }).press('Enter');
     await expect(today.getByText('retrieval check: Review this concept.', { exact: false })).toBeVisible();
     await expect(today.getByText(`Synthetic ${language} semantics note.`, { exact: true })).toBeVisible();
+    await expect(today.getByRole('heading', { level: 4 })).toBeFocused();
     if (track === 'interview') await expect(today.getByText('Synthetic loop invariant.', { exact: true })).toBeVisible();
     await today.getByRole('button', { name: 'Save and continue' }).click();
     await expect(today.getByRole('heading', { level: 4 })).toContainText('guided');
+    await expect(today.getByRole('heading', { level: 4 })).toBeFocused();
     await today.getByLabel('Your response').fill('<script>window.sessionLeak=true</script> saved trace');
     await today.getByRole('button', { name: 'Save and continue' }).click();
     await expect(today.getByRole('heading', { level: 4 })).toContainText('independent');

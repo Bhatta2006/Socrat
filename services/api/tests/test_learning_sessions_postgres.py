@@ -26,6 +26,24 @@ from socrat.models import CodeAttempt, LearningSession, SessionCommand
 pytestmark = pytest.mark.skipif(not POSTGRES_URL, reason="No isolated PostgreSQL configured")
 
 
+@pytest.mark.parametrize("stocked", [False, True])
+def test_postgres_planner_audit_publication_and_rollback(postgres_kernel, stocked):
+    from test_learning_audit import (
+        test_launch_publication_requires_planner_coverage_and_keeps_failed_release_staged as verify,
+    )
+
+    engine, _ = postgres_kernel
+    app = create_app(
+        Settings(
+            database_url=engine.url.render_as_string(hide_password=False),
+            environment="test",
+            dev_login_enabled=True,
+        )
+    )
+    with TestClient(app, base_url="http://localhost:3000") as client:
+        verify((app, client), stocked)
+
+
 def test_postgres_objective_learning_checks(postgres_kernel, monkeypatch):
     from test_learning_content import (
         test_objective_exit_is_exact_and_reflection_has_no_mastery_effect as verify,

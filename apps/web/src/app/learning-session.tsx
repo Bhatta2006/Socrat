@@ -55,6 +55,18 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
   const clockAnchor = useRef({ server: 0, local: 0 });
   const key = useRef<{ signature: string; value: string } | null>(null);
   const saveCode = useRef<(() => Promise<void>) | null>(null);
+  const phaseHeading = useRef<HTMLHeadingElement | null>(null);
+  const sessionStatus = useRef<HTMLParagraphElement | null>(null);
+  const previousPhase = useRef('');
+  const block = session?.blocks.find(item => item.status === 'available');
+  const phase = `${session?.id ?? ''}:${session?.status ?? ''}:${session && block ? session.blocks.indexOf(block) : -1}:${block?.mode ?? ''}`;
+
+  useEffect(() => {
+    if (previousPhase.current && previousPhase.current !== phase) {
+      (phaseHeading.current ?? sessionStatus.current)?.focus();
+    }
+    previousPhase.current = phase;
+  }, [phase]);
 
   async function request<T>(path: string, body?: unknown): Promise<T> {
     const response = await fetch(path, { credentials: 'same-origin',
@@ -167,7 +179,6 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
   }
 
   if (!enabled) return null;
-  const block = session?.blocks.find(item => item.status === 'available');
   const code = ['independent', 'upsolve'].includes(block?.mode ?? '') && block?.modality === 'code';
   const timed = Boolean(block?.timed);
   const waitingForTimer = timed && block?.deadline_at === undefined;
@@ -181,18 +192,18 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
       {error && <div className="alert alert-error" role="alert">{error}</div>}
       {!session ? <><p>Start a session from your reviewed plan. Your progress is saved as you work.</p>
         <label>Practice timing
-          <select className="select w-full" value={timing} onChange={event => setTiming(event.target.value)}>
+          <select className="select w-full" disabled={pending} value={timing} onChange={event => setTiming(event.target.value)}>
             <option value="standard">Use planned timing</option>
             <option value="untimed">Untimed practice</option>
           </select>
         </label>
         <p className="text-sm">Untimed practice is available when time pressure is a barrier. It is recorded separately from timed performance.</p>
         <button className="btn" disabled={pending} onClick={() => act('start')}>Start today’s session</button></> : <>
-        <p role="status">{label(session.track)} · {session.language} · {session.planned_minutes} min · {label(session.status)}</p>
+        <p role="status" ref={sessionStatus} tabIndex={-1} aria-atomic="true">{label(session.track)} · {session.language} · {session.planned_minutes} min · {label(session.status)}</p>
         {session.timing === 'untimed' && <p>Untimed practice</p>}
         {session.competitive_result && <p>Timed practice: {session.competitive_result.wrong_submissions} wrong submissions · {session.competitive_result.penalty_seconds} penalty seconds. Upsolve keeps the original result.</p>}
         {!!session.upsolve_reserved_minutes && <p>Includes {session.upsolve_reserved_minutes} minutes reserved for optional upsolve. Repair time is a planning guide; it does not start another timer.</p>}
-        <ol className="space-y-1">{session.blocks.map((item, index) => <li key={index}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
+        <ol className="space-y-1" aria-label="Session steps">{session.blocks.map((item, index) => <li key={index} aria-current={item.status === 'available' ? 'step' : undefined}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
         {session.status === 'completed' && <p>Your learning session is complete. Reading and reflection do not prove mastery; coding results are recorded separately.</p>}
         {session.status === 'expired' && <p>This session ended at local midnight. Your saved work remains available in past sessions. Refresh and confirm your plan to recover without adding a backlog.</p>}
         {session.blocks.filter(item => item.check_result).map((item, index) => <p role="status" key={`check-${index}`}>
@@ -200,11 +211,12 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
         </p>)}
         {session.status === 'paused' && <button className="btn" disabled={pending} onClick={() => act('resume')}>Resume session</button>}
         {block && session.status === 'in_progress' && <>
-          <h4 className="font-semibold">{label(block.mode)}: {block.title}</h4>
+          <h4 className="font-semibold" ref={phaseHeading} tabIndex={-1}>{label(block.mode)}: {block.title}</h4>
           <p className="whitespace-pre-wrap">{block.content.prompt}</p>
           {waitingForTimer && <><p>The {block.minutes}-minute window starts when you choose Start timed practice. Reloading will keep its original deadline.</p>
             <button className="btn" disabled={pending} onClick={() => act('start_timed')}>Start timed practice</button></>}
-          {timed && !waitingForTimer && <p aria-label="Time remaining">{expired ? 'Timed window ended. Your code is saved.' : `Time remaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`}</p>}
+          {timed && !waitingForTimer && <><p role="timer" aria-live="off" aria-label="Time remaining">{expired ? 'Timed window ended. Your code is saved.' : `Time remaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`}</p>
+            <p className="sr-only" role="status" aria-atomic="true">{expired ? 'Timed practice has ended. Your work is saved; continue in upsolve.' : remaining <= 60 ? 'One minute or less remains in timed practice.' : ''}</p></>}
           {block.timed_outcome && <p>Timed outcome: {label(block.timed_outcome.outcome)}</p>}
           {block.mode === 'upsolve' && <p>{block.repair_selection === 'concept_matched_variant' ? 'Upsolve: practise the same concepts on a reviewed repair task. Your original solution stays saved.' : 'Upsolve: repair your saved solution.'} This phase has no timer and creates no additional timed result. Error category: {label(block.error_classification ?? '')}.</p>}
           {block.content.explanations.map((text, index) => <p className="whitespace-pre-wrap" key={index}>{text}</p>)}
@@ -219,7 +231,7 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
               </select> : <textarea className="textarea w-full" disabled={pending} value={answer} maxLength={8000} onChange={event => setAnswer(event.target.value)} />}
             </label>}
             {block.mode === 'exit_check' && <label>What made this task difficult?
-              <select className="select w-full" value={reflection} onChange={event => setReflection(event.target.value)}>
+              <select className="select w-full" disabled={pending} value={reflection} onChange={event => setReflection(event.target.value)}>
                 {['none', 'concept_gap', 'pattern_recognition', 'implementation_bug', 'complexity', 'unclear_prompt', 'time_pressure'].map(value => <option value={value} key={value}>{label(value)}</option>)}
               </select>
             </label>}
@@ -228,7 +240,7 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
           </>)}
           {needsUpsolve && block.timed_outcome?.outcome !== 'solved' && <>
             <label>What should you repair?
-              <select className="select w-full" value={errorClass} onChange={event => setErrorClass(event.target.value)}>
+              <select className="select w-full" disabled={pending} value={errorClass} onChange={event => setErrorClass(event.target.value)}>
                 {['time_pressure', 'wrong_answer', 'implementation_bug', 'complexity', 'concept_gap', 'unclear_prompt'].map(value => <option value={value} key={value}>{label(value)}</option>)}
               </select>
             </label>

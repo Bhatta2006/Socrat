@@ -1,6 +1,6 @@
 # M7 track-complete learning experience
 
-**Status: implementation started, 5 October 2026. M7 is not complete.** The owner authorized proceeding after M6 repository implementation while deferring dedicated-host gVisor tests. The [M6 gate](m6-gate.md) remains open and execution remains disabled without its configured, attested runtime capabilities.
+**Status: repository implementation and limited-pilot preparation; formal acceptance remains open, 6 October 2026.** The owner chose a limited pilot, deferred reviewer assignments and unavailable human/staging evidence, and retained dedicated-host gVisor deferral. The [M6 gate](m6-gate.md) remains open and execution remains disabled without configured, attested runtime capabilities.
 
 The first increment connects M5 reviewed plans to durable normal learning sessions and M6 signed Submit results. Schema `0007` stores one session per goal/local day, immutable content/curriculum pins, revisioned block progress, and append-only idempotent command receipts. The Today panel renders retrieval, concept instruction, guided examples, independent practice, and exit reflection, with pause/resume and server-backed reload. Each code session allocates its own fresh attempt; browser history cannot substitute a previous exercise attempt.
 
@@ -22,12 +22,17 @@ The learner-owned telemetry export evaluates meaningful participation, candidate
 
 An offline/admin coverage audit checks all nine cells, beginner entry, two practice families per concept, reviewed lessons, mixed Competitive inventory, structural mappings, and a reviewed penalty policy. Publishing a launch pack that declares session content now requires this audit to pass, alongside existing independent editorial/language/rights checks. Metadata and synthetic tests do not constitute those reviews.
 
+The fifth increment adds a versioned offline planner rehearsal and an authenticated editorial report. It exercises the production fourteen-day planner across nine cells, short/long three- and six-day schedules, beginner/readiness/review/exhausted-family states and a second difficulty band. It checks actual selected lesson availability, verifiable code practice and eligible mixed-set availability in addition to static inventory. New M7 launch publication requires both audits; a failed rehearsal leaves the staged version and active head unchanged. Runtime availability is explicitly assumed, and passing the bounded scenario set does not certify every learner state or replace independent content review.
+
 ## Remaining acceptance and content work
 
-1. Author and independently review the actual launch bank: Foundations language lessons, Interview pattern sessions, objective check answer keys, mixed-set inventory, and structurally distinct repair tasks. The authoring/runtime paths are implemented; synthetic fixtures are not launch content.
-2. Calibrate and approve the launch Competitive penalty values and structural-change review records. Allocations remain planning guides rather than hard repair deadlines. Approved assessment accommodations and qualitative explanation grading stay with M9.
-3. Reconcile the candidate activation definition and approve metric cohort exclusions before global reporting. The current export is owned-goal data, not a published analytics cohort or activation target claim.
-4. Validate duration estimates with real learners (median error ≤20%), complete accessibility review and staff dogfood (<2% material content defects), and record deployed golden journeys for all nine cells using reviewed inventory and approved runtimes.
-5. Complete the separately deferred M6 dedicated-host gVisor/runtime acceptance and prior external gates. Session history, objective checks, coverage/publication checks, and local telemetry now have repository implementations.
+The owner requested completing items 1–5 while leaving dedicated-host runtime acceptance deferred, then chose a limited pilot with public curriculum research and original authoring. Reviewer assignments and unavailable staging/learner/staff/human accessibility evidence are explicitly deferred to the future. The [pilot guide](../../operations/m7-limited-pilot.md) records the six-topic draft, publisher links and recommended activation/penalty policy; proposals remain unapproved. Local lesson/history browser journeys cover all nine cells on desktop and mobile; focus follows block transitions, session steps expose the current step, and timer announcements avoid per-second screen-reader updates. A versioned private acceptance-record contract and evaluator support future per-cell calibration/dogfood/review reporting. See the [acceptance guide](../../operations/m7-acceptance.md).
+
+1. Prepare the pilot release from the original draft: 54 lessons, 24 exercises, 72 language variants and six repair proposals. Independent content/rights/language/family reviews, protected diagnostic inventory, approved runtime pins, limited target routing and publication audits remain required. The offline draft is deliberately not an executable SkillPack.
+2. Review/calibrate the proposed sixty-second Competitive wrong-Submit penalty and structural mappings. Allocations remain planning guides. Assessment accommodations and qualitative explanation grading stay with M9.
+3. Review the proposed current-diagnostic/confirmed-plan/independent-Submit activation rule and cohort exclusions before aggregate reporting. The export remains owned-goal candidate data.
+4. Later collect learner duration calibration (median error ≤20%), human accessibility review, staff dogfood (<2% material defects), and staging golden journeys for all nine cells. These unavailable records are owner-deferred, not passed.
+
+Dedicated-host M6 gVisor/runtime acceptance remains the separately excluded sixth item, alongside prior external gates. Repository session/history/check/audit/telemetry implementations and PostgreSQL checks are available.
 
 See the [gate](m7-gate.md), [operations](../../operations/m7-learning-sessions.md), and [validation record](../validation/m7-validation-report.md).

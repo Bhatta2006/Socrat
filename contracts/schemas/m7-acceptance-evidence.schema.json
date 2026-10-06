@@ -1,0 +1,283 @@
+{
+  "$defs": {
+    "AcceptanceReview": {
+      "additionalProperties": false,
+      "properties": {
+        "reviewer_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Reviewer Id",
+          "type": "string"
+        },
+        "decision": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "approved",
+            "rejected"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "evidence_reference": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Reference"
+        }
+      },
+      "required": [
+        "reviewer_id"
+      ],
+      "title": "AcceptanceReview",
+      "type": "object"
+    },
+    "CellAcceptance": {
+      "additionalProperties": false,
+      "properties": {
+        "track": {
+          "enum": [
+            "foundations",
+            "interview",
+            "competitive"
+          ],
+          "title": "Track",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "python",
+            "cpp",
+            "java"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "golden_environment": {
+          "enum": [
+            "local",
+            "staging"
+          ],
+          "title": "Golden Environment",
+          "type": "string"
+        },
+        "golden_review": {
+          "$ref": "#/$defs/AcceptanceReview"
+        },
+        "accessibility_review": {
+          "$ref": "#/$defs/AcceptanceReview"
+        },
+        "language_review": {
+          "$ref": "#/$defs/AcceptanceReview"
+        },
+        "duration_reference": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Reference"
+        },
+        "durations": {
+          "items": {
+            "$ref": "#/$defs/DurationObservation"
+          },
+          "maxItems": 10000,
+          "title": "Durations",
+          "type": "array"
+        },
+        "dogfood_reference": {
+          "anyOf": [
+            {
+              "maxLength": 8000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dogfood Reference"
+        },
+        "attempted_exercise_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 5000,
+          "title": "Attempted Exercise Ids",
+          "type": "array"
+        },
+        "confirmed_material_defect_ids": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 5000,
+          "title": "Confirmed Material Defect Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "track",
+        "language",
+        "golden_environment",
+        "golden_review",
+        "accessibility_review",
+        "language_review"
+      ],
+      "title": "CellAcceptance",
+      "type": "object"
+    },
+    "DurationObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "planned_minutes": {
+          "exclusiveMinimum": 0,
+          "maximum": 180,
+          "title": "Planned Minutes",
+          "type": "number"
+        },
+        "actual_seconds": {
+          "minimum": 0,
+          "title": "Actual Seconds",
+          "type": "number"
+        },
+        "completed": {
+          "title": "Completed",
+          "type": "boolean"
+        },
+        "normal": {
+          "title": "Normal",
+          "type": "boolean"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        },
+        "exclusion": {
+          "anyOf": [
+            {
+              "enum": [
+                "test",
+                "staff",
+                "synthetic",
+                "deleted_before_eligibility",
+                "known_corrupt"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exclusion"
+        }
+      },
+      "required": [
+        "session_id",
+        "planned_minutes",
+        "actual_seconds",
+        "completed",
+        "normal",
+        "valid"
+      ],
+      "title": "DurationObservation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": "m7_acceptance_1.0.0",
+      "default": "m7_acceptance_1.0.0",
+      "title": "Version",
+      "type": "string"
+    },
+    "pack_digest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Pack Digest",
+      "type": "string"
+    },
+    "author_id": {
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+      "title": "Author Id",
+      "type": "string"
+    },
+    "minimum_duration_samples_per_cell": {
+      "maximum": 10000,
+      "minimum": 1,
+      "title": "Minimum Duration Samples Per Cell",
+      "type": "integer"
+    },
+    "minimum_dogfood_exercises_per_cell": {
+      "maximum": 5000,
+      "minimum": 1,
+      "title": "Minimum Dogfood Exercises Per Cell",
+      "type": "integer"
+    },
+    "activation_definition": {
+      "enum": [
+        "independent_submit",
+        "first_plan_start",
+        "unresolved"
+      ],
+      "title": "Activation Definition",
+      "type": "string"
+    },
+    "content_review": {
+      "$ref": "#/$defs/AcceptanceReview"
+    },
+    "penalty_review": {
+      "$ref": "#/$defs/AcceptanceReview"
+    },
+    "metric_review": {
+      "$ref": "#/$defs/AcceptanceReview"
+    },
+    "release_review": {
+      "$ref": "#/$defs/AcceptanceReview"
+    },
+    "cells": {
+      "items": {
+        "$ref": "#/$defs/CellAcceptance"
+      },
+      "maxItems": 9,
+      "title": "Cells",
+      "type": "array"
+    }
+  },
+  "required": [
+    "pack_digest",
+    "author_id",
+    "minimum_duration_samples_per_cell",
+    "minimum_dogfood_exercises_per_cell",
+    "activation_definition",
+    "content_review",
+    "penalty_review",
+    "metric_review",
+    "release_review",
+    "cells"
+  ],
+  "title": "AcceptanceEvidence",
+  "type": "object"
+}

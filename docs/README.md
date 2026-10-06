@@ -86,6 +86,8 @@ Current ADRs:
 - [M7 initial validation](delivery/validation/m7-validation-report.md)
 - [M7 learning-session operations](operations/m7-learning-sessions.md)
 - [M7 session content authoring](operations/m7-content-authoring.md)
+- [M7 private acceptance records](operations/m7-acceptance.md)
+- [M7 limited pilot content and policy proposal](operations/m7-limited-pilot.md)
 
 ## Machine-readable contracts
 
@@ -93,6 +95,8 @@ Current ADRs:
 - [`contracts/schemas/planning-command.schema.json`](../contracts/schemas/planning-command.schema.json)
 - [`contracts/schemas/learning-session-start.schema.json`](../contracts/schemas/learning-session-start.schema.json)
 - [`contracts/schemas/learning-session-command.schema.json`](../contracts/schemas/learning-session-command.schema.json)
+- [`contracts/schemas/m7-acceptance-evidence.schema.json`](../contracts/schemas/m7-acceptance-evidence.schema.json)
+- [`contracts/schemas/m7-pilot-draft.schema.json`](../contracts/schemas/m7-pilot-draft.schema.json)
 
 Machine contracts live outside `docs` so CI and application tooling can consume them directly:
 

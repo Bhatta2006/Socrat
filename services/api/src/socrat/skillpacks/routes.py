@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from socrat.auth import require_csrf, require_session
+from socrat.learning.audit import planning_audit
 from socrat.learning.content import coverage_audit
 from socrat.models import ContentReview, SkillPackHead, SkillPackVersion, User
 from socrat.skillpacks.schema import Contract, Language, SkillPack
@@ -120,6 +121,23 @@ def admin_version(key: str, version: str, request: Request):
                 for review in reviews
             ],
         }
+
+
+@router.get("/admin/skill-packs/{key}/versions/{version}/learning-plan-audit")
+def admin_learning_plan_audit(key: str, version: str, request: Request):
+    with Session(request.app.state.engine) as db:
+        require_admin(request, db)
+        record = db.scalar(
+            select(SkillPackVersion).where(
+                SkillPackVersion.pack_key == key, SkillPackVersion.version == version
+            )
+        )
+        if record is None:
+            raise HTTPException(404, "pack_not_found")
+        try:
+            return planning_audit(load(record))
+        except PackError as exc:
+            raise HTTPException(exc.status, exc.code) from exc
 
 
 @router.post("/admin/skill-packs/{key}/versions/{version}/actions")
