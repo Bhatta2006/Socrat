@@ -114,6 +114,7 @@ class Settings(DatabaseSettings):
     execution_ip_daily_quota: int = Field(default=500, ge=1, le=10000)
     execution_global_queue_limit: int = Field(default=100, ge=1, le=1000)
     planning_enabled: bool = False
+    assessments_enabled: bool = False
     diagnostics_enabled: bool = False
     onboarding_enabled: bool = False
     content_admin_identities: list[ContentAdminIdentity] = Field(

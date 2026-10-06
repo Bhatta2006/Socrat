@@ -129,6 +129,7 @@ def test_legacy_pack_digest_unchanged_by_empty_m7_fields():
     assert "session_content_version" not in canonical
     assert "learning_lessons" not in canonical
     assert "structural_repairs" not in canonical
+    assert "assessment_forms" not in canonical
     legacy = pack.model_dump(mode="json")
     for key in (
         "session_content_version",
@@ -138,6 +139,7 @@ def test_legacy_pack_digest_unchanged_by_empty_m7_fields():
         "diagnostics",
         "misconception_taxonomy",
         "tutor_hints",
+        "assessment_forms",
     ):
         legacy.pop(key)
     for template in legacy["goals"]:

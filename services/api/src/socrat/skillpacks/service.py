@@ -106,6 +106,14 @@ def transition(
         if action == "language_verified" and set(verified_languages) != set(pack.languages):
             raise PackError("language_verification_incomplete", 422)
         if action == "publish":
+            from socrat.assessment.audit import coverage_audit as assessment_audit
+
+            if (
+                pack.purpose == "launch"
+                and pack.assessment_forms
+                and not assessment_audit(pack)["ready"]
+            ):
+                raise PackError("assessment_content_coverage_incomplete", 422)
             if (
                 pack.purpose == "launch"
                 and pack.session_content_version

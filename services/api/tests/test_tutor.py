@@ -61,7 +61,10 @@ def test_fallback_nine_cells_idempotency_and_submit_evidence(
     first = ask(client, headers, attempt)
     assert first.status_code == 200, first.text
     assert first.json()["granted_level"] == 1 and first.json()["fallback"]
-    assert "1436" not in first.text and "reference_solution" not in first.text
+    # UUIDs and timestamps can coincidentally contain digits from a hidden key.
+    # Continue checking every content/policy field, including unexpected fields.
+    visible = {key: value for key, value in first.json().items() if key not in {"id", "created_at"}}
+    assert "1436" not in json.dumps(visible) and "reference_solution" not in first.text
     assert ask(client, headers, attempt).json() == first.json()
     assert client.get("/api/v1/learner-state/evidence").json()["total"] == before
     assert queue(client, headers, attempt).status_code == 200

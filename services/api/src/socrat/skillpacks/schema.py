@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints, model_validator
 
+from socrat.assessment.contracts import AssessmentForm
 from socrat.diagnostics.contracts import DiagnosticDefinition, MisconceptionDefinition
 from socrat.learning.content import CompetitivePenalty, LearningLesson, StructuralRepair
 from socrat.skillpacks.types import Contract as Contract
@@ -129,7 +130,7 @@ class Exercise(Contract):
 
 class Blueprint(Contract):
     id: Key
-    kind: Literal["diagnostic", "baseline", "weekly", "final"]
+    kind: Literal["diagnostic", "baseline", "weekly", "final", "retention"]
     exercise_ids: list[Key] = Field(min_length=1, max_length=1000)
     concept_ids: list[Key] = Field(min_length=1, max_length=1000)
     scoring: Literal["deterministic", "human_rubric"]
@@ -183,6 +184,7 @@ class SkillPack(Contract):
     structural_repairs: list[StructuralRepair] = Field(default_factory=list, max_length=5000)
     competitive_penalty: CompetitivePenalty | None = None
     tutor_hints: list[AuthoredHint] = Field(default_factory=list, max_length=10000)
+    assessment_forms: list[AssessmentForm] = Field(default_factory=list, max_length=100)
 
     @model_validator(mode="after")
     def validate_references(self):
@@ -392,7 +394,94 @@ class SkillPack(Contract):
                 raise ValueError("Migration must reference a prior version")
             if not set(self.migration.concept_mapping.values()) <= concepts.keys():
                 raise ValueError("Unknown migration target")
+        self.validate_assessments()
         return self
+
+    def validate_assessments(self):
+        unique([x.blueprint_id for x in self.assessment_forms], "assessment definitions")
+        blueprints = {x.id: x for x in self.blueprints}
+        exercises = {x.id: x for x in self.exercises}
+        groups: dict[str, list] = {}
+        for form in self.assessment_forms:
+            blueprint = blueprints.get(form.blueprint_id)
+            track = next((x for x in self.tracks if x.id == form.track), None)
+            if blueprint is None or blueprint.kind == "diagnostic" or track is None:
+                raise ValueError("Unknown assessment blueprint/track")
+            if (blueprint.kind == "retention") != bool(form.retention_representation):
+                raise ValueError("Retention forms require an explicit representation")
+            if not set(blueprint.concept_ids) <= set(track.concept_ids):
+                raise ValueError("Assessment exceeds track")
+            unique(form.languages, "assessment languages")
+            if not set(form.languages) <= set(self.languages) or (
+                self.languages and not form.languages
+            ):
+                raise ValueError("Assessment language coverage missing")
+            ids = [x.exercise_id for x in form.items]
+            unique(ids, "assessment items")
+            if set(ids) != set(blueprint.exercise_ids):
+                raise ValueError("Assessment specification differs from blueprint")
+            for spec in form.items:
+                exercise = exercises[spec.exercise_id]
+                if exercise.calibration != "reviewed" or not set(exercise.concept_ids) <= set(
+                    blueprint.concept_ids
+                ):
+                    raise ValueError("Assessment requires reviewed scoped items")
+                if (exercise.modality == "code") != (spec.response.kind == "implementation"):
+                    raise ValueError("Assessment scoring modality mismatch")
+                if exercise.modality == "code" and not set(form.languages) <= {
+                    x.language for x in exercise.variants
+                }:
+                    raise ValueError("Missing assessment runtime variant")
+                if spec.response.kind == "human_rubric" and blueprint.scoring != "human_rubric":
+                    raise ValueError("Qualitative form requires human scoring")
+            if blueprint.kind == "weekly" and (
+                not any(x.unfamiliar_representation for x in form.items)
+                or not any(len(exercises[x].concept_ids) >= 2 for x in ids)
+            ):
+                raise ValueError("Weekly form requires unfamiliar and mixed tasks")
+            if form.retention_representation == "small_implementation" and not any(
+                exercises[x].evidence_mode == "implement" for x in ids
+            ):
+                raise ValueError("Implementation review requires implementation evidence")
+            if form.retention_representation == "mixed_problem" and not any(
+                len(exercises[x].concept_ids) >= 2 for x in ids
+            ):
+                raise ValueError("Mixed review requires multiple concepts")
+            groups.setdefault(form.parallel_group, []).append((form, blueprint))
+        for entries in groups.values():
+            signatures = set()
+            families: set[str] = set()
+            for form, blueprint in entries:
+                signatures.add(
+                    (
+                        form.track,
+                        tuple(sorted(form.languages)),
+                        form.maximum_seconds,
+                        form.pass_score,
+                        tuple(sorted(blueprint.concept_ids)),
+                        tuple(
+                            sorted(
+                                (
+                                    tuple(sorted(exercises[x].concept_ids)),
+                                    exercises[x].evidence_mode,
+                                    exercises[x].difficulty,
+                                )
+                                for x in blueprint.exercise_ids
+                            )
+                        ),
+                    )
+                )
+                current = {exercises[x].family_id for x in blueprint.exercise_ids}
+                if len(current) != len(blueprint.exercise_ids) or families & current:
+                    raise ValueError("Parallel forms reuse assessment families")
+                families.update(current)
+            if len(signatures) != 1:
+                raise ValueError("Parallel forms differ in coverage/difficulty/process/time")
+            if any(b.kind in {"baseline", "final"} for _, b in entries) and not {
+                "baseline",
+                "final",
+            } <= {b.kind for _, b in entries}:
+                raise ValueError("Baseline/final require reviewed parallel forms")
 
     def topological_order(self) -> list[str]:
         incoming = {concept.id: 0 for concept in self.concepts}
@@ -424,6 +513,7 @@ class SkillPack(Contract):
             "session_content_version",
             "competitive_penalty",
             "tutor_hints",
+            "assessment_forms",
         ):
             if not payload[key]:
                 del payload[key]

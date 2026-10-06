@@ -1,5 +1,11 @@
 # M9 prerequisite review
 
+## Subsequent repository authorization
+
+The owner's later request on 6 October 2026 explicitly directs M9 implementation. Repository work proceeded under that authorization, with validation continuing on 7 October; see the [M9 index](m9-index.md). The earlier conditional decision below is a historical readiness assessment. Its external release gaps remain open and are carried into the [M9 gate](m9-gate.md). Implementation authorization does not supply independent content, human, provider, gVisor or deployment acceptance.
+
+## Historical conditional review
+
 Reviewed 6 October 2026 against the owner's condition: move to M9 only if its prerequisites are not pending.
 
 **Decision: prerequisites remain pending; M9 implementation has not started.**

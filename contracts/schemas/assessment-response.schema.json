@@ -1,0 +1,38 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "item_id": {
+      "pattern": "^[a-f0-9-]{36}$",
+      "title": "Item Id",
+      "type": "string"
+    },
+    "revision": {
+      "minimum": 0,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "idempotency_key": {
+      "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "answer": {
+      "maxLength": 2000,
+      "title": "Answer",
+      "type": "string"
+    },
+    "report_problem": {
+      "default": false,
+      "title": "Report Problem",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "item_id",
+    "revision",
+    "idempotency_key",
+    "answer"
+  ],
+  "title": "ResponseInput",
+  "type": "object"
+}

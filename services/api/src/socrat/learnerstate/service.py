@@ -72,7 +72,10 @@ def project(db: Session, user_id: str, version: str, as_of: int) -> dict:
 def append_fact(db: Session, user_id: str, fact: EvidenceFact) -> dict:
     current = db.get(LearnerState, user_id)
     version = current.active_policy if current else "1.0.0"
-    before = project(db, user_id, version, fact.occurred_at)
+    # Human review may finalize a response after later learner activity. Keep the
+    # observed timestamp, while evaluating the projection at a monotonic clock.
+    as_of = max([fact.occurred_at, *(x.occurred_at for x in facts_for(db, user_id))])
+    before = project(db, user_id, version, as_of)
     if fact.sequence != before["watermark"] + 1:
         raise ValueError("Evidence sequence conflict")
     record = LearningEvidence(
@@ -85,7 +88,7 @@ def append_fact(db: Session, user_id: str, fact: EvidenceFact) -> dict:
     )
     db.add(record)
     db.flush()
-    after = project(db, user_id, version, fact.occurred_at)
+    after = project(db, user_id, version, as_of)
     if current is None:
         current = LearnerState(user_id=user_id, active_policy=version, projection=after)
         db.add(current)

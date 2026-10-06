@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from typing import TypedDict
 
 from pydantic import Field
 
@@ -41,6 +42,31 @@ POLICIES = {
     "1.0.0": LearningPolicy(version="1.0.0"),
     # Conservative shadow candidate; never chosen for a new learner automatically.
     "1.0.1": LearningPolicy(version="1.0.1", weight_scale=0.9),
+    # M9 scheduling candidate; promotion still requires reviewed replay evidence.
+    "1.1.0": LearningPolicy(version="1.1.0"),
+}
+
+
+class SpacedPolicy(TypedDict):
+    intervals_days: list[int]
+    expansion: float
+    expand_score: float
+    keep_score: float
+    repair_interval_days: int
+    maximum_interval_days: int
+    ordinary_session_review_fraction: float
+    representations: list[str]
+
+
+SPACED_POLICY: SpacedPolicy = {
+    "intervals_days": [2, 7, 14, 30],
+    "expansion": 1.8,
+    "expand_score": 0.8,
+    "keep_score": 0.6,
+    "repair_interval_days": 2,
+    "maximum_interval_days": 365,
+    "ordinary_session_review_fraction": 0.25,
+    "representations": ["recall", "small_implementation", "mixed_problem", "retention_assessment"],
 }
 
 

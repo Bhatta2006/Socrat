@@ -93,6 +93,7 @@ def create_attempt(
     settings: Settings,
     stamp: int,
     learning_context: dict | None = None,
+    assessment_item_id: str | None = None,
 ):
     request_digest = digest(
         dict(
@@ -100,6 +101,7 @@ def create_attempt(
             exercise_id=exercise_id,
             diagnostic_attempt_id=diagnostic_attempt_id,
             **({"learning_context": learning_context} if learning_context else {}),
+            **({"assessment_item_id": assessment_item_id} if assessment_item_id else {}),
         )
     )
     existing = db.scalar(
@@ -150,7 +152,39 @@ def create_attempt(
     if profile is None or profile.image not in healthy_images(db, settings, stamp):
         raise ExecutionError("sandbox_unavailable", 503)
     mode = "practice"
-    if diagnostic_attempt_id:
+    if assessment_item_id:
+        from socrat.models import AssessmentItem, AssessmentResponse, AssessmentSession
+
+        assessment_item = db.get(AssessmentItem, assessment_item_id)
+        assessment_session = (
+            db.get(AssessmentSession, assessment_item.session_id) if assessment_item else None
+        )
+        if (
+            not settings.assessments_enabled
+            or diagnostic_attempt_id
+            or learning_context
+            or assessment_session is None
+            or assessment_item is None
+            or (assessment_session.user_id, assessment_session.goal_id, assessment_session.pack_id)
+            != (goal.user_id, goal.id, record.id)
+            or assessment_session.snapshot["pack_digest"] != record.digest
+            or assessment_item.exercise_id != exercise.id
+            or exercise.inventory != "assessment"
+            or assessment_session.status != "in_progress"
+            or assessment_session.result is not None
+            or stamp >= assessment_session.deadline_at
+            or db.get(AssessmentResponse, assessment_item.id)
+        ):
+            raise ExecutionError("assessment_not_active")
+        if db.scalar(
+            select(CodeAttempt).where(
+                CodeAttempt.user_id == goal.user_id,
+                CodeAttempt.snapshot["assessment_item_id"].as_string() == assessment_item_id,
+            )
+        ):
+            raise ExecutionError("assessment_attempt_already_started")
+        mode = "retention" if assessment_session.snapshot["kind"] == "retention" else "assessment"
+    elif diagnostic_attempt_id:
         issued = db.get(DiagnosticAttempt, diagnostic_attempt_id)
         session = db.get(DiagnosticSession, issued.diagnostic_id) if issued else None
         latest = (
@@ -252,6 +286,7 @@ def create_attempt(
             hint_level=0,
             unseen=unseen,
             **({"learning_context": learning_context} if learning_context else {}),
+            **({"assessment_item_id": assessment_item_id} if assessment_item_id else {}),
         ),
     )
     db.add(attempt)
@@ -382,6 +417,12 @@ def enqueue(
     rejection = admission_error(db, attempt, stamp, settings.learning_sessions_enabled)
     if rejection:
         raise ExecutionError(rejection)
+    if attempt.snapshot.get("assessment_item_id"):
+        from socrat.assessment.service import code_admission
+
+        rejection = code_admission(db, attempt, stamp)
+        if not settings.assessments_enabled or rejection:
+            raise ExecutionError(rejection or "assessments_unavailable")
     db.scalar(select(ExecutionCapacity).where(ExecutionCapacity.id == 1).with_for_update())
     pack, exercise = content(db, attempt)
     if attempt.snapshot["runtime"]["image"] not in healthy_images(db, settings, stamp):
@@ -625,6 +666,21 @@ def finalize(db: Session, worker_id: str, envelope: ResultEnvelope, settings: Se
     run.result = sanitized
     run.result_signature = envelope.signature
     run.status = "completed" if sanitized["operational_status"] == "healthy" else "failed"
+    if attempt.snapshot.get("assessment_item_id"):
+        from socrat.assessment.service import code_response
+
+        if run.manifest["mode"] == "submit":
+            if not settings.assessments_enabled:
+                run.status = "failed"
+                run.result = dict(
+                    sanitized,
+                    operational_status="failed",
+                    reason_code="assessments_unavailable",
+                    cases=[],
+                )
+            code_response(db, attempt, run, stamp)
+        record_event(db, run.user_id, "execution.finalized", run.id)
+        return run
     if run.manifest["mode"] == "submit" and run.status == "completed":
         score = sum(x.status == "passed" for x in result.cases) / len(run.tests)
         evaluation = implementation_score(

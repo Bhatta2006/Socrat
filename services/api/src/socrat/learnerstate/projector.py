@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from socrat.learnerstate.policy import POLICIES, LearningPolicy, canonical
+from socrat.learnerstate.policy import POLICIES, SPACED_POLICY, LearningPolicy, canonical
 from socrat.skillpacks.types import Contract, Key
 
 
@@ -43,6 +43,7 @@ class EvidenceFact(Contract):
     policy_version: str = Field(min_length=1, max_length=64)
     policy_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
     reason_code: Key
+    review_group_id: str | None = Field(default=None, min_length=1, max_length=36)
     misconception_codes: list[Key] = Field(default_factory=list, max_length=30)
 
     @model_validator(mode="after")
@@ -140,10 +141,30 @@ def replay(
     policy = POLICIES[version]
     ordered = ordered_facts(facts)
     invalidated = {fact.target_event_id for fact in ordered if fact.kind == "invalidated"}
+    review_groups: dict[tuple[str, str, str], list[EvidenceFact]] = {}
+    for fact in ordered:
+        if (
+            fact.review_group_id
+            and fact.mode == "retention"
+            and fact.kind == "scored"
+            and fact.event_id not in invalidated
+            and fact.valid
+            and fact.finalized
+            and fact.quality > 0
+            and fact.hint_level == 0
+        ):
+            for concept in fact.concept_ids:
+                review_groups.setdefault((fact.review_group_id, fact.pack_id, concept), []).append(
+                    fact
+                )
     states: dict[str, dict] = {}
     counters: dict[str, dict] = {}
     for fact in ordered:
         for concept in fact.concept_ids:
+            group = review_groups.get((fact.review_group_id or "", fact.pack_id, concept), [])
+            final_review_item = not group or fact.event_id == group[-1].event_id
+            review_score = sum(x.score for x in group) / len(group) if group else fact.score
+            review_at = max(x.occurred_at for x in group) if group else fact.occurred_at
             key = state_key(fact.pack_id, fact.language, concept)
             retention_days = max(
                 policy.retention_days, (requirements or {}).get(key, {}).get("retention_days", 7)
@@ -160,6 +181,11 @@ def replay(
                     "interval_days": retention_days,
                     "solve_times": [],
                     "time_ratios": [],
+                    "first_capable_at": None,
+                    "review_anchor": None,
+                    "review_interval": float(SPACED_POLICY["repair_interval_days"]),
+                    "review_index": 0,
+                    "repair_required": False,
                 },
             )
             if (
@@ -197,6 +223,40 @@ def replay(
             counter["family_weights"][fact.family_id] = spent + weight
             state["alpha"] += weight * fact.score
             state["beta"] += weight * (1 - fact.score)
+            if (
+                version == "1.1.0"
+                and counter["first_capable_at"] is None
+                and state["alpha"] / (state["alpha"] + state["beta"]) >= 0.65
+            ):
+                counter["first_capable_at"] = fact.occurred_at
+                counter["review_anchor"] = fact.occurred_at
+            if (
+                version == "1.1.0"
+                and counter["first_capable_at"] is not None
+                and fact.hint_level == 0
+            ):
+                if fact.mode == "retention" and final_review_item:
+                    if review_score >= SPACED_POLICY["expand_score"]:
+                        counter["review_index"] += 1
+                        base_interval = SPACED_POLICY["intervals_days"][
+                            min(3, counter["review_index"])
+                        ]
+                        counter["review_interval"] = min(
+                            float(SPACED_POLICY["maximum_interval_days"]),
+                            max(
+                                base_interval,
+                                counter["review_interval"] * SPACED_POLICY["expansion"],
+                            ),
+                        )
+                        counter["repair_required"] = False
+                    elif review_score < SPACED_POLICY["keep_score"]:
+                        counter["review_interval"] = float(SPACED_POLICY["repair_interval_days"])
+                        counter["review_index"] = 0
+                        counter["repair_required"] = True
+                    counter["review_anchor"] = review_at
+                elif counter["repair_required"] and fact.mode == "practice" and fact.score >= 0.7:
+                    counter["repair_required"] = False
+                    counter["review_anchor"] = fact.occurred_at
             state["evidence_count"] += 1
             state["evidence_counts_by_type"][fact.evidence_type] = (
                 state["evidence_counts_by_type"].get(fact.evidence_type, 0) + 1
@@ -226,10 +286,19 @@ def replay(
                         state["assessment_passed"] = True
                 if (
                     fact.mode == "retention"
+                    and (version != "1.1.0" or final_review_item)
                     and counter["first_success_at"] is not None
-                    and fact.occurred_at - counter["first_success_at"] >= retention_days * 86400
+                    and fact.occurred_at
+                    - (
+                        counter["first_capable_at"]
+                        if version == "1.1.0" and counter["first_capable_at"] is not None
+                        else counter["first_success_at"]
+                    )
+                    >= retention_days * 86400
                 ):
-                    state["retention_passed"] = fact.score >= policy.minimum_latest_score
+                    state["retention_passed"] = (
+                        review_score if version == "1.1.0" else fact.score
+                    ) >= policy.minimum_latest_score
                     counter["interval_days"] = (
                         min(365, counter["interval_days"] * 2)
                         if state["retention_passed"]
@@ -283,6 +352,21 @@ def replay(
                 policy.retention_floor, 2 ** (-age_days / policy.half_life_days)
             )
             state["due_at"] = state["last_evidence_at"] + counter["interval_days"] * 86400
+        if version == "1.1.0":
+            state["first_capable_at"] = counter["first_capable_at"]
+            state["review_interval_days"] = counter["review_interval"]
+            state["review_representation"] = (
+                "recall",
+                "small_implementation",
+                "mixed_problem",
+                "retention_assessment",
+            )[min(3, counter["review_index"])]
+            state["repair_required"] = counter["repair_required"]
+            state["due_at"] = (
+                None
+                if counter["review_anchor"] is None or counter["repair_required"]
+                else counter["review_anchor"] + math.ceil(counter["review_interval"] * 86400)
+            )
         state["effective_mastery"] = state["mastery_mean"] * state["retention_factor"]
         state["independent_rate"] = (
             counter["independent_sum"] / state["independent_count"]

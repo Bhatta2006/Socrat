@@ -1,0 +1,22 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "idempotency_key": {
+      "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "rationale": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    }
+  },
+  "required": [
+    "idempotency_key",
+    "rationale"
+  ],
+  "title": "DisputeInput",
+  "type": "object"
+}

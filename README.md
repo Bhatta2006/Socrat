@@ -20,6 +20,8 @@ M7 implementation includes durable Today sessions, pinned language/track lessons
 
 M8 adds bounded tutoring, curated fallbacks, provider adapters, durable assistance at Submit, dependency fading, fresh-family planning safeguards and a shadow-only advisor. Models remain disabled by default; earlier external gates remain open. See the [M8 implementation](docs/delivery/milestones/m8-index.md), [gate](docs/delivery/milestones/m8-gate.md) and [operations](docs/operations/m8-assistance.md).
 
+M9 adds protected baseline/weekly/final/retention forms, deterministic scoring, independent human review and disputes, atomic assessment evidence, and a reviewed spaced-scheduling policy. The owner authorized repository implementation while inherited release gates remain open. Local Compose enables assessment development; staging defaults off. See the [M9 implementation](docs/delivery/milestones/m9-index.md), [gate](docs/delivery/milestones/m9-gate.md), and [operations](docs/operations/m9-assessments.md).
+
 ## Repository map
 
 ```text

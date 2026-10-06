@@ -37,8 +37,8 @@ const messages: Record<string, string> = {
   session_day_ended: 'This session’s day has ended. Your saved code remains available.',
 };
 
-export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosticAttemptId, sessionAttemptId, executionDisabled = false, saveHandle, onSubmitted }: {
-  goalId: string; exerciseId: string; csrfToken: string; diagnosticAttemptId?: string; sessionAttemptId?: string; executionDisabled?: boolean; saveHandle?: { current: (() => Promise<void>) | null }; onSubmitted?: () => void;
+export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosticAttemptId, assessmentItemId, sessionAttemptId, executionDisabled = false, saveHandle, onSubmitted }: {
+  goalId: string; exerciseId: string; csrfToken: string; diagnosticAttemptId?: string; assessmentItemId?: string; sessionAttemptId?: string; executionDisabled?: boolean; saveHandle?: { current: (() => Promise<void>) | null }; onSubmitted?: () => void;
 }) {
   const [enabled, setEnabled] = useState(false);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
@@ -70,11 +70,12 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
   async function open() {
     setPending(true); setError('');
     try {
-      const old = sessionAttemptId ? { items: [] } : await request<{ items: { id: string; exercise_id: string; diagnostic_attempt_id: string | null }[] }>(`/api/v1/goals/${goalId}/code-attempts`);
-      const existing = sessionAttemptId ? { id: sessionAttemptId } : old.items.find(item => item.exercise_id === exerciseId && item.diagnostic_attempt_id === (diagnosticAttemptId ?? null));
+      const old = sessionAttemptId ? { items: [] } : await request<{ items: { id: string; exercise_id: string; diagnostic_attempt_id: string | null; assessment_item_id?: string | null }[] }>(`/api/v1/goals/${goalId}/code-attempts`);
+      const existing = sessionAttemptId ? { id: sessionAttemptId } : old.items.find(item => item.exercise_id === exerciseId && item.diagnostic_attempt_id === (diagnosticAttemptId ?? null) && (item.assessment_item_id ?? null) === (assessmentItemId ?? null));
       const value = existing ? await request<Attempt>(`/api/v1/attempts/${existing.id}`) :
         await request<Attempt>(`/api/v1/goals/${goalId}/code-attempts`, 'POST', { exercise_id: exerciseId,
-          idempotency_key: creationKey.current, diagnostic_attempt_id: diagnosticAttemptId ?? null });
+          idempotency_key: creationKey.current, diagnostic_attempt_id: diagnosticAttemptId ?? null,
+          ...(assessmentItemId ? { assessment_item_id: assessmentItemId } : {}) });
       source.current = value.source; saved.current = value.source; revision.current = value.revision; setAttempt(value);
       setAssistance(value.assistance_level ?? 0);
       setHistory((await request<{ items: Run[] }>(`/api/v1/attempts/${value.id}/runs`)).items);

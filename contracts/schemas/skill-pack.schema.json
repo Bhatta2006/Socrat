@@ -1,5 +1,144 @@
 {
   "$defs": {
+    "AssessmentForm": {
+      "additionalProperties": false,
+      "properties": {
+        "blueprint_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Blueprint Id",
+          "type": "string"
+        },
+        "track": {
+          "enum": [
+            "foundations",
+            "interview",
+            "competitive"
+          ],
+          "title": "Track",
+          "type": "string"
+        },
+        "languages": {
+          "items": {
+            "enum": [
+              "python",
+              "cpp",
+              "java"
+            ],
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Languages",
+          "type": "array"
+        },
+        "parallel_group": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Parallel Group",
+          "type": "string"
+        },
+        "maximum_seconds": {
+          "maximum": 2700,
+          "minimum": 60,
+          "title": "Maximum Seconds",
+          "type": "integer"
+        },
+        "pass_score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Pass Score",
+          "type": "number"
+        },
+        "boundary_margin": {
+          "default": 0.05,
+          "maximum": 0.1,
+          "minimum": 0,
+          "title": "Boundary Margin",
+          "type": "number"
+        },
+        "allowed_tools": {
+          "const": "editor_only",
+          "default": "editor_only",
+          "title": "Allowed Tools",
+          "type": "string"
+        },
+        "retention_representation": {
+          "anyOf": [
+            {
+              "enum": [
+                "recall",
+                "small_implementation",
+                "mixed_problem",
+                "retention_assessment"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retention Representation"
+        },
+        "review_reference": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Review Reference",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/AssessmentItemSpec"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "blueprint_id",
+        "track",
+        "parallel_group",
+        "maximum_seconds",
+        "pass_score",
+        "review_reference",
+        "items"
+      ],
+      "title": "AssessmentForm",
+      "type": "object"
+    },
+    "AssessmentItemSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "exercise_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Exercise Id",
+          "type": "string"
+        },
+        "response": {
+          "$ref": "#/$defs/ResponseSpec"
+        },
+        "rubric_criteria": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Rubric Criteria",
+          "type": "array"
+        },
+        "unfamiliar_representation": {
+          "default": false,
+          "title": "Unfamiliar Representation",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "exercise_id",
+        "response"
+      ],
+      "title": "AssessmentItemSpec",
+      "type": "object"
+    },
     "AuthoredHint": {
       "additionalProperties": false,
       "properties": {
@@ -59,7 +198,8 @@
             "diagnostic",
             "baseline",
             "weekly",
-            "final"
+            "final",
+            "retention"
           ],
           "title": "Kind",
           "type": "string"
@@ -1463,6 +1603,14 @@
       },
       "maxItems": 10000,
       "title": "Tutor Hints",
+      "type": "array"
+    },
+    "assessment_forms": {
+      "items": {
+        "$ref": "#/$defs/AssessmentForm"
+      },
+      "maxItems": 100,
+      "title": "Assessment Forms",
       "type": "array"
     }
   },

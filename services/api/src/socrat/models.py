@@ -372,3 +372,73 @@ class LearningPolicyReview(Base):
     evidence_reference: Mapped[str] = mapped_column(String(512))
     projection_digest: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class AssessmentSession(Base):
+    __tablename__ = "assessment_sessions"
+    __table_args__ = (UniqueConstraint("user_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"), index=True)
+    pack_id: Mapped[str] = mapped_column(ForeignKey("skill_pack_versions.id"))
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(32), default="in_progress")
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    started_at: Mapped[int] = mapped_column(Integer)
+    deadline_at: Mapped[int] = mapped_column(Integer)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+
+class AssessmentItem(Base):
+    """Issuance is also the durable family exposure ledger, including excluded items."""
+
+    __tablename__ = "assessment_items"
+    __table_args__ = (UniqueConstraint("session_id", "position"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    session_id: Mapped[str] = mapped_column(ForeignKey("assessment_sessions.id"), index=True)
+    exercise_id: Mapped[str] = mapped_column(String(64))
+    family_id: Mapped[str] = mapped_column(String(64))
+    position: Mapped[int] = mapped_column(Integer)
+    issued_at: Mapped[int] = mapped_column(Integer)
+
+
+class AssessmentResponse(Base):
+    __tablename__ = "assessment_responses"
+    __table_args__ = (UniqueConstraint("session_id", "idempotency_key"),)
+    item_id: Mapped[str] = mapped_column(ForeignKey("assessment_items.id"), primary_key=True)
+    session_id: Mapped[str] = mapped_column(ForeignKey("assessment_sessions.id"))
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    outcome: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer)
+
+
+class AssessmentAnswer(Base):
+    __tablename__ = "assessment_answers"
+    item_id: Mapped[str] = mapped_column(ForeignKey("assessment_items.id"), primary_key=True)
+    answer: Mapped[str] = mapped_column(String(2000))
+
+
+class AssessmentReview(Base):
+    __tablename__ = "assessment_reviews"
+    __table_args__ = (UniqueConstraint("item_id", "idempotency_key"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    item_id: Mapped[str] = mapped_column(ForeignKey("assessment_items.id"), index=True)
+    actor_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    outcome: Mapped[dict] = mapped_column(JSON)
+    evidence_reference: Mapped[str] = mapped_column(String(512))
+    rationale: Mapped[str] = mapped_column(String(2000))
+    created_at: Mapped[int] = mapped_column(Integer)
+
+
+class AssessmentDispute(Base):
+    __tablename__ = "assessment_disputes"
+    item_id: Mapped[str] = mapped_column(ForeignKey("assessment_items.id"), primary_key=True)
+    idempotency_key: Mapped[str] = mapped_column(String(64))
+    request_digest: Mapped[str] = mapped_column(String(64))
+    rationale: Mapped[str] = mapped_column(String(2000))
+    created_at: Mapped[int] = mapped_column(Integer)

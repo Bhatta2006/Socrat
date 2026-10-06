@@ -30,6 +30,7 @@ class AttemptInput(Contract):
     exercise_id: Key
     idempotency_key: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,64}$")
     diagnostic_attempt_id: str | None = Field(default=None, pattern=r"^[a-f0-9-]{36}$")
+    assessment_item_id: str | None = Field(default=None, pattern=r"^[a-f0-9-]{36}$")
 
 
 class DraftInput(Contract):
@@ -128,6 +129,7 @@ def start(goal_id: str, body: AttemptInput, request: Request):
                     body.diagnostic_attempt_id,
                     request.app.state.settings,
                     now(),
+                    assessment_item_id=body.assessment_item_id,
                 ),
             )
     except (ExecutionError, PackError, IntegrityError) as exc:
@@ -150,6 +152,7 @@ def attempts(goal_id: str, request: Request):
                     "exercise_id": x.exercise_id,
                     "language": x.snapshot["language"],
                     "diagnostic_attempt_id": x.snapshot["diagnostic_attempt_id"],
+                    "assessment_item_id": x.snapshot.get("assessment_item_id"),
                     "created_at": x.created_at,
                 }
                 for x in db.scalars(

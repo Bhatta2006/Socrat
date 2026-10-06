@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from socrat.assessment.audit import coverage_audit as assessment_audit
 from socrat.auth import require_csrf, require_session
 from socrat.learning.audit import planning_audit
 from socrat.learning.content import coverage_audit
@@ -109,6 +110,7 @@ def admin_version(key: str, version: str, request: Request):
             "pack": pack.model_dump(mode="json"),
             "coverage": pack.coverage(),
             "learning_coverage": coverage_audit(pack),
+            "assessment_coverage": assessment_audit(pack),
             "topological_order": pack.topological_order(),
             "reviews": [
                 {

@@ -48,7 +48,7 @@ class ResponseInput(Contract):
 
 
 class ReplayInput(Contract):
-    policy_version: Literal["1.0.0", "1.0.1"]
+    policy_version: Literal["1.0.0", "1.0.1", "1.1.0"]
     as_of: int = Field(ge=0)
 
 
@@ -216,6 +216,15 @@ def policy(user_id: str, body: PromotionInput, request: Request):
         )
         if active is not None:
             raise HTTPException(409, "diagnostic_policy_pinned")
+        from socrat.models import AssessmentSession
+
+        if db.scalar(
+            select(AssessmentSession).where(
+                AssessmentSession.user_id == user_id,
+                AssessmentSession.result.is_(None),
+            )
+        ):
+            raise HTTPException(409, "assessment_policy_pinned")
         try:
             return promote_policy(
                 db,

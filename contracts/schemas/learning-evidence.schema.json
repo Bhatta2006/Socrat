@@ -199,6 +199,20 @@
       "title": "Reason Code",
       "type": "string"
     },
+    "review_group_id": {
+      "anyOf": [
+        {
+          "maxLength": 36,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Group Id"
+    },
     "misconception_codes": {
       "items": {
         "pattern": "^[a-z][a-z0-9_-]{0,63}$",

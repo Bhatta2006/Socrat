@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import DiagnosticFlow from './diagnostic';
+import AssessmentFlow from './assessment';
 
 const outcomes = {
   foundations: ['programming_readiness', 'foundational_dsa', 'interview_entry_readiness'],
@@ -124,6 +125,8 @@ export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagno
     </div>}
     {confirmed?.id && confirmed.routing_outcome.startsWith('accept_') &&
       <DiagnosticFlow key={confirmed.id} goalId={confirmed.id} csrfToken={csrfToken} enabled={diagnosticsEnabled} />}
+    {confirmed?.id && confirmed.routing_outcome.startsWith('accept_') &&
+      <AssessmentFlow key={`assessment-${confirmed.id}`} goalId={confirmed.id} csrfToken={csrfToken} />}
     {error && <div className="alert alert-error mt-4" role="alert">{error}</div>}
     {review ? <div className="card mt-4 border border-base-300"><div className="card-body">
       <h3 className="card-title">Review your goal</h3>

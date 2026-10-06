@@ -51,6 +51,11 @@ Current ADRs:
 
 ## Delivery
 
+- [M9 assessment, mastery, and retention](delivery/milestones/m9-index.md)
+- [M9 gate](delivery/milestones/m9-gate.md)
+- [M9 validation](delivery/validation/m9-validation-report.md)
+- [M9 operations](operations/m9-assessments.md)
+
 - [M8 bounded assistance](delivery/milestones/m8-index.md)
 - [M8 gate](delivery/milestones/m8-gate.md)
 - [M8 validation record](delivery/validation/m8-validation-report.md)

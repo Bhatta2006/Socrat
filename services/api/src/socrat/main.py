@@ -16,13 +16,14 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
+from socrat.assessment.routes import router as assessment_router
 from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
 from socrat.diagnostics.routes import router as diagnostic_router
 from socrat.execution.routes import router as execution_router
 from socrat.learning.routes import router as learning_router
-from socrat.models import AdvisorShadow, DiagnosticSession, TutorTurn, User, now
+from socrat.models import AdvisorShadow, AssessmentSession, DiagnosticSession, TutorTurn, User, now
 from socrat.onboarding.routes import router as onboarding_router
 from socrat.planning.routes import router as planning_router
 from socrat.schema_revision import SCHEMA_REVISION
@@ -90,6 +91,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(execution_router)
     app.include_router(learning_router)
     app.include_router(tutor_router)
+    app.include_router(assessment_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -123,6 +125,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     tutor_reserved = Gauge(
         "socrat_tutor_reserved_microusd",
         "Conservative model spend reservations in the last 24 hours",
+        registry=registry,
+    )
+    assessment_sessions = Gauge(
+        "socrat_assessment_sessions",
+        "Assessment sessions by kind, track, language and status",
+        ["kind", "track", "language", "status"],
         registry=registry,
     )
     if settings.oidc_issuer:
@@ -215,7 +223,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ):
             raise HTTPException(404, "not_found")
         diagnostic_sessions.clear()
+        assessment_sessions.clear()
         with Session(engine) as db:
+            assessment_counts: dict[tuple[str, str, str, str], int] = {}
+            for assessment in db.scalars(select(AssessmentSession)):
+                cell = (
+                    assessment.snapshot["kind"],
+                    assessment.snapshot["track"],
+                    assessment.snapshot["language"],
+                    "expired"
+                    if assessment.result is None
+                    and assessment.status == "in_progress"
+                    and now() >= assessment.deadline_at
+                    else assessment.status,
+                )
+                assessment_counts[cell] = assessment_counts.get(cell, 0) + 1
+            for cell, count in assessment_counts.items():
+                assessment_sessions.labels(*cell).set(count)
             counts: dict[tuple[str, str, str], int] = {}
             for diagnostic in db.scalars(select(DiagnosticSession)):
                 key = (
@@ -251,6 +275,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "onboarding": settings.onboarding_enabled,
             "diagnostics": settings.diagnostics_enabled,
             "planning": settings.planning_enabled,
+            "assessments": settings.assessments_enabled,
         }
 
     @app.post("/api/v1/auth/dev-login")

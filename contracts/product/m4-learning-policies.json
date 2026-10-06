@@ -67,6 +67,39 @@
       "half_life_days": 30.0,
       "retention_floor": 0.65,
       "weight_scale": 0.9
+    },
+    "1.1.0": {
+      "version": "1.1.0",
+      "prior_alpha": 2.0,
+      "prior_beta": 2.0,
+      "hint_multipliers": [
+        1.0,
+        0.85,
+        0.65,
+        0.35,
+        0.0,
+        0.0
+      ],
+      "weights": {
+        "recognize": 0.5,
+        "trace": 0.8,
+        "analyze": 0.8,
+        "explain": 0.8,
+        "implement": 1.2,
+        "transfer": 1.8,
+        "retain": 1.5
+      },
+      "maximum_delta": 0.15,
+      "diagnostic_weight_cap": 0.8,
+      "family_weight_cap": 1.8,
+      "minimum_mastery": 0.8,
+      "minimum_confidence": 0.65,
+      "minimum_latest_score": 0.7,
+      "prerequisite_mastery": 0.75,
+      "retention_days": 7,
+      "half_life_days": 30.0,
+      "retention_floor": 0.65,
+      "weight_scale": 1.0
     }
   }
 }

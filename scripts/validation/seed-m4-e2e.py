@@ -25,10 +25,15 @@ parser.add_argument("language", choices=["python", "cpp", "java"])
 parser.add_argument("subject")
 parser.add_argument("--planning", action="store_true")
 parser.add_argument("--learning-content", action="store_true")
+parser.add_argument("--assessment", action="store_true")
 args = parser.parse_args()
 if not args.subject.startswith(("m4-e2e-", "m5-e2e-")) or not (ROOT / "socrat.e2e.db").is_file():
     parser.error("Requires an existing isolated browser database and m4-e2e subject")
 payload = diagnostic_pack().model_dump()
+if args.assessment:
+    from m9_support import assessment_pack
+
+    payload = assessment_pack().model_dump()
 if args.planning:
     from m5_support import planner_pack
 
