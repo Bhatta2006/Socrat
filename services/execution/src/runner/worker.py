@@ -112,6 +112,12 @@ def main():
                 else 0
             )
             response = client.post("/api/v1/execution/worker/claim", json={"worker_id": worker_id})
+            if demo and response.status_code == 403:
+                # Moving the shared demo clock can age out the heartbeat in the
+                # milliseconds between heartbeat and claim. Re-authenticate and
+                # advertise current health; do not loosen the broker's check.
+                beat()
+                continue
             response.raise_for_status()
             envelope = response.json()["job"]
             if envelope:

@@ -30,7 +30,7 @@ for (const language of ['python', 'cpp', 'java']) {
   const imageId = docker(['image', 'inspect', '--format', '{{.Id}}', tag], true);
   if (!/^sha256:[a-f0-9]{64}$/.test(imageId)) throw new Error('Immutable local runtime ID required');
   profiles.push({ id: `demo_${language}`, language, image: `socrat/demo-${language}@${imageId}`,
-    limits: { cpu_seconds: 2, wall_seconds: 5, memory_mb: 256, pids: 64, output_bytes: 65536, disk_mb: 16, compile_seconds: 20 },
+    limits: { cpu_seconds: 2, wall_seconds: 5, memory_mb: language === 'cpp' ? 512 : 256, pids: 64, output_bytes: 65536, disk_mb: 16, compile_seconds: 20 },
     attestation_reference: 'Local sample runtime; not release attested' });
 }
 const privatePath = path.join(root, '.cache/demo-environment.json');

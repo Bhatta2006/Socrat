@@ -210,7 +210,7 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision, se
         {session.timing === 'untimed' && <p>Untimed practice</p>}
         {session.competitive_result && <p>Timed practice: {session.competitive_result.wrong_submissions} wrong submissions · {session.competitive_result.penalty_seconds} penalty seconds. Upsolve keeps the original result.</p>}
         {!!session.upsolve_reserved_minutes && <p>Includes {session.upsolve_reserved_minutes} minutes reserved for optional upsolve. Repair time is a planning guide; it does not start another timer.</p>}
-        <ol className="space-y-1" aria-label="Session steps">{session.blocks.map((item, index) => <li key={index} aria-current={item.status === 'available' ? 'step' : undefined}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
+        <ol className="session-stepper" aria-label="Session steps">{session.blocks.map((item, index) => <li key={index} aria-current={item.status === 'available' ? 'step' : undefined}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
         {session.status === 'completed' && <p>Your learning session is complete. Reading and reflection do not prove mastery; coding results are recorded separately.</p>}
         {routed && session.status === 'completed' && <Link className="btn btn-primary" href="/progress">See your learning evidence</Link>}
         {session.status === 'expired' && <p>This session ended at local midnight. Your saved work remains available in past sessions. Refresh and confirm your plan to recover without adding a backlog.</p>}
@@ -220,7 +220,7 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision, se
         {session.status === 'paused' && <button className="btn" disabled={pending} onClick={() => act('resume')}>Resume session</button>}
         {block && session.status === 'in_progress' && <>
           <h4 className="font-semibold" ref={phaseHeading} tabIndex={-1}>{label(block.mode)}: {block.title}</h4>
-          <p className="whitespace-pre-wrap">{block.content.prompt}</p>
+          {!code && <p className="whitespace-pre-wrap">{block.content.prompt}</p>}
           {waitingForTimer && <><p>The {block.minutes}-minute window starts when you choose Start timed practice. Reloading will keep its original deadline.</p>
             <button className="btn" disabled={pending} onClick={() => act('start_timed')}>Start timed practice</button></>}
           {timed && !waitingForTimer && <><p role="timer" aria-live="off" aria-label="Time remaining">{expired ? 'Timed window ended. Your code is saved.' : `Time remaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`}</p>

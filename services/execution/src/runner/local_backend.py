@@ -110,7 +110,6 @@ def capture_process(
             thread = threading.Thread(target=target, args=args, daemon=True)
             threads.append(thread)
             thread.start()
-        observed = psutil.Process(process.pid)
         while process.poll() is None:
             if flooded.is_set():
                 limited = "output_limit"
@@ -118,6 +117,7 @@ def capture_process(
                 limited = "timeout"
             else:
                 try:
+                    observed = psutil.Process(process.pid)
                     tree = [observed, *observed.children(recursive=True)]
                     memory = sum(child.memory_info().rss for child in tree if child.is_running())
                     cpu = sum(sum(child.cpu_times()[:2]) for child in tree if child.is_running())
@@ -193,6 +193,12 @@ class LocalProcessBackend:
         return [x.image for x in self.profiles.values() if x.language in toolchains()]
 
     def execute(self, job: JobEnvelope) -> list[CaseResult]:
+        try:
+            return self._execute(job)
+        except (OSError, subprocess.SubprocessError, psutil.Error) as exc:
+            raise SandboxUnavailable("local_process_control_failure") from exc
+
+    def _execute(self, job: JobEnvelope) -> list[CaseResult]:
         profile = self.profiles.get(job.manifest.image)
         if (
             profile is None
@@ -232,6 +238,7 @@ class LocalProcessBackend:
                     commands[0],
                     "-J-Xmx128m",
                     "-J-XX:+UseSerialGC",
+                    "-J-XX:-UsePerfData",
                     "-J-XX:ActiveProcessorCount=1",
                     "-encoding",
                     "UTF-8",
@@ -243,6 +250,7 @@ class LocalProcessBackend:
                     commands[1],
                     "-Xmx128m",
                     "-XX:+UseSerialGC",
+                    "-XX:-UsePerfData",
                     "-XX:ActiveProcessorCount=1",
                     "-cp",
                     str(directory),

@@ -127,6 +127,8 @@ def controls(body: ControlInput, request: Request):
                 "goal_id": goal.id if goal else None,
                 "message": "The clock moved forward. Due checks and recovery follow your actual saved evidence; no scores or mastery were fabricated.",
             }
-    return establish_session(
-        request, JSONResponse({"reset": True}), "local-development", "demo-fresh-" + identifier()
-    )
+    response = login(LoginInput(persona="fresh"), request)
+    # Reuse fresh-login policy activation after erasure; keep the UI reset receipt.
+    response.body = b'{"reset":true}'
+    response.headers["content-length"] = str(len(response.body))
+    return response

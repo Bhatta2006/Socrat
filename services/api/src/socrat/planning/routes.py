@@ -28,6 +28,16 @@ from socrat.skillpacks.service import PackError, load
 router = APIRouter(prefix="/api/v1")
 
 
+@router.get("/goals/{goal_id}/curriculum/status")
+def curriculum_status(goal_id: str, request: Request):
+    try:
+        return {"plan": curriculum(goal_id, request)}
+    except HTTPException as exc:
+        if exc.status_code == 404 and exc.detail == "plan_not_generated":
+            return {"plan": None}
+        raise
+
+
 def identity(request: Request, db: Session, write=False):
     if not request.app.state.settings.planning_enabled:
         raise HTTPException(404, "not_found")

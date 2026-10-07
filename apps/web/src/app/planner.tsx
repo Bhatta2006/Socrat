@@ -42,9 +42,11 @@ export default function Planner({ goalId, csrfToken, routed = false }: { goalId:
       if (!active || !features.planning) return;
       setEnabled(true);
       setSessionsEnabled(Boolean(features.learning_sessions));
-      const response = await fetch(`/api/v1/goals/${goalId}/curriculum`);
+      const response = await fetch(`/api/v1/goals/${goalId}/curriculum${features.demo_mode ? '/status' : ''}`);
       if (response.ok && active) {
-        const value = await response.json(); setPlan(value);
+        const data = await response.json(); const value = features.demo_mode ? data.plan : data;
+        if (!value) return;
+        setPlan(value);
         setWeekdays(value.schedule.weekdays);
         setTarget(value.schedule.target_date === 'no_fixed_date' ? '' : value.schedule.target_date);
       } else if (response.status !== 404 && active) setError('Your plan could not be loaded. Please retry.');

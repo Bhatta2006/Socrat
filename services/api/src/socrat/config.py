@@ -82,7 +82,9 @@ class DatabaseSettings(BaseSettings):
 
 class Settings(DatabaseSettings):
     demo_mode: bool = False
-    execution_backend: Literal["gvisor", "gvisor_docker", "local_process", "demo_docker"] = "gvisor_docker"
+    execution_backend: Literal["gvisor", "gvisor_docker", "local_process", "demo_docker"] = (
+        "gvisor_docker"
+    )
     dashboard_enabled: bool = False
     tutor_enabled: bool = False
     tutor_model_enabled: bool = False

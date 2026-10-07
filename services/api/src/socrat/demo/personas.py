@@ -85,7 +85,7 @@ def bootstrap(settings: Settings):
                     raise ValueError("Seed the demo content and users before histories")
                 if db.scalar(select(LearnerGoal.id).where(LearnerGoal.user_id == user.id)):
                     continue
-                stamp = current - (4 * 86400 if persona != "beginner" else 0)
+                stamp = current - (7 * 86400 if persona != "beginner" else 0)
                 worker = db.get(ExecutionWorker, worker_id)
                 if worker is None:
                     db.add(
@@ -276,7 +276,7 @@ def bootstrap(settings: Settings):
 
                 plan("generate", stamp)
                 if persona != "beginner":
-                    for day in range(4):
+                    for day in range(7):
                         at = stamp + day * 86400
                         if day:
                             plan("refresh", at)
