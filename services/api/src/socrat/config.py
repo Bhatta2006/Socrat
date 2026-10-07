@@ -51,6 +51,7 @@ class DatabaseSettings(BaseSettings):
     database_name: str = ""
     database_user: str = ""
     database_password_file: str = ""
+    reminders_enabled: bool = False
 
     @model_validator(mode="after")
     def load_database_password(self):
@@ -80,6 +81,7 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
+    dashboard_enabled: bool = False
     tutor_enabled: bool = False
     tutor_model_enabled: bool = False
     tutor_model_rollout_percent: int = Field(default=100, ge=0, le=100)

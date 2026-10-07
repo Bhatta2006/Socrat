@@ -3,6 +3,8 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Onboarding from './onboarding';
 import CalibrationPanel from './calibration';
+import Dashboard from './dashboard';
+import AccountControls, { DeletionReceipt, ReceiptImport, ReceiptStatus } from './account-controls';
 
 type Profile = {
   id: string;
@@ -12,7 +14,7 @@ type Profile = {
   csrf_token: string;
 };
 
-type Features = { dev_login: boolean; oidc_login: boolean; onboarding: boolean; diagnostics: boolean };
+type Features = { dev_login: boolean; oidc_login: boolean; onboarding: boolean; diagnostics: boolean; dashboard: boolean; reminders: boolean };
 
 async function jsonRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, credentials: 'same-origin' });
@@ -38,6 +40,7 @@ export default function Workspace() {
   const [pending, setPending] = useState(true);
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
+  const [deletionReceipt, setDeletionReceipt] = useState<DeletionReceipt | null>(null);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -130,10 +133,13 @@ export default function Workspace() {
   return (
     <section id="workspace" className="card border border-base-300 bg-base-100 shadow-none" aria-busy={pending}>
       <div className="card-body gap-6 p-6 sm:p-8">
+        {deletionReceipt && <ReceiptStatus initial={deletionReceipt} />}
+        {!profile && <ReceiptImport onLoaded={setDeletionReceipt} />}
         {pending && !features ? (
           <p role="status" className="text-sm text-base-content/60">Checking workspace…</p>
         ) : profile ? (
           <>
+            {features?.dashboard && <Dashboard csrfToken={profile.csrf_token} diagnosticsEnabled={features.diagnostics} />}
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-base-content/60">Account foundation</p>
               <h2 className="mt-2 text-2xl font-bold">Your profile</h2>
@@ -163,6 +169,7 @@ export default function Workspace() {
               </div>
             </form>
             {features?.onboarding && <Onboarding csrfToken={profile.csrf_token} timezone={profile.timezone} adultConfirmed={profile.adult_confirmed} diagnosticsEnabled={features.diagnostics} />}
+            <AccountControls csrfToken={profile.csrf_token} remindersEnabled={Boolean(features?.reminders)} onDeleted={receipt => { setDeletionReceipt(receipt); setProfile(null); setMessage(''); }} />
             <CalibrationPanel />
           </>
         ) : (

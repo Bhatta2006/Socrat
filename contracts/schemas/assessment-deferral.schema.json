@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "cycle": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Cycle",
+      "type": "string"
+    }
+  },
+  "required": [
+    "cycle"
+  ],
+  "title": "DeferInput",
+  "type": "object"
+}

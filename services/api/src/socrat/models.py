@@ -29,6 +29,45 @@ class User(Base):
     created_at: Mapped[int] = mapped_column(Integer, default=now)
 
 
+class UserPreferences(Base):
+    __tablename__ = "user_preferences"
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, default=0)
+    settings: Mapped[dict] = mapped_column(JSON)
+
+
+class Reminder(Base):
+    __tablename__ = "reminders"
+    __table_args__ = (UniqueConstraint("user_id", "local_date"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    local_date: Mapped[str] = mapped_column(String(10))
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    opened_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class PrivacyRequest(Base):
+    __tablename__ = "privacy_requests"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    target_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    token_hash: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(32), default="queued")
+    tasks: Mapped[dict] = mapped_column(JSON)
+    cleanup_context: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    deadline_at: Mapped[int] = mapped_column(Integer)
+    completed_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class AssessmentDeferral(Base):
+    __tablename__ = "assessment_deferrals"
+    __table_args__ = (UniqueConstraint("goal_id", "cycle"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    goal_id: Mapped[str] = mapped_column(ForeignKey("learner_goals.id"), index=True)
+    cycle: Mapped[str] = mapped_column(String(80))
+    until_at: Mapped[int] = mapped_column(Integer)
+
+
 class LoginSession(Base):
     __tablename__ = "login_sessions"
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)

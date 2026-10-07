@@ -115,8 +115,8 @@ export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagno
       </select></label>;
   }
 
-  return <section className="border-t border-base-300 pt-6" aria-busy={pending}>
-    <h2 className="text-2xl font-bold">Your learning goal</h2>
+  return <section id="goal-setup" className="border-t border-base-300 pt-6" aria-busy={pending}>
+    <h2 id="goal-heading" tabIndex={-1} className="text-2xl font-bold">Your learning goal</h2>
     <p className="mt-2 text-sm">Choose what you want to learn, then review your starting route. Beginners are welcome.</p>
     {!adultConfirmed && <div className="alert mt-4">Save your profile confirming you are 18 or older before continuing.</div>}
     {confirmed && <div className="alert mt-4" data-testid="saved-goal">

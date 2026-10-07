@@ -1,0 +1,25 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "task": {
+      "enum": [
+        "backups_replicas_logs",
+        "provider",
+        "shared_editorial_lineage"
+      ],
+      "title": "Task",
+      "type": "string"
+    },
+    "evidence_reference": {
+      "pattern": "^private-review:[a-zA-Z0-9_-]{1,100}$",
+      "title": "Evidence Reference",
+      "type": "string"
+    }
+  },
+  "required": [
+    "task",
+    "evidence_reference"
+  ],
+  "title": "CleanupInput",
+  "type": "object"
+}

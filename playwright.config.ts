@@ -32,6 +32,8 @@ export default defineConfig({
         SOCRAT_PLANNING_ENABLED: 'true',
         SOCRAT_LEARNING_SESSIONS_ENABLED: 'true',
         SOCRAT_ASSESSMENTS_ENABLED: 'true',
+        SOCRAT_DASHBOARD_ENABLED: 'true',
+        SOCRAT_REMINDERS_ENABLED: 'true',
         SOCRAT_PUBLIC_ORIGIN: 'http://localhost:3000',
       },
     },

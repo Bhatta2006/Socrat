@@ -1,0 +1,49 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "reminders_consent": {
+      "default": false,
+      "title": "Reminders Consent",
+      "type": "boolean"
+    },
+    "reminder_time": {
+      "default": "09:00",
+      "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+      "title": "Reminder Time",
+      "type": "string"
+    },
+    "quiet_start": {
+      "default": "21:00",
+      "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+      "title": "Quiet Start",
+      "type": "string"
+    },
+    "quiet_end": {
+      "default": "08:00",
+      "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+      "title": "Quiet End",
+      "type": "string"
+    },
+    "timezone": {
+      "default": "UTC",
+      "maxLength": 64,
+      "title": "Timezone",
+      "type": "string"
+    },
+    "reduced_motion": {
+      "default": false,
+      "title": "Reduced Motion",
+      "type": "boolean"
+    },
+    "expected_revision": {
+      "minimum": 0,
+      "title": "Expected Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "expected_revision"
+  ],
+  "title": "PreferencesUpdate",
+  "type": "object"
+}

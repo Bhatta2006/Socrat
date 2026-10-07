@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "confirmation": {
+      "const": "DELETE MY DATA",
+      "title": "Confirmation",
+      "type": "string"
+    },
+    "request_id": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9-]{36}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Request Id"
+    },
+    "receipt_token": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 32,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Receipt Token"
+    }
+  },
+  "required": [
+    "confirmation"
+  ],
+  "title": "DeleteInput",
+  "type": "object"
+}

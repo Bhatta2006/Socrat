@@ -16,6 +16,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
+from socrat.accountability.routes import router as accountability_router
 from socrat.assessment.routes import router as assessment_router
 from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
@@ -23,7 +24,15 @@ from socrat.database import make_engine, record_event
 from socrat.diagnostics.routes import router as diagnostic_router
 from socrat.execution.routes import router as execution_router
 from socrat.learning.routes import router as learning_router
-from socrat.models import AdvisorShadow, AssessmentSession, DiagnosticSession, TutorTurn, User, now
+from socrat.models import (
+    AdvisorShadow,
+    AssessmentSession,
+    DiagnosticSession,
+    PrivacyRequest,
+    TutorTurn,
+    User,
+    now,
+)
 from socrat.onboarding.routes import router as onboarding_router
 from socrat.planning.routes import router as planning_router
 from socrat.schema_revision import SCHEMA_REVISION
@@ -92,6 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(learning_router)
     app.include_router(tutor_router)
     app.include_router(assessment_router)
+    app.include_router(accountability_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -117,6 +127,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         registry=registry,
     )
     oauth = OAuth()
+    privacy_requests = Gauge(
+        "socrat_privacy_requests",
+        "Incomplete privacy requests by status",
+        ["status"],
+        registry=registry,
+    )
+    privacy_overdue = Gauge(
+        "socrat_privacy_overdue_requests",
+        "Incomplete erasure requests past the cleanup deadline",
+        registry=registry,
+    )
     tutor_budget_alerts = Gauge(
         "socrat_tutor_budget_exhaustions",
         "Budget fallbacks in the last 15 minutes",
@@ -225,6 +246,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         diagnostic_sessions.clear()
         assessment_sessions.clear()
         with Session(engine) as db:
+            privacy_requests.clear()
+            privacy_rows = list(
+                db.scalars(select(PrivacyRequest).where(PrivacyRequest.status != "complete"))
+            )
+            for status in ("queued", "erasing", "awaiting_external_cleanup"):
+                privacy_requests.labels(status).set(
+                    sum(row.status == status for row in privacy_rows)
+                )
+            privacy_overdue.set(sum(row.deadline_at < now() for row in privacy_rows))
             assessment_counts: dict[tuple[str, str, str, str], int] = {}
             for assessment in db.scalars(select(AssessmentSession)):
                 cell = (
@@ -276,6 +306,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "diagnostics": settings.diagnostics_enabled,
             "planning": settings.planning_enabled,
             "assessments": settings.assessments_enabled,
+            "dashboard": settings.dashboard_enabled,
+            "reminders": settings.reminders_enabled,
         }
 
     @app.post("/api/v1/auth/dev-login")

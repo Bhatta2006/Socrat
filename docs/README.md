@@ -51,6 +51,12 @@ Current ADRs:
 
 ## Delivery
 
+- [M10 dashboard, accountability, and privacy](delivery/milestones/m10-index.md)
+- [M10 release gate](delivery/milestones/m10-gate.md)
+- [M10 validation](delivery/validation/m10-validation-report.md)
+- [M10 operations](operations/m10-accountability-privacy.md)
+- [M10 data map](security/m10-data-map.md)
+
 - [M9 assessment, mastery, and retention](delivery/milestones/m9-index.md)
 - [M9 gate](delivery/milestones/m9-gate.md)
 - [M9 validation](delivery/validation/m9-validation-report.md)

@@ -12,15 +12,13 @@ export default function Home() {
           <span className="text-xs uppercase tracking-[0.18em] text-base-content/60">Learning workspace</span>
         </header>
 
-        <section className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="flex flex-1 flex-col gap-8 py-8">
           <div className="max-w-xl">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.16em]">DSA first. More skills next.</p>
-            <h1 className="text-5xl font-bold leading-[0.95] tracking-[-0.055em] sm:text-7xl">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               A foundation for your learning.
             </h1>
-            <p className="mt-7 max-w-lg text-lg leading-8 text-base-content/70">
-              Socrat is building personalized DSA preparation for beginners, interview learners, and competitive
-              programmers in Python, C++, and Java.
+            <p className="mt-3 text-base leading-6">
+              Your next step, independent learning evidence, and a plan that fits your day.
             </p>
           </div>
 
@@ -28,7 +26,7 @@ export default function Home() {
         </section>
 
         <footer className="border-t border-base-300 pt-5 text-sm text-base-content/60">
-          Choose and confirm your learning goal when onboarding is available. Learning sessions are not enabled yet.
+          Progress comes from demonstrated capability, with independent evidence and delayed retention checks.
         </footer>
       </div>
     </main>

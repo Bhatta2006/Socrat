@@ -76,7 +76,10 @@ def test_nine_cells_drafts_runs_submits_signature_secrecy_and_exactly_once(
 ):
     app, client, headers, worker, goal = setup(platform, monkeypatch, track, language)
     attempt = start(client, headers, goal)
-    assert "1436" not in str(attempt) and "reference_solution" not in str(attempt)
+    # Random UUIDs can contain the hidden answer's digits. Check learner content,
+    # not the identifier, so secrecy validation cannot fail by coincidence.
+    assert "1436" not in str({key: value for key, value in attempt.items() if key != "id"})
+    assert "reference_solution" not in str(attempt)
     source = "\n" + attempt["source"] + "\n"
     saved = client.patch(
         f"/api/v1/attempts/{attempt['id']}/draft",

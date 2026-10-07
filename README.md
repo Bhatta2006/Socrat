@@ -22,6 +22,8 @@ M8 adds bounded tutoring, curated fallbacks, provider adapters, durable assistan
 
 M9 adds protected baseline/weekly/final/retention forms, deterministic scoring, independent human review and disputes, atomic assessment evidence, and a reviewed spaced-scheduling policy. The owner authorized repository implementation while inherited release gates remain open. Local Compose enables assessment development; staging defaults off. See the [M9 implementation](docs/delivery/milestones/m9-index.md), [gate](docs/delivery/milestones/m9-gate.md), and [operations](docs/operations/m9-assessments.md).
 
+M10 implements a Today-first evidence dashboard, reviewed schedule/recovery controls, consented in-app reminders with quiet hours, raw code/tutor retention, owned JSON export, and queued account erasure with private receipts and operator cleanup evidence. Local Compose enables the dashboard and reminders; staging defaults off. Independent accessibility and deployed storage/provider deletion acceptance remain pending. See the [M10 implementation](docs/delivery/milestones/m10-index.md) and [gate](docs/delivery/milestones/m10-gate.md).
+
 ## Repository map
 
 ```text

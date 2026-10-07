@@ -9,3 +9,6 @@ body { font-family: Arial, Helvetica, sans-serif; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+[data-reduced-motion="true"] *, [data-reduced-motion="true"] *::before, [data-reduced-motion="true"] *::after {
+  scroll-behavior: auto !important; transition: none !important; animation: none !important;
+}
