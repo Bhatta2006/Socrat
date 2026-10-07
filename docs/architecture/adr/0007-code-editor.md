@@ -1,6 +1,6 @@
 # ADR 0007: CodeMirror and native development execution
 
-Status: implementation in progress. Date: 2026-10-07.
+Status: implemented for native development; production gates remain open. Date: 2026-10-07.
 
 The audited editor is Monaco 0.57.0, built by esbuild into public/monaco. It is a maintained editor, not a custom textarea implementation. The workspace downloads its generated module and language chunks when opened. Its preparation runs before every development server and production build.
 

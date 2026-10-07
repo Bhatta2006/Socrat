@@ -36,7 +36,7 @@ for (const track of ['foundations', 'interview', 'competitive']) for (const lang
       data: { action: 'confirm', expected_revision: draft.revision, reviewed_digest: draft.review_digest, idempotency_key: 'confirm' },
     })).ok()).toBe(true);
     const before = await (await page.request.get('/api/v1/learner-state/evidence')).json();
-    await page.goto('/');
+    await page.goto('/session/today');
     const today = page.getByRole('region', { name: 'Today’s learning session' });
     await today.getByRole('button', { name: 'Start today’s session' }).click();
     await expect(today.getByRole('heading', { level: 4 })).toBeFocused();

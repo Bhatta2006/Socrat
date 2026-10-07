@@ -1,0 +1,103 @@
+name: native-development-execution
+on:
+  pull_request:
+  push:
+    branches: [main, sathish, ramkrsna1]
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: '0.12.20'
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Ensure GNU C++20 toolchain on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command g++ -ErrorAction SilentlyContinue)) {
+            choco install mingw --yes --no-progress
+            if ($LASTEXITCODE) { throw 'MinGW installation failed' }
+            $env:PATH = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + $env:PATH
+          }
+          $compilerPath = (Get-Command g++ -ErrorAction Stop).Source
+          (Split-Path $compilerPath) | Out-File -FilePath $env:GITHUB_PATH -Append
+          "SOCRAT_CPP_COMPILER=$compilerPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          g++ --version
+      - name: Ensure GNU C++20 toolchain on Linux
+        if: runner.os == 'Linux'
+        run: |
+          command -v g++ || (sudo apt-get update && sudo apt-get install -y g++)
+          g++ --version
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: node --experimental-strip-types --test tests/editor-diagnostics.test.mjs
+      - run: uv run pytest services/api/tests/test_local_backend.py services/api/tests/test_demo.py services/api/tests/test_execution_worker.py --basetemp=.cache/ci-native-tests
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Install browser on Windows
+        if: runner.os == 'Windows'
+        run: npx playwright install chromium
+      - name: Install browser on Linux
+        if: runner.os == 'Linux'
+        run: npx playwright install --with-deps chromium
+      - name: Start native Windows stack
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .cache | Out-Null
+          ./scripts/dev/doctor.ps1
+          $process = Start-Process -FilePath (Get-Command node).Source -ArgumentList 'scripts/dev/run-demo.mjs' -WindowStyle Hidden -PassThru -RedirectStandardOutput .cache/ci-stack.log -RedirectStandardError .cache/ci-stack-error.log
+          $process.Id | Set-Content .cache/ci-stack.pid
+          $deadline = (Get-Date).AddMinutes(10)
+          do {
+            try { $ready = (Invoke-WebRequest http://localhost:3000 -UseBasicParsing -TimeoutSec 5).StatusCode -eq 200 } catch { $ready = $false }
+            if ((Get-Date) -gt $deadline) { Get-Content .cache/ci-stack-error.log; throw 'Native stack health failed' }
+            if ($process.HasExited) { Get-Content .cache/ci-stack-error.log; throw 'Native stack exited' }
+            Start-Sleep -Seconds 2
+          } until ($ready)
+      - name: Start native Linux stack
+        if: runner.os == 'Linux'
+        run: |
+          bash scripts/dev/doctor.sh
+          bash scripts/dev/start-demo.sh >.cache/ci-stack.log 2>&1 &
+          echo $! >.cache/ci-stack.pid
+          for n in $(seq 1 600); do curl -fsS http://localhost:3000 >/dev/null 2>&1 && break; sleep 1; done
+          curl -fsS http://localhost:3000 >/dev/null
+      - name: Real Python, C++ and Java desktop/mobile learning journeys
+        run: npm run test:demo
+      - name: Every original reference and its full public/hidden bundle
+        run: uv run python scripts/demo/verify-references.py --workers 2
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: native-demo-${{ runner.os }}
+          path: |
+            docs/demo/screens/*.png
+            docs/demo/screens/videos/*/video.webm
+            .cache/*results*.json
+            .cache/demo-reference-*.json
+            .cache/*stack*.log
+      - name: Stop native Windows stack
+        if: always() && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (Test-Path .cache/ci-stack.pid) { taskkill.exe /PID (Get-Content .cache/ci-stack.pid) /T /F }

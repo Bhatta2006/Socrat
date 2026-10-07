@@ -44,3 +44,24 @@ The local Python runtime is 3.12.14; Node is 24.21.0. `npm run dev` initially fa
 
 Baseline screenshot: `docs/demo/before.png` (local source runtime; capture recorded separately). Container startup timing and container execution remain unverified until a Docker host is available.
 `before.png` was inspected: the first restored local dev request returned a Next.js 404 despite the root page existing. This unexpected runtime failure is captured as baseline evidence; it needs investigation before any route is counted as reachable.
+
+
+## Recovery implementation and proof on `ramkrsna1`
+
+The table above is the initial source audit. The following records the recovered local development path. No milestone or release gate is approved.
+
+| Capability | Current learner entry | Recorded local proof |
+|---|---|---|
+| F-01 / M1 profile and login | `/login`, `/onboarding`, `/settings` | Fresh signed-in desktop/mobile learners; profile persisted; normal export/deletion |
+| F-02 / M3 goals and routing | Three-step reviewed onboarding | Original demo pack; all nine track/language cells have inventory; fresh Foundations journeys in all languages |
+| F-03 / M4 diagnostic and evidence | `/diagnostic`, `/progress` | Real objective responses, persisted diagnostic, separately displayed independent/assisted evidence |
+| F-04 / M5 adaptation and recovery | `/plan`, `/demo` | Fourteen-day review/confirm, baseline-triggered refresh, actual clock jump and missed-day recalculation; worker heartbeat checked before recovery |
+| F-05 / M2 / M7 learning content | `/today`, `/session/[id]` | Fourteen concepts, 126 language/track lessons, original exercises; fresh retrieval/instruction/guided/independent/exit journeys |
+| F-06 / M8 Socratic help | Coding workspace reasoning panel | Curated levels one and two, new reasoning between requests, level-two assistance carried into real Submit |
+| F-07 / M6 coding execution | CodeMirror workspace | All languages compiled, diagnostics shown in Problems/gutter, fixes executed, twenty-case signed Submits finalized; all 252 references independently executed |
+| F-08 / M9 assessment and retention | `/assessments`, `/demo` | Baseline, weekly and delayed retention through clicks; current sample forms cover the two root concepts |
+| F-09 / M10 accountability and privacy | `/progress`, `/settings` | Distinct assisted/independent evidence; quiet hours, JSON export, deletion receipt and session revocation |
+| M7 competitive timed/upsolve | Sample C++ competitive learner | Seven actual native historical sessions, including one timed block; service and fixture UI regression cover timed/upsolve. A real native browser timer-expiry/upsolve recording remains open |
+| M11 validation and operations | Native Windows launcher and CI | Signed-reference results, desktop/mobile videos and screenshots; fresh-database Windows start. Clean-clone timing, hosted CI completion and optional Docker proof remain open |
+
+See [the verification ledger](VERIFICATION.md) for exact pass counts and explicit limitations. `before.png` remains a failed local baseline capture rather than successful clean-clone Compose proof. The new native path avoids the Docker Desktop journal stalls encountered later in recovery.

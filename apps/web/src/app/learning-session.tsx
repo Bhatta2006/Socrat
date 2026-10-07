@@ -143,8 +143,10 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision, se
           curriculum_revision: curriculumRevision,
           timing,
         });
-        setSession(started);
+        // The routed screen mounts again with the saved ID. Keep the alias
+        // closed until then so typing cannot be discarded during navigation.
         if (routed) router.replace(`/session/${started.id}`);
+        else setSession(started);
         return;
       }
       const block = session.blocks.find(item => item.status === 'available');

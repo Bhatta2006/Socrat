@@ -28,7 +28,7 @@ for (const variant of [false, true]) test(`timed window survives reload and save
     const pathname = new URL(route.request().url()).pathname;
     let json: unknown = { items: [] };
     if (pathname.endsWith('/features')) json = { onboarding: true, diagnostics: true, planning: true, learning_sessions: true, code_execution: true };
-    else if (pathname.endsWith('/me')) json = { id: 'learner', display_name: 'Test', timezone: 'UTC', adult_confirmed: true, csrf_token: 'csrf' };
+    else if (pathname.endsWith('/auth/status')) json = { profile: { id: 'learner', display_name: 'Test', timezone: 'UTC', adult_confirmed: true, csrf_token: 'csrf' } };
     else if (pathname.endsWith('/onboarding/goals')) json = { items: [{ id: 'goal', routing_outcome: 'accept_competitive', normalized_statement: 'Synthetic timed practice' }] };
     else if (pathname.endsWith('/diagnostics')) json = { items: [{ id: 'diagnostic', item: null,
       active_track: 'competitive', declared_track: 'competitive', scope: 'objective_readiness',
@@ -71,7 +71,7 @@ for (const variant of [false, true]) test(`timed window survives reload and save
     await route.fulfill({ json });
   });
   await page.clock.install();
-  await page.goto('/');
+  await page.goto('/session/today');
   const today = page.getByRole('region', { name: 'Today’s learning session' });
   await expect(today.getByText('Includes 1 minutes reserved for optional upsolve.', { exact: false })).toBeVisible();
   await today.getByRole('button', { name: 'Start timed practice' }).click();
@@ -79,22 +79,22 @@ for (const variant of [false, true]) test(`timed window survives reload and save
   await page.reload();
   await expect(today.getByRole('button', { name: 'Start timed practice' })).toHaveCount(0);
   await today.getByRole('button', { name: 'Open code editor' }).click();
-  await expect(page.locator('.monaco-editor')).toBeVisible();
+  await expect(page.locator('.cm-editor')).toBeVisible();
+  await page.getByRole('textbox', { name: 'Solution source code' }).click();
+  await page.keyboard.press('ControlOrMeta+A');
+  await page.keyboard.insertText('# last unsaved edit before upsolve\n');
   serverNow += 301;
   await page.clock.fastForward(301_000);
   await expect(today.getByText('Timed window ended. Your code is saved.', { exact: true })).toBeVisible();
   await expect(today.getByRole('button', { name: 'Submit independent attempt' })).toBeDisabled();
-  await page.evaluate(() => {
-    const win = window as unknown as { monaco: { editor: { getModels: () => { setValue: (value: string) => void }[] } } };
-    win.monaco.editor.getModels()[0].setValue('# last unsaved edit before upsolve\n');
-  });
+  await expect(page.getByRole('textbox', { name: 'Solution source code' })).toHaveAttribute('contenteditable', 'false');
   if (variant) await today.getByLabel('What should you repair?').selectOption('concept_gap');
   await today.getByRole('button', { name: 'Start upsolve' }).click();
   await expect(today.getByRole('heading', { name: variant ? 'upsolve: Repair task' : 'upsolve: Double' })).toBeVisible();
   expect(repairSource).toBe(variant ? '# repair starter\n' : '# last unsaved edit before upsolve\n');
   if (variant) await expect(today.getByText('Your original solution stays saved.', { exact: false })).toBeVisible();
   await today.getByRole('button', { name: 'Open code editor' }).click();
-  await expect(page.locator('.monaco-editor')).toBeVisible();
+  await expect(page.locator('.cm-editor')).toBeVisible();
   await expect(today.getByRole('button', { name: 'Submit independent attempt' })).toBeEnabled();
   expect(commands.map(body => body.action)).toEqual(['start_timed', 'upsolve']);
   await today.getByRole('button', { name: 'View past sessions' }).click();

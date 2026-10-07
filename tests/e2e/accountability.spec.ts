@@ -6,9 +6,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('learner can control consent and quiet hours, export and request deletion with a receipt', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/login');
   await page.getByRole('button', { name: 'Enter local workspace' }).click();
-  await expect(page.getByRole('heading', { name: 'Today and your progress' })).toBeVisible();
+  await page.goto('/settings');
   const controls = page.getByRole('region', { name: 'Accountability and privacy' });
   await controls.getByLabel('I consent to in-app reminders on planned study days.').check();
   await controls.getByLabel('reminder time', { exact: true }).fill('10:00');
@@ -39,6 +39,7 @@ test('learner can control consent and quiet hours, export and request deletion w
   expect(savedReceipt.suggestedFilename()).toBe('socrat-deletion-receipt.json');
   const receiptPath = await savedReceipt.path();
   await page.reload();
+  await page.goto('/login');
   await page.getByText('Check a saved deletion receipt', { exact: true }).click();
   await page.getByLabel('Open your private receipt JSON file').setInputFiles(receiptPath!);
   await expect(page.getByRole('region', { name: 'Deletion receipt' })).toContainText('Your sessions have been revoked');
@@ -56,17 +57,22 @@ test('progress uses text bands, discloses uncertainty, separates independent evi
     trend: [{ start: '2026-10-01', end: '2026-10-07', independent: { count: 1, solve_rate: 1 }, assisted: { count: 0, solve_rate: null } }],
     uncertainty: 'Confidence depends on independent, varied work and delayed checks; these estimates are not credentials.',
   } }));
-  await page.goto('/');
+  await page.goto('/login');
   await page.getByRole('button', { name: 'Enter local workspace' }).click();
+  await page.goto('/progress');
   const progress = page.getByRole('region', { name: 'Learning progress' });
-  await expect(progress).toContainText('developing · Retention due');
-  const disclosure = progress.getByText('Evidence for Loops', { exact: true });
+  await expect(progress).toContainText('developing');
+  const disclosure = progress.getByText('Capability estimates and confidence', { exact: true });
   await disclosure.focus(); await page.keyboard.press('Enter');
-  await expect(progress.getByText('Estimate 55%; confidence 40%.')).toBeVisible();
-  await progress.getByRole('button', { name: 'Review learning evidence' }).click();
-  await expect(progress.getByRole('heading', { name: 'Learning evidence', exact: true })).toBeFocused();
-  await expect(progress).toContainText('independent: 1 reviewed attempts');
-  await expect(progress).toContainText('assisted: 0 reviewed attempts');
+  await expect(progress.getByText(/Loops: developing · 40% confidence/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Evidence of your progress', exact: true })).toBeVisible();
+  await expect(progress.getByRole('table').getByRole('row').nth(1).getByRole('cell')).toHaveText(['1', '100%', '0', 'No evidence yet']);
+  await page.getByRole('link', { name: 'Today', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('region', { name: 'Learning progress' })).toContainText('developing · Retention due');
+  await page.getByRole('link', { name: 'Progress', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Evidence of your progress', exact: true })).toBeFocused();
   await page.screenshot({ path: `.cache/m10-progress-${info.project.name}.png`, fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

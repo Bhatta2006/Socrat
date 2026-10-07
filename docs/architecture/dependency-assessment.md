@@ -8,7 +8,7 @@
 
 Adopt a deliberately small production stack. The valuable repositories are the ones that remove commodity work while leaving the learning engine, content truth, and security boundary under Socrat control.
 
-**Adopt now or at the named milestone:** Monaco, Alembic, Hypothesis, Schemathesis, axe-core, Locust, NetworkX (admin validation only), Promptfoo, gVisor, Dolos (later integrity workflow), Langfuse, PostHog Cloud, Sentry Cloud, and pgvector as an optional database capability.
+**Adopt now or at the named milestone:** CodeMirror 6, Alembic, Hypothesis, Schemathesis, axe-core, Locust, NetworkX (admin validation only), Promptfoo, gVisor, Dolos (later integrity workflow), Langfuse, PostHog Cloud, Sentry Cloud, and pgvector as an optional database capability.
 
 **Adopt only after a narrow proof of fit:** LiteLLM, Instructor, GrowthBook, Taskiq, Payload CMS, Auth.js, Firecracker, and an FSRS implementation.
 
@@ -84,15 +84,11 @@ The most important distinction is this: **the deterministic learner model, maste
 
 ## Detailed assessments
 
-### 1. Monaco Editor — Adopt at M6
+### 1. CodeMirror 6 — Adopt at M6
 
-**Fit:** Exact fit for the minimal browser coding workspace. It supports the Python, C++, and Java editing experience without building an IDE. Monaco is MIT-licensed and has a maintained accessibility guide.[^monaco]
+The default coding workspace now uses locally bundled, pinned CodeMirror 6 modules for Python, C++ and Java. The shared editor interface preserves autosave, resume, readonly attempts, keyboard controls, contrast and real compiler diagnostics. Independent and assessment modes disable autocomplete.
 
-**Use:** ESM package only, one model per attempt, language mode selected from the exercise variant, autosave debounced into the API. Include editor worker bundling, model disposal, keyboard-only flows, high-contrast testing, and language-specific starter templates.
-
-**Do not use it for:** terminal emulation, package installs, filesystem browsing, collaboration, or local execution. Execution remains server-side.
-
-**Adoption gate:** compile/run/submit works across all three languages; editor accessibility regression tests pass; a hard refresh preserves the learner draft.
+Monaco has been removed. The paired production browser measurements found a 76.4% reduction in downloaded JavaScript, but CodeMirror's measured three-run median was slower (1,062 ms versus 570 ms). See [ADR 0007](adr/0007-code-editor.md) for the method and limits. This editor is for one source file; execution remains server-side and there is no embedded terminal or package installer.
 
 ### 2. LiteLLM — Conditional at M8
 
@@ -261,7 +257,7 @@ LangGraph itself is MIT-licensed and technically capable, but its value is orche
 | M0–M1 Foundation | Alembic, Schemathesis, axe-core, Sentry Cloud (privacy-gated), PostHog Cloud (privacy-gated); optional Turborepo | Nhost, self-hosted Zitadel, CMS, task queue framework |
 | M2 Skill packs | NetworkX, Hypothesis, custom admin/import contract | Payload until editorial need is proven |
 | M4–M5 Deterministic learning | Hypothesis, catsim/BKT/IRT only in notebooks/offline research | Runtime CAT/BKT/IRT dependency |
-| M6 Execution | Monaco, gVisor, Locust, Schemathesis | Piston/nsjail/Judge0 as production runtime; Firecracker unless separate scale gate passes |
+| M6 Execution | CodeMirror 6, gVisor, Locust, Schemathesis | Piston/nsjail/Judge0 as production runtime; Firecracker unless separate scale gate passes |
 | M8 AI assistance | Langfuse, Promptfoo, LiteLLM/Instructor only if POCs pass | LangGraph, DSPy runtime, untrusted Promptfoo configs |
 | M9–M10 Assessment/integrity | Dolos, later Python-compatible FSRS only with evidence | JPlag as embedded dependency; automatic cheating labels |
 | M12 Experimentation | GrowthBook only if it becomes sole experiment/flag authority | Split assignment ownership across tools |

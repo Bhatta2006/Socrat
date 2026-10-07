@@ -9,7 +9,7 @@ test('independent assessment saves, resumes, finalizes and keeps private keys of
   expect((await page.request.post('/api/v1/auth/dev-login', {
     headers: { Origin: 'http://localhost:3000' }, data: { subject },
   })).ok()).toBe(true);
-  await page.goto('/');
+  await page.goto('/assessments');
   await page.getByRole('button', { name: 'Start baseline check' }).click();
   await expect(page.getByText('No tutor or solutions.', { exact: false })).toBeVisible();
   expect(await page.locator('body').innerText()).not.toContain('PRIVATE-M9-KEY');

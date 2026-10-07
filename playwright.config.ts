@@ -6,6 +6,7 @@ const executable = (name: string) => `"${path.join(scripts, `${name}${process.pl
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: 'demo-walkthrough.spec.ts',
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,
   reporter: 'list',
@@ -22,6 +23,8 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         SOCRAT_ENVIRONMENT: 'test',
+        SOCRAT_DEMO_MODE: 'false',
+        SOCRAT_EXECUTION_BACKEND: 'gvisor_docker',
         SOCRAT_TUTOR_MODEL_ENABLED: 'false',
         SOCRAT_TUTOR_ADVISOR_SHADOW_ENABLED: 'false',
         SOCRAT_EXECUTION_ENABLED: 'false',

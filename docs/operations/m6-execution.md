@@ -1,5 +1,17 @@
 # M6 execution operations
 
+## Development backends
+
+`SOCRAT_EXECUTION_BACKEND=gvisor_docker` selects the existing production implementation. The legacy value `gvisor` remains accepted for compatibility. `local_process` and `demo_docker` require both `SOCRAT_DEMO_MODE=true` and environment `development` or `test`; staging and production reject these configurations. Their workspace notice is **Local dev sandbox — not secure for untrusted code**. These backends are insecure by design and must never accept untrusted public submissions.
+
+The primary Windows path is `npm run dev:demo`. It uses SQLite, the project's interpreter with `-I -B`, host GNU C++20 and JDK 21, and untracked `.env.local` credentials. `scripts/dev/doctor.ps1` checks installation; C++ and Java remain optional for Python users. The availability endpoint reports each language separately. C++ has a 512 MB local profile to accommodate GNU header compilation; Python and Java use 256 MB, with Java's heap capped at 128 MB. Profiles are development identities, not registry images or production attestations.
+
+Each job has a fresh temporary directory and a scrubbed child environment. Source and artifacts are written there; test input arrives over stdin and expected outputs remain in the worker. Windows children start suspended, enter a Job Object with process and memory limits and kill-on-close, then resume. Wall/compile limits, bounded stdout/stderr, CPU observation and whole-tree cleanup are enforced. POSIX uses a new process group plus psutil tree observation and killpg. Host filesystem/network access is not isolated: these controls do not make local execution a production sandbox.
+
+The worker preserves signed manifests, claims, heartbeat health, case results, quotas and result acceptance. Missing toolchains and control/cleanup failures produce failed operational results with zero learning evidence. Development workers may contact only an allowed loopback/local HTTP API; production retains HTTPS. Run `uv run pytest services/api/tests/test_local_backend.py` and `node --experimental-strip-types --test tests/editor-diagnostics.test.mjs` for real process and parser checks. The Windows/Linux CI matrix is in `.github/workflows/native-demo.yml`.
+
+The optional Docker Desktop path is `npm run demo`, which resolves immutable upstream digests, builds the existing runtime recipes and starts `compose.demo.yaml --profile demo`. Its learner containers retain no network, read-only roots, dropped capabilities, non-root users, and memory/CPU/PID limits. Docker API access belongs only to the control worker; no learner container receives the socket. It does not use host cgroup filesystem accounting or require runsc. Production gVisor provisioning below remains separate.
+
 Keep `SOCRAT_EXECUTION_ENABLED=false` until the [M6 gate](../delivery/milestones/m6-gate.md) passes. Staging Compose intentionally fixes it to false; enabling requires a reviewed deployment overlay with private worker ingress and secret mounts. Upgrade to schema `0006` before enabling. Disable the flag for rollback; retain jobs, drafts, evidence, and the additive schema.
 
 ## Runtime provisioning

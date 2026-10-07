@@ -45,7 +45,7 @@ export default function Dashboard({ view = 'today' }: { view?: 'today' | 'progre
   if (!data) return <p role="status">Loading your learning evidence…</p>;
   const next = actions[data.today.action];
   const milestone = data.plan?.milestones[0];
-  return <div className="dashboard" aria-busy={busy} aria-label="Learning progress">
+  return <section className="dashboard" aria-busy={busy} aria-label="Learning progress">
     <div className="goal-line"><div><p className="eyebrow">{label(data.track ?? 'Your learning path')} · {data.language ?? 'Choose a language'}</p><p>{data.statement ?? 'A clear next step begins with a goal.'}</p></div><button className="btn btn-sm" onClick={() => void load()}>Refresh progress</button></div>
     {view === 'today' ? <>
       <section className="next-step"><div><p className="eyebrow">Your next step</p><h2>{next?.[0] ?? calmStates[data.today.action] ?? 'Review your next step'}</h2><p>{data.today.minutes ? `About ${data.today.minutes} minutes. Retrieval, practice, and an independent check.` : 'Your plan follows your saved evidence and the time you have.'}</p>{data.plan && <p className="subtle">Trajectory: {label(data.plan.feasibility)}. A workload estimate, not a guaranteed outcome.</p>}</div>
@@ -65,5 +65,5 @@ export default function Dashboard({ view = 'today' }: { view?: 'today' | 'progre
       <section className="surface"><h2>Recent reviewed evidence</h2>{data.evidence?.length ? <ul className="evidence-list">{data.evidence.map(x => <li key={x.id}><strong>{x.concept_ids.map(label).join(', ')}</strong><p>{label(x.mode)} · {x.hint_level === 0 ? 'independent' : `assisted (level ${x.hint_level})`} · {Math.round(x.score * 100)}% · {label(x.reason_code)}</p></li>)}</ul> : <p>No reviewed evidence for this goal yet. Complete your starting check or a practice session to begin.</p>}</section>
       <details className="surface"><summary>Capability estimates and confidence</summary>{data.concepts?.map(c => <p key={c.id}>{c.title}: {label(c.band)} · {Math.round(c.confidence * 100)}% confidence · {c.reason_codes.map(label).join(', ')}</p>)}</details>
     </>}
-  </div>;
+  </section>;
 }

@@ -11,7 +11,7 @@ test('practice hints save code, survive reload, and label assisted submissions',
     const method = route.request().method();
     let json: unknown = { items: [] };
     if (path.endsWith('/features')) json = { onboarding: true, diagnostics: true, planning: true, code_execution: true, tutor: true };
-    else if (path.endsWith('/me')) json = { id: 'learner', display_name: 'Test', timezone: 'UTC', adult_confirmed: true, csrf_token: 'test' };
+    else if (path.endsWith('/auth/status')) json = { profile: { id: 'learner', display_name: 'Test', timezone: 'UTC', adult_confirmed: true, csrf_token: 'test' } };
     else if (path.endsWith('/onboarding/goals')) json = { items: [{ id: 'goal', routing_outcome: 'accept_foundations', normalized_statement: 'Tutor fixture' }] };
     else if (path.endsWith('/diagnostics')) json = { items: [{ id: 'diagnostic', item: null, active_track: 'foundations', declared_track: 'foundations',
       scope: 'objective_readiness', status: 'completed', answered: 4, revision: 4, result: { concepts: {}, missing_evidence: [], placement_sufficient: true, full_placement: true } }] };
@@ -38,15 +38,12 @@ test('practice hints save code, survive reload, and label assisted submissions',
     }
     await route.fulfill({ json });
   });
-  await page.goto('/');
+  await page.goto('/plan');
   await page.getByRole('button', { name: 'Open code editor' }).click();
-  await expect(page.locator('.monaco-editor')).toBeVisible();
+  await expect(page.locator('.cm-editor')).toBeVisible();
   const tutor = page.getByRole('region', { name: 'Practice tutor' });
   await expect(tutor.getByRole('button', { name: 'Ask for a hint' })).toBeDisabled();
-  await page.evaluate(() => {
-    const win = window as unknown as { monaco: { editor: { getModels: () => { setValue: (s: string) => void }[] } } };
-    win.monaco.editor.getModels()[0].setValue('# saved before the hint');
-  });
+  await page.getByRole('textbox', { name: 'Solution source code' }).fill('# saved before the hint');
   await tutor.getByLabel('Your plan and what you tried').fill('I will trace the sample first.');
   await tutor.getByRole('button', { name: 'Ask for a hint' }).click();
   await expect(tutor.getByText('What result do you expect?')).toBeVisible();

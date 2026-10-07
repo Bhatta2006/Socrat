@@ -1,5 +1,19 @@
 # Socrat
 
+## Run on Windows without Docker
+
+Install Node 22–24 and Python 3.12 or 3.13. Install the pinned dependency manager with `python -m pip install uv==0.12.20`, then run from PowerShell at the repository root:
+
+```powershell
+npm ci
+./scripts/dev/doctor.ps1
+npm run dev:demo
+```
+
+Open http://localhost:3000. The command installs locked Python dependencies, migrates a local SQLite database, generates untracked throwaway credentials in `.env.local`, seeds the original sample curriculum and available personas, and starts the API, native execution worker and web app. Ctrl+C stops the demo processes. Python works without optional C++ or Java tools. The doctor prints installation commands for MSYS2 GNU C++20 and Microsoft OpenJDK 21; restart the demo after installing tools. Bash users can run the same npm command or `bash scripts/dev/start-demo.sh`.
+
+This is an explicitly insecure local development sandbox. The coding workspace displays **Local dev sandbox — not secure for untrusted code**. Production still requires the existing Linux gVisor execution host and private HTTPS broker. See the [presenter guide](docs/demo/DEMO.md), [native execution operations](docs/operations/m6-execution.md), and [editor ADR](docs/architecture/adr/0007-code-editor.md).
+
 Socrat is a deterministic-first personalized learning platform. V1 delivers Data Structures and Algorithms preparation for complete beginners, interview learners, and competitive programmers in Python, C++, and Java. The core platform is designed to support additional skill packs after V1 without rewriting learner state, planning, assessment, or analytics.
 
 ## Repository status
@@ -14,7 +28,7 @@ M4 adds resumable objective diagnostics, append-only evidence, deterministic lea
 
 M5 implements the deterministic curriculum and fourteen-day planner, with prerequisite-safe practice selection, immutable decisions/replay, confirmation, feasibility, workload controls, and missed-day recovery. Local Compose enables planning; staging defaults off. Code practice awaits M6 and full learning sessions await M7. See the [M5 index](docs/delivery/milestones/m5-index.md), [gate](docs/delivery/milestones/m5-gate.md), and [operations guide](docs/operations/m5-planning.md).
 
-M6 adds self-hosted Monaco, autosave/resume, a durable signed execution broker, quotas, and separate gVisor-only Python/C++20/Java21 workers. Verified Submit results feed learning evidence and diagnostics; Run never changes mastery. Execution stays disabled until attested runtime images, dedicated-host security/load tests, and external review pass. See the [M6 index](docs/delivery/milestones/m6-index.md), [gate](docs/delivery/milestones/m6-gate.md), and [operations guide](docs/operations/m6-execution.md).
+M6 adds a self-hosted CodeMirror 6 editor, autosave/resume, a durable signed execution broker, quotas, and separate gVisor-only Python/C++20/Java21 workers. Verified Submit results feed learning evidence and diagnostics; Run never changes mastery. Execution stays disabled until attested runtime images, dedicated-host security/load tests, and external review pass. See the [M6 index](docs/delivery/milestones/m6-index.md), [gate](docs/delivery/milestones/m6-gate.md), and [operations guide](docs/operations/m6-execution.md).
 
 M7 implementation includes durable Today sessions, pinned language/track lessons, private objective checks, mixed Competitive timed/upsolve practice, configurable practice penalties, reviewed structural-repair mappings, saved history/local-day expiry, and owned participation/duration exports. Nine-cell inventory and fourteen-day planner audits gate publication of packs declaring session content. An [original limited-pilot draft](docs/operations/m7-limited-pilot.md) and policy proposal are prepared; independent reviews, calibration and deployed acceptance are owner-deferred. Local Compose enables sessions; staging defaults off. See the [M7 implementation status](docs/delivery/milestones/m7-index.md) and [gate](docs/delivery/milestones/m7-gate.md). Deferred M6 gVisor tests remain open.
 

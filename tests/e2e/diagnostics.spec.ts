@@ -12,7 +12,7 @@ for (const track of ['foundations', 'interview', 'competitive']) {
         headers: { Origin: 'http://localhost:3000' }, data: { subject },
       });
       expect(login.ok()).toBe(true);
-      await page.goto('/');
+      await page.goto('/diagnostic');
       await page.getByRole('button', { name: 'Start diagnostic' }).click();
       await expect(page.getByText('0 answers saved. Item 1.')).toBeVisible();
       await page.getByLabel('2', { exact: true }).check();

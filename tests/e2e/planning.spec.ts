@@ -9,7 +9,7 @@ test('diagnostic to reviewed plan, reload, pause, resume, and lighter recovery',
   expect((await page.request.post('/api/v1/auth/dev-login', {
     headers: { Origin: 'http://localhost:3000' }, data: { subject },
   })).ok()).toBe(true);
-  await page.goto('/');
+  await page.goto('/diagnostic');
   await page.getByRole('button', { name: 'Start diagnostic' }).click();
   for (let index = 0; index < 12; index++) {
     if (await page.getByRole('button', { name: 'View diagnostic evidence' }).isVisible()) break;
@@ -24,6 +24,7 @@ test('diagnostic to reviewed plan, reload, pause, resume, and lighter recovery',
     await expect(page.getByText(`${next.answered} answers saved. Item ${next.item.position}.`)).toBeVisible();
   }
   await page.getByRole('button', { name: 'View diagnostic evidence' }).click();
+  await page.goto('/plan');
   const panel = page.getByRole('region', { name: 'Learning plan' });
   await panel.getByRole('button', { name: 'Create learning plan' }).click();
   await expect(panel.getByRole('button', { name: 'Confirm reviewed plan' })).toBeEnabled();

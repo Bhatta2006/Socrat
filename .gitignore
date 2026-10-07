@@ -39,6 +39,11 @@ __pycache__/
 .coverage
 test-results/
 playwright-report/
+# Keep public walkthrough videos without request traces or local cookies.
+docs/demo/screens/videos/*
+!docs/demo/screens/videos/*/
+docs/demo/screens/videos/*/*
+!docs/demo/screens/videos/*/video.webm
 
 # Logs and temporary files
 *.log
