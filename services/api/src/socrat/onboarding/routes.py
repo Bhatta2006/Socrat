@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from socrat.auth import require_csrf, require_session
 from socrat.database import record_event
-from socrat.models import LearnerGoal, OutboxEvent, SkillPackHead, SkillPackVersion, User
+from socrat.models import LearnerGoal, OutboxEvent, SkillPackHead, SkillPackVersion, User, now
 from socrat.onboarding.policy import GoalInput, digest, route
 from socrat.skillpacks.routes import require_admin
 from socrat.skillpacks.schema import Contract
@@ -49,7 +49,10 @@ def preview(db: Session, user: User, goal: GoalInput, lock: bool = False) -> dic
             if pack.purpose == "launch":
                 packs.append(pack)
     snapshot = route(
-        goal, user.adult_confirmed, packs, datetime.now(ZoneInfo(goal.timezone)).date()
+        goal,
+        user.adult_confirmed,
+        packs,
+        datetime.fromtimestamp(now(), ZoneInfo(goal.timezone)).date(),
     )
     return {**snapshot, "review_digest": digest({"user_id": user.id, "snapshot": snapshot})}
 

@@ -81,6 +81,8 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
+    demo_mode: bool = False
+    execution_backend: Literal["gvisor", "gvisor_docker", "local_process", "demo_docker"] = "gvisor_docker"
     dashboard_enabled: bool = False
     tutor_enabled: bool = False
     tutor_model_enabled: bool = False
@@ -141,6 +143,12 @@ class Settings(DatabaseSettings):
 
     @model_validator(mode="after")
     def enforce_boundaries(self):
+        if self.demo_mode and self.environment not in {"development", "test"}:
+            raise ValueError("Demo mode is only accepted in development/test")
+        if self.execution_backend in {"local_process", "demo_docker"} and not (
+            self.demo_mode and self.environment in {"development", "test"}
+        ):
+            raise ValueError("The local demo sandbox requires development/test demo mode")
         self.tutor_gateway_secret = _secret_from_file(
             "tutor_gateway_secret", self.tutor_gateway_secret, self.tutor_gateway_secret_file
         )

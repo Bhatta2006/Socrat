@@ -257,7 +257,10 @@ def heartbeat(body: Heartbeat, request: Request):
             db.add(ExecutionWorker(id=body.worker_id, images=body.images, seen_at=now()))
         else:
             worker.images, worker.seen_at = body.images, now()
-    return {"ready": True}
+    return {
+        "ready": True,
+        **({"server_now": now()} if request.app.state.settings.demo_mode else {}),
+    }
 
 
 @router.post("/execution/worker/claim")

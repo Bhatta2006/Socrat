@@ -1,0 +1,35 @@
+import { chromium } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
+mkdirSync('docs/demo/screens', { recursive: true });
+const browser = await chromium.launch();
+const context = await browser.newContext({ viewport: {width:1440,height:900}, recordVideo:{dir:'docs/demo/screens/videos'} });
+const page = await context.newPage();
+page.on('pageerror', error => console.log('BROWSER ERROR:',error.message));
+await page.goto('http://localhost:3000/login');
+await page.getByRole('button',{name:'Continue as Beginner'}).click();
+await page.getByRole('link',{name:/(Start|Resume) today/}).waitFor();
+console.log(await page.locator('main').innerText());
+await page.screenshot({path:'docs/demo/screens/native-python-today.png',fullPage:true});
+await page.getByRole('link',{name:/(Start|Resume) today/}).click();
+await page.getByRole('button',{name:'Start today’s session'}).or(page.getByRole('button',{name:'Save and continue'})).or(page.getByRole('button',{name:'Open code editor'})).first().waitFor();
+if (await page.getByRole('button',{name:'Start today’s session'}).count()) await page.getByRole('button',{name:'Start today’s session'}).click();
+for(let n=0;n<3;n++) {
+  await page.waitForTimeout(700);
+  if (await page.getByRole('button',{name:'Open code editor'}).count()) break;
+  await page.getByRole('button',{name:'Save and continue'}).waitFor();
+  const answer = page.getByLabel('Your response',{exact:true});
+  if (await answer.count()) await answer.fill('5');
+  await page.getByRole('button',{name:'Save and continue'}).click();
+}
+await page.getByRole('button',{name:'Open code editor'}).click();
+const editor = page.getByRole('textbox',{name:'Solution source code'});
+await editor.waitFor();
+await editor.fill('import sys\na=list(map(int,sys.stdin.read().split()))[1:]\nprint(sum(a))\n');
+await page.getByRole('button',{name:'Run samples',exact:true}).click();
+await page.getByText('Case 1: passed',{exact:false}).first().waitFor();
+await page.screenshot({path:'docs/demo/screens/native-python-run.png',fullPage:true});
+await page.getByRole('button',{name:'Submit independent attempt',exact:true}).click();
+await page.getByText('submit · completed',{exact:true}).waitFor();
+console.log(await page.locator('main').innerText());
+await context.close();
+await browser.close();

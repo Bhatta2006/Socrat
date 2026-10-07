@@ -10,7 +10,7 @@ from socrat.accountability.preferences import preferences_for
 from socrat.accountability.privacy import erase_once
 from socrat.accountability.reminders import enqueue
 from socrat.accountability.retention import prune_once
-from socrat.config import DatabaseSettings
+from socrat.config import Settings
 from socrat.database import make_engine
 from socrat.models import DeliveredEvent, OutboxEvent, PrivacyRequest, User, UserPreferences, now
 
@@ -50,11 +50,14 @@ def drain_once(engine: Engine) -> int:
 
 
 def main():
-    settings = DatabaseSettings()
+    settings = Settings()
     engine = make_engine(settings.database_url_value)
     last_prune = 0
     try:
         while True:
+            from socrat.clock import demo_offset, offset_for
+
+            token = demo_offset.set(offset_for(engine) if settings.demo_mode else 0)
             try:
                 erase_once(engine, now())
                 if now() - last_prune >= 86400:
@@ -65,6 +68,8 @@ def main():
                 drain_once(engine)
             except Exception:
                 logging.error("outbox_batch_failed")  # No payloads, identities or credentials.
+            finally:
+                demo_offset.reset(token)
             time.sleep(2)
     finally:
         engine.dispose()

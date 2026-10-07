@@ -93,6 +93,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.engine = engine
     app.state.settings = settings
+    if settings.demo_mode:
+        from socrat.clock import demo_offset, offset_for
+        from socrat.demo.routes import router as demo_router
+
+        app.include_router(demo_router)
+
+        @app.middleware("http")
+        async def demo_clock_scope(request: Request, call_next):
+            token = demo_offset.set(offset_for(engine))
+            try:
+                return await call_next(request)
+            finally:
+                demo_offset.reset(token)
+
     app.include_router(skill_pack_router)
     app.include_router(onboarding_router)
     app.include_router(diagnostic_router)
@@ -296,6 +310,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/v1/features")
     def features():
         return {
+            "demo_mode": settings.demo_mode,
+            "execution_backend": settings.execution_backend,
             "llm_advisor": False,
             "tutor": settings.tutor_enabled,
             "code_execution": settings.execution_enabled,
@@ -349,6 +365,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with Session(engine) as db:
             session = require_session(request, db)
             return profile_view(db.get(User, session.user_id), session.csrf_token)
+
+    @app.get("/api/v1/auth/status")
+    def auth_status(request: Request):
+        with Session(engine) as db:
+            try:
+                session = require_session(request, db)
+            except HTTPException as exc:
+                if exc.status_code != 401:
+                    raise
+                return {"profile": None}
+            return {"profile": profile_view(db.get(User, session.user_id), session.csrf_token)}
 
     @app.get("/api/v1/profiles/{user_id}")
     def own_profile(user_id: str, request: Request):

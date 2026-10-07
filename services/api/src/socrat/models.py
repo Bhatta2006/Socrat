@@ -1,20 +1,23 @@
-import time
 import uuid
 
 from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from socrat.clock import now as now
 
 
 def identifier() -> str:
     return str(uuid.uuid4())
 
 
-def now() -> int:
-    return int(time.time())
-
-
 class Base(DeclarativeBase):
     pass
+
+
+class DemoClock(Base):
+    __tablename__ = "demo_clock"
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    offset_seconds: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class User(Base):
