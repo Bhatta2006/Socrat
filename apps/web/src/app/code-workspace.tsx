@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import CodeEditor, { type CodeEditorProps } from '../components/code-editor';
+import { parseDiagnostics } from '../components/code-editor/diagnostics';
 import Tutor from './tutor';
 
 type Attempt = { id: string; title: string; statement: string; language: string; source: string; revision: number;
@@ -29,6 +30,7 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
 }) {
   const [enabled, setEnabled] = useState(false);
   const [demo, setDemo] = useState(false);
+  const [languages, setLanguages] = useState<Record<string, { ready: boolean; message: string }>>({});
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [status, setStatus] = useState(''); const [error, setError] = useState('');
   const [pending, setPending] = useState(false); const [stdin, setStdin] = useState('');
@@ -53,6 +55,7 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
     fetch('/api/v1/features').then(response => response.json()).then(value => { if (active) { setEnabled(value.code_execution); setDemo(value.demo_mode); } }).catch(() => setError('The workspace is unavailable.'));
     return () => { active = false; };
   }, []);
+  useEffect(() => { fetch('/api/v1/execution/languages').then(response => response.json()).then(data => setLanguages(data.languages ?? {})).catch(() => {}); }, []);
 
   async function open() {
     setPending(true); setError('');
@@ -125,9 +128,11 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
 
   if (!enabled) return null;
   const submitted = history.some(run => run.mode === 'submit' && run.status === 'completed' && run.result?.operational_status === 'healthy');
+  const diagnostics = parseDiagnostics(history.find(run => run.result)?.result?.cases.map(test => test.stderr).filter(Boolean).join('\n') ?? '');
   return <section className="card card-border mt-4 min-w-0" aria-label="Coding workspace" aria-busy={pending}>
     <div className="card-body min-w-0"><h4 className="card-title">Coding workspace</h4>
       {demo && <p className="sandbox-label">Local dev sandbox — not secure for untrusted code</p>}
+      {Object.entries(languages).map(([language, state]) => <p className="text-sm" key={language}>{language}: {state.message}</p>)}
       <p className="mobile-code-note">A laptop gives you more room to code. Your work is saved across devices.</p>
       {error && <div className="alert alert-error" role="alert">{error}</div>}
       {!attempt ? <button className="btn" disabled={pending} onClick={open}>Open code editor</button> : <>
@@ -140,11 +145,12 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
         <div className="flex flex-wrap gap-3"><label>Font size <input className="input w-24" type="number" min={12} max={28} value={font} onChange={event => setFont(Math.max(12, Math.min(28, Number(event.target.value))))} /></label>
           <label>Editor contrast <select className="select" value={theme} onChange={event => setTheme(event.target.value as CodeEditorProps['theme'])}><option value="light">Light</option><option value="dark">Dark</option><option value="high-contrast">High contrast</option></select></label></div>
         <p className="text-sm">{attempt.language === 'java' ? 'Solution.java' : attempt.language === 'cpp' ? 'solution.cpp' : 'solution.py'}{submitted ? ' · Submitted source (read only)' : ''}</p>
-        <CodeEditor language={attempt.language as CodeEditorProps['language']} value={value} onChange={next => { source.current = next; setValue(next); setStatus('Not saved'); }} onBlur={() => { autosave().catch(err => setError((err as Error).message)); }} readOnly={executionDisabled || submitted} fontSize={font} theme={theme} ariaLabel="Solution source code" assistMode={diagnosticAttemptId || assessmentItemId ? 'assessment' : assistance ? 'learning' : 'independent'} />
+        <CodeEditor language={attempt.language as CodeEditorProps['language']} value={value} onChange={next => { source.current = next; setValue(next); setStatus('Not saved'); }} onBlur={() => { autosave().catch(err => setError((err as Error).message)); }} readOnly={executionDisabled || submitted} fontSize={font} theme={theme} diagnostics={diagnostics} ariaLabel="Solution source code" assistMode={diagnosticAttemptId || assessmentItemId ? 'assessment' : assistance ? 'learning' : 'independent'} />
+        {diagnostics.length > 0 && <section aria-label="Problems"><h6>Problems</h6><ul>{diagnostics.map((item,index)=><li key={index}>⚠ {item.severity}: line {item.line}{item.column ? `, column ${item.column}` : ''} — {item.message}</li>)}</ul></section>}
         <details id="editor-keyboard-help"><summary>Editor keyboard help</summary><p>Tab inserts four spaces. Press Escape, then Tab to leave the editor. Ctrl+F finds text, Ctrl+/ toggles comments, Ctrl+Z undoes edits. On macOS use Command.</p></details>
         <p role="status">{status || 'Saved'}</p>
         <label>Custom input <textarea className="textarea w-full" maxLength={8000} value={stdin} onChange={event => setStdin(event.target.value)} /></label>
-        <div className="flex flex-wrap gap-3"><button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs')}>Run samples</button>
+        <div className="flex flex-wrap gap-3"><button className="btn" disabled={pending || executionDisabled || languages[attempt.language]?.ready === false} onClick={() => run('runs')}>Run samples</button>
           <button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs', true)}>Run custom input</button>
           <button className="btn" disabled={pending || executionDisabled} onClick={() => run('submit')}>{assistance ? 'Submit assisted attempt' : 'Submit independent attempt'}</button></div>
         </div></div>
