@@ -107,6 +107,10 @@ Current ADRs:
 - [M7 limited pilot content and policy proposal](operations/m7-limited-pilot.md)
 - [M9 prerequisite review](delivery/milestones/m9-readiness.md)
 
+- [M11 automated testing scope](delivery/milestones/m11-index.md)
+- [M11 gate](delivery/milestones/m11-gate.md)
+- [M11 automated validation](delivery/validation/m11-validation-report.md)
+
 ## Machine-readable contracts
 
 - [`contracts/product/m5-planning-policy.json`](../contracts/product/m5-planning-policy.json)

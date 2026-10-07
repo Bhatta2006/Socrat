@@ -45,10 +45,16 @@ def act(client, headers, session, action="advance", key=None, **changes):
 def test_nine_cell_normal_session_submit_resume_and_no_passive_mastery(
     platform, monkeypatch, track, language
 ):
+    complete_code_journey(platform, monkeypatch, track, language)
+
+
+def complete_code_journey(platform, monkeypatch, track, language):
+    """Reusable synthetic journey with signed worker results, never a sandbox attestation."""
     app, client, headers, worker, goal, session = begin(platform, monkeypatch, track, language)
     initial = client.get("/api/v1/learner-state/evidence").json()["total"]
     assert session["track"] == track and session["language"] == language
-    assert "reference_solution" not in str(session) and "1436" not in str(session)
+    visible_content = str([block["content"] for block in session["blocks"]])
+    assert "reference_solution" not in str(session) and "1436" not in visible_content
     assert all(not x["content"]["prompt"] for x in session["blocks"][1:])
     assert (
         client.post(
@@ -119,6 +125,7 @@ def test_nine_cell_normal_session_submit_resume_and_no_passive_mastery(
         )
         with pytest.raises(DBAPIError):
             db.execute(update(LearningSession).values(snapshot={}))
+    return app, client, headers, goal, session
 
 
 def test_session_ownership_csrf_revision_quarantine_and_receipts(platform, monkeypatch):
