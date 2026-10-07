@@ -14,3 +14,11 @@ exports
 backups
 *.db
 *.log
+skills
+.agents
+skills-lock.json
+temp
+temp.py
+.env
+.env.*
+docs/demo/screens

@@ -1,6 +1,6 @@
 ARG PYTHON_BASE
-FROM ${PYTHON_BASE} AS python
 ARG JAVA_BASE
+FROM ${PYTHON_BASE} AS python
 FROM ${JAVA_BASE}
 COPY --from=python /usr/local /usr/local
 COPY services/execution/runtime/launch.py /opt/socrat/launch.py
