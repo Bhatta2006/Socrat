@@ -61,21 +61,28 @@ jobs:
       - name: Install browser on Linux
         if: runner.os == 'Linux'
         run: npx playwright install --with-deps chromium
-      - name: Start native Windows stack
+      - name: Verify native Windows stack, learning journeys and references
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force .cache | Out-Null
           ./scripts/dev/doctor.ps1
           $process = Start-Process -FilePath (Get-Command node).Source -ArgumentList 'scripts/dev/run-demo.mjs' -WindowStyle Hidden -PassThru -RedirectStandardOutput .cache/ci-stack.log -RedirectStandardError .cache/ci-stack-error.log
-          $process.Id | Set-Content .cache/ci-stack.pid
-          $deadline = (Get-Date).AddMinutes(10)
-          do {
-            try { $ready = (Invoke-WebRequest http://localhost:3000 -UseBasicParsing -TimeoutSec 5).StatusCode -eq 200 } catch { $ready = $false }
-            if ((Get-Date) -gt $deadline) { Get-Content .cache/ci-stack-error.log; throw 'Native stack health failed' }
-            if ($process.HasExited) { Get-Content .cache/ci-stack-error.log; throw 'Native stack exited' }
-            Start-Sleep -Seconds 2
-          } until ($ready)
+          try {
+            $deadline = (Get-Date).AddMinutes(10)
+            do {
+              try { $ready = (Invoke-WebRequest http://localhost:3000 -UseBasicParsing -TimeoutSec 5).StatusCode -eq 200 } catch { $ready = $false }
+              if ((Get-Date) -gt $deadline) { Get-Content .cache/ci-stack-error.log; throw 'Native stack health failed' }
+              if ($process.HasExited) { Get-Content .cache/ci-stack-error.log; throw 'Native stack exited' }
+              Start-Sleep -Seconds 2
+            } until ($ready)
+            npm run test:demo
+            if ($LASTEXITCODE) { throw 'Native learning journeys failed' }
+            uv run python scripts/demo/verify-references.py --workers 2
+            if ($LASTEXITCODE) { throw 'Native reference bundles failed' }
+          } finally {
+            if (-not $process.HasExited) { taskkill.exe /PID $process.Id /T /F }
+          }
       - name: Start native Linux stack
         if: runner.os == 'Linux'
         run: |
@@ -85,21 +92,20 @@ jobs:
           for n in $(seq 1 600); do curl -fsS http://localhost:3000 >/dev/null 2>&1 && break; sleep 1; done
           curl -fsS http://localhost:3000 >/dev/null
       - name: Real Python, C++ and Java desktop/mobile learning journeys
+        if: runner.os == 'Linux'
         run: npm run test:demo
       - name: Every original reference and its full public/hidden bundle
+        if: runner.os == 'Linux'
         run: uv run python scripts/demo/verify-references.py --workers 2
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: native-demo-${{ runner.os }}
+          include-hidden-files: true
           path: |
             docs/demo/screens/*.png
             docs/demo/screens/videos/*/video.webm
             .cache/*results*.json
             .cache/demo-reference-*.json
             .cache/*stack*.log
-      - name: Stop native Windows stack
-        if: always() && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if (Test-Path .cache/ci-stack.pid) { taskkill.exe /PID (Get-Content .cache/ci-stack.pid) /T /F }
+            .cache/native-*.log
