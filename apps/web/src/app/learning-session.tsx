@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import CodeWorkspace from './code-workspace';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type Block = { mode: string; title: string; minutes: number; modality: string; status: string;
   exercise_ids: string[]; attempt_id?: string; original_attempt_id?: string;
@@ -37,9 +39,10 @@ const messages: Record<string, string> = {
   session_timing_already_chosen: 'Timing was chosen when this session started. Reload the saved session.',
 };
 
-export default function TodaySession({ goalId, csrfToken, curriculumRevision }: {
-  goalId: string; csrfToken: string; curriculumRevision: number;
+export default function TodaySession({ goalId, csrfToken, curriculumRevision, sessionId, routed = false }: {
+  goalId: string; csrfToken: string; curriculumRevision: number; sessionId?: string; routed?: boolean;
 }) {
+  const router = useRouter();
   const [enabled, setEnabled] = useState(false);
   const [session, setSession] = useState<LearningSession | null>(null);
   const [pending, setPending] = useState(false);
@@ -115,12 +118,14 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
     fetch('/api/v1/features').then(response => response.json()).then(async features => {
       if (!active || !features.learning_sessions) return;
       setEnabled(true);
-      const value = await request<{ session: LearningSession | null }>(`/api/v1/goals/${goalId}/learning-session`);
+      const value = sessionId && sessionId !== 'today'
+        ? { session: await request<LearningSession>(`/api/v1/learning-sessions/${sessionId}`) }
+        : await request<{ session: LearningSession | null }>(`/api/v1/goals/${goalId}/learning-session`);
       if (active) setSession(value.session);
     }).catch(() => { if (active) setError('Today’s session could not be loaded.'); });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goalId]);
+  }, [goalId, sessionId]);
 
   useEffect(() => {
     clockAnchor.current = { server: session?.server_now ?? Date.now() / 1000, local: Date.now() };
@@ -134,10 +139,12 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
     try {
       await saveCode.current?.();
       if (!session) {
-        setSession(await request<LearningSession>(`/api/v1/goals/${goalId}/learning-session`, {
+        const started = await request<LearningSession>(`/api/v1/goals/${goalId}/learning-session`, {
           curriculum_revision: curriculumRevision,
           timing,
-        }));
+        });
+        setSession(started);
+        if (routed) router.replace(`/session/${started.id}`);
         return;
       }
       const block = session.blocks.find(item => item.status === 'available');
@@ -205,6 +212,7 @@ export default function TodaySession({ goalId, csrfToken, curriculumRevision }: 
         {!!session.upsolve_reserved_minutes && <p>Includes {session.upsolve_reserved_minutes} minutes reserved for optional upsolve. Repair time is a planning guide; it does not start another timer.</p>}
         <ol className="space-y-1" aria-label="Session steps">{session.blocks.map((item, index) => <li key={index} aria-current={item.status === 'available' ? 'step' : undefined}>{label(item.mode)} · {item.minutes} min · {label(item.status)}</li>)}</ol>
         {session.status === 'completed' && <p>Your learning session is complete. Reading and reflection do not prove mastery; coding results are recorded separately.</p>}
+        {routed && session.status === 'completed' && <Link className="btn btn-primary" href="/progress">See your learning evidence</Link>}
         {session.status === 'expired' && <p>This session ended at local midnight. Your saved work remains available in past sessions. Refresh and confirm your plan to recover without adding a backlog.</p>}
         {session.blocks.filter(item => item.check_result).map((item, index) => <p role="status" key={`check-${index}`}>
           {label(item.mode.replace('_check', ''))} check: {item.check_result?.score === 1 ? 'Correct' : 'Review this concept'}. This check does not establish mastery.

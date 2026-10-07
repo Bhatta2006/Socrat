@@ -63,6 +63,7 @@ export default function Tutor({ attemptId, csrfToken, save, disabled, onAssistan
     <div className="card-body">
       <h4 className="card-title">Think it through</h4>
       <p>Share your reasoning for a small hint. Help is recorded with this attempt; it does not prove mastery.</p>
+      <p className="text-sm" role="status">Solution locked during independent practice. Opening an explanation ends independent evidence for this task.</p>
       <label>Your plan and what you tried
         <textarea className="textarea w-full" maxLength={2000} value={reasoning}
           onChange={event => setReasoning(event.target.value)} disabled={busy} />

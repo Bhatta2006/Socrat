@@ -33,6 +33,7 @@ export default function AssessmentFlow({ goalId, csrfToken }: { goalId: string; 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [clock, setClock] = useState(0);
+  const clockAnchor = useRef({ server: 0, local: 0 });
   const startKey = useRef<{ kind: Kind; key: string } | null>(null);
   const responseKey = useRef<{ signature: string; key: string } | null>(null);
 
@@ -47,10 +48,13 @@ export default function AssessmentFlow({ goalId, csrfToken }: { goalId: string; 
   }, [csrfToken]);
 
   const load = useCallback(async () => {
-    const [records, retention] = await Promise.all([
+    const [records, retention, features] = await Promise.all([
       request<{ items: Assessment[] }>(`/api/v1/goals/${goalId}/assessments`),
       request<{ items: unknown[] }>(`/api/v1/goals/${goalId}/retention`),
+      request<{ demo_mode: boolean }>('/api/v1/features'),
     ]);
+    const server = features.demo_mode ? (await request<{ server_now: number }>('/api/v1/demo/clock')).server_now : Date.now() / 1000;
+    clockAnchor.current = { server, local: Date.now() };
     setHistory(records.items); setDue(retention.items.length);
     return records.items;
   }, [goalId, request]);
@@ -66,8 +70,9 @@ export default function AssessmentFlow({ goalId, csrfToken }: { goalId: string; 
   }, [load]);
 
   useEffect(() => {
-    setClock(Math.floor(Date.now() / 1000));
-    const timer = setInterval(() => setClock(Math.floor(Date.now() / 1000)), 1000);
+    const update = () => setClock(Math.floor(clockAnchor.current.server + (Date.now() - clockAnchor.current.local) / 1000));
+    update();
+    const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
   }, []);
 

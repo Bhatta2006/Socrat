@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import DiagnosticFlow from './diagnostic';
 import AssessmentFlow from './assessment';
+import Link from 'next/link';
 
 const outcomes = {
   foundations: ['programming_readiness', 'foundational_dsa', 'interview_entry_readiness'],
@@ -32,9 +33,10 @@ const reasons: Record<string, string> = {
   foundation_prerequisites_required: 'Start with programming foundations while keeping your chosen goal.',
 };
 
-export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagnosticsEnabled }: {
-  csrfToken: string; timezone: string; adultConfirmed: boolean; diagnosticsEnabled: boolean;
+export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagnosticsEnabled, routed = false }: {
+  csrfToken: string; timezone: string; adultConfirmed: boolean; diagnosticsEnabled: boolean; routed?: boolean;
 }) {
+  const [step, setStep] = useState(0);
   const [track, setTrack] = useState<Track>('foundations');
   const [language, setLanguage] = useState('python');
   const [outcome, setOutcome] = useState(outcomes.foundations[0]);
@@ -123,9 +125,10 @@ export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagno
       <div><p className="font-semibold">Goal saved{confirmed.routing_outcome === 'waitlist' ? ' on the waitlist' : ''}.</p>
         <p>{confirmed.normalized_statement}</p></div>
     </div>}
-    {confirmed?.id && confirmed.routing_outcome.startsWith('accept_') &&
+    {routed && confirmed?.id && confirmed.routing_outcome.startsWith('accept_') && <Link className="btn btn-primary mt-4" href="/diagnostic">Take your diagnostic</Link>}
+    {!routed && confirmed?.id && confirmed.routing_outcome.startsWith('accept_') &&
       <DiagnosticFlow key={confirmed.id} goalId={confirmed.id} csrfToken={csrfToken} enabled={diagnosticsEnabled} />}
-    {confirmed?.id && confirmed.routing_outcome.startsWith('accept_') &&
+    {!routed && confirmed?.id && confirmed.routing_outcome.startsWith('accept_') &&
       <AssessmentFlow key={`assessment-${confirmed.id}`} goalId={confirmed.id} csrfToken={csrfToken} />}
     {error && <div className="alert alert-error mt-4" role="alert">{error}</div>}
     {review ? <div className="card mt-4 border border-base-300"><div className="card-body">
@@ -143,7 +146,9 @@ export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagno
         disabled={pending || !reviewed || review.routing_outcome === 'ineligible'}>Confirm goal</button>
         <button type="button" className="btn" disabled={pending} onClick={() => setReview(null)}>Edit goal</button></div>
     </div></div> : <form onSubmit={preview} className="mt-4 space-y-4">
+      {routed && <ol className="steps w-full" aria-label="Onboarding steps">{['Your goal', 'Your starting point', 'Your schedule'].map((title, index) => <li className={`step ${index <= step ? 'step-primary' : ''}`} aria-current={index === step ? 'step' : undefined} key={title}>{title}</li>)}</ol>}
       <div className="grid gap-4 sm:grid-cols-2">
+        {(!routed || step === 0) && <>
         {select('Goal', track, Object.keys(outcomes), value => {
           const next = value as Track; setTrack(next); setOutcome(outcomes[next][0]);
         })}
@@ -156,17 +161,25 @@ export default function Onboarding({ csrfToken, timezone, adultConfirmed, diagno
             <input className="input w-full" aria-label="Target value" value={target} required maxLength={200}
               placeholder="Band, division, topics or consistency target" onChange={event => setTarget(event.target.value)} /></label>
         </>}
-        {select('Days each week', String(days), ['3', '4', '5', '6', '7'], value => setDays(Number(value)))}
-        {select('Minutes per session', String(minutes), ['20', '30', '45', '60', '90'], value => setMinutes(Number(value)))}
+        </>}
+        {(!routed || step === 1) && <>
         {select('Programming experience', experience, ['none', 'syntax_only', 'solved_problems', 'professional'], setExperience)}
         {select('DSA experience', dsa, ['never', 'studied', 'inconsistent_practice', 'comfortable'], setDsa)}
+        </>}
+        {(!routed || step === 2) && <>
+        {select('Days each week', String(days), ['3', '4', '5', '6'], value => setDays(Number(value)))}
+        {select('Minutes per session', String(minutes), ['20', '30', '45', '60', '90'], value => setMinutes(Number(value)))}
+        </>}
       </div>
+      {(!routed || step === 2) && <>
       <label className="label justify-start gap-3"><input className="checkbox" type="checkbox" checked={noDate}
         onChange={event => setNoDate(event.target.checked)} />I have no fixed target date.</label>
       {!noDate && <label className="fieldset"><span className="fieldset-legend">Target date</span>
         <input className="input w-full" type="date" aria-label="Target date" value={date} required onChange={event => setDate(event.target.value)} /></label>}
       <p className="text-sm">Schedule timezone: {timezone}. Change it in your profile if needed.</p>
       <button type="submit" className="btn btn-neutral" disabled={pending || !adultConfirmed}>Review goal</button>
+      </>}
+      {routed && <div className="flex gap-3">{step > 0 && <button type="button" className="btn" onClick={() => setStep(step - 1)}>Back</button>}{step < 2 && <button type="button" className="btn btn-primary" disabled={track === 'competitive' && !target.trim()} onClick={() => setStep(step + 1)}>Next</button>}</div>}
     </form>}
   </section>;
 }

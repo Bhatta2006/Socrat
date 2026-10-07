@@ -23,8 +23,8 @@ const messages: Record<string, string> = {
   concurrent_diagnostic_retry: 'Your work is being saved. Please retry the same action.',
 };
 
-export default function DiagnosticFlow({ goalId, csrfToken, enabled }: {
-  goalId: string; csrfToken: string; enabled: boolean;
+export default function DiagnosticFlow({ goalId, csrfToken, enabled, routed = false }: {
+  goalId: string; csrfToken: string; enabled: boolean; routed?: boolean;
 }) {
   const [session, setSession] = useState<Diagnostic | null>(null);
   const [answer, setAnswer] = useState('');
@@ -147,7 +147,7 @@ export default function DiagnosticFlow({ goalId, csrfToken, enabled }: {
             </details>
           </>}
         </div>)}
-        <Planner goalId={goalId} csrfToken={csrfToken} />
+        {!routed && <Planner goalId={goalId} csrfToken={csrfToken} />}
       </div>}
     </div>
   </section>;

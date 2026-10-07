@@ -1,5 +1,7 @@
 FROM node:24-alpine AS build
 WORKDIR /app
+ARG API_INTERNAL_URL=http://api:8000
+ENV API_INTERNAL_URL=$API_INTERNAL_URL
 COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/package.json
 RUN npm ci

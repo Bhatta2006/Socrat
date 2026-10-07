@@ -43,7 +43,9 @@ The most important distinction is this: **the deterministic learner model, maste
 
 | Repository / service | Decision | V1 milestone | Why / boundary |
 |---|---|---|---|
-| Monaco Editor | **Adopt** | M6 | Browser editor; use ESM build and dispose models/workers correctly. |
+| CodeMirror 6 | **Adopt** | M6 / demo | MIT; exact pins for state, view, commands, language, autocomplete, search, lint and Python/C++/Java packages. First-party maintained editor; no CDN or wrapper. See ADR 0007. |
+| Monaco Editor | **Removed** | Demo recovery | Replace the default asset preparation pipeline with CodeMirror; no optional editor until a demonstrated requirement warrants two implementations. |
+| psutil 7.2.2 | **Adopt for local development execution** | Demo | BSD-3-Clause; bounded process-tree memory/PID/CPU observation on POSIX and process-list assertions on both platforms. Windows containment itself uses Job Objects. Production Docker execution does not import it. |
 | LiteLLM | **Conditional** | M8 | Useful provider abstraction; hide behind Socrat `LLMGateway` and keep provider-native fallback. |
 | Instructor | **Conditional** | M8 | Helpful Pydantic retry/validation ergonomics, but overlaps with provider-native JSON Schema + Pydantic. |
 | Langfuse | **Adopt, deployment-gated** | M8 | Prompt/version/trace observability; Cloud only after privacy approval or self-host with dedicated ops. |

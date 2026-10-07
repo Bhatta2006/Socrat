@@ -1,26 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type * as Monaco from 'monaco-editor';
+import CodeEditor, { type CodeEditorProps } from '../components/code-editor';
 import Tutor from './tutor';
 
 type Attempt = { id: string; title: string; statement: string; language: string; source: string; revision: number;
   samples: { input: string; expected: string }[]; mode: string; assistance_level?: number };
 type Run = { id: string; status: string; mode: string; result: null | { operational_status: string; reason_code: string;
   cases: { index: number; status: string; wall_ms: number; stdout: string; stderr: string }[] } };
-type MonacoWindow = Window & { monaco?: typeof Monaco };
-let monacoPromise: Promise<typeof Monaco> | undefined;
-function loadMonaco() {
-  if (!monacoPromise) monacoPromise = new Promise((resolve, reject) => {
-    const win = window as unknown as MonacoWindow;
-    if (win.monaco) { resolve(win.monaco); return; }
-    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/monaco/editor.css'; document.head.appendChild(css);
-    const script = document.createElement('script'); script.type = 'module'; script.src = '/monaco/editor.js';
-    script.onload = () => { if (win.monaco) resolve(win.monaco); else reject(new Error('Editor initialization failed')); };
-    script.onerror = reject; document.head.appendChild(script);
-  });
-  return monacoPromise;
-}
 const messages: Record<string, string> = {
   sandbox_unavailable: 'The execution service is unavailable. Your code is saved; please retry later.',
   code_draft_stale: 'Your code changed in another window. Reload the saved attempt before running.',
@@ -41,14 +28,14 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
   goalId: string; exerciseId: string; csrfToken: string; diagnosticAttemptId?: string; assessmentItemId?: string; sessionAttemptId?: string; executionDisabled?: boolean; saveHandle?: { current: (() => Promise<void>) | null }; onSubmitted?: () => void;
 }) {
   const [enabled, setEnabled] = useState(false);
+  const [demo, setDemo] = useState(false);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [status, setStatus] = useState(''); const [error, setError] = useState('');
   const [pending, setPending] = useState(false); const [stdin, setStdin] = useState('');
-  const [font, setFont] = useState(16); const [theme, setTheme] = useState('vs');
+  const [font, setFont] = useState(16); const [theme, setTheme] = useState<CodeEditorProps['theme']>('light');
+  const [value, setValue] = useState('');
   const [history, setHistory] = useState<Run[]>([]);
   const [assistance, setAssistance] = useState(0);
-  const editorHost = useRef<HTMLDivElement>(null);
-  const editor = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const source = useRef(''); const saved = useRef(''); const revision = useRef(0);
   const saveChain = useRef<Promise<void>>(Promise.resolve());
   const creationKey = useRef(crypto.randomUUID());
@@ -63,7 +50,7 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
   }
 
   useEffect(() => { let active = true;
-    fetch('/api/v1/features').then(response => response.json()).then(value => { if (active) setEnabled(value.code_execution); }).catch(() => setError('The workspace is unavailable.'));
+    fetch('/api/v1/features').then(response => response.json()).then(value => { if (active) { setEnabled(value.code_execution); setDemo(value.demo_mode); } }).catch(() => setError('The workspace is unavailable.'));
     return () => { active = false; };
   }, []);
 
@@ -76,7 +63,7 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
         await request<Attempt>(`/api/v1/goals/${goalId}/code-attempts`, 'POST', { exercise_id: exerciseId,
           idempotency_key: creationKey.current, diagnostic_attempt_id: diagnosticAttemptId ?? null,
           ...(assessmentItemId ? { assessment_item_id: assessmentItemId } : {}) });
-      source.current = value.source; saved.current = value.source; revision.current = value.revision; setAttempt(value);
+      source.current = value.source; saved.current = value.source; revision.current = value.revision; setAttempt(value); setValue(value.source);
       setAssistance(value.assistance_level ?? 0);
       setHistory((await request<{ items: Run[] }>(`/api/v1/attempts/${value.id}/runs`)).items);
     } catch (err) { setError((err as Error).message); }
@@ -88,10 +75,10 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
     const attemptId = attempt.id;
     const task = saveChain.current.catch(() => undefined).then(async () => {
       if (source.current === saved.current) return;
-      const snapshot = source.current;
+      const snapshot = source.current; setStatus('Saving…');
       const response = await request<{ revision: number }>(`/api/v1/attempts/${attemptId}/draft`, 'PATCH', { source: snapshot, expected_revision: revision.current });
       revision.current = response.revision; saved.current = snapshot;
-      setStatus(source.current === snapshot ? 'Code saved.' : 'Saving latest changes…');
+      setStatus(source.current === snapshot ? 'Saved' : 'Not saved');
     });
     saveChain.current = task; return task;
   }
@@ -105,24 +92,12 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
   }, [attempt?.id, saveHandle]);
 
   useEffect(() => {
-    if (!attempt || !editorHost.current) return;
-    let active = true;
-    let change: Monaco.IDisposable | undefined; let blur: Monaco.IDisposable | undefined;
-    loadMonaco().then(monaco => {
-      if (!active || !editorHost.current) return;
-      editor.current = monaco.editor.create(editorHost.current, { value: source.current, language: attempt.language,
-        automaticLayout: true, ariaLabel: 'Solution source code', accessibilitySupport: 'on', minimap: { enabled: false },
-        wordWrap: 'on', fontSize: font, theme, scrollBeyondLastLine: false, tabSize: 4 });
-      change = editor.current.onDidChangeModelContent(() => { source.current = editor.current!.getValue(); setStatus('Unsaved changes.'); });
-      blur = editor.current.onDidBlurEditorText(() => { autosave().catch(err => setError((err as Error).message)); });
-    }).catch(() => setError('The code editor could not load. Reload to retry.'));
+    if (!attempt) return;
     const interval = setInterval(() => { autosave().catch(err => setError((err as Error).message)); }, 5000);
-    return () => { active = false; clearInterval(interval); change?.dispose(); blur?.dispose(); editor.current?.getModel()?.dispose(); editor.current?.dispose(); editor.current = null; };
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attempt?.id]);
 
-  useEffect(() => { editor.current?.updateOptions({ fontSize: font });
-    (window as unknown as MonacoWindow).monaco?.editor.setTheme(theme); }, [font, theme]);
   useEffect(() => {
     if (!attempt || !history.some(run => ['queued', 'running'].includes(run.status))) return;
     const timer = setInterval(async () => {
@@ -149,21 +124,30 @@ export default function CodeWorkspace({ goalId, exerciseId, csrfToken, diagnosti
   }
 
   if (!enabled) return null;
+  const submitted = history.some(run => run.mode === 'submit' && run.status === 'completed' && run.result?.operational_status === 'healthy');
   return <section className="card card-border mt-4 min-w-0" aria-label="Coding workspace" aria-busy={pending}>
     <div className="card-body min-w-0"><h4 className="card-title">Coding workspace</h4>
+      {demo && <p className="sandbox-label">Local dev sandbox — not secure for untrusted code</p>}
+      <p className="mobile-code-note">A laptop gives you more room to code. Your work is saved across devices.</p>
       {error && <div className="alert alert-error" role="alert">{error}</div>}
       {!attempt ? <button className="btn" disabled={pending} onClick={open}>Open code editor</button> : <>
-        <p className="font-semibold">{attempt.title} · {attempt.language}</p><p className="whitespace-pre-wrap">{attempt.statement}</p>
+        <div className="coding-split"><div className="coding-problem">
+        <h5 className="font-semibold">{attempt.title} · {attempt.language}</h5><p className="whitespace-pre-wrap">{attempt.statement}</p>
+        <h6 className="font-semibold mt-5">Sample cases</h6>
+        {attempt.samples.map((sample, index) => <div className="sample-case" key={index}><p>Input</p><pre>{sample.input}</pre><p>Expected output</p><pre>{sample.expected}</pre></div>)}
+        <p className="text-sm">Hidden tests remain on the server. Sample runs do not change mastery.</p>
+        </div><div className="coding-editor">
         <div className="flex flex-wrap gap-3"><label>Font size <input className="input w-24" type="number" min={12} max={28} value={font} onChange={event => setFont(Math.max(12, Math.min(28, Number(event.target.value))))} /></label>
-          <label>Editor contrast <select className="select" value={theme} onChange={event => setTheme(event.target.value)}><option value="vs">Light</option><option value="vs-dark">Dark</option><option value="hc-black">High contrast</option></select></label></div>
-        <div ref={editorHost} className="h-80 w-full min-w-0 overflow-hidden" data-testid="code-editor" />
-        <p role="status">{status || 'Code saved.'}</p>
-        <p>Samples: {attempt.samples.map((sample, index) => <span key={index}>{JSON.stringify(sample.input)} → {JSON.stringify(sample.expected)}. </span>)}</p>
+          <label>Editor contrast <select className="select" value={theme} onChange={event => setTheme(event.target.value as CodeEditorProps['theme'])}><option value="light">Light</option><option value="dark">Dark</option><option value="high-contrast">High contrast</option></select></label></div>
+        <p className="text-sm">{attempt.language === 'java' ? 'Solution.java' : attempt.language === 'cpp' ? 'solution.cpp' : 'solution.py'}{submitted ? ' · Submitted source (read only)' : ''}</p>
+        <CodeEditor language={attempt.language as CodeEditorProps['language']} value={value} onChange={next => { source.current = next; setValue(next); setStatus('Not saved'); }} onBlur={() => { autosave().catch(err => setError((err as Error).message)); }} readOnly={executionDisabled || submitted} fontSize={font} theme={theme} ariaLabel="Solution source code" assistMode={diagnosticAttemptId || assessmentItemId ? 'assessment' : assistance ? 'learning' : 'independent'} />
+        <details id="editor-keyboard-help"><summary>Editor keyboard help</summary><p>Tab inserts four spaces. Press Escape, then Tab to leave the editor. Ctrl+F finds text, Ctrl+/ toggles comments, Ctrl+Z undoes edits. On macOS use Command.</p></details>
+        <p role="status">{status || 'Saved'}</p>
         <label>Custom input <textarea className="textarea w-full" maxLength={8000} value={stdin} onChange={event => setStdin(event.target.value)} /></label>
         <div className="flex flex-wrap gap-3"><button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs')}>Run samples</button>
           <button className="btn" disabled={pending || executionDisabled} onClick={() => run('runs', true)}>Run custom input</button>
           <button className="btn" disabled={pending || executionDisabled} onClick={() => run('submit')}>{assistance ? 'Submit assisted attempt' : 'Submit independent attempt'}</button></div>
-        <p>Sample runs do not change mastery. Hidden-test inputs and output are kept private.</p>
+        </div></div>
         {attempt.mode === 'practice' && <Tutor key={attempt.id} attemptId={attempt.id} csrfToken={csrfToken}
           disabled={pending || executionDisabled || history.some(item => item.mode === 'submit' && ['queued', 'running'].includes(item.status))}
           save={async () => { await autosave(); return revision.current; }} onAssistance={setAssistance} />}

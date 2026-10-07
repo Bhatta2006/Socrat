@@ -25,9 +25,9 @@ export function ReceiptStatus({ initial }: { initial: DeletionReceipt }) {
   }
   return <section className="card card-border" aria-label="Deletion receipt"><div className="card-body">
     <h2 className="card-title">Your deletion request</h2>
-    <p>Your sessions have been revoked. Cleanup status: {receipt.status.replaceAll('_', ' ')}.</p>
+    <p>Your sessions have been revoked. Cleanup status: {receipt.status.replaceAll('_', ' ').replaceAll('pending', 'awaiting cleanup')}.</p>
     <p>Cleanup deadline: {new Date(receipt.deadline_at * 1000).toLocaleDateString()}.</p>
-    <ul>{Object.entries(receipt.tasks).map(([name, task]) => <li key={name}>{name.replaceAll('_', ' ')}: {typeof task === 'string' ? task.replaceAll('_', ' ') : task.status}</li>)}</ul>
+    <ul>{Object.entries(receipt.tasks).map(([name, task]) => <li key={name}>{name.replaceAll('_', ' ')}: {(typeof task === 'string' ? task : task.status).replaceAll('_', ' ').replaceAll('pending', 'awaiting cleanup')}</li>)}</ul>
     <p>Save this private receipt before closing the page. It contains the token needed to check cleanup after sign-out.</p>
     {message && <p role="alert">{message}</p>}
     <div className="card-actions"><button className="btn" disabled={pending} onClick={refresh}>Check cleanup status</button>
@@ -138,7 +138,7 @@ export default function AccountControls({ csrfToken, remindersEnabled, onDeleted
     <details><summary className="cursor-pointer py-3 font-semibold">Your data and privacy controls</summary>
       <div className="space-y-4 py-3">
         <p>We store identity and profile, learning evidence, code drafts and submissions, tutor exchanges and assessments. Model providers may process minimized learning context when model help is enabled. Separate consent is required to train a general model on your content.</p>
-        <p>Raw code and tutor content have a 12-month default retention policy. Account deletion revokes sessions immediately and requests cleanup within 30 days, including backups and provider records. Shared editorial records need separate review. The deletion receipt shows what remains pending.</p>
+        <p>Raw code and tutor content have a 12-month default retention policy. Account deletion revokes sessions immediately and requests cleanup within 30 days, including backups and provider records. Shared editorial records need separate review. The deletion receipt shows what still needs cleanup.</p>
         <button className="btn" disabled={pending} onClick={() => run(async () => {
           download(await request('/api/v1/privacy/export', 'POST'), 'socrat-learning-data.json'); setMessage('Your learning data export is ready.');
         })}>Export my learning data</button>

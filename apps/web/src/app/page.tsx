@@ -1,34 +1,12 @@
-import Workspace from './workspace';
+'use client';
+import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-base-100 text-base-content">
-      <a className="sr-only focus:not-sr-only focus:absolute focus:m-4 focus:bg-base-100 focus:p-3" href="#workspace">
-        Skip to workspace
-      </a>
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-6 sm:px-8 sm:py-10">
-        <header className="flex items-center justify-between border-b border-base-300 pb-5">
-          <span className="text-lg font-bold tracking-tight">SOCRAT</span>
-          <span className="text-xs uppercase tracking-[0.18em] text-base-content/60">Learning workspace</span>
-        </header>
-
-        <section className="flex flex-1 flex-col gap-8 py-8">
-          <div className="max-w-xl">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              A foundation for your learning.
-            </h1>
-            <p className="mt-3 text-base leading-6">
-              Your next step, independent learning evidence, and a plan that fits your day.
-            </p>
-          </div>
-
-          <Workspace />
-        </section>
-
-        <footer className="border-t border-base-300 pt-5 text-sm text-base-content/60">
-          Progress comes from demonstrated capability, with independent evidence and delayed retention checks.
-        </footer>
-      </div>
-    </main>
-  );
+  const [adult, setAdult] = useState(false); const [time, setTime] = useState(false);
+  return <div className="landing"><section className="landing-hero"><div><p className="eyebrow">A deliberate way to learn DSA</p><h1 tabIndex={-1}>Understand it.<br />Build it.<br /><span>Make it yours.</span></h1><p className="lede">Turn scattered practice into a clear path through data structures and algorithms. Start where you are, work at your pace, and prove what you can do.</p><Link className="btn btn-primary btn-lg" href="/login">Find your starting point <span aria-hidden="true">→</span></Link><p className="hero-note">Python · C++20 · Java 21<br />Beginners are welcome.</p></div>
+    <div className="learning-preview" aria-label="Learning path example"><p className="eyebrow">From understanding to independence</p>{[['01', 'Find your starting point', 'A calm check of what you know.'], ['02', 'Make room for practice', 'A plan built around your real week.'], ['03', 'Think through the problem', 'Small lessons, focused practice, useful hints.'], ['04', 'Prove what stays with you', 'Independent checks, then a later revisit.']].map(([n, title, text]) => <div className="preview-step" key={n}><span>{n}</span><div><h2>{title}</h2><p>{text}</p></div></div>)}<div className="preview-caption">A clear next step. Evidence behind every change.</div></div>
+  </section><section className="track-section"><p className="eyebrow">Three paths. One thoughtful practice loop.</p><h2>What are you working toward?</h2><div className="track-grid">{[['Foundations', 'Build programming fluency and a dependable DSA foundation.'], ['Interview prep', 'Recognize patterns, explain correctness, and solve independently.'], ['Competitive programming', 'Practise under a timer, then understand and repair in upsolve.']].map(([title, text], i) => <article key={title}><span className="track-number">0{i + 1}</span><h3>{title}</h3><p>{text}</p><Link href="/login">Explore this path <span aria-hidden="true">→</span></Link></article>)}</div></section>
+    <section className="qualification surface"><div><h2>Make a little room to begin.</h2><p>Socrat is for learners aged 18 and over who can practise for at least 20 minutes, three days a week.</p></div><div><label className="flex gap-3"><input className="checkbox" type="checkbox" checked={adult} onChange={e => setAdult(e.target.checked)} />I am 18 or older.</label><label className="flex gap-3"><input className="checkbox" type="checkbox" checked={time} onChange={e => setTime(e.target.checked)} />I can make time for focused practice.</label>{adult && time && <Link className="btn btn-primary" href="/login">Begin your learning path</Link>}</div></section>
+  </div>;
 }

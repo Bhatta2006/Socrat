@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import CodeWorkspace from './code-workspace';
 import TodaySession from './learning-session';
+import Link from 'next/link';
 
 type Block = { mode: string; minutes: number; upsolve_minutes?: number; title: string; timed: boolean; modality?: string; exercise_ids: string[] };
 type Plan = { revision: number; review_digest: string; status: string; feasibility: string;
@@ -24,7 +25,7 @@ const messages: Record<string, string> = {
   plan_review_stale: 'Reload and review the latest plan before confirming.',
 };
 
-export default function Planner({ goalId, csrfToken }: { goalId: string; csrfToken: string }) {
+export default function Planner({ goalId, csrfToken, routed = false }: { goalId: string; csrfToken: string; routed?: boolean }) {
   const [enabled, setEnabled] = useState(false);
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -78,7 +79,8 @@ export default function Planner({ goalId, csrfToken }: { goalId: string; csrfTok
       {error && <div className="alert alert-error" role="alert">{error}</div>}
       {!plan ? <><p>Build the next two weeks from your saved evidence and available time.</p>
         <button className="btn" disabled={pending} onClick={() => act('generate')}>Create learning plan</button></> : <>
-        <TodaySession goalId={goalId} csrfToken={csrfToken} curriculumRevision={plan.revision} />
+        {!routed && <TodaySession goalId={goalId} csrfToken={csrfToken} curriculumRevision={plan.revision} />}
+        {routed && plan.status === 'confirmed' && <Link href="/today" className="btn btn-primary">Go to Today</Link>}
         <p role="status">{label(plan.status)} · {label(plan.feasibility)} · {plan.controller.workload_minutes} minutes per planned day</p>
         {plan.provisional && <p>Some skills have limited evidence. Future lessons stay locked until their prerequisites are verified.</p>}
         {plan.needs_refresh && <div className="alert">New evidence changed your readiness. Refresh your plan.</div>}

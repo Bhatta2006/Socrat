@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import AppShell from './app-shell';
 
 export const metadata: Metadata = {
   title: 'Socrat — Learning workspace',
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" data-theme="wireframe"><body>{children}</body></html>;
+  return <html lang="en" data-theme="socrat"><body><AppShell>{children}</AppShell></body></html>;
 }
