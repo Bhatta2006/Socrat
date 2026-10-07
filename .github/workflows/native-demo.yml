@@ -49,6 +49,8 @@ jobs:
           g++ --version
       - run: uv sync --frozen
       - run: npm ci
+      - name: Prepare native test and stack directories
+        run: python -c "from pathlib import Path; Path('.cache').mkdir(exist_ok=True)"
       - run: node --experimental-strip-types --test tests/editor-diagnostics.test.mjs
       - run: uv run pytest services/api/tests/test_local_backend.py services/api/tests/test_demo.py services/api/tests/test_execution_worker.py --basetemp=.cache/ci-native-tests
       - run: npm run typecheck
