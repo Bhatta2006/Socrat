@@ -86,6 +86,56 @@ def bootstrap(settings: Settings):
                 if db.scalar(select(LearnerGoal.id).where(LearnerGoal.user_id == user.id)):
                     continue
                 stamp = current - (4 * 86400 if persona != "beginner" else 0)
+                worker = db.get(ExecutionWorker, worker_id)
+                if worker is None:
+                    db.add(
+                        ExecutionWorker(
+                            id=worker_id, images=[p.image for p in profiles], seen_at=stamp
+                        )
+                    )
+                else:
+                    worker.seen_at = stamp
+                db.flush()
+
+                def submit_reference(attempt, at, language=language):
+                    draft = db.get(CodeDraft, attempt.id)
+                    variant = pack.variant_for(attempt.exercise_id, language)
+                    assert draft is not None and variant is not None
+                    draft.source = variant.reference_solution
+                    draft.revision += 1
+                    db.flush()
+                    registered = db.get(ExecutionWorker, worker_id)
+                    assert registered is not None
+                    registered.seen_at = at
+                    run = execution.enqueue(
+                        db,
+                        attempt,
+                        "submit",
+                        dict(
+                            idempotency_key=identifier(), draft_revision=draft.revision, stdin=None
+                        ),
+                        settings,
+                        at,
+                        "demo-bootstrap",
+                    )
+                    job = JobEnvelope.model_validate(execution.claim(db, worker_id, settings, at))
+                    result = execute(
+                        job, backend, settings.execution_signing_secret.get_secret_value(), at
+                    )
+                    if result["result"]["operational_status"] != "healthy" or any(
+                        x["status"] != "passed" for x in result["result"]["cases"]
+                    ):
+                        raise ValueError(
+                            "Actual sample-history code failed: "
+                            + attempt.exercise_id
+                            + " "
+                            + str(result["result"]["cases"][:1])
+                        )
+                    execution.finalize(
+                        db, worker_id, ResultEnvelope.model_validate(result), settings, at
+                    )
+                    return run
+
                 goal_input = GoalInput.model_validate(
                     dict(
                         goal_template_id=track,
@@ -138,6 +188,18 @@ def bootstrap(settings: Settings):
                 )
                 while (view := diagnostics.public_view(db, diagnostic, stamp))["item"]:
                     item = view["item"]
+                    if item["kind"] == "implementation":
+                        attempt = execution.create_attempt(
+                            db,
+                            goal,
+                            item["exercise_id"],
+                            identifier(),
+                            item["attempt_id"],
+                            settings,
+                            stamp,
+                        )
+                        submit_reference(attempt, stamp)
+                        continue
                     spec = next(
                         x.response for x in definition.items if x.exercise_id == item["exercise_id"]
                     )

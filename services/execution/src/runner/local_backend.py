@@ -13,6 +13,7 @@ from pathlib import Path
 import psutil
 
 from runner.docker_backend import SandboxUnavailable
+from runner.toolchains import toolchains
 from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile
 
 
@@ -189,7 +190,7 @@ class LocalProcessBackend:
             raise SandboxUnavailable("python_toolchain_missing")
 
     def available_images(self):
-        return [x.image for x in self.profiles.values() if x.language == "python"]
+        return [x.image for x in self.profiles.values() if x.language in toolchains()]
 
     def execute(self, job: JobEnvelope) -> list[CaseResult]:
         profile = self.profiles.get(job.manifest.image)
@@ -200,14 +201,20 @@ class LocalProcessBackend:
             or profile.limits != job.manifest.limits
         ):
             raise SandboxUnavailable("unapproved_local_profile")
-        if profile.language != "python":
+        commands = toolchains().get(profile.language)
+        if not commands:
             raise SandboxUnavailable("toolchain_missing")
         limits = profile.limits
         with tempfile.TemporaryDirectory(prefix="socrat-job-", dir=self.temp_root) as temporary:
             directory = Path(temporary)
-            source = directory / "solution.py"
+            source = (
+                directory
+                / {"python": "solution.py", "cpp": "solution.cpp", "java": "Solution.java"}[
+                    profile.language
+                ]
+            )
             source.write_text(job.source, encoding="utf-8")
-            env = scrubbed_environment(directory, [sys.executable])
+            env = scrubbed_environment(directory, commands)
             compile_command = [
                 sys.executable,
                 "-I",
@@ -215,6 +222,32 @@ class LocalProcessBackend:
                 "-c",
                 "import pathlib; p=pathlib.Path('solution.py'); compile(p.read_text(encoding='utf-8'), str(p), 'exec')",
             ]
+            run_command = [sys.executable, "-I", "-B", str(source)]
+            if profile.language == "cpp":
+                binary = directory / ("solution.exe" if os.name == "nt" else "solution")
+                compile_command = [commands[0], "-std=c++20", "-O2", str(source), "-o", str(binary)]
+                run_command = [str(binary)]
+            elif profile.language == "java":
+                compile_command = [
+                    commands[0],
+                    "-J-Xmx128m",
+                    "-J-XX:+UseSerialGC",
+                    "-J-XX:ActiveProcessorCount=1",
+                    "-encoding",
+                    "UTF-8",
+                    "-d",
+                    str(directory),
+                    str(source),
+                ]
+                run_command = [
+                    commands[1],
+                    "-Xmx128m",
+                    "-XX:+UseSerialGC",
+                    "-XX:ActiveProcessorCount=1",
+                    "-cp",
+                    str(directory),
+                    "Solution",
+                ]
             built = capture_process(
                 compile_command,
                 "",
@@ -232,7 +265,7 @@ class LocalProcessBackend:
                     built
                     if built.code or built.limit
                     else capture_process(
-                        [sys.executable, "-I", "-B", str(source)],
+                        run_command,
                         test.input,
                         directory,
                         env,

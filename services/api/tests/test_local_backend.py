@@ -122,3 +122,39 @@ def test_timeout_kills_descendants_and_spawn_is_contained(tmp_path):
 def test_local_process_guard(environment, demo):
     with pytest.raises(ValueError, match="demo mode"):
         LocalProcessBackend([], environment=environment, demo_mode=demo)
+
+
+LANGUAGE_PROGRAMS = {
+    "cpp": {
+        "passed": "#include <iostream>\nint main(){int n;std::cin>>n;std::cout<<n*2;}",
+        "wrong_answer": "#include <iostream>\nint main(){std::cout<<0;}",
+        "compile_error": "#include <iostream>\nint main(){invalid_symbol;}",
+        "runtime_error": "#include <cstdlib>\nint main(){std::abort();}",
+        "timeout": "int main(){while(true){}}",
+        "output_limit": '#include <iostream>\nint main(){while(true)std::cout<<"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";}',
+        "memory_limit": "#include <vector>\nint main(){std::vector<char> x(2000000000); volatile char* p=x.data(); for(long i=0;i<2000000000;i++)p[i]=1;}",
+    },
+    "java": {
+        "passed": "public class Solution {public static void main(String[] a){System.out.println(new java.util.Scanner(System.in).nextInt()*2);}}",
+        "wrong_answer": "public class Solution {public static void main(String[] a){System.out.println(0);}}",
+        "compile_error": "public class Solution {\npublic static void main(String[] a){invalid_symbol;}\n}",
+        "runtime_error": 'public class Solution {\npublic static void main(String[] a){throw new RuntimeException("real traceback");}\n}',
+        "timeout": "public class Solution {public static void main(String[] a){while(true){}}}",
+        "output_limit": 'public class Solution {public static void main(String[] a){while(true)System.out.print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");}}',
+        "memory_limit": "public class Solution {public static void main(String[] a){byte[] x=new byte[2000000000];System.out.print(x.length);}}",
+    },
+}
+
+
+@pytest.mark.parametrize("language", ["cpp", "java"])
+@pytest.mark.parametrize("status", list(LANGUAGE_PROGRAMS["cpp"]))
+def test_native_compiled_languages(language, status, tmp_path):
+    backend, job = envelope(LANGUAGE_PROGRAMS[language][status], language)
+    backend.temp_root = tmp_path
+    result = execute(job, backend, SECRET, int(time.time()))["result"]
+    assert result["operational_status"] == "healthy", "Required CI toolchain is missing"
+    assert [case["status"] for case in result["cases"]] == [status, status]
+    assert result["cases"][1]["stdout"] == result["cases"][1]["stderr"] == ""
+    if status == "compile_error":
+        assert ":2:" in result["cases"][0]["stderr"]
+    assert not list(tmp_path.iterdir())

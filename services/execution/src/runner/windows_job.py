@@ -75,6 +75,7 @@ for name, args, result in (
     ("Thread32Next", [wt.HANDLE, ct.POINTER(ThreadEntry)], wt.BOOL),
     ("OpenThread", [wt.DWORD, wt.BOOL, wt.DWORD], wt.HANDLE),
     ("ResumeThread", [wt.HANDLE], wt.DWORD),
+    ("SetErrorMode", [wt.UINT], wt.UINT),
 ):
     function = getattr(kernel, name)
     function.argtypes, function.restype = args, result
@@ -88,6 +89,9 @@ def checked(ok):
 
 class WindowsJob:
     def __init__(self, memory_bytes: int, pids: int):
+        # Inherited by children: runtime faults must not open a Windows dialog
+        # and hang a non-interactive worker instead of returning an exit code.
+        kernel.SetErrorMode(0x1 | 0x2 | 0x8000)
         self.handle = checked(kernel.CreateJobObjectW(None, None))
         try:
             limits = ExtendedLimit()

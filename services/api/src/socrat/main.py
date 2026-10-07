@@ -326,6 +326,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "reminders": settings.reminders_enabled,
         }
 
+    @app.get("/api/v1/execution/languages")
+    def execution_languages():
+        if settings.execution_backend == "local_process":
+            from runner.toolchains import availability
+
+            return {"backend": "local_process", "languages": availability()}
+        with Session(app.state.engine) as db:
+            from socrat.execution.service import healthy_images
+
+            images = healthy_images(db, settings, now()) if settings.execution_enabled else []
+        return {
+            "backend": settings.execution_backend,
+            "languages": {
+                profile["language"]: {
+                    "ready": profile["image"] in images,
+                    "message": "Ready"
+                    if profile["image"] in images
+                    else "Execution worker is not connected",
+                }
+                for profile in settings.execution_profiles
+            },
+        }
+
     @app.post("/api/v1/auth/dev-login")
     def dev_login(body: DevIdentity, request: Request):
         if not settings.dev_login_enabled:
