@@ -1,0 +1,174 @@
+id: binary-trees
+title: Binary trees
+summary: Recursive data where each node has up to two children — traverse depth-first and breadth-first, and solve with recursion.
+module: trees
+prerequisites: [linked-lists, zero:recursion]
+difficulty: 3
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  A **binary tree** is a set of nodes where each node has at most two children, *left* and
+  *right*, and every node except the **root** has exactly one parent. Nodes with no
+  children are **leaves**. Trees model hierarchies (file systems, org charts, expression
+  parsing) and are the backbone of search trees and heaps.
+
+  The key insight: **a tree is a root plus two smaller trees**. So almost every tree
+  question is a short recursive function: solve for the children, combine at the root.
+
+  ```python
+  class TreeNode:
+      def __init__(self, val, left=None, right=None):
+          self.val, self.left, self.right = val, left, right
+
+  def height(node):                       # number of nodes on the longest root-to-leaf path
+      if node is None:
+          return 0
+      return 1 + max(height(node.left), height(node.right))
+  ```
+
+  ```cpp
+  struct TreeNode {
+      int val; TreeNode* left = nullptr; TreeNode* right = nullptr;
+      TreeNode(int v) : val(v) {}
+  };
+
+  int height(TreeNode* node) {
+      if (!node) return 0;
+      return 1 + max(height(node->left), height(node->right));
+  }
+  ```
+
+  ```java
+  class TreeNode {
+      int val; TreeNode left, right;
+      TreeNode(int val) { this.val = val; }
+  }
+
+  static int height(TreeNode node) {
+      if (node == null) return 0;
+      return 1 + Math.max(height(node.left), height(node.right));
+  }
+  ```
+
+  ## Depth-first traversals
+
+  Visit the root before, between or after its subtrees:
+
+  - **Preorder** (root, left, right) — copy or serialise a tree.
+  - **Inorder** (left, root, right) — gives sorted order in a binary *search* tree.
+  - **Postorder** (left, right, root) — compute something that needs the children first
+    (heights, sizes, deleting a tree).
+
+  ## Breadth-first (level order)
+
+  Visit level by level with a **queue**: pop a node, push its children. Process the queue
+  in batches of its current size to know where each level ends.
+
+  ```python
+  from collections import deque
+  def levels(root):
+      out, q = [], deque([root] if root else [])
+      while q:
+          level = []
+          for _ in range(len(q)):
+              node = q.popleft()
+              level.append(node.val)
+              if node.left: q.append(node.left)
+              if node.right: q.append(node.right)
+          out.append(level)
+      return out
+  ```
+
+  ## Two kinds of recursive answers
+
+  1. **Return a value up** — height, size, sum, "is balanced?".
+  2. **Pass information down** — the depth so far, the path so far, allowed value range.
+
+  The *diameter* (longest path between any two nodes) combines both: each node returns its
+  height, and while doing so updates a global best with `left height + right height`.
+
+  ## Trees in input
+
+  Problems usually number nodes `1..n` and give each node's children (0 for none), or each
+  node's parent. Build arrays `left[i]`, `right[i]` — no node objects needed. For very deep
+  trees (a chain of 10^5 nodes), recursion may overflow the stack: use an explicit stack,
+  or a BFS order processed in reverse for bottom-up values.
+key_points:
+  - A tree is a root plus left and right subtrees — solve recursively.
+  - Pre-, in- and post-order are depth-first; level order uses a queue.
+  - Return values up (height, size) or pass state down (depth, range).
+  - Deep trees can overflow recursion; iterate with an explicit stack or reverse BFS order.
+pitfalls:
+  - Forgetting the empty-tree (null) base case.
+  - Confusing height in nodes vs. height in edges — confirm the definition.
+  - Stack overflow on degenerate (chain-shaped) trees.
+resources:
+  - title: Invert Binary Tree – DFS
+    url: https://www.youtube.com/watch?v=OnSn2XEQ4MY
+    kind: video
+    source: NeetCode
+    minutes: 4
+  - title: Maximum Depth of Binary Tree – 3 Solutions
+    url: https://www.youtube.com/watch?v=hTM3phVI6YQ
+    kind: video
+    source: NeetCode
+    minutes: 12
+  - title: "Tech Interview Handbook: Tree cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/tree/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 12
+  - title: Data Structures Easy to Advanced (trees section)
+    url: https://www.youtube.com/watch?v=RBSGKlAvoiM
+    kind: video
+    source: freeCodeCamp
+    minutes: 60
+    level: deep
+quiz:
+  - id: inorder
+    kind: mcq
+    prompt: Which traversal visits left subtree, then root, then right subtree?
+    options: ["Inorder", "Preorder", "Postorder", "Level order"]
+    answer: 0
+    explanation: In-order puts the root in between its subtrees.
+    difficulty: 1
+  - id: bfs-structure
+    kind: mcq
+    prompt: Level-order traversal uses which data structure?
+    options: ["A queue", "A stack", "A heap", "A hash set"]
+    answer: 0
+    explanation: Nodes are processed in the order they were discovered, level by level — FIFO.
+    difficulty: 1
+  - id: height-trace
+    kind: mcq
+    prompt: A tree is a single chain of 5 nodes (each has only a left child). Its height in nodes is...
+    options: ["5", "1", "3", "4"]
+    answer: 0
+    explanation: The longest root-to-leaf path contains all 5 nodes.
+    difficulty: 1
+  - id: postorder-use
+    kind: mcq
+    prompt: To compute every subtree's size, which order is natural?
+    options: ["Postorder — children before the node", "Preorder", "Inorder", "Any order works without recursion"]
+    answer: 0
+    explanation: A node's size is 1 + left size + right size, so children must be done first.
+    difficulty: 2
+problems: [tree-levels, tree-diameter]
+practice_links:
+  - title: Invert Binary Tree
+    url: https://leetcode.com/problems/invert-binary-tree/
+    platform: LeetCode
+    difficulty: easy
+  - title: Maximum Depth of Binary Tree
+    url: https://leetcode.com/problems/maximum-depth-of-binary-tree/
+    platform: LeetCode
+    difficulty: easy
+  - title: Binary Tree Level Order Traversal
+    url: https://leetcode.com/problems/binary-tree-level-order-traversal/
+    platform: LeetCode
+    difficulty: medium
+  - title: Tree Diameter
+    url: https://cses.fi/problemset/task/1131
+    platform: CSES
+    difficulty: medium

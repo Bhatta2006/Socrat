@@ -1,0 +1,155 @@
+id: number-theory
+title: Number theory essentials
+summary: GCD, primes, the sieve of Eratosthenes and factorization — the math that appears in nearly every contest.
+module: math
+prerequisites: [fast-io, zero:functions]
+difficulty: 3
+estimated_minutes: 55
+lesson: |
+  ## The big idea
+
+  Divisibility questions are everywhere in contests: "is it prime?", "how many divisors?",
+  "make all numbers equal by dividing", "pairs with gcd 1". A handful of tools covers most
+  of them.
+
+  ## GCD and LCM
+
+  Euclid: `gcd(a, b) = gcd(b, a mod b)`, `gcd(a, 0) = a` — O(log min(a, b)). Libraries:
+  Python `math.gcd`, C++ `std::gcd` (C++17), Java `BigInteger.gcd` or write your own.
+  `lcm(a, b) = a / gcd(a, b) * b` — divide first to avoid overflow.
+
+  ## Primality and factorization by trial division
+
+  Test divisors up to √n: O(√n). Factorization works the same way — divide out each factor
+  as you find it; whatever remains above 1 at the end is a prime.
+
+  ```python
+  def factorize(n):
+      factors = {}
+      d = 2
+      while d * d <= n:
+          while n % d == 0:
+              factors[d] = factors.get(d, 0) + 1
+              n //= d
+          d += 1
+      if n > 1:
+          factors[n] = factors.get(n, 0) + 1
+      return factors
+  ```
+
+  The number of divisors of `p1^e1 · p2^e2 · ...` is `(e1+1)(e2+1)...`.
+
+  ## The sieve of Eratosthenes
+
+  To know primality for **every** number up to N: start with all marked prime, and for each
+  prime p, cross out p², p² + p, ... Total O(N log log N).
+
+  ```python
+  def sieve(N):
+      is_prime = bytearray([1]) * (N + 1)
+      is_prime[0] = is_prime[1] = 0
+      for p in range(2, int(N ** 0.5) + 1):
+          if is_prime[p]:
+              is_prime[p * p :: p] = bytearray(len(range(p * p, N + 1, p)))
+      return is_prime
+  ```
+
+  ```cpp
+  vector<bool> sieve(int N) {
+      vector<bool> isPrime(N + 1, true);
+      isPrime[0] = isPrime[1] = false;
+      for (long long p = 2; p * p <= N; p++)
+          if (isPrime[p])
+              for (long long q = p * p; q <= N; q += p) isPrime[q] = false;
+      return isPrime;
+  }
+  ```
+
+  ```java
+  static boolean[] sieve(int N) {
+      boolean[] composite = new boolean[N + 1];
+      for (long p = 2; p * p <= N; p++)
+          if (!composite[(int) p])
+              for (long q = p * p; q <= N; q += p) composite[(int) q] = true;
+      return composite;     // prime ⇔ n ≥ 2 and !composite[n]
+  }
+  ```
+
+  ## Smallest prime factor sieve
+
+  Store `spf[x]`, the smallest prime dividing x. Then any x ≤ N factorizes in O(log x) by
+  repeatedly dividing by `spf[x]` — perfect for many factorization queries.
+
+  ## Useful facts
+
+  - Every n > 1 has at most one prime factor greater than √n.
+  - The count of divisors of n ≤ 10^9 is at most 1344; enumerate divisors in pairs up to √n.
+  - Primes up to 10^6: 78,498. Prime gaps are small, so "next prime" searches are fast.
+key_points:
+  - gcd by Euclid in O(log); lcm = a / gcd · b.
+  - Trial division up to √n tests primality and factorizes.
+  - Divisor count = product of (exponent + 1).
+  - The sieve finds all primes up to N in O(N log log N); spf sieve answers factorization queries fast.
+pitfalls:
+  - Starting the sieve's crossing-out at 2p instead of p² (correct but slower) or overflowing p*p.
+  - Forgetting the leftover prime > √n after trial division.
+  - Computing lcm as a·b/gcd and overflowing.
+resources:
+  - title: Euclidean algorithm for computing the GCD
+    url: https://cp-algorithms.com/algebra/euclid-algorithm.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 15
+  - title: Sieve of Eratosthenes
+    url: https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 20
+  - title: Counting Divisors
+    url: https://cses.fi/problemset/task/1713
+    kind: interactive
+    source: CSES
+    minutes: 20
+quiz:
+  - id: divisor-count
+    kind: mcq
+    prompt: How many divisors does 72 = 2^3 · 3^2 have?
+    options: ["12", "6", "5", "9"]
+    answer: 0
+    explanation: (3 + 1)(2 + 1) = 12.
+    difficulty: 2
+  - id: sieve-start
+    kind: mcq
+    prompt: In the sieve, why start crossing out multiples of p at p²?
+    options:
+      - Smaller multiples were already crossed out by smaller primes
+      - p² is always prime
+      - To avoid overflow
+      - It's required for correctness
+    answer: 0
+    explanation: k·p with k < p has a prime factor smaller than p, so it's already marked.
+    difficulty: 3
+  - id: leftover
+    kind: mcq
+    prompt: After trial division up to √n, the remaining value is 1373 (> 1). What is it?
+    options: ["A prime factor of the original n", "Composite", "Always 1", "An error"]
+    answer: 0
+    explanation: Any composite remainder would have a factor ≤ √n, which would have been divided out.
+    difficulty: 2
+  - id: gcd-value
+    kind: mcq
+    prompt: What is gcd(84, 36)?
+    options: ["12", "6", "4", "36"]
+    answer: 0
+    explanation: gcd(84, 36) = gcd(36, 12) = gcd(12, 0) = 12.
+    difficulty: 1
+problems: [prime-count-queries]
+practice_links:
+  - title: Counting Divisors
+    url: https://cses.fi/problemset/task/1713
+    platform: CSES
+    difficulty: medium
+  - title: Common Divisors
+    url: https://cses.fi/problemset/task/1081
+    platform: CSES
+    difficulty: medium

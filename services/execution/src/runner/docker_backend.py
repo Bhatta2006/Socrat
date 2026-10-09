@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Literal, cast
 
-from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile
+from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile, same_output
 
 
 class SandboxUnavailable(Exception):
@@ -247,7 +247,7 @@ class DockerBackend:
                 else:
                     status = (
                         "passed"
-                        if stdout.decode("utf-8", errors="replace").strip() == test.expected.strip()
+                        if same_output(stdout.decode("utf-8", errors="replace"), test.expected)
                         else "wrong_answer"
                     )
                 public = test.visibility == "public"

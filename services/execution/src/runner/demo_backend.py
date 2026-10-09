@@ -6,7 +6,7 @@ import time
 from typing import Literal, cast
 
 from runner.docker_backend import SandboxUnavailable, capture, container_args
-from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile
+from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile, same_output
 
 
 def demo_container_args(job: JobEnvelope, name: str) -> list[str]:
@@ -88,7 +88,7 @@ class DemoDockerBackend:
                     else "executed"
                     if test.expected is None
                     else "passed"
-                    if stdout.decode(errors="replace").strip() == test.expected.strip()
+                    if same_output(stdout.decode(errors="replace"), test.expected)
                     else "wrong_answer"
                 )
                 public = test.visibility == "public"

@@ -1,0 +1,187 @@
+id: conditionals
+title: Making decisions with if
+summary: Use if, else if and else to run different code depending on the situation.
+module: control-flow
+prerequisites: [input-and-arithmetic]
+difficulty: 1
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  So far every line ran every time. Real programs **decide**: *if* the password is right,
+  log in; *otherwise*, show an error. A **condition** is a question whose answer is true or
+  false, and `if` runs a block of code only when the answer is true.
+
+  ```python
+  temperature = int(input())
+  if temperature > 30:
+      print("Hot day")
+  elif temperature > 15:
+      print("Nice day")
+  else:
+      print("Cold day")
+  ```
+
+  ```cpp
+  int temperature;
+  cin >> temperature;
+  if (temperature > 30) {
+      cout << "Hot day\n";
+  } else if (temperature > 15) {
+      cout << "Nice day\n";
+  } else {
+      cout << "Cold day\n";
+  }
+  ```
+
+  ```java
+  int temperature = in.nextInt();
+  if (temperature > 30) {
+      System.out.println("Hot day");
+  } else if (temperature > 15) {
+      System.out.println("Nice day");
+  } else {
+      System.out.println("Cold day");
+  }
+  ```
+
+  ## How the chain is checked
+
+  The conditions are tested **from top to bottom**, and only the **first** true branch
+  runs. With temperature 35, "Hot day" prints and the rest is skipped — even though
+  35 > 15 is also true. Order matters: put the most specific test first.
+
+  `else` has no condition. It catches everything that did not match above.
+
+  ## Comparison operators
+
+  | Meaning | Symbol |
+  |---|---|
+  | equal to | `==` |
+  | not equal to | `!=` |
+  | less / greater | `<` `>` |
+  | at most / at least | `<=` `>=` |
+
+  Note the **double** equals. A single `=` stores a value; `==` *asks* whether two values
+  are equal.
+
+  ## Blocks
+
+  Python groups the code inside an `if` by **indentation** (4 spaces). C++ and Java use
+  **curly braces** `{ }`. In all three, indent consistently — it shows the structure to
+  anyone reading.
+
+  ## Worked example: the larger of two numbers
+
+  ```python
+  a, b = map(int, input().split())
+  if a >= b:
+      print(a)
+  else:
+      print(b)
+  ```
+
+  ```cpp
+  int a, b;
+  cin >> a >> b;
+  if (a >= b) cout << a << "\n";
+  else cout << b << "\n";
+  ```
+
+  ```java
+  int a = in.nextInt(), b = in.nextInt();
+  if (a >= b) System.out.println(a);
+  else System.out.println(b);
+  ```
+
+  When you test a decision, test the **boundaries**: equal values, the smallest value, and
+  values right at each threshold (exactly 30, exactly 15). Most bugs live at boundaries.
+key_points:
+  - "`if` runs a block only when its condition is true."
+  - In an if / else-if / else chain, only the first true branch runs.
+  - "`==` compares; `=` assigns."
+  - Test boundary values — exactly at each threshold.
+pitfalls:
+  - Writing `=` instead of `==` inside a condition.
+  - Putting a broad condition before a narrow one so the narrow branch never runs.
+  - Forgetting braces (C++/Java) or indentation (Python), so the wrong lines are inside the if.
+resources:
+  - title: "More control flow tools: if statements"
+    url: https://docs.python.org/3/tutorial/controlflow.html
+    kind: docs
+    source: Python docs
+    minutes: 15
+    languages: [python]
+  - title: "Learn C++: If statements and blocks"
+    url: https://www.learncpp.com/cpp-tutorial/if-statements-and-blocks/
+    kind: article
+    source: LearnCpp
+    minutes: 15
+    languages: [cpp]
+  - title: "Java Tutorials: The if-then and if-then-else statements"
+    url: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/if.html
+    kind: docs
+    source: Oracle
+    minutes: 10
+    languages: [java]
+  - title: "CS50x Week 1: Conditionals"
+    url: https://cs50.harvard.edu/x/2024/weeks/1/
+    kind: course
+    source: Harvard CS50
+    minutes: 120
+    level: intro
+quiz:
+  - id: first-true-branch
+    kind: output
+    prompt: With x = 50, what is printed?
+    code:
+      python: |
+        if x > 10:
+            print("A")
+        elif x > 40:
+            print("B")
+        else:
+            print("C")
+      cpp: |
+        if (x > 10) cout << "A";
+        else if (x > 40) cout << "B";
+        else cout << "C";
+      java: |
+        if (x > 10) System.out.println("A");
+        else if (x > 40) System.out.println("B");
+        else System.out.println("C");
+    options: ["A", "B", "A and B", "C"]
+    answer: 0
+    explanation: The first true condition wins. 50 > 10 is true, so A prints and the rest is skipped.
+    difficulty: 2
+  - id: equals-operator
+    kind: mcq
+    prompt: Which operator asks "are these two values equal?"
+    options: ["==", "=", "!=", "=>"]
+    answer: 0
+    explanation: Double equals compares. Single equals assigns.
+    difficulty: 1
+  - id: boundary
+    kind: mcq
+    prompt: A rule says "passing score is 50 or more". Which condition is correct?
+    options: ["score >= 50", "score > 50", "score == 50", "score <= 50"]
+    answer: 0
+    explanation: '"50 or more" includes 50 itself, so use >=. A score of exactly 50 is the boundary to test.'
+    difficulty: 1
+  - id: else-meaning
+    kind: mcq
+    prompt: When does the `else` block run?
+    options:
+      - When none of the conditions above it were true
+      - Always, after the if block
+      - Only when the if condition is true
+      - Never, it is optional decoration
+    answer: 0
+    explanation: else is the fallback that catches every case the earlier conditions did not.
+    difficulty: 1
+problems: [grade-letter, max-of-three]
+practice_links:
+  - title: Watermelon
+    url: https://codeforces.com/problemset/problem/4/A
+    platform: Codeforces
+    difficulty: easy

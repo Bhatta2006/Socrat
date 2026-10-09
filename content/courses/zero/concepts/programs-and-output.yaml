@@ -1,0 +1,174 @@
+id: programs-and-output
+title: Programs and output
+summary: A program is a precise list of instructions the computer runs top to bottom. Printing is how it talks back.
+module: first-steps
+difficulty: 1
+estimated_minutes: 25
+lesson: |
+  ## The big idea
+
+  A **program** is a list of instructions written so precisely that a computer can follow
+  them without guessing. The computer starts at the top and runs one instruction after
+  another, in order. It never skips ahead, never "gets the gist", and never fixes your
+  typos for you — which is exactly why programs are reliable.
+
+  The very first instruction most people learn is **print**: show some text on the screen.
+  Printing is how your program reports what it is doing, and it is the most useful
+  debugging tool you will ever have.
+
+  ## Your first program
+
+  ```python
+  print("Hello, world!")
+  print("I am learning to code.")
+  ```
+
+  ```cpp
+  #include <iostream>
+
+  int main() {
+      std::cout << "Hello, world!" << "\n";
+      std::cout << "I am learning to code." << "\n";
+      return 0;
+  }
+  ```
+
+  ```java
+  public class Solution {
+      public static void main(String[] args) {
+          System.out.println("Hello, world!");
+          System.out.println("I am learning to code.");
+      }
+  }
+  ```
+
+  Each line prints one message, and the messages appear **in the same order** as the
+  instructions. Swap the two lines and the output swaps too.
+
+  ## Text versus numbers
+
+  Text inside quotes is called a **string**. The computer prints it exactly, character by
+  character. Without quotes, the computer treats what you wrote as a calculation or a name:
+
+  ```python
+  print("2 + 3")   # prints the text: 2 + 3
+  print(2 + 3)     # prints the number: 5
+  ```
+
+  ```cpp
+  std::cout << "2 + 3" << "\n";  // prints the text: 2 + 3
+  std::cout << 2 + 3 << "\n";    // prints the number: 5
+  ```
+
+  ```java
+  System.out.println("2 + 3");  // prints the text: 2 + 3
+  System.out.println(2 + 3);    // prints the number: 5
+  ```
+
+  ## How Python, C++ and Java differ here
+
+  - **Python** runs your file line by line. `print` adds a new line automatically.
+  - **C++** starts inside `main()`. `std::cout <<` sends output; `"\n"` ends the line.
+  - **Java** starts inside `main` within a class. `System.out.println` prints and ends the line.
+
+  The extra lines in C++ and Java (`#include`, `class`, `main`) are the "wrapper" every
+  program needs. For now, treat them as the frame around your picture — you will
+  understand each part soon.
+
+  ## Comments
+
+  Lines starting with `#` (Python) or `//` (C++ and Java) are **comments**. The computer
+  ignores them; they are notes for humans, including future you.
+key_points:
+  - A program runs its instructions in order, top to bottom.
+  - Printing shows output; the order of print statements is the order of output.
+  - Quotes make text (a string); without quotes, expressions are calculated.
+  - Comments are ignored by the computer and explain code to people.
+pitfalls:
+  - Forgetting the closing quote or bracket — the program will not run at all.
+  - Expecting the computer to "understand what you meant". It does exactly what you wrote.
+resources:
+  - title: "CS50x Week 0: Computational thinking and Scratch"
+    url: https://cs50.harvard.edu/x/2024/weeks/0/
+    kind: course
+    source: Harvard CS50
+    minutes: 90
+    level: intro
+  - title: An Informal Introduction to Python
+    url: https://docs.python.org/3/tutorial/introduction.html
+    kind: docs
+    source: Python docs
+    minutes: 20
+    languages: [python]
+  - title: "Learn C++: Introduction to objects and variables (start of the tutorial)"
+    url: https://www.learncpp.com/cpp-tutorial/introduction-to-objects-and-variables/
+    kind: article
+    source: LearnCpp
+    minutes: 15
+    languages: [cpp]
+  - title: Learn Java on dev.java
+    url: https://dev.java/learn/
+    kind: course
+    source: Oracle dev.java
+    minutes: 30
+    languages: [java]
+  - title: Learn Python – Full Course for Beginners
+    url: https://www.youtube.com/watch?v=rfscVS0vtbw
+    kind: video
+    source: freeCodeCamp
+    minutes: 270
+    level: intro
+    languages: [python]
+quiz:
+  - id: order-of-output
+    kind: output
+    prompt: What does this program print?
+    code:
+      python: |
+        print("B")
+        print("A")
+      cpp: |
+        std::cout << "B" << "\n";
+        std::cout << "A" << "\n";
+      java: |
+        System.out.println("B");
+        System.out.println("A");
+    options: ["B then A on separate lines", "A then B on separate lines", "BA on one line", "Nothing"]
+    answer: 0
+    explanation: Instructions run top to bottom, so B is printed first, then A, each on its own line.
+    difficulty: 1
+  - id: quotes-vs-math
+    kind: output
+    prompt: What is printed?
+    code:
+      python: print("4 * 2")
+      cpp: std::cout << "4 * 2" << "\n";
+      java: System.out.println("4 * 2");
+    options: ["4 * 2", "8", "42", "An error"]
+    answer: 0
+    explanation: Everything inside quotes is text, printed exactly as written. No calculation happens.
+    difficulty: 1
+  - id: comment-ignored
+    kind: mcq
+    prompt: What does the computer do with a comment?
+    options: ["Ignores it completely", "Prints it", "Runs it as code", "Saves it to a file"]
+    answer: 0
+    explanation: Comments exist only for human readers. The computer skips them.
+    difficulty: 1
+  - id: precise-instructions
+    kind: mcq
+    prompt: You wrote `prnt("hi")` instead of `print("hi")` in Python. What happens?
+    options:
+      - The program stops with an error because prnt is unknown
+      - Python guesses you meant print
+      - It prints hi anyway
+      - It prints nothing but continues
+    answer: 0
+    explanation: Computers do exactly what you write. An unknown name is an error, not a guess.
+    difficulty: 2
+problems: []
+practice_links:
+  - title: Hello World (try printing different messages)
+    url: https://pythontutor.com/
+    platform: Python Tutor
+    difficulty: easy

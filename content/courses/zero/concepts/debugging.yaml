@@ -1,0 +1,129 @@
+id: debugging
+title: Debugging calmly
+summary: Read error messages, reproduce the bug, find the first wrong value, and fix the cause — not the symptom.
+module: craft
+prerequisites: [functions]
+difficulty: 2
+estimated_minutes: 35
+lesson: |
+  ## The big idea
+
+  Every programmer writes bugs every day. Skill is not avoiding them — it is **finding them
+  quickly and calmly**. Debugging is a method, not luck.
+
+  ## Three kinds of errors
+
+  1. **Compile / syntax errors** — the program does not run at all. C++ and Java compilers,
+     and the Python parser, point at a line. Read the **first** error first; later errors
+     are often side effects of it.
+  2. **Runtime errors** — the program crashes while running: index out of range, division by
+     zero, a null/None value, stack overflow. The message names the line and the kind.
+  3. **Logic errors** — the program runs but gives the wrong answer. These are the hardest,
+     and the method below is for them.
+
+  ## Read the error message
+
+  ```text
+  Traceback (most recent call last):
+    File "solution.py", line 7, in <module>
+      print(scores[n])
+  IndexError: list index out of range
+  ```
+
+  This says exactly *where* (line 7) and *what* (an index past the end). The fix is rarely
+  on that line itself — ask *why* `n` was too big.
+
+  ## The debugging method
+
+  1. **Reproduce** — find the smallest input that shows the bug. A failing case of size 3
+     beats a failing case of size 100,000.
+  2. **Predict** — before running, write down what you *expect* each variable to be.
+  3. **Observe** — print the variables (or use a debugger / Python Tutor) at key points.
+  4. **Locate** — find the **first** place where reality differs from your prediction. The
+     bug is between the last correct value and the first wrong one.
+  5. **Fix the cause**, then re-run *all* your examples, not just the failing one.
+
+  ```python
+  for i in range(len(a)):
+      total += a[i]
+      print("i =", i, "a[i] =", a[i], "total =", total)   # temporary debug print
+  ```
+
+  Remove debug prints before submitting — extra output makes answers wrong. In C++ and
+  Java you can print to the error stream (`cerr`, `System.err`) instead, which judges
+  ignore.
+
+  ## Test the edges
+
+  Most logic bugs live at boundaries. Before submitting, try:
+
+  - the smallest input (n = 1, empty string, 0);
+  - all values equal, or all negative;
+  - the largest values (does anything overflow?);
+  - values exactly at each threshold in your conditions.
+
+  ## Rubber duck
+
+  Explain your code, line by line, out loud (to a rubber duck, a friend, or Socrat). Saying
+  "and here total holds the sum of the first i elements..." is often the moment you hear
+  the bug. This is exactly why Socrat asks *you* to explain before it hints.
+key_points:
+  - Compile, runtime and logic errors need different responses.
+  - Read the first error message carefully — it gives the line and the kind of problem.
+  - Reproduce with the smallest failing input, predict, observe, and find the first wrong value.
+  - Test edge cases before submitting; remove debug output.
+pitfalls:
+  - Changing code randomly until the output looks right.
+  - Fixing the line where the crash appears instead of the reason the value was wrong.
+  - Leaving debug prints in a submission.
+resources:
+  - title: Errors and exceptions
+    url: https://docs.python.org/3/tutorial/errors.html
+    kind: docs
+    source: Python docs
+    minutes: 20
+    languages: [python]
+  - title: Python Tutor – step through code to find the first wrong value
+    url: https://pythontutor.com/
+    kind: visualizer
+    source: Python Tutor
+    minutes: 15
+  - title: "CS50x Week 2: Debugging"
+    url: https://cs50.harvard.edu/x/2024/weeks/2/
+    kind: course
+    source: Harvard CS50
+    minutes: 60
+quiz:
+  - id: first-error
+    kind: mcq
+    prompt: The compiler reports 14 errors. Which should you read first?
+    options: ["The first one", "The last one", "The longest one", "Any of them"]
+    answer: 0
+    explanation: Later errors are often caused by the first. Fix it and recompile.
+    difficulty: 1
+  - id: smallest-case
+    kind: mcq
+    prompt: Your solution fails on a hidden test. What is the most useful next step?
+    options:
+      - Construct the smallest input you can find that also fails
+      - Rewrite the whole program
+      - Submit again
+      - Add more comments
+    answer: 0
+    explanation: A tiny failing case is easy to trace by hand and usually reveals the bug directly.
+    difficulty: 1
+  - id: logic-bug
+    kind: mcq
+    prompt: The program runs with no crash but prints 9 instead of 10. What kind of error is it?
+    options: ["A logic error", "A syntax error", "A runtime error", "A compiler bug"]
+    answer: 0
+    explanation: It ran successfully but computed the wrong value — that is a logic error.
+    difficulty: 1
+  - id: edge-cases
+    kind: mcq
+    prompt: Which input is most likely to reveal an off-by-one bug in a loop over a list?
+    options: ["A list with exactly one element", "A list with 50 random elements", "A list of positive numbers", "Any typical list"]
+    answer: 0
+    explanation: Boundary sizes like 1 (and 0 if allowed) expose loops that start or stop one place wrong.
+    difficulty: 2
+problems: [fix-the-average]

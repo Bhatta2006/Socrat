@@ -1,0 +1,148 @@
+id: lca
+title: Lowest common ancestor and binary lifting
+summary: Jump up a tree by powers of two to answer ancestor, LCA and distance queries in O(log n).
+module: graph-module
+prerequisites: [tree-techniques, dsa:bit-manipulation]
+difficulty: 5
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  Many tree queries reduce to the **lowest common ancestor** (LCA) of two nodes: the deepest
+  node that is an ancestor of both. With it, the distance between u and v is
+  `depth[u] + depth[v] − 2·depth[lca(u, v)]`.
+
+  Walking up one parent at a time is O(n) per query. **Binary lifting** precomputes
+  `up[k][v]` = the 2^k-th ancestor of v, so any jump of length d decomposes into its binary
+  digits: O(log n) jumps.
+
+  ## Building the table
+
+  `up[0][v] = parent[v]`, and `up[k][v] = up[k−1][ up[k−1][v] ]` (two jumps of 2^(k−1)).
+  Use the root as its own parent so jumps past the root stay at the root.
+
+  ## Answering LCA(u, v)
+
+  1. Lift the deeper node until both are at the same depth.
+  2. If they are now equal, that node is the LCA.
+  3. Otherwise, for k from high to low, if `up[k][u] != up[k][v]`, jump both.
+  4. The answer is `up[0][u]`.
+
+  ```python
+  LOG = 18                          # 2^18 > 2·10^5
+  up = [[0] * (n + 1) for _ in range(LOG)]
+  up[0] = parent_with_root_self     # up[0][root] = root
+  for k in range(1, LOG):
+      prev, cur = up[k - 1], up[k]
+      for v in range(1, n + 1):
+          cur[v] = prev[prev[v]]
+
+  def lca(u, v):
+      if depth[u] < depth[v]:
+          u, v = v, u
+      diff = depth[u] - depth[v]
+      for k in range(LOG):
+          if diff >> k & 1:
+              u = up[k][u]
+      if u == v:
+          return u
+      for k in range(LOG - 1, -1, -1):
+          if up[k][u] != up[k][v]:
+              u, v = up[k][u], up[k][v]
+      return up[0][u]
+  ```
+
+  ```cpp
+  const int LOG = 18;
+  int up[LOG][MAXN], depth_[MAXN];
+  int lca(int u, int v) {
+      if (depth_[u] < depth_[v]) swap(u, v);
+      int diff = depth_[u] - depth_[v];
+      for (int k = 0; k < LOG; k++) if (diff >> k & 1) u = up[k][u];
+      if (u == v) return u;
+      for (int k = LOG - 1; k >= 0; k--)
+          if (up[k][u] != up[k][v]) { u = up[k][u]; v = up[k][v]; }
+      return up[0][u];
+  }
+  ```
+
+  ```java
+  static final int LOG = 18;
+  static int[][] up;
+  static int[] depth;
+  static int lca(int u, int v) {
+      if (depth[u] < depth[v]) { int t = u; u = v; v = t; }
+      int diff = depth[u] - depth[v];
+      for (int k = 0; k < LOG; k++) if ((diff >> k & 1) == 1) u = up[k][u];
+      if (u == v) return u;
+      for (int k = LOG - 1; k >= 0; k--)
+          if (up[k][u] != up[k][v]) { u = up[k][u]; v = up[k][v]; }
+      return up[0][u];
+  }
+  ```
+
+  Preprocessing O(n log n), each query O(log n).
+
+  ## Other uses of binary lifting
+
+  - k-th ancestor queries ("Company Queries I").
+  - Jumping along any functional graph `next[v]` k steps (successor graphs).
+  - Path maxima/minima: store the aggregate alongside each jump.
+key_points:
+  - up[k][v] is the 2^k-th ancestor; up[k][v] = up[k−1][up[k−1][v]].
+  - Equalise depths with binary jumps, then lift both while ancestors differ.
+  - Distance(u, v) = depth[u] + depth[v] − 2·depth[lca].
+  - O(n log n) preprocessing, O(log n) per query; also solves k-th ancestor queries.
+pitfalls:
+  - Not making the root its own ancestor (jumps go out of range).
+  - Too few levels (LOG must satisfy 2^LOG > n).
+  - Recursive DFS for depths on deep trees.
+resources:
+  - title: Lowest Common Ancestor — Binary Lifting
+    url: https://cp-algorithms.com/graph/lca_binary_lifting.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 25
+  - title: "USACO Guide: Binary jumping"
+    url: https://usaco.guide/plat/binary-jump
+    kind: article
+    source: USACO Guide
+    minutes: 40
+  - title: Company Queries II
+    url: https://cses.fi/problemset/task/1688
+    kind: interactive
+    source: CSES
+    minutes: 25
+    level: deep
+quiz:
+  - id: jumps
+    kind: mcq
+    prompt: To jump 13 levels up with binary lifting, which jumps do you take?
+    options: ["2^3, 2^2 and 2^0 (8 + 4 + 1)", "13 single steps", "2^4 then back", "2^3 and 2^2"]
+    answer: 0
+    explanation: 13 is 1101 in binary.
+    difficulty: 2
+  - id: distance
+    kind: mcq
+    prompt: depth[u] = 7, depth[v] = 5, depth[lca] = 3. Distance between u and v?
+    options: ["6", "12", "2", "4"]
+    answer: 0
+    explanation: 7 + 5 − 2·3 = 6.
+    difficulty: 1
+  - id: log-size
+    kind: mcq
+    prompt: For n = 200,000, what is the smallest safe LOG?
+    options: ["18", "17", "10", "200000"]
+    answer: 0
+    explanation: 2^17 = 131,072 < 200,000 ≤ 2^18.
+    difficulty: 2
+problems: [tree-distance-queries]
+practice_links:
+  - title: Company Queries I
+    url: https://cses.fi/problemset/task/1687
+    platform: CSES
+    difficulty: medium
+  - title: Company Queries II
+    url: https://cses.fi/problemset/task/1688
+    platform: CSES
+    difficulty: medium

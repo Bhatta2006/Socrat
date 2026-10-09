@@ -1,0 +1,144 @@
+id: boolean-logic
+title: Combining conditions
+summary: Use and, or and not to express exact rules, and reason about them precisely.
+module: control-flow
+prerequisites: [conditionals]
+difficulty: 2
+estimated_minutes: 35
+lesson: |
+  ## The big idea
+
+  Real rules have several parts: "free shipping if the order is over $50 **and** the
+  customer is a member", or "show a warning if the battery is low **or** the device is hot".
+  **Boolean logic** combines true/false values into one precise answer.
+
+  | Idea | Python | C++ / Java |
+  |---|---|---|
+  | both must be true | `and` | `&&` |
+  | at least one is true | `or` | `\|\|` |
+  | flip true/false | `not` | `!` |
+
+  ```python
+  age = 16
+  has_permission = True
+  if age >= 18 or has_permission:
+      print("You may join")
+  ```
+
+  ```cpp
+  int age = 16;
+  bool hasPermission = true;
+  if (age >= 18 || hasPermission) {
+      cout << "You may join\n";
+  }
+  ```
+
+  ```java
+  int age = 16;
+  boolean hasPermission = true;
+  if (age >= 18 || hasPermission) {
+      System.out.println("You may join");
+  }
+  ```
+
+  ## Truth tables
+
+  - `A and B` is true only when **both** are true.
+  - `A or B` is true when **either** (or both) is true.
+  - `not A` is the opposite of A.
+
+  ## Ranges
+
+  "x is between 1 and 10 inclusive" is `x >= 1 and x <= 10`. (Python also allows
+  `1 <= x <= 10`, but C++ and Java do not — in C++, `1 <= x <= 10` compiles but means
+  something different and is almost always a bug.)
+
+  ## Short-circuiting
+
+  With `and`, if the left side is false, the right side is **not even evaluated** — the
+  answer is already false. With `or`, a true left side ends the check. This protects you:
+
+  ```python
+  if count > 0 and total / count > 10:
+      print("high average")
+  ```
+
+  If count is 0, the division never happens, so there is no division-by-zero crash.
+
+  ## De Morgan's laws
+
+  Negating a combined condition flips the connector:
+
+  - `not (A and B)` equals `(not A) or (not B)`
+  - `not (A or B)` equals `(not A) and (not B)`
+
+  "Not (sunny and warm)" means "not sunny, or not warm". Getting this wrong is one of the
+  most common logic bugs — when you negate, flip **and** ↔ **or**.
+
+  ## Worked example: leap years
+
+  A year is a leap year if it is divisible by 4, **except** years divisible by 100 are not,
+  **unless** they are also divisible by 400. As one condition:
+  `(y % 4 == 0 and y % 100 != 0) or y % 400 == 0`. 2000 is a leap year; 1900 is not.
+key_points:
+  - and/&& needs both sides true; or/|| needs at least one; not/! flips.
+  - Express ranges as two comparisons joined by and.
+  - Short-circuiting skips the right side when the answer is already known.
+  - "De Morgan: not (A and B) = not A or not B, and vice versa."
+pitfalls:
+  - Writing `1 <= x <= 10` in C++ or Java.
+  - Negating a compound condition without flipping and/or.
+  - "Writing `x == 1 or 2` instead of `x == 1 or x == 2`."
+resources:
+  - title: "Boolean operations: and, or, not"
+    url: https://docs.python.org/3/library/stdtypes.html
+    kind: docs
+    source: Python docs
+    minutes: 10
+    languages: [python]
+  - title: "CS50x Week 1: Boolean expressions"
+    url: https://cs50.harvard.edu/x/2024/weeks/1/
+    kind: course
+    source: Harvard CS50
+    minutes: 120
+    level: intro
+  - title: "Java Tutorials: The if-then and if-then-else statements"
+    url: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/if.html
+    kind: docs
+    source: Oracle
+    minutes: 10
+    languages: [java]
+quiz:
+  - id: and-or
+    kind: mcq
+    prompt: "If A is true and B is false, what are (A and B) and (A or B)?"
+    options: ["false and true", "true and false", "true and true", "false and false"]
+    answer: 0
+    explanation: and needs both true (so false); or needs at least one (so true).
+    difficulty: 1
+  - id: de-morgan
+    kind: mcq
+    prompt: Which is equivalent to not (x > 5 and y > 5)?
+    options: ["x <= 5 or y <= 5", "x <= 5 and y <= 5", "x > 5 or y > 5", "x < 5 and y < 5"]
+    answer: 0
+    explanation: Negate each part (> becomes <=) and flip and to or.
+    difficulty: 3
+  - id: range-check
+    kind: mcq
+    prompt: Which condition means "x is from 1 to 10 inclusive" in every language?
+    options: ["x >= 1 and x <= 10", "x >= 1 or x <= 10", "x > 1 and x < 10", "1 <= x or x <= 10"]
+    answer: 0
+    explanation: Both bounds must hold, so join two comparisons with and, using >= and <= for inclusive.
+    difficulty: 2
+  - id: short-circuit
+    kind: mcq
+    prompt: "In `count != 0 and total / count > 2`, what happens when count is 0?"
+    options:
+      - The division is skipped and the whole condition is false
+      - The program crashes dividing by zero
+      - The condition is true
+      - Both sides are evaluated anyway
+    answer: 0
+    explanation: Because the left side is false, and already knows the answer and never evaluates the right side.
+    difficulty: 2
+problems: [leap-year]

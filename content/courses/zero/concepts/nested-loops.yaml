@@ -1,0 +1,174 @@
+id: nested-loops
+title: Nested loops
+summary: Put a loop inside a loop to handle rows and columns, pairs, and patterns.
+module: control-flow
+prerequisites: [for-loops]
+difficulty: 2
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  A loop's body can contain *another* loop. For **each** round of the outer loop, the
+  inner loop runs **all** of its rounds. This is how you walk through rows and columns,
+  compare every pair of items, or draw patterns.
+
+  ```python
+  for row in range(1, 4):
+      line = ""
+      for col in range(1, 4):
+          line += str(row * col) + " "
+      print(line)
+  ```
+
+  ```cpp
+  for (int row = 1; row <= 3; row++) {
+      for (int col = 1; col <= 3; col++) {
+          cout << row * col << " ";
+      }
+      cout << "\n";
+  }
+  ```
+
+  ```java
+  for (int row = 1; row <= 3; row++) {
+      for (int col = 1; col <= 3; col++) {
+          System.out.print(row * col + " ");
+      }
+      System.out.println();
+  }
+  ```
+
+  Output — a multiplication table:
+
+  ```text
+  1 2 3
+  2 4 6
+  3 6 9
+  ```
+
+  ## Counting the work
+
+  If the outer loop runs `n` times and the inner loop runs `m` times per outer round, the
+  body runs `n × m` times. With n = m = 1000 that is a million rounds. This "multiply the
+  loop sizes" habit is the seed of **time complexity**, which you will study in depth
+  later.
+
+  ## The inner loop can depend on the outer
+
+  To print a staircase, the inner loop length grows with the row:
+
+  ```python
+  n = 4
+  for row in range(1, n + 1):
+      print("*" * row)
+  ```
+
+  ```cpp
+  int n = 4;
+  for (int row = 1; row <= n; row++) {
+      for (int k = 0; k < row; k++) cout << '*';
+      cout << "\n";
+  }
+  ```
+
+  ```java
+  int n = 4;
+  for (int row = 1; row <= n; row++) {
+      for (int k = 0; k < row; k++) System.out.print('*');
+      System.out.println();
+  }
+  ```
+
+  ```text
+  *
+  **
+  ***
+  ****
+  ```
+
+  ## Pairs
+
+  To consider every pair (i, j) with i < j, start the inner loop just after the outer
+  index: `for j in range(i + 1, n)`. That visits each unordered pair exactly once and
+  never pairs an item with itself.
+
+  ## Tips
+
+  - Name your counters meaningfully (`row`, `col`) instead of `i`, `j`, `k` everywhere.
+  - Know which loop "owns" each statement: the newline belongs after the inner loop.
+  - `break` only exits the innermost loop.
+key_points:
+  - For every outer round, the inner loop runs completely.
+  - Total work is the product of the loop sizes.
+  - Inner bounds may depend on the outer counter (triangles, pairs with i < j).
+  - break exits only the innermost loop.
+pitfalls:
+  - Putting the newline inside the inner loop instead of after it.
+  - Reusing the same counter name for both loops.
+  - Not noticing that nested loops over large inputs are slow.
+resources:
+  - title: "Learn C++: For statements (nested loops section)"
+    url: https://www.learncpp.com/cpp-tutorial/for-statements/
+    kind: article
+    source: LearnCpp
+    minutes: 15
+    languages: [cpp]
+  - title: Python Tutor – visualize nested loops
+    url: https://pythontutor.com/
+    kind: visualizer
+    source: Python Tutor
+    minutes: 10
+  - title: "CS50x Week 1: Loops and nested loops (Mario)"
+    url: https://cs50.harvard.edu/x/2024/weeks/1/
+    kind: course
+    source: Harvard CS50
+    minutes: 120
+quiz:
+  - id: body-count
+    kind: mcq
+    prompt: An outer loop runs 5 times and its inner loop runs 4 times each round. How many times does the inner body run?
+    options: ["20", "9", "5", "4"]
+    answer: 0
+    explanation: Each of the 5 outer rounds runs the inner loop 4 times, so 5 × 4 = 20.
+    difficulty: 1
+  - id: triangle
+    kind: output
+    prompt: How many stars are printed in total?
+    code:
+      python: |
+        for row in range(1, 4):
+            print("*" * row)
+      cpp: |
+        for (int row = 1; row <= 3; row++) {
+            for (int k = 0; k < row; k++) cout << '*';
+            cout << "\n";
+        }
+      java: |
+        for (int row = 1; row <= 3; row++) {
+            for (int k = 0; k < row; k++) System.out.print('*');
+            System.out.println();
+        }
+    options: ["6", "9", "3", "4"]
+    answer: 0
+    explanation: Rows have 1, 2 and 3 stars, so 1 + 2 + 3 = 6.
+    difficulty: 2
+  - id: pairs
+    kind: mcq
+    prompt: To visit every pair of different items exactly once, the inner loop index j should start at...
+    options: ["i + 1", "0", "i", "n"]
+    answer: 0
+    explanation: Starting after i skips pairing an item with itself and avoids visiting (i, j) and (j, i) twice.
+    difficulty: 2
+  - id: break-inner
+    kind: mcq
+    prompt: A break inside the inner loop does what?
+    options: ["Exits only the inner loop", "Exits both loops", "Ends the program", "Skips one inner round"]
+    answer: 0
+    explanation: break leaves the innermost loop that contains it; the outer loop continues.
+    difficulty: 2
+problems: [staircase, pair-count]
+practice_links:
+  - title: Beautiful Matrix
+    url: https://codeforces.com/problemset/problem/263/A
+    platform: Codeforces
+    difficulty: easy

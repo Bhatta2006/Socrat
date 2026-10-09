@@ -1,0 +1,168 @@
+id: arrays-hashing
+title: Arrays and hashing
+summary: Use hash maps and sets to turn repeated searching into instant lookups — the #1 interview pattern.
+module: foundations
+prerequisites: [complexity, zero:maps]
+difficulty: 2
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  Many brute-force solutions spend their time **searching**: "is there an earlier element
+  that...?", "how many times have I seen...?". A **hash map** or **hash set** answers those
+  questions in O(1) on average, turning O(n²) scans into a single O(n) pass.
+
+  ## How hashing works (just enough)
+
+  A hash table computes a number from each key (the *hash*) and uses it to pick a bucket in
+  an array. Lookup jumps straight to the bucket instead of scanning. Collisions (two keys,
+  one bucket) are handled internally, so operations are O(1) **on average**.
+
+  ## Pattern 1 — complement lookup (Two Sum)
+
+  For each x, the partner you need is `target − x`. Store what you have seen, mapped to
+  where you saw it.
+
+  ```python
+  def two_sum(nums, target):
+      index_of = {}
+      for i, x in enumerate(nums):
+          if target - x in index_of:
+              return [index_of[target - x], i]
+          index_of[x] = i
+      return []
+  ```
+
+  ```cpp
+  vector<int> twoSum(const vector<int>& nums, int target) {
+      unordered_map<int, int> indexOf;
+      for (int i = 0; i < (int)nums.size(); i++) {
+          auto it = indexOf.find(target - nums[i]);
+          if (it != indexOf.end()) return {it->second, i};
+          indexOf[nums[i]] = i;
+      }
+      return {};
+  }
+  ```
+
+  ```java
+  static int[] twoSum(int[] nums, int target) {
+      HashMap<Integer, Integer> indexOf = new HashMap<>();
+      for (int i = 0; i < nums.length; i++) {
+          Integer j = indexOf.get(target - nums[i]);
+          if (j != null) return new int[]{j, i};
+          indexOf.put(nums[i], i);
+      }
+      return new int[0];
+  }
+  ```
+
+  Checking **before** inserting guarantees you never pair an element with itself.
+
+  ## Pattern 2 — frequency counting
+
+  Count occurrences, then reason about the counts: anagrams (equal letter counts),
+  majority element, top-k frequent, first unique character.
+
+  ## Pattern 3 — canonical keys (grouping)
+
+  Group things that are "the same" under some view by mapping each to a **canonical key**:
+  sorted letters for anagrams (`"eat"` → `"aet"`), a tuple of counts, or a normalised
+  form. Items with the same key land in the same group.
+
+  ## Arrays: the in-place toolkit
+
+  Hashing is not always needed. Arrays support O(1) access by index, so when values are in
+  a small known range (like 26 letters or 0..n), a **counting array** beats a hash map in
+  speed and simplicity. Other array tricks: precomputing from the left and right (product
+  of array except self), and using the array itself as a marker when values are in 1..n.
+
+  ## Interview checklist
+
+  1. State the brute force and its complexity.
+  2. Ask: *what am I repeatedly searching for?*
+  3. Store exactly that in a map/set as you scan.
+  4. Re-state the new complexity: usually O(n) time, O(n) space.
+key_points:
+  - Hash maps/sets give O(1) average lookup, turning repeated searches into one pass.
+  - Complement lookup — store what you've seen, look for target − x.
+  - Frequency counting solves anagram, majority and top-k style questions.
+  - Canonical keys group equivalent items.
+  - For small known ranges, a counting array beats a hash map.
+pitfalls:
+  - Inserting before checking, and pairing an element with itself.
+  - Forgetting that hash maps are unordered when output order matters.
+  - Using mutable lists as Python dict keys (use tuples or strings).
+resources:
+  - title: Two Sum – HashMap
+    url: https://www.youtube.com/watch?v=KLlXCFG5TnA
+    kind: video
+    source: NeetCode
+    minutes: 8
+  - title: "Tech Interview Handbook: Hash table cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/hash-table/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+  - title: Hash tables visualized
+    url: https://visualgo.net/en/hashtable
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 15
+  - title: Product of Array Except Self
+    url: https://www.youtube.com/watch?v=bNvIQI2wAjk
+    kind: video
+    source: NeetCode
+    minutes: 11
+    level: deep
+quiz:
+  - id: two-sum-complexity
+    kind: mcq
+    prompt: Two Sum with a hash map runs in what time?
+    options: ["O(n)", "O(n²)", "O(n log n)", "O(1)"]
+    answer: 0
+    explanation: One pass, with an O(1) average lookup per element.
+    difficulty: 1
+  - id: anagram-key
+    kind: mcq
+    prompt: To group anagrams, which key works for every word?
+    options: ["The word's letters sorted", "The word's length", "The first letter", "The word reversed"]
+    answer: 0
+    explanation: Anagrams have exactly the same sorted letters, so they share that key.
+    difficulty: 2
+  - id: check-before-insert
+    kind: mcq
+    prompt: In Two Sum, why check for target − x before inserting x?
+    options:
+      - So an element is never paired with itself
+      - Inserting is slower than checking
+      - Maps cannot store duplicates
+      - It makes no difference
+    answer: 0
+    explanation: If target = 2x, inserting first would let x match itself.
+    difficulty: 2
+  - id: counting-array
+    kind: mcq
+    prompt: You must count lowercase letters in a string. What is the simplest O(1)-space structure?
+    options: ["An array of 26 counters", "A sorted list", "A hash map of strings", "A 2D grid"]
+    answer: 0
+    explanation: With a fixed small key range, index = letter − 'a' into a 26-slot array.
+    difficulty: 2
+problems: [valid-anagram, top-k-frequent]
+practice_links:
+  - title: Two Sum
+    url: https://leetcode.com/problems/two-sum/
+    platform: LeetCode
+    difficulty: easy
+  - title: Group Anagrams
+    url: https://leetcode.com/problems/group-anagrams/
+    platform: LeetCode
+    difficulty: medium
+  - title: Product of Array Except Self
+    url: https://leetcode.com/problems/product-of-array-except-self/
+    platform: LeetCode
+    difficulty: medium
+  - title: Sum of Two Values
+    url: https://cses.fi/problemset/task/1640
+    platform: CSES
+    difficulty: easy

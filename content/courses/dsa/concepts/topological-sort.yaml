@@ -1,0 +1,167 @@
+id: topological-sort
+title: Topological sort
+summary: Order tasks so every prerequisite comes first — and detect impossible cycles.
+module: graphs
+prerequisites: [graph-traversal]
+difficulty: 4
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Courses with prerequisites, build steps, spreadsheet formulas, package installs: each is
+  a **directed graph** where an edge `a → b` means "a must come before b". A **topological
+  order** lists all nodes so every edge points forward. It exists **exactly when the graph
+  has no directed cycle** (a DAG). (Socrat itself orders your curriculum this way!)
+
+  ## Kahn's algorithm (BFS with in-degrees)
+
+  1. Count each node's **in-degree** (number of incoming edges).
+  2. Put every node with in-degree 0 into a queue — nothing blocks them.
+  3. Repeatedly remove a node, append it to the order, and decrement its neighbours'
+     in-degrees; any neighbour reaching 0 joins the queue.
+  4. If the order contains fewer than n nodes, the remaining ones lie on a **cycle**.
+
+  ```python
+  from collections import deque
+  def topo(n, edges):
+      adj = [[] for _ in range(n + 1)]
+      indeg = [0] * (n + 1)
+      for a, b in edges:
+          adj[a].append(b)
+          indeg[b] += 1
+      q = deque(v for v in range(1, n + 1) if indeg[v] == 0)
+      order = []
+      while q:
+          u = q.popleft()
+          order.append(u)
+          for v in adj[u]:
+              indeg[v] -= 1
+              if indeg[v] == 0:
+                  q.append(v)
+      return order if len(order) == n else None    # None = cycle
+  ```
+
+  ```cpp
+  vector<int> topo(int n, const vector<pair<int,int>>& edges) {
+      vector<vector<int>> adj(n + 1);
+      vector<int> indeg(n + 1, 0), order;
+      for (auto [a, b] : edges) { adj[a].push_back(b); indeg[b]++; }
+      queue<int> q;
+      for (int v = 1; v <= n; v++) if (!indeg[v]) q.push(v);
+      while (!q.empty()) {
+          int u = q.front(); q.pop();
+          order.push_back(u);
+          for (int v : adj[u]) if (--indeg[v] == 0) q.push(v);
+      }
+      if ((int)order.size() < n) order.clear();   // cycle
+      return order;
+  }
+  ```
+
+  ```java
+  static List<Integer> topo(int n, int[][] edges) {
+      List<List<Integer>> adj = new ArrayList<>();
+      for (int i = 0; i <= n; i++) adj.add(new ArrayList<>());
+      int[] indeg = new int[n + 1];
+      for (int[] e : edges) { adj.get(e[0]).add(e[1]); indeg[e[1]]++; }
+      ArrayDeque<Integer> q = new ArrayDeque<>();
+      for (int v = 1; v <= n; v++) if (indeg[v] == 0) q.add(v);
+      List<Integer> order = new ArrayList<>();
+      while (!q.isEmpty()) {
+          int u = q.poll();
+          order.add(u);
+          for (int v : adj.get(u)) if (--indeg[v] == 0) q.add(v);
+      }
+      return order.size() == n ? order : null;    // null = cycle
+  }
+  ```
+
+  O(V + E).
+
+  ## Choosing among valid orders
+
+  Many orders may be valid. If a problem asks for the **lexicographically smallest** one,
+  replace the queue with a **min-heap**: always take the smallest available node.
+  O((V + E) log V).
+
+  ## DFS alternative
+
+  Run DFS; when a node **finishes** (all descendants done), push it on a list. The reversed
+  finishing order is topological. Detect cycles by finding an edge to a node still "in
+  progress" on the current DFS path.
+
+  ## Beyond ordering
+
+  Once you have a topological order, you can do **DP on a DAG**: longest path, number of
+  paths, earliest finish times — processing nodes in order guarantees every predecessor is
+  already computed.
+key_points:
+  - A topological order puts every prerequisite before what depends on it.
+  - It exists iff the directed graph has no cycle.
+  - Kahn's algorithm repeatedly removes in-degree-0 nodes; leftovers indicate a cycle.
+  - A min-heap instead of a queue yields the lexicographically smallest order.
+  - Topological order enables DP on DAGs.
+pitfalls:
+  - Reversing edge direction (a → b must mean a before b).
+  - Forgetting to report cycles when the order is incomplete.
+  - Using a plain queue when the smallest valid order is required.
+resources:
+  - title: Course Schedule – Graph Adjacency List
+    url: https://www.youtube.com/watch?v=EgI5nU9etnU
+    kind: video
+    source: NeetCode
+    minutes: 16
+  - title: Topological Sorting
+    url: https://cp-algorithms.com/graph/topological-sort.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 15
+  - title: Course Schedule (CSES)
+    url: https://cses.fi/problemset/task/1679
+    kind: interactive
+    source: CSES
+    minutes: 20
+    level: deep
+quiz:
+  - id: exists
+    kind: mcq
+    prompt: When does a directed graph have a topological order?
+    options: ["Exactly when it has no directed cycle", "Always", "Only when it is connected", "Only when every node has an edge"]
+    answer: 0
+    explanation: A cycle would require some node to come before itself.
+    difficulty: 1
+  - id: start
+    kind: mcq
+    prompt: Kahn's algorithm starts with which nodes?
+    options: ["Nodes with in-degree 0", "Nodes with out-degree 0", "Node 1 only", "The node with most edges"]
+    answer: 0
+    explanation: Nothing must come before an in-degree-0 node, so it can go first.
+    difficulty: 1
+  - id: cycle-detect
+    kind: mcq
+    prompt: Kahn's algorithm outputs 7 of 10 nodes and the queue empties. What does that mean?
+    options: ["The remaining 3 nodes involve a cycle", "The graph is disconnected", "There is a bug", "Three nodes have no edges"]
+    answer: 0
+    explanation: Nodes on (or behind) a cycle never reach in-degree 0.
+    difficulty: 2
+  - id: lexi
+    kind: mcq
+    prompt: How do you get the lexicographically smallest topological order?
+    options: ["Use a min-heap instead of a FIFO queue", "Sort the final order", "Use DFS", "Reverse the edges"]
+    answer: 0
+    explanation: Always choosing the smallest available node produces the smallest order; sorting afterwards breaks validity.
+    difficulty: 3
+problems: [course-order]
+practice_links:
+  - title: Course Schedule
+    url: https://leetcode.com/problems/course-schedule/
+    platform: LeetCode
+    difficulty: medium
+  - title: Course Schedule II
+    url: https://leetcode.com/problems/course-schedule-ii/
+    platform: LeetCode
+    difficulty: medium
+  - title: Course Schedule
+    url: https://cses.fi/problemset/task/1679
+    platform: CSES
+    difficulty: medium

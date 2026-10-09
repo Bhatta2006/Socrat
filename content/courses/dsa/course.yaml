@@ -1,0 +1,54 @@
+id: dsa
+title: DSA for Interviews
+tagline: Recognise the pattern, explain the trade-off, solve it independently.
+description: >-
+  The data structures and algorithm patterns that coding interviews actually test, taught
+  as reusable patterns rather than memorised answers. Each topic ends with unseen
+  problems you solve on your own, so you walk into interviews knowing you can do it.
+version: 1.0.0
+languages: [python, cpp, java]
+levels:
+  - id: new-to-programming
+    label: I'm new to programming
+    description: We'll build the programming foundations first, then the interview patterns.
+  - id: knows-basics
+    label: I know the basics of one language
+    description: Loops, lists and functions are fine; data structures are new.
+    start_concept: complexity
+  - id: some-dsa
+    label: I've studied some DSA
+    description: Arrays, hashing and sorting feel okay; trees, graphs and DP are shaky.
+    start_concept: binary-search
+  - id: interview-ready-ish
+    label: I've done a lot of practice
+    description: Find the remaining gaps before your interviews.
+    start_concept: graph-traversal
+modules:
+  - id: foundations
+    title: Foundations
+    summary: Measure efficiency and master the array and hash map toolkit.
+    concepts: [complexity, arrays-hashing, prefix-sums]
+  - id: linear-patterns
+    title: Linear patterns
+    summary: Two pointers, sliding windows, stacks and binary search.
+    concepts: [two-pointers, sliding-window, stacks, binary-search]
+  - id: ordering
+    title: Sorting and greedy
+    summary: Sort to reveal structure, then make provably safe greedy choices.
+    concepts: [sorting, intervals, greedy]
+  - id: recursive-structures
+    title: Linked structures and backtracking
+    summary: Pointers, nodes and exhaustive search done cleanly.
+    concepts: [linked-lists, backtracking]
+  - id: trees
+    title: Trees and heaps
+    summary: Recursive data, ordered trees, priority queues and prefix trees.
+    concepts: [binary-trees, bst, heaps, tries]
+  - id: graphs
+    title: Graphs
+    summary: Traverse, order, connect and find shortest paths.
+    concepts: [graph-traversal, topological-sort, union-find, shortest-paths]
+  - id: dynamic-programming
+    title: Dynamic programming and bits
+    summary: Turn exponential search into polynomial tables; use bits as tools.
+    concepts: [dp-1d, dp-2d, bit-manipulation]

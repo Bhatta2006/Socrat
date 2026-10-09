@@ -1,0 +1,150 @@
+id: heaps
+title: Heaps and priority queues
+summary: Always get the smallest (or largest) item in O(log n) — the engine behind top-k, scheduling and Dijkstra.
+module: trees
+prerequisites: [binary-trees]
+difficulty: 3
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  A **priority queue** hands you the most important item first: the smallest deadline,
+  the largest score, the closest node. A **binary heap** implements it as a complete binary
+  tree stored in an array, where every parent is ≤ its children (a **min-heap**). The
+  minimum is always at the root.
+
+  | Operation | Cost |
+  |---|---|
+  | peek min | O(1) |
+  | push | O(log n) |
+  | pop min | O(log n) |
+  | build from n items | O(n) |
+
+  ## Using the library
+
+  ```python
+  import heapq
+  h = []
+  heapq.heappush(h, 5)
+  heapq.heappush(h, 1)
+  heapq.heappush(h, 3)
+  print(heapq.heappop(h))      # 1  (min-heap)
+  # Max-heap: push negatives, e.g. heappush(h, -x), and negate when popping.
+  ```
+
+  ```cpp
+  #include <queue>
+  priority_queue<int> maxHeap;                                  // max-heap by default!
+  priority_queue<int, vector<int>, greater<int>> minHeap;       // min-heap
+  minHeap.push(5); minHeap.push(1); minHeap.push(3);
+  cout << minHeap.top() << "\n";  // 1
+  minHeap.pop();
+  ```
+
+  ```java
+  PriorityQueue<Integer> minHeap = new PriorityQueue<>();            // min-heap
+  PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+  minHeap.add(5); minHeap.add(1); minHeap.add(3);
+  System.out.println(minHeap.poll());   // 1
+  ```
+
+  Note the defaults: **Python and Java are min-heaps, C++ is a max-heap.**
+
+  ## How it works inside
+
+  In the array, node `i` has children `2i+1` and `2i+2` and parent `(i−1)/2`. **Push**
+  appends at the end and *sifts up* while smaller than its parent. **Pop** moves the last
+  element to the root and *sifts down*, swapping with the smaller child. Both walk one
+  root-to-leaf path: O(log n) because the tree is always complete.
+
+  ## Pattern: top-k with a size-k heap
+
+  To keep the **k largest** values of a stream, keep a **min-heap of size k**: push each
+  value, and if the heap grows beyond k, pop the smallest. The root is then the k-th
+  largest. O(n log k) time, O(k) space — far better than sorting everything when k is small.
+
+  ```python
+  def kth_largest(stream, k):
+      h = []
+      for x in stream:
+          heapq.heappush(h, x)
+          if len(h) > k:
+              heapq.heappop(h)
+      return h[0]
+  ```
+
+  ## More heap patterns
+
+  - **Merge k sorted lists**: heap of the current head of each list.
+  - **Scheduling**: always run the task with the earliest deadline / highest priority.
+  - **Median of a stream**: a max-heap for the lower half and a min-heap for the upper half.
+  - **Dijkstra's shortest paths**: always expand the closest unvisited node.
+key_points:
+  - Heaps give O(1) peek and O(log n) push/pop of the min (or max).
+  - Python and Java default to min-heaps; C++ priority_queue defaults to max.
+  - Array layout - children at 2i+1, 2i+2; sift up on push, sift down on pop.
+  - Top-k - keep a min-heap of size k for the k largest.
+  - Two heaps maintain a running median.
+pitfalls:
+  - Forgetting C++'s default max-heap behaviour.
+  - Sorting everything when a size-k heap suffices.
+  - Searching a heap for arbitrary elements (O(n)) — heaps only make the top fast.
+resources:
+  - title: "Data Structures: Heaps"
+    url: https://www.youtube.com/watch?v=t0Cq6tVNRBA
+    kind: video
+    source: HackerRank
+    minutes: 10
+  - title: Binary heap visualized
+    url: https://visualgo.net/en/heap
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 15
+  - title: "Tech Interview Handbook: Heap cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/heap/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: pop-cost
+    kind: mcq
+    prompt: What does popping the minimum from a binary heap of n items cost?
+    options: ["O(log n)", "O(1)", "O(n)", "O(n log n)"]
+    answer: 0
+    explanation: The replacement element sifts down one path of a complete tree, about log n levels.
+    difficulty: 1
+  - id: cpp-default
+    kind: mcq
+    prompt: In C++, std::priority_queue<int> by default returns...
+    options: ["The largest element first", "The smallest element first", "Elements in insertion order", "A random element"]
+    answer: 0
+    explanation: C++ defaults to a max-heap; use greater<int> for a min-heap.
+    difficulty: 2
+  - id: topk
+    kind: mcq
+    prompt: To track the k largest values of a stream, which heap do you keep?
+    options: ["A min-heap of size k", "A max-heap of all values", "A min-heap of all values", "A max-heap of size k"]
+    answer: 0
+    explanation: The min-heap's root is the weakest of the top k, so it's the one to evict.
+    difficulty: 3
+  - id: children
+    kind: mcq
+    prompt: In a 0-indexed array heap, where are the children of index 3?
+    options: ["7 and 8", "6 and 7", "4 and 5", "1 and 2"]
+    answer: 0
+    explanation: Children are at 2i + 1 = 7 and 2i + 2 = 8.
+    difficulty: 2
+problems: [kth-largest-stream]
+practice_links:
+  - title: Kth Largest Element in a Stream
+    url: https://leetcode.com/problems/kth-largest-element-in-a-stream/
+    platform: LeetCode
+    difficulty: easy
+  - title: Last Stone Weight
+    url: https://leetcode.com/problems/last-stone-weight/
+    platform: LeetCode
+    difficulty: easy
+  - title: Find Median from Data Stream
+    url: https://leetcode.com/problems/find-median-from-data-stream/
+    platform: LeetCode
+    difficulty: hard

@@ -1,0 +1,174 @@
+id: maps
+title: Dictionaries and maps
+summary: Store key → value pairs and look values up instantly by key instead of searching.
+module: collections
+prerequisites: [strings]
+difficulty: 2
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  A list answers "what is at position 3?". A **map** (Python **dictionary**) answers
+  "what is stored for this *key*?" — for example, a word's count, a user's score, or a
+  country's capital. Lookup by key is (on average) **instant**, no matter how many entries
+  there are. That speed makes maps the most useful data structure in everyday programming.
+
+  ```python
+  ages = {"ada": 36, "alan": 41}
+  ages["grace"] = 85            # add or update
+  print(ages["ada"])            # 36
+  print("bob" in ages)          # False
+  print(ages.get("bob", 0))     # 0 (default when missing)
+  for name, age in ages.items():
+      print(name, age)
+  ```
+
+  ```cpp
+  #include <unordered_map>
+  unordered_map<string, int> ages = {{"ada", 36}, {"alan", 41}};
+  ages["grace"] = 85;                       // add or update
+  cout << ages["ada"] << "\n";              // 36
+  cout << ages.count("bob") << "\n";        // 0 (not present)
+  for (auto &[name, age] : ages) cout << name << " " << age << "\n";
+  ```
+
+  ```java
+  import java.util.HashMap;
+  HashMap<String, Integer> ages = new HashMap<>();
+  ages.put("ada", 36);
+  ages.put("grace", 85);                       // add or update
+  System.out.println(ages.get("ada"));         // 36
+  System.out.println(ages.containsKey("bob")); // false
+  System.out.println(ages.getOrDefault("bob", 0));
+  for (var e : ages.entrySet()) System.out.println(e.getKey() + " " + e.getValue());
+  ```
+
+  Keys are **unique**: assigning to an existing key replaces its value.
+
+  ## Counting with a map
+
+  The single most common use: count how often each thing appears.
+
+  ```python
+  counts = {}
+  for word in input().split():
+      counts[word] = counts.get(word, 0) + 1
+  ```
+
+  ```cpp
+  unordered_map<string, int> counts;
+  string word;
+  while (cin >> word) counts[word]++;   // missing keys start at 0
+  ```
+
+  ```java
+  HashMap<String, Integer> counts = new HashMap<>();
+  for (String word : line.split(" ")) counts.merge(word, 1, Integer::sum);
+  ```
+
+  ## Ordered vs unordered
+
+  Hash maps do not keep keys sorted. Python dictionaries remember **insertion order**.
+  C++ `map` and Java `TreeMap` keep keys **sorted** (lookups take slightly longer). When a
+  problem asks for output "in alphabetical order", either use a sorted map or sort the
+  keys before printing.
+
+  ## Sets
+
+  A **set** is a map with keys only — perfect for "have I seen this before?":
+  Python `set()`, C++ `unordered_set`, Java `HashSet`.
+
+  ## Why it matters
+
+  The question "does any earlier number pair with this one to make the target?" takes a
+  nested loop with lists, but a single pass with a set. You will see this trick
+  constantly in interviews.
+key_points:
+  - Maps store key → value pairs; keys are unique.
+  - Lookup, insert and update by key are fast on average, regardless of size.
+  - Counting occurrences is the classic map pattern.
+  - Hash maps are unordered; use a sorted map or sort keys when order matters.
+  - A set stores unique keys for fast "seen before?" checks.
+pitfalls:
+  - Reading a missing key (Python KeyError; C++ [] silently inserts 0).
+  - Printing results in hash order when sorted order was required.
+  - Using a list and searching it repeatedly when a map would be instant.
+resources:
+  - title: "Data Structures: dictionaries and sets"
+    url: https://docs.python.org/3/tutorial/datastructures.html
+    kind: docs
+    source: Python docs
+    minutes: 15
+    languages: [python]
+  - title: std::unordered_map reference
+    url: https://en.cppreference.com/w/cpp/container/unordered_map
+    kind: docs
+    source: cppreference
+    minutes: 10
+    languages: [cpp]
+  - title: "Java Tutorials: The Map interface"
+    url: https://docs.oracle.com/javase/tutorial/collections/interfaces/map.html
+    kind: docs
+    source: Oracle
+    minutes: 15
+    languages: [java]
+  - title: Hash tables visualized
+    url: https://visualgo.net/en/hashtable
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 15
+    level: deep
+quiz:
+  - id: unique-keys
+    kind: output
+    prompt: What is printed?
+    code:
+      python: |
+        d = {}
+        d["x"] = 1
+        d["y"] = 2
+        d["x"] = 5
+        print(len(d), d["x"])
+      cpp: |
+        unordered_map<string,int> d;
+        d["x"] = 1; d["y"] = 2; d["x"] = 5;
+        cout << d.size() << " " << d["x"];
+      java: |
+        HashMap<String,Integer> d = new HashMap<>();
+        d.put("x", 1); d.put("y", 2); d.put("x", 5);
+        System.out.println(d.size() + " " + d.get("x"));
+    options: ["2 5", "3 5", "2 1", "3 1"]
+    answer: 0
+    explanation: Keys are unique; the second "x" replaces the value 1 with 5. There are two keys.
+    difficulty: 2
+  - id: which-structure
+    kind: mcq
+    prompt: You need to know how many times each word appears in a book. Best choice?
+    options: ["A map from word to count", "A list of words searched each time", "A single integer", "A sorted list of counts"]
+    answer: 0
+    explanation: A map gives instant lookup and update per word — one pass over the book.
+    difficulty: 1
+  - id: set-use
+    kind: mcq
+    prompt: Which question is a set perfect for?
+    options: ["Have I seen this value before?", "What is the 5th element?", "What is the sum?", "Which value is largest?"]
+    answer: 0
+    explanation: Sets answer membership questions quickly.
+    difficulty: 1
+  - id: order
+    kind: mcq
+    prompt: A problem says "print each word and its count in alphabetical order". What must you do with a hash map?
+    options: ["Sort the keys before printing", "Nothing, hash maps are sorted", "Reverse the map", "Use a list instead"]
+    answer: 0
+    explanation: Hash maps have no guaranteed sorted order. Sort the keys (or use a sorted map such as C++ map or Java TreeMap).
+    difficulty: 2
+problems: [word-frequency, first-repeat]
+practice_links:
+  - title: Distinct Numbers
+    url: https://cses.fi/problemset/task/1621
+    platform: CSES
+    difficulty: easy
+  - title: Two Sum
+    url: https://leetcode.com/problems/two-sum/
+    platform: LeetCode
+    difficulty: easy

@@ -1,0 +1,137 @@
+id: greedy-cp
+title: Greedy in contests
+summary: Find the sort key, make the safe choice, prove it with an exchange — and use a multiset when choices interact.
+module: techniques
+prerequisites: [dsa:greedy, fast-io]
+difficulty: 4
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  Contest greedy problems usually hide a **sort order** and a **safe choice**: process items
+  in the right order and, for each, do the locally best thing that never hurts later
+  choices. The difficulty is finding *which* order and *which* choice — and convincing
+  yourself (quickly!) that it is correct.
+
+  ## A toolbox of greedy patterns
+
+  1. **Sort by end** — interval scheduling, maximum non-overlapping tasks.
+  2. **Pair extremes** — sort, match the smallest with the largest (two pointers): e.g.
+     fewest gondolas when each holds at most two people under a weight limit.
+  3. **Best available match with a multiset** — each customer takes the most expensive
+     ticket not exceeding their budget: keep tickets in a sorted multiset and remove the
+     chosen one (`multiset::upper_bound` in C++, `TreeMap` counts in Java).
+  4. **Sort by a ratio or a comparison of pairs** — when ordering two adjacent items, swap
+     them if `a then b` is worse than `b then a`; that comparison *is* your sort key.
+  5. **Regret / heap greedy** — take everything tentatively and use a heap to drop the worst
+     choice when a constraint is violated (deadline scheduling).
+
+  ```python
+  # Pair extremes: minimum boats when each boat carries at most 2 people, weight ≤ limit.
+  def boats(weights, limit):
+      weights.sort()
+      i, j, count = 0, len(weights) - 1, 0
+      while i <= j:
+          if weights[i] + weights[j] <= limit:
+              i += 1            # lightest rides with heaviest
+          j -= 1                # heaviest always leaves
+          count += 1
+      return count
+  ```
+
+  ```cpp
+  int boats(vector<int> w, int limit) {
+      sort(w.begin(), w.end());
+      int i = 0, j = (int)w.size() - 1, count = 0;
+      while (i <= j) {
+          if (w[i] + w[j] <= limit) i++;
+          j--; count++;
+      }
+      return count;
+  }
+  ```
+
+  ```java
+  static int boats(int[] w, int limit) {
+      Arrays.sort(w);
+      int i = 0, j = w.length - 1, count = 0;
+      while (i <= j) {
+          if (w[i] + w[j] <= limit) i++;
+          j--; count++;
+      }
+      return count;
+  }
+  ```
+
+  Exchange argument: the heaviest person must ride with *someone* or alone; pairing them
+  with the lightest is never worse than any other partner.
+
+  ## Contest habits
+
+  - Try 2–3 candidate orders on the samples **and** on a tricky case you invent.
+  - If unsure, write a brute force and stress-test (see Complete search).
+  - Watch Java's `Arrays.sort` on `int[]`: it uses dual-pivot quicksort, which can be
+    attacked with anti-quicksort tests; shuffle first or sort an `Integer[]`/`long[]` via
+    objects.
+key_points:
+  - Greedy = right sort order + safe local choice + exchange-argument proof.
+  - Pair extremes with two pointers; best-available matches with a sorted multiset.
+  - The adjacent-swap comparison often gives the sort key directly.
+  - Stress-test greedy ideas against brute force.
+pitfalls:
+  - Trusting a greedy that passes samples but has no proof.
+  - Removing the wrong copy from a multiset (erase(value) removes all copies in C++).
+  - Java primitive-array sort worst cases in hacked tests.
+resources:
+  - title: "USACO Guide: Greedy algorithms with sorting"
+    url: https://usaco.guide/silver/greedy-sorting
+    kind: article
+    source: USACO Guide
+    minutes: 35
+  - title: Ferris Wheel
+    url: https://cses.fi/problemset/task/1090
+    kind: interactive
+    source: CSES
+    minutes: 15
+  - title: Concert Tickets
+    url: https://cses.fi/problemset/task/1091
+    kind: interactive
+    source: CSES
+    minutes: 20
+    level: deep
+quiz:
+  - id: boats
+    kind: mcq
+    prompt: Weights [1, 2, 2, 3], limit 3, at most two per boat. Minimum boats?
+    options: ["3", "2", "4", "1"]
+    answer: 0
+    explanation: "Pairs: (3), (1, 2), (2) — 3 boats; no arrangement does better."
+    difficulty: 2
+  - id: multiset-erase
+    kind: mcq
+    prompt: In C++, how do you remove ONE copy of x from a multiset s?
+    options: ["s.erase(s.find(x))", "s.erase(x)", "s.remove(x)", "s.pop(x)"]
+    answer: 0
+    explanation: erase(value) removes all copies; erase(iterator) removes exactly one.
+    difficulty: 3
+  - id: proof
+    kind: mcq
+    prompt: Your greedy passes the samples. Best way to gain confidence before submitting?
+    options: ["Stress-test against a brute force on random small cases", "Submit and see", "Add more comments", "Run the samples again"]
+    answer: 0
+    explanation: Random small tests quickly expose wrong greedy orderings.
+    difficulty: 1
+problems: [ticket-matching]
+practice_links:
+  - title: Ferris Wheel
+    url: https://cses.fi/problemset/task/1090
+    platform: CSES
+    difficulty: easy
+  - title: Concert Tickets
+    url: https://cses.fi/problemset/task/1091
+    platform: CSES
+    difficulty: medium
+  - title: Movie Festival
+    url: https://cses.fi/problemset/task/1629
+    platform: CSES
+    difficulty: easy

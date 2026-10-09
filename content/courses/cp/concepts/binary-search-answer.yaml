@@ -1,0 +1,135 @@
+id: binary-search-answer
+title: Binary search on the answer
+summary: Turn "find the optimum" into "is this value feasible?" and binary search the boundary.
+module: techniques
+prerequisites: [dsa:binary-search, fast-io]
+difficulty: 4
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  Many optimisation problems ("minimise the maximum load", "maximise the minimum distance",
+  "minimum time to produce k items") are hard to solve directly but easy to **check**: given
+  a candidate answer x, can it be achieved? If feasibility is **monotonic** — once x works,
+  every larger (or smaller) x works too — binary search finds the boundary with O(log range)
+  checks.
+
+  ## The recipe
+
+  1. Identify the answer range `[lo, hi]` (often up to 10^18 — that is fine, it's ~60 steps).
+  2. Write `ok(x)`: a greedy or linear check, usually O(n).
+  3. Confirm monotonicity in one sentence.
+  4. Binary search the first `x` with `ok(x)` true (or last true, for maximisation).
+
+  ```python
+  lo, hi = 0, 10**18
+  while lo < hi:
+      mid = (lo + hi) // 2
+      if ok(mid):
+          hi = mid          # mid works: the answer is mid or smaller
+      else:
+          lo = mid + 1
+  answer = lo
+  ```
+
+  ```cpp
+  long long lo = 0, hi = (long long)1e18;
+  while (lo < hi) {
+      long long mid = lo + (hi - lo) / 2;
+      if (ok(mid)) hi = mid; else lo = mid + 1;
+  }
+  ```
+
+  ```java
+  long lo = 0, hi = (long) 1e18;
+  while (lo < hi) {
+      long mid = lo + (hi - lo) / 2;
+      if (ok(mid)) hi = mid; else lo = mid + 1;
+  }
+  ```
+
+  ## Example: factory machines
+
+  Machine i makes one item every `t[i]` seconds. Minimum time to make `k` items? Feasibility
+  of time T: total items = Σ floor(T / t[i]) ≥ k — monotonic in T. Binary search T. Cap the
+  running sum once it reaches k to avoid overflow.
+
+  ## Example: split into k parts minimising the largest sum
+
+  ok(S): greedily scan, starting a new part whenever adding the next element would exceed
+  S; feasible if you use at most k parts. Larger S never needs more parts — monotonic.
+
+  ## Maximising instead
+
+  For "maximum x such that ok(x)", search for the last true:
+  `while lo < hi: mid = (lo + hi + 1) // 2; if ok(mid): lo = mid else: hi = mid − 1`.
+  Note the `+ 1` that prevents an infinite loop.
+
+  ## Real-valued answers
+
+  Run a fixed number of iterations (e.g. 100) on doubles instead of checking `lo < hi`.
+key_points:
+  - Optimisation → feasibility check + binary search, when feasibility is monotonic.
+  - Each check is usually a greedy O(n) scan; total O(n log range).
+  - First-true uses mid = (lo + hi) / 2; last-true uses (lo + hi + 1) / 2.
+  - Cap accumulations inside ok() to avoid overflow with huge candidates.
+pitfalls:
+  - Infinite loops from the wrong mid rounding.
+  - Overflow when summing T / t[i] for T up to 10^18.
+  - Applying it when feasibility is not monotonic.
+resources:
+  - title: "USACO Guide: Binary search (on the answer)"
+    url: https://usaco.guide/silver/binary-search
+    kind: article
+    source: USACO Guide
+    minutes: 40
+  - title: Factory Machines
+    url: https://cses.fi/problemset/task/1620
+    kind: interactive
+    source: CSES
+    minutes: 20
+  - title: Array Division
+    url: https://cses.fi/problemset/task/1085
+    kind: interactive
+    source: CSES
+    minutes: 25
+quiz:
+  - id: monotonic
+    kind: mcq
+    prompt: Why may we binary search the time T in "factory machines"?
+    options:
+      - If k items can be made in time T, they can be made in any T' > T
+      - Machines are sorted
+      - T is always a power of two
+      - Times are small
+    answer: 0
+    explanation: More time never produces fewer items, so feasibility is monotonic.
+    difficulty: 2
+  - id: last-true
+    kind: mcq
+    prompt: Searching the LAST x with ok(x) true, why use mid = (lo + hi + 1) / 2?
+    options:
+      - With lo = mid on success, rounding down could loop forever
+      - It is faster
+      - To avoid overflow
+      - It finds the first true instead
+    answer: 0
+    explanation: When hi = lo + 1, rounding down gives mid = lo and lo = mid makes no progress.
+    difficulty: 3
+  - id: iterations
+    kind: mcq
+    prompt: Binary searching an answer in [0, 10^18] takes about how many checks?
+    options: ["60", "10^9", "18", "1,000"]
+    answer: 0
+    explanation: log₂(10^18) ≈ 60.
+    difficulty: 1
+problems: [factory-time]
+practice_links:
+  - title: Factory Machines
+    url: https://cses.fi/problemset/task/1620
+    platform: CSES
+    difficulty: medium
+  - title: Array Division
+    url: https://cses.fi/problemset/task/1085
+    platform: CSES
+    difficulty: medium

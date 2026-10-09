@@ -1,0 +1,170 @@
+id: two-pointers
+title: Two pointers
+summary: Move two indexes through sorted or structured data to replace an O(n²) pair search with one O(n) sweep.
+module: linear-patterns
+prerequisites: [arrays-hashing]
+difficulty: 3
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  Many pair problems have structure — usually **sortedness** — that lets you rule out many
+  pairs at once. Keep two indexes and move one of them each step based on what you see.
+  Each pointer moves at most n times, so the whole sweep is **O(n)**.
+
+  ## Shape 1 — opposite ends
+
+  Find two numbers in a **sorted** array that sum to `t`:
+
+  ```python
+  def pair_sum_sorted(a, t):
+      i, j = 0, len(a) - 1
+      while i < j:
+          s = a[i] + a[j]
+          if s == t:
+              return i, j
+          if s < t:
+              i += 1      # need a bigger sum: only moving i right can help
+          else:
+              j -= 1      # need a smaller sum: only moving j left can help
+      return None
+  ```
+
+  ```cpp
+  pair<int,int> pairSumSorted(const vector<long long>& a, long long t) {
+      int i = 0, j = (int)a.size() - 1;
+      while (i < j) {
+          long long s = a[i] + a[j];
+          if (s == t) return {i, j};
+          if (s < t) i++; else j--;
+      }
+      return {-1, -1};
+  }
+  ```
+
+  ```java
+  static int[] pairSumSorted(long[] a, long t) {
+      int i = 0, j = a.length - 1;
+      while (i < j) {
+          long s = a[i] + a[j];
+          if (s == t) return new int[]{i, j};
+          if (s < t) i++; else j--;
+      }
+      return new int[]{-1, -1};
+  }
+  ```
+
+  **Why it is correct:** if `a[i] + a[j] < t`, then `a[i]` paired with *any* index ≤ j is
+  also too small (the array is sorted), so `a[i]` can never be part of the answer — safely
+  discard it. Every move discards a whole row or column of candidate pairs. Being able to
+  *explain* this argument is what interviewers look for.
+
+  ## Shape 2 — same direction (fast/slow)
+
+  A **write** pointer and a **read** pointer move left to right, for in-place filtering:
+  remove duplicates from a sorted array, move zeros to the end, partition by a condition.
+
+  ```python
+  def dedupe_sorted(a):
+      write = 0
+      for read in range(len(a)):
+          if read == 0 or a[read] != a[read - 1]:
+              a[write] = a[read]
+              write += 1
+      return write           # new length
+  ```
+
+  ## Shape 3 — fix one, two-pointer the rest
+
+  **3Sum** (triples summing to 0): sort, fix `a[i]`, then run opposite-end pointers on the
+  rest for `−a[i]`. O(n²) instead of O(n³). Skip equal neighbours to avoid duplicate
+  triples.
+
+  ## Container With Most Water
+
+  Lines at both ends; area = width × min(height). Move the pointer at the **shorter**
+  line: keeping it can never produce a larger area, because width only shrinks.
+
+  ## When to reach for two pointers
+
+  - Input is sorted (or you can sort it without losing what you need).
+  - You are looking for a pair/triple meeting a condition.
+  - In-place rearrangement with O(1) extra space.
+  - Palindromes and symmetric checks.
+key_points:
+  - Two indexes, each moving at most n times, give an O(n) sweep.
+  - Opposite ends on sorted data — move the pointer that cannot be part of an answer.
+  - Read/write pointers filter or partition in place with O(1) space.
+  - Sort, fix one element, two-pointer the rest for triples (3Sum).
+  - Always be able to justify why a discarded element can never be in the answer.
+pitfalls:
+  - Using opposite-end pointers on unsorted data.
+  - Infinite loops when neither pointer moves in some branch.
+  - Producing duplicate triples by not skipping equal values.
+resources:
+  - title: Container With Most Water
+    url: https://www.youtube.com/watch?v=UuiTKBwPgAo
+    kind: video
+    source: NeetCode
+    minutes: 12
+  - title: "USACO Guide: Two pointers"
+    url: https://usaco.guide/silver/two-pointers
+    kind: article
+    source: USACO Guide
+    minutes: 25
+  - title: "Tech Interview Handbook: Array cheatsheet (two pointers)"
+    url: https://www.techinterviewhandbook.org/algorithms/array/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: which-moves
+    kind: mcq
+    prompt: Sorted array, a[i] + a[j] is greater than the target. Which pointer moves?
+    options: ["j moves left", "i moves right", "Both move", "Neither — stop"]
+    answer: 0
+    explanation: The sum is too big; only decreasing j can reduce it while keeping the sorted guarantee.
+    difficulty: 1
+  - id: correctness
+    kind: mcq
+    prompt: Why is it safe to discard a[i] when a[i] + a[j] < target (sorted array, i < j)?
+    options:
+      - Every partner of a[i] at or before j is ≤ a[j], so all its sums are too small
+      - Because a[i] is negative
+      - Because i is the smaller index
+      - It isn't safe; it's a heuristic
+    answer: 0
+    explanation: a[j] is the largest remaining partner; if even it is too small, a[i] has no valid partner.
+    difficulty: 3
+  - id: container
+    kind: mcq
+    prompt: In Container With Most Water, which pointer do you move?
+    options: ["The one at the shorter line", "The one at the taller line", "Always the left", "The one with the smaller index"]
+    answer: 0
+    explanation: The area is limited by the shorter line; moving the taller one can only shrink width without raising the limit.
+    difficulty: 2
+  - id: three-sum
+    kind: mcq
+    prompt: Sort + fix one + two pointers solves 3Sum in what time?
+    options: ["O(n²)", "O(n³)", "O(n log n)", "O(n)"]
+    answer: 0
+    explanation: n choices for the fixed element × an O(n) sweep each.
+    difficulty: 2
+problems: [pair-sum-sorted, container-water]
+practice_links:
+  - title: Valid Palindrome
+    url: https://leetcode.com/problems/valid-palindrome/
+    platform: LeetCode
+    difficulty: easy
+  - title: 3Sum
+    url: https://leetcode.com/problems/3sum/
+    platform: LeetCode
+    difficulty: medium
+  - title: Container With Most Water
+    url: https://leetcode.com/problems/container-with-most-water/
+    platform: LeetCode
+    difficulty: medium
+  - title: Ferris Wheel
+    url: https://cses.fi/problemset/task/1090
+    platform: CSES
+    difficulty: medium

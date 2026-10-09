@@ -1,0 +1,208 @@
+id: graph-traversal
+title: Graphs, BFS and DFS
+summary: Model relationships as nodes and edges, then explore them depth-first or breadth-first.
+module: graphs
+prerequisites: [stacks, zero:grids]
+difficulty: 4
+estimated_minutes: 70
+lesson: |
+  ## The big idea
+
+  A **graph** is a set of **nodes** (vertices) connected by **edges**. Cities and roads,
+  people and friendships, courses and prerequisites, cells in a maze — all graphs. Edges
+  may be **directed** (one-way) or **undirected**, and may carry **weights**.
+
+  ## Representation: adjacency lists
+
+  Store, for each node, the list of its neighbours. Memory O(V + E).
+
+  ```python
+  n, m = map(int, input().split())
+  adj = [[] for _ in range(n + 1)]
+  for _ in range(m):
+      u, v = map(int, input().split())
+      adj[u].append(v)
+      adj[v].append(u)          # omit for directed graphs
+  ```
+
+  ```cpp
+  int n, m; cin >> n >> m;
+  vector<vector<int>> adj(n + 1);
+  for (int i = 0; i < m; i++) {
+      int u, v; cin >> u >> v;
+      adj[u].push_back(v);
+      adj[v].push_back(u);
+  }
+  ```
+
+  ```java
+  List<List<Integer>> adj = new ArrayList<>();
+  for (int i = 0; i <= n; i++) adj.add(new ArrayList<>());
+  for (int i = 0; i < m; i++) {
+      int u = in.nextInt(), v = in.nextInt();
+      adj.get(u).add(v);
+      adj.get(v).add(u);
+  }
+  ```
+
+  A **grid** is an implicit graph: each cell is a node, and its up/down/left/right
+  neighbours are edges — no need to build lists.
+
+  ## Breadth-first search (BFS)
+
+  Explore in rings of increasing distance using a **queue**. In an **unweighted** graph,
+  BFS finds the **shortest path** (fewest edges) from the start to every node.
+
+  ```python
+  from collections import deque
+  def bfs(start, adj, n):
+      dist = [-1] * (n + 1)
+      dist[start] = 0
+      q = deque([start])
+      while q:
+          u = q.popleft()
+          for v in adj[u]:
+              if dist[v] == -1:          # first time seen = shortest distance
+                  dist[v] = dist[u] + 1
+                  q.append(v)
+      return dist
+  ```
+
+  ```cpp
+  vector<int> bfs(int start, const vector<vector<int>>& adj) {
+      vector<int> dist(adj.size(), -1);
+      queue<int> q;
+      dist[start] = 0; q.push(start);
+      while (!q.empty()) {
+          int u = q.front(); q.pop();
+          for (int v : adj[u]) if (dist[v] == -1) { dist[v] = dist[u] + 1; q.push(v); }
+      }
+      return dist;
+  }
+  ```
+
+  ```java
+  static int[] bfs(int start, List<List<Integer>> adj) {
+      int[] dist = new int[adj.size()];
+      Arrays.fill(dist, -1);
+      ArrayDeque<Integer> q = new ArrayDeque<>();
+      dist[start] = 0; q.add(start);
+      while (!q.isEmpty()) {
+          int u = q.poll();
+          for (int v : adj.get(u)) if (dist[v] == -1) { dist[v] = dist[u] + 1; q.add(v); }
+      }
+      return dist;
+  }
+  ```
+
+  Mark nodes **when you enqueue them**, not when you dequeue, or nodes get enqueued many
+  times.
+
+  ## Depth-first search (DFS)
+
+  Go as deep as possible before backtracking — recursion or an explicit stack. DFS is
+  natural for: counting **connected components**, detecting cycles, flood fill, and
+  exploring all paths. On large graphs prefer an explicit stack to avoid recursion limits.
+
+  ## Connected components / number of islands
+
+  Loop over every node (or cell); each unvisited one starts a new component — run BFS/DFS
+  from it to mark everything it reaches. Count how many times you start.
+
+  ## Complexity
+
+  Both BFS and DFS visit each node once and each edge once (twice if undirected):
+  **O(V + E)**.
+
+  ## Choosing
+
+  - Shortest path with unit weights → **BFS**.
+  - Reachability, components, cycles, exhaustive exploration → **DFS** (or BFS).
+  - Weighted shortest paths → **Dijkstra** (coming up).
+key_points:
+  - Store graphs as adjacency lists — O(V + E) memory.
+  - BFS (queue) gives shortest paths in unweighted graphs.
+  - DFS (recursion/stack) explores deeply — components, cycles, flood fill.
+  - Mark nodes visited when they are first discovered.
+  - Both run in O(V + E); grids are implicit graphs.
+pitfalls:
+  - Forgetting the reverse edge in undirected graphs.
+  - Marking visited on dequeue, causing duplicate work.
+  - Recursion depth limits for DFS on large graphs.
+resources:
+  - title: Graph Algorithms for Technical Interviews – Full Course
+    url: https://www.youtube.com/watch?v=tWVWeAqZ0WU
+    kind: video
+    source: freeCodeCamp
+    minutes: 130
+  - title: Number of Islands
+    url: https://www.youtube.com/watch?v=pV2kpPD66nE
+    kind: video
+    source: NeetCode
+    minutes: 11
+  - title: Graph traversal visualized (DFS/BFS)
+    url: https://visualgo.net/en/dfsbfs
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 20
+  - title: Breadth First Search
+    url: https://cp-algorithms.com/graph/breadth-first-search.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 20
+    level: deep
+quiz:
+  - id: bfs-shortest
+    kind: mcq
+    prompt: Why does BFS find shortest paths in an unweighted graph?
+    options:
+      - It visits nodes in order of increasing distance from the start
+      - It explores the deepest path first
+      - It sorts edges by weight
+      - It visits every path
+    answer: 0
+    explanation: The queue processes all distance-d nodes before any distance-(d+1) node.
+    difficulty: 2
+  - id: complexity
+    kind: mcq
+    prompt: What is the time complexity of BFS with adjacency lists?
+    options: ["O(V + E)", "O(V²)", "O(E log V)", "O(V × E)"]
+    answer: 0
+    explanation: Each node is dequeued once and each edge examined a constant number of times.
+    difficulty: 1
+  - id: components
+    kind: mcq
+    prompt: How do you count connected components?
+    options:
+      - Start a new BFS/DFS from each unvisited node and count the starts
+      - Count the edges
+      - Run BFS once from node 1
+      - Count nodes with no neighbours
+    answer: 0
+    explanation: Each fresh start discovers exactly one new component.
+    difficulty: 1
+  - id: mark-time
+    kind: mcq
+    prompt: In BFS, when should a node be marked visited?
+    options: ["When it is added to the queue", "When it is removed from the queue", "After all neighbours are processed", "Never"]
+    answer: 0
+    explanation: Marking on enqueue prevents the same node being queued multiple times.
+    difficulty: 2
+problems: [count-islands, fewest-hops]
+practice_links:
+  - title: Number of Islands
+    url: https://leetcode.com/problems/number-of-islands/
+    platform: LeetCode
+    difficulty: medium
+  - title: Rotting Oranges
+    url: https://leetcode.com/problems/rotting-oranges/
+    platform: LeetCode
+    difficulty: medium
+  - title: Counting Rooms
+    url: https://cses.fi/problemset/task/1192
+    platform: CSES
+    difficulty: easy
+  - title: Message Route
+    url: https://cses.fi/problemset/task/1667
+    platform: CSES
+    difficulty: easy

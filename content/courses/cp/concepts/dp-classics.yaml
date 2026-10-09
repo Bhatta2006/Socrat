@@ -1,0 +1,176 @@
+id: dp-classics
+title: Classic contest DPs
+summary: Knapsack, coin combinations and LIS in O(n log n) — the DP patterns every contestant must know cold.
+module: dp-module
+prerequisites: [dsa:dp-2d]
+difficulty: 4
+estimated_minutes: 65
+lesson: |
+  ## The big idea
+
+  A few DP patterns appear in contests again and again. Knowing them cold — state,
+  transition, loop order, and complexity — lets you recognise variants within minutes.
+
+  ## 0/1 knapsack (each item at most once)
+
+  `dp[c]` = best value with capacity c. Iterate items, and capacity **downwards**:
+
+  ```python
+  dp = [0] * (W + 1)
+  for w, v in items:
+      for c in range(W, w - 1, -1):
+          dp[c] = max(dp[c], dp[c - w] + v)
+  ```
+
+  ```cpp
+  vector<long long> dp(W + 1, 0);
+  for (auto [w, v] : items)
+      for (int c = W; c >= w; c--) dp[c] = max(dp[c], dp[c - w] + v);
+  ```
+
+  ```java
+  long[] dp = new long[W + 1];
+  for (int[] it : items)
+      for (int c = W; c >= it[0]; c--) dp[c] = Math.max(dp[c], dp[c - it[0]] + it[1]);
+  ```
+
+  O(n·W). Only viable when W is small (≲ 10^5 – 10^6 operations-wise).
+
+  ## Coin combinations: order matters or not?
+
+  Counting ways to make sum x:
+
+  - **Ordered** (1+2 ≠ 2+1): loop **sum outside**, coins inside.
+  - **Unordered** (combinations): loop **coins outside**, sum inside (upwards).
+
+  Swapping the loops changes the answer — a classic trap.
+
+  ## Longest increasing subsequence in O(n log n)
+
+  Keep `tails[k]` = the smallest possible tail of an increasing subsequence of length k+1.
+  For each x, find the first tail ≥ x with binary search and replace it (or append if none).
+  The length of `tails` is the LIS length.
+
+  ```python
+  from bisect import bisect_left
+  def lis(a):
+      tails = []
+      for x in a:
+          i = bisect_left(tails, x)       # strictly increasing
+          if i == len(tails):
+              tails.append(x)
+          else:
+              tails[i] = x
+      return len(tails)
+  ```
+
+  ```cpp
+  int lis(const vector<int>& a) {
+      vector<int> tails;
+      for (int x : a) {
+          auto it = lower_bound(tails.begin(), tails.end(), x);
+          if (it == tails.end()) tails.push_back(x); else *it = x;
+      }
+      return tails.size();
+  }
+  ```
+
+  ```java
+  static int lis(int[] a) {
+      int[] tails = new int[a.length];
+      int len = 0;
+      for (int x : a) {
+          int i = Arrays.binarySearch(tails, 0, len, x);
+          if (i < 0) i = -(i + 1);
+          tails[i] = x;
+          if (i == len) len++;
+      }
+      return len;
+  }
+  ```
+
+  For **non-decreasing** subsequences use `bisect_right` / `upper_bound`.
+
+  ## Other must-knows
+
+  - **Edit distance / LCS** (2D over prefixes).
+  - **Interval DP**: `dp[l][r]` over subarrays, filled by increasing length (O(n³)).
+  - **DP on digits** for "count numbers ≤ N with property P".
+key_points:
+  - 0/1 knapsack - capacity loop downwards; unbounded - upwards.
+  - Counting coin sums - sum-outer loop counts orderings, coin-outer counts combinations.
+  - LIS in O(n log n) with tails + binary search (lower_bound for strict).
+  - Check n × W (or n × sum) against the operation budget before choosing a DP.
+pitfalls:
+  - Wrong loop order changing what is counted.
+  - Using lower_bound vs upper_bound incorrectly for strict vs non-strict LIS.
+  - Forgetting modulo in counting DPs.
+resources:
+  - title: Longest Increasing Subsequence
+    url: https://www.youtube.com/watch?v=cjWnW0hdF1Y
+    kind: video
+    source: NeetCode
+    minutes: 18
+  - title: "USACO Guide: Introduction to DP"
+    url: https://usaco.guide/gold/intro-dp
+    kind: article
+    source: USACO Guide
+    minutes: 40
+  - title: Book Shop (0/1 knapsack)
+    url: https://cses.fi/problemset/task/1158
+    kind: interactive
+    source: CSES
+    minutes: 20
+  - title: Dynamic Programming – full course
+    url: https://www.youtube.com/watch?v=oBt53YbR9Kk
+    kind: video
+    source: freeCodeCamp
+    minutes: 300
+    level: deep
+quiz:
+  - id: knap-order
+    kind: mcq
+    prompt: In 1D 0/1 knapsack, the capacity loop must run...
+    options: ["From W down to w", "From w up to W", "In any order", "Only once"]
+    answer: 0
+    explanation: Downwards ensures dp[c − w] still refers to the previous item round.
+    difficulty: 2
+  - id: combos
+    kind: mcq
+    prompt: Counting unordered coin combinations (1+2 same as 2+1) needs which loop order?
+    options: ["Coins outer, sum inner", "Sum outer, coins inner", "Either", "Recursion only"]
+    answer: 0
+    explanation: Coins-outer adds coins in a fixed order, so each multiset is counted once.
+    difficulty: 3
+  - id: lis-len
+    kind: mcq
+    prompt: LIS length of [10, 9, 2, 5, 3, 7, 101, 18]?
+    options: ["4", "3", "5", "8"]
+    answer: 0
+    explanation: For example 2, 3, 7, 18.
+    difficulty: 2
+  - id: lis-strict
+    kind: mcq
+    prompt: For a strictly increasing LIS with tails, which search is correct?
+    options: ["lower_bound (first ≥ x)", "upper_bound (first > x)", "Linear scan only", "Binary search for exact x"]
+    answer: 0
+    explanation: Replacing the first tail ≥ x prevents equal values from extending a strict sequence.
+    difficulty: 3
+problems: [book-shop, lis-length]
+practice_links:
+  - title: Book Shop
+    url: https://cses.fi/problemset/task/1158
+    platform: CSES
+    difficulty: medium
+  - title: Coin Combinations I
+    url: https://cses.fi/problemset/task/1635
+    platform: CSES
+    difficulty: medium
+  - title: Coin Combinations II
+    url: https://cses.fi/problemset/task/1636
+    platform: CSES
+    difficulty: medium
+  - title: Increasing Subsequence
+    url: https://cses.fi/problemset/task/1145
+    platform: CSES
+    difficulty: medium

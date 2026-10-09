@@ -1,0 +1,153 @@
+id: greedy
+title: Greedy algorithms
+summary: Make the locally best choice at each step — and learn to prove when that is globally optimal.
+module: ordering
+prerequisites: [sorting, intervals]
+difficulty: 4
+estimated_minutes: 55
+lesson: |
+  ## The big idea
+
+  A **greedy algorithm** builds a solution step by step, always taking the choice that
+  looks best right now, and never reconsidering. When it works, it is simple and fast
+  (often "sort, then one pass"). The catch: greedy is frequently **wrong**, so the real
+  skill is knowing *why* a greedy choice is safe.
+
+  ## Example: activity selection
+
+  Choose the maximum number of non-overlapping meetings. Candidate greedy rules:
+
+  - shortest meeting first? ✗ (a short meeting can block two others)
+  - earliest start first? ✗ (an early, very long meeting blocks everything)
+  - **earliest end first** ✓
+
+  ```python
+  def max_meetings(meetings):
+      meetings.sort(key=lambda m: m[1])     # by end time
+      count, last_end = 0, float("-inf")
+      for start, end in meetings:
+          if start >= last_end:             # compatible with what we kept
+              count += 1
+              last_end = end
+      return count
+  ```
+
+  ```cpp
+  int maxMeetings(vector<pair<long long,long long>> m) {   // (start, end)
+      sort(m.begin(), m.end(), [](auto& a, auto& b) { return a.second < b.second; });
+      int count = 0;
+      long long lastEnd = LLONG_MIN;
+      for (auto [s, e] : m) if (s >= lastEnd) { count++; lastEnd = e; }
+      return count;
+  }
+  ```
+
+  ```java
+  static int maxMeetings(long[][] m) {                    // {start, end}
+      Arrays.sort(m, (a, b) -> Long.compare(a[1], b[1]));
+      int count = 0;
+      long lastEnd = Long.MIN_VALUE;
+      for (long[] x : m) if (x[0] >= lastEnd) { count++; lastEnd = x[1]; }
+      return count;
+  }
+  ```
+
+  ## Proving it: the exchange argument
+
+  Take any optimal schedule. Its first meeting ends no earlier than the meeting with the
+  earliest end, so **swap** it for that meeting — the schedule stays valid and the same
+  size. Repeat for the rest. So greedy is never worse than optimal. This "exchange"
+  argument is the standard way to justify greedy in interviews.
+
+  ## Example: can you reach the end?
+
+  Jump Game — each position `i` lets you jump up to `a[i]` steps. Track the **farthest
+  reachable index** while scanning; if you ever stand beyond it, you are stuck.
+
+  ## When greedy fails
+
+  Coin change with coins {1, 3, 4} for amount 6: greedy takes 4 + 1 + 1 (three coins), but
+  3 + 3 uses two. When local choices can block better global ones, you need **dynamic
+  programming**. A quick way to test a greedy idea is to brute-force tiny cases and compare.
+
+  ## Signals that greedy might work
+
+  - "Maximum number of ..." with a natural ordering (end time, deadline, size).
+  - Choices that never make future options worse (exchange argument possible).
+  - Problems that become obvious after sorting.
+key_points:
+  - Greedy takes the locally best choice and never reconsiders.
+  - Usually - sort by the right key, then one pass.
+  - Justify with an exchange argument — swapping into the greedy choice never hurts.
+  - Test greedy ideas against brute force on small cases; if it fails, think DP.
+pitfalls:
+  - Picking an intuitive but wrong ordering (shortest, earliest start).
+  - Assuming greedy works for general coin systems.
+  - Skipping the proof and missing a counterexample.
+resources:
+  - title: Jump Game – Greedy
+    url: https://www.youtube.com/watch?v=Yan0cv2cLy8
+    kind: video
+    source: NeetCode
+    minutes: 10
+  - title: "USACO Guide: Greedy algorithms with sorting"
+    url: https://usaco.guide/silver/greedy-sorting
+    kind: article
+    source: USACO Guide
+    minutes: 35
+  - title: Movie Festival (activity selection)
+    url: https://cses.fi/problemset/task/1629
+    kind: interactive
+    source: CSES
+    minutes: 20
+quiz:
+  - id: activity-key
+    kind: mcq
+    prompt: To schedule the maximum number of non-overlapping meetings greedily, sort by...
+    options: ["End time", "Start time", "Duration", "Number of attendees"]
+    answer: 0
+    explanation: Finishing earliest leaves the most room for the rest; the exchange argument proves it.
+    difficulty: 2
+  - id: coins-fail
+    kind: mcq
+    prompt: With coins {1, 3, 4}, the greedy "largest coin first" for amount 6 gives how many coins vs the optimum?
+    options: ["3 vs 2", "2 vs 2", "6 vs 2", "3 vs 3"]
+    answer: 0
+    explanation: Greedy takes 4+1+1; optimal is 3+3. Greedy fails for this coin system.
+    difficulty: 3
+  - id: exchange
+    kind: mcq
+    prompt: What is an exchange argument?
+    options:
+      - Showing any optimal solution can be transformed into the greedy one without getting worse
+      - Swapping two array elements
+      - Trying all solutions
+      - Exchanging time for memory
+    answer: 0
+    explanation: It proves greedy is at least as good as any optimal solution.
+    difficulty: 3
+  - id: jump
+    kind: mcq
+    prompt: In Jump Game, what single value do you track while scanning?
+    options: ["The farthest index reachable so far", "The number of jumps", "The smallest element", "The sum of jumps"]
+    answer: 0
+    explanation: If the current index exceeds the farthest reachable index, the end cannot be reached.
+    difficulty: 2
+problems: [max-meetings, can-reach-end]
+practice_links:
+  - title: Jump Game
+    url: https://leetcode.com/problems/jump-game/
+    platform: LeetCode
+    difficulty: medium
+  - title: Gas Station
+    url: https://leetcode.com/problems/gas-station/
+    platform: LeetCode
+    difficulty: medium
+  - title: Movie Festival
+    url: https://cses.fi/problemset/task/1629
+    platform: CSES
+    difficulty: easy
+  - title: Apartments
+    url: https://cses.fi/problemset/task/1084
+    platform: CSES
+    difficulty: easy

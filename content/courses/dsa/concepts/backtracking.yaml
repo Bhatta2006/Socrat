@@ -1,0 +1,166 @@
+id: backtracking
+title: Backtracking
+summary: Explore every choice recursively — choose, explore, un-choose — and prune branches that cannot succeed.
+module: recursive-structures
+prerequisites: [zero:recursion, complexity]
+difficulty: 4
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  Some problems ask for **all** solutions, or need trying combinations: subsets,
+  permutations, placing N queens, solving a Sudoku, finding a word in a grid. **Backtracking**
+  builds a solution one decision at a time; whenever a partial solution cannot lead to a
+  valid answer, it **undoes** the last decision and tries the next option.
+
+  ## The template: choose → explore → un-choose
+
+  ```python
+  def subsets(nums):
+      result, current = [], []
+      def go(i):
+          if i == len(nums):
+              result.append(current[:])   # record a COPY
+              return
+          current.append(nums[i])         # choose: include nums[i]
+          go(i + 1)                       # explore
+          current.pop()                   # un-choose
+          go(i + 1)                       # explore without nums[i]
+      go(0)
+      return result
+  ```
+
+  ```cpp
+  void go(int i, const vector<int>& nums, vector<int>& cur, vector<vector<int>>& res) {
+      if (i == (int)nums.size()) { res.push_back(cur); return; }
+      cur.push_back(nums[i]);           // choose
+      go(i + 1, nums, cur, res);        // explore
+      cur.pop_back();                   // un-choose
+      go(i + 1, nums, cur, res);
+  }
+  ```
+
+  ```java
+  static void go(int i, int[] nums, List<Integer> cur, List<List<Integer>> res) {
+      if (i == nums.length) { res.add(new ArrayList<>(cur)); return; }
+      cur.add(nums[i]);                 // choose
+      go(i + 1, nums, cur, res);        // explore
+      cur.remove(cur.size() - 1);       // un-choose
+      go(i + 1, nums, cur, res);
+  }
+  ```
+
+  The recursion forms a **decision tree**: each level decides one thing. Subsets have 2^n
+  leaves; permutations have n! leaves. That is why backtracking is used when n is small
+  (roughly ≤ 20 for subsets, ≤ 10 for permutations).
+
+  ## Pruning: cut dead branches early
+
+  The art is stopping early. In **N-Queens**, place one queen per row; before recursing,
+  check that no queen already shares the column or a diagonal. Keep three boolean arrays —
+  columns, `row + col` diagonals and `row − col` diagonals — so each check is O(1).
+
+  ```python
+  def n_queens(n):
+      cols, d1, d2 = set(), set(), set()
+      def place(r):
+          if r == n:
+              return 1
+          count = 0
+          for c in range(n):
+              if c in cols or r + c in d1 or r - c in d2:
+                  continue                  # prune: attacked square
+              cols.add(c); d1.add(r + c); d2.add(r - c)
+              count += place(r + 1)
+              cols.remove(c); d1.remove(r + c); d2.remove(r - c)
+          return count
+      return place(0)
+  ```
+
+  Other pruning ideas: stop when the running sum already exceeds the target (with
+  non-negative numbers), sort candidates so you can `break` early, and skip equal
+  neighbours to avoid duplicate results.
+
+  ## Bugs to watch for
+
+  - Appending `current` itself instead of a copy — later changes overwrite every saved
+    result.
+  - Forgetting to undo state, so choices leak into sibling branches.
+  - Not handling duplicates in input (sort, then skip equal values at the same level).
+key_points:
+  - Backtracking explores a decision tree - choose, explore, un-choose.
+  - Record copies of the current state, never the shared object.
+  - Prune branches that can no longer succeed — this is what makes it fast enough.
+  - Expect exponential growth; check n is small (≤ ~20 subsets, ≤ ~10 permutations).
+pitfalls:
+  - Saving a reference to the mutable current list instead of a copy.
+  - Missing the un-choose step.
+  - Generating duplicate results from duplicate input values.
+resources:
+  - title: Subsets – Backtracking
+    url: https://www.youtube.com/watch?v=REOH22Xwdkk
+    kind: video
+    source: NeetCode
+    minutes: 9
+  - title: Recursion in Programming – Full Course (backtracking section)
+    url: https://www.youtube.com/watch?v=IJDJ0kBx2LM
+    kind: video
+    source: freeCodeCamp
+    minutes: 40
+  - title: Chessboard and Queens
+    url: https://cses.fi/problemset/task/1624
+    kind: interactive
+    source: CSES
+    minutes: 30
+    level: deep
+quiz:
+  - id: template
+    kind: mcq
+    prompt: What is the backtracking template?
+    options: ["Choose, explore, un-choose", "Sort, scan, return", "Push, pop, peek", "Divide, sort, merge"]
+    answer: 0
+    explanation: Make a choice, recurse, then undo it before trying the next option.
+    difficulty: 1
+  - id: subset-count
+    kind: mcq
+    prompt: How many subsets does a set of 10 distinct elements have?
+    options: ["1024", "100", "10", "3,628,800"]
+    answer: 0
+    explanation: Each element is in or out — 2^10 = 1024 (including the empty set).
+    difficulty: 1
+  - id: copy-bug
+    kind: mcq
+    prompt: "In Python, result.append(current) instead of result.append(current[:]) causes..."
+    options:
+      - Every saved subset to become the same (final) list
+      - A syntax error
+      - Faster execution
+      - Duplicate elements in each subset
+    answer: 0
+    explanation: All entries reference the one mutable list, which ends up empty.
+    difficulty: 2
+  - id: queens-prune
+    kind: mcq
+    prompt: In N-Queens, which values identify the two diagonals of square (r, c)?
+    options: ["r + c and r − c", "r and c", "r × c and r / c", "r + 1 and c + 1"]
+    answer: 0
+    explanation: Squares on one diagonal share r + c; on the other they share r − c.
+    difficulty: 3
+problems: [subset-sum-count, n-queens-count]
+practice_links:
+  - title: Subsets
+    url: https://leetcode.com/problems/subsets/
+    platform: LeetCode
+    difficulty: medium
+  - title: Permutations
+    url: https://leetcode.com/problems/permutations/
+    platform: LeetCode
+    difficulty: medium
+  - title: Combination Sum
+    url: https://leetcode.com/problems/combination-sum/
+    platform: LeetCode
+    difficulty: medium
+  - title: Word Search
+    url: https://leetcode.com/problems/word-search/
+    platform: LeetCode
+    difficulty: medium

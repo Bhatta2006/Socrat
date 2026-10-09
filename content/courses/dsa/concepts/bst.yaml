@@ -1,0 +1,156 @@
+id: bst
+title: Binary search trees
+summary: Keep keys ordered in a tree so search, insert and delete follow one root-to-leaf path.
+module: trees
+prerequisites: [binary-trees, binary-search]
+difficulty: 3
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  A **binary search tree (BST)** is a binary tree with one ordering rule:
+
+  > every key in a node's **left** subtree is smaller than the node's key, and every key
+  > in its **right** subtree is larger.
+
+  Searching works like binary search: compare with the root and go left or right. Each
+  step goes one level down, so search, insert and delete cost **O(h)** where h is the
+  height.
+
+  ```python
+  def insert(node, key):
+      if node is None:
+          return TreeNode(key)
+      if key < node.val:
+          node.left = insert(node.left, key)
+      elif key > node.val:
+          node.right = insert(node.right, key)
+      return node
+
+  def contains(node, key):
+      while node:
+          if key == node.val:
+              return True
+          node = node.left if key < node.val else node.right
+      return False
+  ```
+
+  ```cpp
+  TreeNode* insert(TreeNode* node, int key) {
+      if (!node) return new TreeNode(key);
+      if (key < node->val) node->left = insert(node->left, key);
+      else if (key > node->val) node->right = insert(node->right, key);
+      return node;
+  }
+  ```
+
+  ```java
+  static TreeNode insert(TreeNode node, int key) {
+      if (node == null) return new TreeNode(key);
+      if (key < node.val) node.left = insert(node.left, key);
+      else if (key > node.val) node.right = insert(node.right, key);
+      return node;
+  }
+  ```
+
+  ## The inorder property
+
+  An **inorder traversal of a BST visits keys in sorted order**. Many BST questions reduce
+  to this: the k-th smallest is the k-th node visited inorder; validating a BST means the
+  inorder sequence is strictly increasing.
+
+  ## Validate a BST — the classic trap
+
+  Checking only `left.val < node.val < right.val` at each node is **wrong**: a node deep in
+  the left subtree must be smaller than **every** ancestor it sits to the left of. Pass an
+  allowed range down instead: `valid(node, low, high)`, narrowing the range at each step.
+
+  ## Height and balance
+
+  Inserting sorted keys creates a chain: height n, so every operation becomes O(n). Real
+  systems use **self-balancing** trees (red-black, AVL) that keep height O(log n).
+  You rarely implement them in interviews, but you must know the standard library gives
+  them to you:
+
+  - C++: `std::set`, `std::map` (ordered, O(log n), `lower_bound`)
+  - Java: `TreeSet`, `TreeMap` (`floor`, `ceiling`, `higher`, `lower`)
+  - Python: no built-in ordered set; use `bisect` on a sorted list, or the `sortedcontainers`
+    package outside interviews.
+
+  ## Lowest common ancestor in a BST
+
+  Start at the root: if both keys are smaller, go left; if both are larger, go right;
+  otherwise the current node splits them and is the LCA.
+key_points:
+  - BST rule - left subtree keys < node < right subtree keys.
+  - Search, insert and delete walk one path, costing O(height).
+  - Inorder traversal of a BST yields sorted keys.
+  - Validate with a (low, high) range passed down, not just parent-child checks.
+  - Unbalanced BSTs degrade to O(n); library ordered sets/maps stay O(log n).
+pitfalls:
+  - Validating only against the immediate parent.
+  - Assuming O(log n) without balance (sorted insertions make a chain).
+  - Mishandling duplicate keys — define where equal keys go.
+resources:
+  - title: Validate Binary Search Tree
+    url: https://www.youtube.com/watch?v=s6ATEkipzow
+    kind: video
+    source: NeetCode
+    minutes: 10
+  - title: BST and AVL trees visualized
+    url: https://visualgo.net/en/bst
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 20
+  - title: "Tech Interview Handbook: Tree cheatsheet (BST section)"
+    url: https://www.techinterviewhandbook.org/algorithms/tree/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: inorder-sorted
+    kind: mcq
+    prompt: What does an inorder traversal of a BST produce?
+    options: ["The keys in increasing order", "The keys level by level", "The keys in insertion order", "The root last"]
+    answer: 0
+    explanation: Left (smaller), node, right (larger) at every level gives sorted order.
+    difficulty: 1
+  - id: validate-trap
+    kind: mcq
+    prompt: Root 10, left child 5, and 5 has a right child 12. Is this a valid BST?
+    options:
+      - No — 12 is in 10's left subtree but larger than 10
+      - Yes, because 12 > 5
+      - Yes, every parent-child pair is ordered
+      - It depends on insertion order
+    answer: 0
+    explanation: Every key in the left subtree of 10 must be less than 10.
+    difficulty: 3
+  - id: sorted-insert
+    kind: mcq
+    prompt: Inserting 1, 2, 3, ..., n into a plain BST makes search cost...
+    options: ["O(n)", "O(log n)", "O(1)", "O(n log n)"]
+    answer: 0
+    explanation: Each key becomes the right child of the previous one, forming a chain.
+    difficulty: 2
+  - id: lca
+    kind: mcq
+    prompt: In a BST, both target keys are larger than the current node's key. Where is their lowest common ancestor?
+    options: ["In the right subtree", "In the left subtree", "At the current node", "At the root always"]
+    answer: 0
+    explanation: Both keys live in the right subtree, so their split point is there too.
+    difficulty: 2
+problems: [bst-validate]
+practice_links:
+  - title: Validate Binary Search Tree
+    url: https://leetcode.com/problems/validate-binary-search-tree/
+    platform: LeetCode
+    difficulty: medium
+  - title: Kth Smallest Element in a BST
+    url: https://leetcode.com/problems/kth-smallest-element-in-a-bst/
+    platform: LeetCode
+    difficulty: medium
+  - title: Lowest Common Ancestor of a Binary Search Tree
+    url: https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/
+    platform: LeetCode
+    difficulty: medium

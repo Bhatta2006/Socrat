@@ -1,0 +1,199 @@
+id: sliding-window
+title: Sliding window
+summary: Maintain a contiguous window and its summary as it slides, instead of recomputing every subarray.
+module: linear-patterns
+prerequisites: [two-pointers]
+difficulty: 3
+estimated_minutes: 55
+lesson: |
+  ## The big idea
+
+  Questions about **contiguous** subarrays or substrings — "longest substring without
+  repeats", "max sum of k consecutive days", "smallest window containing all letters" —
+  can be brute-forced over all O(n²) windows. A **sliding window** keeps one window
+  `[left, right]` plus a running summary (sum, counts, distinct characters) and updates it
+  in O(1) as the edges move. Each edge moves at most n times: **O(n)**.
+
+  ## Fixed-size window
+
+  Max sum of any `k` consecutive elements: add the entering element, subtract the leaving
+  one.
+
+  ```python
+  def max_window_sum(a, k):
+      s = sum(a[:k])
+      best = s
+      for right in range(k, len(a)):
+          s += a[right] - a[right - k]
+          best = max(best, s)
+      return best
+  ```
+
+  ```cpp
+  long long maxWindowSum(const vector<long long>& a, int k) {
+      long long s = 0;
+      for (int i = 0; i < k; i++) s += a[i];
+      long long best = s;
+      for (int right = k; right < (int)a.size(); right++) {
+          s += a[right] - a[right - k];
+          best = max(best, s);
+      }
+      return best;
+  }
+  ```
+
+  ```java
+  static long maxWindowSum(long[] a, int k) {
+      long s = 0;
+      for (int i = 0; i < k; i++) s += a[i];
+      long best = s;
+      for (int right = k; right < a.length; right++) {
+          s += a[right] - a[right - k];
+          best = Math.max(best, s);
+      }
+      return best;
+  }
+  ```
+
+  ## Variable-size window: expand, then shrink
+
+  The general template:
+
+  ```text
+  left = 0
+  for right in 0..n-1:
+      add a[right] to the window
+      while the window is invalid:
+          remove a[left]; left += 1
+      record the answer for the valid window [left, right]
+  ```
+
+  Longest substring without repeating characters:
+
+  ```python
+  def longest_unique(s):
+      last = {}
+      left = best = 0
+      for right, ch in enumerate(s):
+          if ch in last and last[ch] >= left:
+              left = last[ch] + 1          # jump past the previous copy
+          last[ch] = right
+          best = max(best, right - left + 1)
+      return best
+  ```
+
+  ```cpp
+  int longestUnique(const string& s) {
+      vector<int> last(256, -1);
+      int left = 0, best = 0;
+      for (int right = 0; right < (int)s.size(); right++) {
+          unsigned char ch = s[right];
+          if (last[ch] >= left) left = last[ch] + 1;
+          last[ch] = right;
+          best = max(best, right - left + 1);
+      }
+      return best;
+  }
+  ```
+
+  ```java
+  static int longestUnique(String s) {
+      int[] last = new int[256];
+      java.util.Arrays.fill(last, -1);
+      int left = 0, best = 0;
+      for (int right = 0; right < s.length(); right++) {
+          char ch = s.charAt(right);
+          if (last[ch] >= left) left = last[ch] + 1;
+          last[ch] = right;
+          best = Math.max(best, right - left + 1);
+      }
+      return best;
+  }
+  ```
+
+  ## When does a sliding window work?
+
+  It needs **monotonicity**: once a window is invalid, extending it further right keeps it
+  invalid (until you shrink from the left). This holds for "at most k distinct",
+  "no repeats", or "sum ≤ S with non-negative numbers". It **fails with negative numbers**
+  for sum targets — use prefix sums + hashing there.
+
+  ## Interview tips
+
+  - Say what the window state is ("counts of letters inside") and the invalid condition.
+  - "Longest valid" → record after shrinking. "Shortest valid" → record while shrinking.
+  - "Exactly k" is often `atMost(k) − atMost(k − 1)`.
+key_points:
+  - A window [left, right] plus a running summary avoids recomputing every subarray.
+  - Fixed-size windows add the entering element and remove the leaving one.
+  - Variable windows expand right, shrink left while invalid, then record.
+  - Requires monotonic validity; with negative sums use prefix sums instead.
+  - Exactly-k counts can be atMost(k) − atMost(k − 1).
+pitfalls:
+  - Applying a window to sums with negative numbers.
+  - Recording the answer before restoring validity.
+  - Moving left past a stale "last seen" position (check last[ch] ≥ left).
+resources:
+  - title: Longest Substring Without Repeating Characters
+    url: https://www.youtube.com/watch?v=wiGpQwVHdE0
+    kind: video
+    source: NeetCode
+    minutes: 7
+  - title: "Tech Interview Handbook: String cheatsheet (sliding window)"
+    url: https://www.techinterviewhandbook.org/algorithms/string/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+  - title: "USACO Guide: Two pointers (windows)"
+    url: https://usaco.guide/silver/two-pointers
+    kind: article
+    source: USACO Guide
+    minutes: 25
+    level: deep
+quiz:
+  - id: fixed-update
+    kind: mcq
+    prompt: A fixed window of size k moves one step right. How is its sum updated?
+    options: ["Add the new element, subtract the element that left", "Recompute the sum of k elements", "Multiply by k", "Add the new element only"]
+    answer: 0
+    explanation: Only two elements change, so the update is O(1).
+    difficulty: 1
+  - id: negatives-fail
+    kind: mcq
+    prompt: Why can't a sliding window find "longest subarray with sum exactly k" when values can be negative?
+    options:
+      - Extending the window might decrease the sum, so you can't tell when to shrink
+      - Windows only work on strings
+      - Negative numbers overflow
+      - It works fine
+    answer: 0
+    explanation: Validity must change monotonically with window size; negatives break that.
+    difficulty: 3
+  - id: complexity
+    kind: mcq
+    prompt: In the expand/shrink template, how many times can left move in total?
+    options: ["At most n times", "n² times", "log n times", "k times"]
+    answer: 0
+    explanation: left only moves forward and never past n, so total work is O(n).
+    difficulty: 2
+  - id: unique-trace
+    kind: mcq
+    prompt: What is the length of the longest substring without repeating characters in "abcabcbb"?
+    options: ["3", "2", "4", "8"]
+    answer: 0
+    explanation: '"abc" has length 3; every longer window repeats a character.'
+    difficulty: 1
+problems: [longest-unique-substring, max-window-sum]
+practice_links:
+  - title: Longest Substring Without Repeating Characters
+    url: https://leetcode.com/problems/longest-substring-without-repeating-characters/
+    platform: LeetCode
+    difficulty: medium
+  - title: Minimum Window Substring
+    url: https://leetcode.com/problems/minimum-window-substring/
+    platform: LeetCode
+    difficulty: hard
+  - title: Best Time to Buy and Sell Stock
+    url: https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
+    platform: LeetCode
+    difficulty: easy

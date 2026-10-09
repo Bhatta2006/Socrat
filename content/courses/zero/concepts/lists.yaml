@@ -1,0 +1,193 @@
+id: lists
+title: Lists and arrays
+summary: Store many values in order under one name, and process them with loops.
+module: collections
+prerequisites: [for-loops]
+difficulty: 2
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  A **list** (Python) or **array/vector** (C++, Java) holds many values in a row under one
+  name. Each value sits at a numbered position called an **index**, and indexes start at
+  **0**.
+
+  ```python
+  scores = [72, 95, 88]
+  print(scores[0])        # 72  (first)
+  print(scores[2])        # 88  (third)
+  print(len(scores))      # 3
+  scores.append(60)       # add to the end
+  scores[1] = 99          # replace the second value
+  ```
+
+  ```cpp
+  #include <vector>
+  vector<int> scores = {72, 95, 88};
+  cout << scores[0] << "\n";      // 72
+  cout << scores.size() << "\n";  // 3
+  scores.push_back(60);           // add to the end
+  scores[1] = 99;                 // replace the second value
+  ```
+
+  ```java
+  import java.util.ArrayList;
+  ArrayList<Integer> scores = new ArrayList<>(java.util.List.of(72, 95, 88));
+  System.out.println(scores.get(0));   // 72
+  System.out.println(scores.size());   // 3
+  scores.add(60);                      // add to the end
+  scores.set(1, 99);                   // replace the second value
+  // Fixed-size alternative: int[] arr = new int[3]; arr[0] = 72;
+  ```
+
+  A list of length `n` has valid indexes `0` to `n − 1`. Asking for index `n` is an error
+  (Python `IndexError`, Java `IndexOutOfBoundsException`, and in C++ undefined behaviour —
+  the program may silently read garbage).
+
+  ## Looping over a list
+
+  ```python
+  total = 0
+  for s in scores:          # each value
+      total += s
+  for i in range(len(scores)):   # each index
+      print(i, scores[i])
+  ```
+
+  ```cpp
+  long long total = 0;
+  for (int s : scores) total += s;               // each value
+  for (int i = 0; i < (int)scores.size(); i++)   // each index
+      cout << i << " " << scores[i] << "\n";
+  ```
+
+  ```java
+  long total = 0;
+  for (int s : scores) total += s;               // each value
+  for (int i = 0; i < scores.size(); i++)        // each index
+      System.out.println(i + " " + scores.get(i));
+  ```
+
+  Loop over **values** when you only need the items; loop over **indexes** when position
+  matters (comparing neighbours, writing back, reporting where something is).
+
+  ## Reading a list from input
+
+  Problems usually give `n`, then `n` numbers:
+
+  ```python
+  n = int(input())
+  a = list(map(int, input().split()))
+  ```
+
+  ```cpp
+  int n; cin >> n;
+  vector<long long> a(n);
+  for (auto &x : a) cin >> x;
+  ```
+
+  ```java
+  int n = in.nextInt();
+  long[] a = new long[n];
+  for (int i = 0; i < n; i++) a[i] = in.nextLong();
+  ```
+
+  ## Classic patterns
+
+  - **Running total / count**: accumulate over every element.
+  - **Best so far**: track the maximum, minimum, or its index.
+  - **Neighbours**: compare `a[i]` with `a[i − 1]` (start at i = 1!).
+  - **Build a new list**: append transformed or filtered elements.
+key_points:
+  - Lists keep values in order; indexes run from 0 to n − 1.
+  - Loop over values for items, over indexes when position matters.
+  - Out-of-range indexes are errors (and silent bugs in C++).
+  - Most list problems are accumulators, best-so-far, or neighbour comparisons.
+pitfalls:
+  - Using 1-based indexes and skipping the first element or overrunning the last.
+  - Comparing a[i] with a[i - 1] starting from i = 0.
+  - Changing a list's length while looping over it.
+resources:
+  - title: "Data Structures: more on lists"
+    url: https://docs.python.org/3/tutorial/datastructures.html
+    kind: docs
+    source: Python docs
+    minutes: 20
+    languages: [python]
+  - title: "Learn C++: Introduction to std::vector"
+    url: https://www.learncpp.com/cpp-tutorial/introduction-to-stdvector-and-list-constructors/
+    kind: article
+    source: LearnCpp
+    minutes: 20
+    languages: [cpp]
+  - title: std::vector reference
+    url: https://en.cppreference.com/w/cpp/container/vector
+    kind: docs
+    source: cppreference
+    minutes: 10
+    level: deep
+    languages: [cpp]
+  - title: "Java Tutorials: Arrays"
+    url: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/arrays.html
+    kind: docs
+    source: Oracle
+    minutes: 15
+    languages: [java]
+  - title: Introduction to Data Structures
+    url: https://www.youtube.com/watch?v=xLetJpcjHS0
+    kind: video
+    source: YouTube
+    minutes: 15
+    level: intro
+quiz:
+  - id: last-index
+    kind: mcq
+    prompt: A list has 8 elements. What is the index of the last one?
+    options: ["7", "8", "9", "-8"]
+    answer: 0
+    explanation: Indexes start at 0, so the last of n elements is at n − 1.
+    difficulty: 1
+  - id: neighbours
+    kind: mcq
+    prompt: You compare each element with the previous one using a[i] and a[i - 1]. Where should i start?
+    options: ["1", "0", "-1", "n"]
+    answer: 0
+    explanation: At i = 0 there is no previous element; start at 1.
+    difficulty: 2
+  - id: list-output
+    kind: output
+    prompt: What is printed?
+    code:
+      python: |
+        a = [3, 1, 4]
+        a[0] = a[1] + a[2]
+        print(a[0], len(a))
+      cpp: |
+        vector<int> a = {3, 1, 4};
+        a[0] = a[1] + a[2];
+        cout << a[0] << " " << a.size();
+      java: |
+        int[] a = {3, 1, 4};
+        a[0] = a[1] + a[2];
+        System.out.println(a[0] + " " + a.length);
+    options: ["5 3", "4 3", "5 4", "8 3"]
+    answer: 0
+    explanation: a[1] + a[2] = 1 + 4 = 5 replaces a[0]. The length is still 3.
+    difficulty: 1
+  - id: best-so-far
+    kind: mcq
+    prompt: To find the maximum of a list, what should "best so far" start as?
+    options: ["The first element", "0", "The last index", "The list length"]
+    answer: 0
+    explanation: Starting at 0 fails when every value is negative. The first element is always a real candidate.
+    difficulty: 2
+problems: [above-average, increasing-steps]
+practice_links:
+  - title: Missing Number
+    url: https://cses.fi/problemset/task/1083
+    platform: CSES
+    difficulty: easy
+  - title: Increasing Array
+    url: https://cses.fi/problemset/task/1094
+    platform: CSES
+    difficulty: easy

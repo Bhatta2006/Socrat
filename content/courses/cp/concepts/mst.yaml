@@ -1,0 +1,136 @@
+id: mst
+title: Minimum spanning trees
+summary: Connect every node at minimum total cost with Kruskal (sort + DSU) or Prim (heap).
+module: graph-module
+prerequisites: [dsa:union-find, dsa:sorting]
+difficulty: 4
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Given cities and possible roads with costs, build roads so **every** city is connected at
+  the **minimum total cost**. The chosen roads form a tree (no cycles needed) that spans all
+  nodes: a **minimum spanning tree (MST)**.
+
+  ## Kruskal's algorithm
+
+  Sort edges by cost; take each edge if it connects two **different** components (check
+  with DSU). Stop after n − 1 edges.
+
+  ```python
+  def kruskal(n, edges):               # edges: (cost, u, v), nodes 1..n
+      parent = list(range(n + 1))
+      def find(x):
+          while parent[x] != x:
+              parent[x] = parent[parent[x]]
+              x = parent[x]
+          return x
+      total = used = 0
+      for cost, u, v in sorted(edges):
+          a, b = find(u), find(v)
+          if a != b:
+              parent[a] = b
+              total += cost
+              used += 1
+      return total if used == n - 1 else None   # None: graph not connected
+  ```
+
+  ```cpp
+  long long kruskal(int n, vector<array<long long,3>> edges) {   // {cost, u, v}
+      sort(edges.begin(), edges.end());
+      DSU dsu(n + 1);
+      long long total = 0; int used = 0;
+      for (auto [c, u, v] : edges)
+          if (dsu.unite(u, v)) { total += c; used++; }
+      return used == n - 1 ? total : -1;
+  }
+  ```
+
+  ```java
+  static long kruskal(int n, long[][] edges) {                    // {cost, u, v}
+      Arrays.sort(edges, (a, b) -> Long.compare(a[0], b[0]));
+      parent = new int[n + 1]; size = new int[n + 1];
+      for (int i = 0; i <= n; i++) { parent[i] = i; size[i] = 1; }
+      long total = 0; int used = 0;
+      for (long[] e : edges)
+          if (union((int) e[1], (int) e[2])) { total += e[0]; used++; }
+      return used == n - 1 ? total : -1;
+  }
+  ```
+
+  O(m log m) for sorting.
+
+  ## Why greedy works: the cut property
+
+  For any split of the nodes into two groups, the cheapest edge crossing the split belongs
+  to some MST. Kruskal always adds the cheapest edge that joins two components — which is
+  the cheapest edge across the cut between those components.
+
+  ## Prim's algorithm
+
+  Grow one tree from a start node, always adding the cheapest edge leaving the tree (a
+  min-heap of candidate edges). O(m log n); handy for dense or implicit graphs.
+
+  ## Variants
+
+  - "Already built" roads: union them first at cost 0.
+  - **Maximum** spanning tree: sort descending.
+  - "Minimise the maximum edge on the path" (minimax paths) is answered by the MST.
+key_points:
+  - An MST connects all nodes with minimum total weight and has n − 1 edges.
+  - Kruskal - sort edges, add an edge when DSU says it joins different components.
+  - Cut property justifies the greedy choice.
+  - Fewer than n − 1 accepted edges means the graph is disconnected.
+pitfalls:
+  - Forgetting to report disconnected graphs.
+  - Sum overflow with 32-bit totals.
+  - Sorting edges by the wrong field.
+resources:
+  - title: Road Reparation
+    url: https://cses.fi/problemset/task/1675
+    kind: interactive
+    source: CSES
+    minutes: 20
+  - title: Union-Find visualized
+    url: https://visualgo.net/en/ufds
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 10
+  - title: Algorithms Course – Graph Theory Tutorial (MST section)
+    url: https://www.youtube.com/watch?v=09_LlHjoEiY
+    kind: video
+    source: freeCodeCamp
+    minutes: 60
+    level: deep
+quiz:
+  - id: edges
+    kind: mcq
+    prompt: An MST of a connected graph with 50 nodes has how many edges?
+    options: ["49", "50", "51", "It depends"]
+    answer: 0
+    explanation: Every spanning tree on n nodes has exactly n − 1 edges.
+    difficulty: 1
+  - id: kruskal-skip
+    kind: mcq
+    prompt: In Kruskal, when is an edge skipped?
+    options: ["When both ends are already in the same component", "When it is the most expensive", "When it touches a leaf", "Never"]
+    answer: 0
+    explanation: Adding it would create a cycle without connecting anything new.
+    difficulty: 1
+  - id: maximum
+    kind: mcq
+    prompt: How do you get a maximum spanning tree with Kruskal?
+    options: ["Sort edges in descending order", "Negate the node numbers", "Use BFS", "It's impossible"]
+    answer: 0
+    explanation: The same greedy with the opposite order maximises the total.
+    difficulty: 2
+problems: [road-repair]
+practice_links:
+  - title: Road Reparation
+    url: https://cses.fi/problemset/task/1675
+    platform: CSES
+    difficulty: medium
+  - title: Road Construction
+    url: https://cses.fi/problemset/task/1676
+    platform: CSES
+    difficulty: medium

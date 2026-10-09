@@ -22,6 +22,20 @@ def source_bytes(value: str) -> str:
 Source = Annotated[str, Field(max_length=64000), AfterValidator(source_bytes)]
 
 
+def same_output(actual: str, expected: str) -> bool:
+    """Judge comparison: ignore CRLF, trailing spaces and surrounding blank lines only.
+
+    Leading spaces stay significant, so whitespace-shaped output (patterns, grids) is
+    still checked exactly.
+    """
+
+    def normalize(text: str) -> str:
+        lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        return "\n".join(line.rstrip() for line in lines).strip("\n")
+
+    return normalize(actual) == normalize(expected)
+
+
 def canonical(value) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
 
@@ -112,8 +126,8 @@ class JobManifest(Contract):
 
 class TestInput(Contract):
     model_config = ConfigDict(extra="forbid", strict=True, str_strip_whitespace=False)
-    input: str = Field(max_length=8000)
-    expected: str | None = Field(default=None, max_length=8000)
+    input: str = Field(max_length=2_000_000)
+    expected: str | None = Field(default=None, max_length=2_000_000)
     visibility: Literal["public", "hidden"]
 
 

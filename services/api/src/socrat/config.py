@@ -123,6 +123,19 @@ class Settings(DatabaseSettings):
     assessments_enabled: bool = False
     diagnostics_enabled: bool = False
     onboarding_enabled: bool = False
+    # Socrat assistant. Keys may also come from ANTHROPIC_API_KEY / OPENAI_API_KEY,
+    # which the official SDKs resolve themselves when these are empty.
+    ai_provider: Literal["anthropic", "openai", "offline"] = "offline"
+    ai_model: str = "claude-opus-5"
+    ai_effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
+    ai_server_fallbacks: bool = True
+    anthropic_api_key: SecretStr = SecretStr("")
+    openai_api_key: SecretStr = SecretStr("")
+    openai_model: str = ""
+    openai_base_url: str = ""
+    ai_timeout_seconds: float = Field(default=45, ge=5, le=120)
+    ai_daily_messages: int = Field(default=150, ge=1, le=5000)
+    ai_reply_tokens: int = Field(default=1200, ge=200, le=8000)
     content_admin_identities: list[ContentAdminIdentity] = Field(
         default_factory=list, max_length=100
     )
@@ -209,6 +222,11 @@ class Settings(DatabaseSettings):
         self.metrics_token = _secret_from_file(
             "metrics_token", self.metrics_token, self.metrics_token_file
         )
+
+        if self.ai_provider == "openai" and not self.openai_model:
+            raise ValueError("The OpenAI provider requires SOCRAT_OPENAI_MODEL")
+        if self.ai_provider == "anthropic" and not self.ai_model.startswith("claude-"):
+            raise ValueError("The Anthropic provider requires a Claude model id")
 
         origin = urlparse(self.public_origin)
         if origin.scheme not in {"http", "https"} or not origin.netloc or origin.path:

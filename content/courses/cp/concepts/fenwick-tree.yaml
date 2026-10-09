@@ -1,0 +1,135 @@
+id: fenwick-tree
+title: Fenwick tree (Binary Indexed Tree)
+summary: Point updates and prefix sums both in O(log n), with a dozen lines of code.
+module: range-structures
+prerequisites: [prefix-difference, dsa:bit-manipulation]
+difficulty: 4
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  Prefix sums answer range-sum queries in O(1) but need O(n) to rebuild after every update.
+  A **Fenwick tree** balances both: **update O(log n), prefix query O(log n)**, in a tiny,
+  fast array-based structure.
+
+  Each index `i` (1-indexed) stores the sum of a block of length `lowbit(i) = i & −i` ending
+  at i. A prefix query hops down through blocks; an update hops up through every block that
+  contains the position.
+
+  ```python
+  class Fenwick:
+      def __init__(self, n):
+          self.n = n
+          self.t = [0] * (n + 1)
+
+      def add(self, i, delta):          # a[i] += delta, 1-indexed
+          while i <= self.n:
+              self.t[i] += delta
+              i += i & -i
+
+      def prefix(self, i):              # sum of a[1..i]
+          s = 0
+          while i > 0:
+              s += self.t[i]
+              i -= i & -i
+          return s
+
+      def range_sum(self, l, r):
+          return self.prefix(r) - self.prefix(l - 1)
+  ```
+
+  ```cpp
+  struct Fenwick {
+      int n; vector<long long> t;
+      Fenwick(int n) : n(n), t(n + 1, 0) {}
+      void add(int i, long long d) { for (; i <= n; i += i & -i) t[i] += d; }
+      long long prefix(int i) { long long s = 0; for (; i > 0; i -= i & -i) s += t[i]; return s; }
+      long long rangeSum(int l, int r) { return prefix(r) - prefix(l - 1); }
+  };
+  ```
+
+  ```java
+  static long[] t;
+  static int n;
+  static void add(int i, long d) { for (; i <= n; i += i & -i) t[i] += d; }
+  static long prefix(int i) { long s = 0; for (; i > 0; i -= i & -i) s += t[i]; return s; }
+  ```
+
+  ## Setting a value (not adding)
+
+  Keep the current array `a`; to set `a[i] = x`, call `add(i, x − a[i])` and update `a[i]`.
+
+  ## Range update, point query
+
+  Store a **difference array** inside the Fenwick tree: to add v on [l, r], `add(l, v)` and
+  `add(r + 1, −v)`; the value at position i is then `prefix(i)`.
+
+  ## Counting with Fenwick trees
+
+  Index by **value** instead of position: "how many earlier elements are smaller than x?"
+  is `prefix(x − 1)` on a Fenwick tree of value counts. This counts inversions in O(n log n)
+  (compress large values to ranks first).
+
+  ## Limits
+
+  Fenwick trees handle **invertible** operations (sum, XOR). For min/max over arbitrary
+  ranges, use a segment tree.
+key_points:
+  - Index i covers a block of length i & −i ending at i (1-indexed).
+  - add climbs with i += i & −i; prefix descends with i −= i & −i; both O(log n).
+  - Range sum = prefix(r) − prefix(l − 1).
+  - Store differences for range-add/point-query; index by value for counting.
+  - Works for invertible operations; use segment trees for min/max.
+pitfalls:
+  - Using 0-based indexes (i & −i is 0 at index 0 → infinite loop).
+  - Forgetting to keep a copy of values when "setting" instead of "adding".
+  - Not compressing values before indexing by value.
+resources:
+  - title: Fenwick Tree
+    url: https://cp-algorithms.com/data_structures/fenwick.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 30
+  - title: Fenwick tree visualized
+    url: https://visualgo.net/en/fenwicktree
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 15
+  - title: "USACO Guide: Point update range sum"
+    url: https://usaco.guide/gold/PURS
+    kind: article
+    source: USACO Guide
+    minutes: 40
+    level: deep
+quiz:
+  - id: lowbit
+    kind: mcq
+    prompt: What is 12 & −12?
+    options: ["4", "12", "8", "1"]
+    answer: 0
+    explanation: 12 = 1100 in binary; the lowest set bit is 100 = 4.
+    difficulty: 2
+  - id: zero-index
+    kind: mcq
+    prompt: Why must Fenwick indexes start at 1?
+    options: ["0 & −0 = 0, so updates at 0 would loop forever", "Arrays start at 1", "It's faster", "Convention only"]
+    answer: 0
+    explanation: The step size i & −i must be positive.
+    difficulty: 2
+  - id: minmax
+    kind: mcq
+    prompt: Range-minimum queries with point updates — Fenwick or segment tree?
+    options: ["Segment tree", "Fenwick tree", "Prefix sums", "Difference array"]
+    answer: 0
+    explanation: Minimum isn't invertible, so prefix(r) − prefix(l − 1) has no equivalent.
+    difficulty: 2
+problems: [dynamic-range-sum]
+practice_links:
+  - title: Dynamic Range Sum Queries
+    url: https://cses.fi/problemset/task/1648
+    platform: CSES
+    difficulty: medium
+  - title: Range Update Queries
+    url: https://cses.fi/problemset/task/1651
+    platform: CSES
+    difficulty: medium

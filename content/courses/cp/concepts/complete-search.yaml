@@ -1,0 +1,136 @@
+id: complete-search
+title: Complete search
+summary: When the input is small, try everything — systematically, and with an operation count that fits.
+module: contest-basics
+prerequisites: [simulation, dsa:backtracking]
+difficulty: 3
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Small constraints are a **hint**: n ≤ 8 invites trying all permutations (8! = 40,320);
+  n ≤ 20 invites all subsets (2^20 ≈ 10^6); values ≤ 1000 invite trying every candidate
+  answer. A complete search is usually the fastest correct solution to write — and always
+  the best way to **verify** a clever one.
+
+  ## Iterating permutations
+
+  ```python
+  from itertools import permutations
+  best = min(cost(p) for p in permutations(range(n)))
+  ```
+
+  ```cpp
+  vector<int> p(n);
+  iota(p.begin(), p.end(), 0);           // start from the smallest permutation
+  long long best = LLONG_MAX;
+  do {
+      best = min(best, cost(p));
+  } while (next_permutation(p.begin(), p.end()));
+  ```
+
+  ```java
+  // Java has no next_permutation: use recursion with a used[] array,
+  // or implement next permutation manually.
+  static void permute(int[] p, boolean[] used, int k) { /* choose, recurse, un-choose */ }
+  ```
+
+  ## Iterating subsets with bitmasks
+
+  ```python
+  for mask in range(1 << n):
+      total = sum(a[i] for i in range(n) if mask >> i & 1)
+  ```
+
+  Total work: 2^n · n. For n = 20 that is 2·10^7 — fine in C++, slow in Python. In Python,
+  prefer incremental sums or meet-in-the-middle for the upper end.
+
+  ## Searching the answer space
+
+  If the answer is an integer in a small range, test each candidate: "smallest x such
+  that ...", "how many pairs (a, b) with a, b ≤ 1000 satisfy ...". Reduce the search with
+  symmetry (only consider a ≤ b) and early termination.
+
+  ## Meet in the middle
+
+  For n ≈ 40 subsets, split the items in half, enumerate 2^20 sums of each half, sort one
+  side, and combine with binary search or two pointers: O(2^(n/2) · n) instead of O(2^n).
+
+  ## Brute force as a checker
+
+  When a greedy or DP solution fails mysteriously, write a brute force for tiny inputs,
+  generate random small tests, and compare outputs automatically. Finding the smallest
+  counterexample usually reveals the bug in minutes. Strong competitors do this routinely.
+key_points:
+  - Small constraints signal complete search - n ≤ 8 permutations, n ≤ 20 subsets.
+  - Count the work (n! · n, 2^n · n) against the time limit before writing.
+  - Use next_permutation / itertools / bitmasks to enumerate cleanly.
+  - Meet in the middle halves the exponent for n ≈ 40.
+  - Brute force on random small tests is the best way to find bugs in clever solutions.
+pitfalls:
+  - Forgetting to start next_permutation from the sorted order.
+  - Underestimating the constant factor of 2^n · n in Python.
+  - Missing symmetric duplicates that double the work.
+resources:
+  - title: Competitive Programmer's Handbook — Chapter 5, Complete search
+    url: https://cses.fi/book/book.pdf
+    kind: book
+    source: Antti Laaksonen
+    minutes: 30
+  - title: Apple Division
+    url: https://cses.fi/problemset/task/1623
+    kind: interactive
+    source: CSES
+    minutes: 20
+  - title: Creating Strings
+    url: https://cses.fi/problemset/task/1622
+    kind: interactive
+    source: CSES
+    minutes: 20
+quiz:
+  - id: perm-feasible
+    kind: mcq
+    prompt: For n ≤ 10, is trying all permutations (with O(n) work each) feasible in C++?
+    options: ["Yes — about 3.6·10^7 operations", "No — 10^10 operations", "Only for n ≤ 5", "Only in Python"]
+    answer: 0
+    explanation: 10! ≈ 3.6·10^6 permutations × 10 ≈ 3.6·10^7.
+    difficulty: 2
+  - id: subset-count
+    kind: mcq
+    prompt: How many subsets does mask iterate over for n = 20?
+    options: ["1,048,576", "400", "20", "2,432,902,008,176,640,000"]
+    answer: 0
+    explanation: 2^20 = 1,048,576.
+    difficulty: 1
+  - id: mitm
+    kind: mcq
+    prompt: Meet in the middle improves subset enumeration from O(2^n) to roughly...
+    options: ["O(2^(n/2) · n)", "O(n²)", "O(n log n)", "O(2^n / n)"]
+    answer: 0
+    explanation: Two halves of 2^(n/2) sums each, combined after sorting.
+    difficulty: 3
+  - id: stress
+    kind: mcq
+    prompt: Your fast solution gets Wrong Answer on a hidden test. What's the most effective next step?
+    options:
+      - Compare it with a brute force on many random small inputs
+      - Resubmit unchanged
+      - Rewrite in another language
+      - Increase array sizes
+    answer: 0
+    explanation: Stress testing finds a tiny counterexample you can trace by hand.
+    difficulty: 2
+problems: [apple-split]
+practice_links:
+  - title: Apple Division
+    url: https://cses.fi/problemset/task/1623
+    platform: CSES
+    difficulty: easy
+  - title: Creating Strings
+    url: https://cses.fi/problemset/task/1622
+    platform: CSES
+    difficulty: easy
+  - title: Chessboard and Queens
+    url: https://cses.fi/problemset/task/1624
+    platform: CSES
+    difficulty: medium

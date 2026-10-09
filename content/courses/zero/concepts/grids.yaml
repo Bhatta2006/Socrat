@@ -1,0 +1,159 @@
+id: grids
+title: Grids and 2D lists
+summary: Represent boards, maps and tables as lists of rows, and move around them safely.
+module: collections
+prerequisites: [nested-loops, lists]
+difficulty: 3
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Many problems live on a **grid**: a game board, a maze, an image, a seating chart. Store
+  a grid as a list of rows, where each row is itself a list. Then `grid[r][c]` is the cell
+  in row `r`, column `c` — row first, column second.
+
+  ```python
+  rows, cols = 3, 4
+  grid = [[0] * cols for _ in range(rows)]   # 3 rows of 4 zeros
+  grid[1][2] = 7
+  for r in range(rows):
+      print(" ".join(map(str, grid[r])))
+  ```
+
+  ```cpp
+  int rows = 3, cols = 4;
+  vector<vector<int>> grid(rows, vector<int>(cols, 0));
+  grid[1][2] = 7;
+  for (int r = 0; r < rows; r++) {
+      for (int c = 0; c < cols; c++) cout << grid[r][c] << " ";
+      cout << "\n";
+  }
+  ```
+
+  ```java
+  int rows = 3, cols = 4;
+  int[][] grid = new int[rows][cols];   // filled with 0
+  grid[1][2] = 7;
+  for (int r = 0; r < rows; r++) {
+      StringBuilder line = new StringBuilder();
+      for (int c = 0; c < cols; c++) line.append(grid[r][c]).append(' ');
+      System.out.println(line.toString().trim());
+  }
+  ```
+
+  **Python trap:** `[[0] * cols] * rows` creates `rows` references to the *same* row —
+  changing one cell changes the whole column. Always build rows in a loop as above.
+
+  ## Character grids
+
+  Mazes usually arrive as lines of characters like `#..#`. Read each line as a string;
+  `grid[r][c]` is then a character.
+
+  ## Neighbours and bounds
+
+  The four neighbours of `(r, c)` are up, down, left and right. A clean way to visit them
+  is with **direction arrays**:
+
+  ```python
+  dr = [-1, 1, 0, 0]
+  dc = [0, 0, -1, 1]
+  for k in range(4):
+      nr, nc = r + dr[k], c + dc[k]
+      if 0 <= nr < rows and 0 <= nc < cols:
+          ...  # (nr, nc) is a real neighbour
+  ```
+
+  ```cpp
+  int dr[] = {-1, 1, 0, 0}, dc[] = {0, 0, -1, 1};
+  for (int k = 0; k < 4; k++) {
+      int nr = r + dr[k], nc = c + dc[k];
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) { /* real neighbour */ }
+  }
+  ```
+
+  ```java
+  int[] dr = {-1, 1, 0, 0}, dc = {0, 0, -1, 1};
+  for (int k = 0; k < 4; k++) {
+      int nr = r + dr[k], nc = c + dc[k];
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) { /* real neighbour */ }
+  }
+  ```
+
+  **Always check bounds before reading a neighbour.** Cells on the edge have fewer than
+  four neighbours, and reading outside the grid is the classic grid bug. For eight
+  directions (including diagonals), extend the arrays to eight entries.
+
+  ## Worked idea: counting around each cell
+
+  In Minesweeper, each safe cell shows how many of its eight neighbours are mines. For every
+  cell, loop over the eight directions, check bounds, and count `*` characters. That is a
+  nested loop over cells with a small fixed loop over directions inside — about
+  `rows × cols × 8` steps.
+key_points:
+  - A grid is a list of rows; access cells as grid[row][col].
+  - In Python, build rows in a loop — never multiply a list of lists.
+  - Direction arrays make neighbour loops short and uniform.
+  - Check bounds before touching any neighbour.
+pitfalls:
+  - Swapping row and column (grid[c][r]).
+  - Reading neighbours outside the grid on edge cells.
+  - Python's shared-row bug from [[0] * cols] * rows.
+resources:
+  - title: "Data Structures: nested list comprehensions"
+    url: https://docs.python.org/3/tutorial/datastructures.html
+    kind: docs
+    source: Python docs
+    minutes: 10
+    languages: [python]
+  - title: "Java Tutorials: Arrays (multidimensional)"
+    url: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/arrays.html
+    kind: docs
+    source: Oracle
+    minutes: 10
+    languages: [java]
+  - title: "Tech Interview Handbook: Matrix cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/matrix/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+  - title: "USACO Guide: Simulation"
+    url: https://usaco.guide/bronze/simulation
+    kind: article
+    source: USACO Guide
+    minutes: 25
+    level: deep
+quiz:
+  - id: index-order
+    kind: mcq
+    prompt: In grid[r][c], what does r select?
+    options: ["The row", "The column", "The cell value", "The number of rows"]
+    answer: 0
+    explanation: The outer list holds rows, so the first index picks a row and the second a column within it.
+    difficulty: 1
+  - id: corner-neighbours
+    kind: mcq
+    prompt: How many of the 4 up/down/left/right neighbours does a corner cell have inside the grid?
+    options: ["2", "4", "3", "1"]
+    answer: 0
+    explanation: A corner is on two edges, so two of its four directions leave the grid.
+    difficulty: 2
+  - id: python-shared-rows
+    kind: mcq
+    prompt: "In Python, g = [[0] * 3] * 2 and then g[0][0] = 5. What is g[1][0]?"
+    options: ["5", "0", "An error", "3"]
+    answer: 0
+    explanation: Both rows are the same list object, so changing one changes the other.
+    difficulty: 3
+  - id: work
+    kind: mcq
+    prompt: For a 100 × 100 grid, checking all 8 neighbours of every cell takes about how many checks?
+    options: ["80,000", "10,000", "800", "1,000,000"]
+    answer: 0
+    explanation: 100 × 100 cells × 8 directions = 80,000.
+    difficulty: 2
+problems: [minesweeper-counts]
+practice_links:
+  - title: Number Spiral
+    url: https://cses.fi/problemset/task/1071
+    platform: CSES
+    difficulty: medium

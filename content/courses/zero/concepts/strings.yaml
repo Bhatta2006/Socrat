@@ -1,0 +1,191 @@
+id: strings
+title: Strings
+summary: Text is a sequence of characters — index it, loop over it, compare it and build new text.
+module: collections
+prerequisites: [lists]
+difficulty: 2
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  A **string** is a sequence of characters, so most list ideas carry straight over:
+  length, indexes from 0, and looping over each character.
+
+  ```python
+  word = "socrat"
+  print(len(word))        # 6
+  print(word[0])          # s
+  print(word[-1])         # t  (Python: negative index counts from the end)
+  print(word.upper())     # SOCRAT
+  for ch in word:
+      print(ch)
+  ```
+
+  ```cpp
+  #include <string>
+  string word = "socrat";
+  cout << word.size() << "\n";   // 6
+  cout << word[0] << "\n";       // s
+  cout << word.back() << "\n";   // t
+  for (char ch : word) cout << ch << "\n";
+  ```
+
+  ```java
+  String word = "socrat";
+  System.out.println(word.length());      // 6
+  System.out.println(word.charAt(0));     // s
+  System.out.println(word.toUpperCase()); // SOCRAT
+  for (char ch : word.toCharArray()) System.out.println(ch);
+  ```
+
+  ## Strings are (usually) immutable
+
+  In Python and Java you cannot change a character in place — methods like `upper()`
+  return a **new** string. C++ `std::string` *is* mutable (`word[0] = 'S'`). When you build
+  a string piece by piece:
+
+  - Python: collect pieces in a list, then `"".join(pieces)`.
+  - Java: use `StringBuilder` and `append`, then `toString()`.
+  - C++: `+=` on a `std::string` is fine.
+
+  Repeatedly doing `s = s + piece` in Python or Java copies the whole string every time —
+  slow for long text.
+
+  ## Characters are numbers underneath
+
+  Each character has a numeric code. Letters are consecutive, which enables tricks:
+
+  - Python: `ord('c') - ord('a')` is 2; `chr(ord('a') + 2)` is `'c'`.
+  - C++/Java: `'c' - 'a'` is 2; `(char)('a' + 2)` is `'c'`.
+
+  This is how you count letters with an array of 26 slots or shift letters in a cipher.
+
+  ## Comparing strings
+
+  `==` compares contents in Python and C++. **In Java, always use `a.equals(b)`** — `==`
+  checks whether two variables refer to the same object, which can be false for equal
+  text.
+
+  ## Worked example: is it a palindrome?
+
+  A palindrome reads the same backwards ("level"). Compare the first and last characters,
+  then move inward:
+
+  ```python
+  s = input().strip()
+  i, j = 0, len(s) - 1
+  ok = True
+  while i < j:
+      if s[i] != s[j]:
+          ok = False
+          break
+      i += 1
+      j -= 1
+  print("YES" if ok else "NO")
+  ```
+
+  ```cpp
+  string s; cin >> s;
+  bool ok = true;
+  for (int i = 0, j = (int)s.size() - 1; i < j; i++, j--)
+      if (s[i] != s[j]) { ok = false; break; }
+  cout << (ok ? "YES" : "NO") << "\n";
+  ```
+
+  ```java
+  String s = in.next();
+  boolean ok = true;
+  for (int i = 0, j = s.length() - 1; i < j; i++, j--)
+      if (s.charAt(i) != s.charAt(j)) { ok = false; break; }
+  System.out.println(ok ? "YES" : "NO");
+  ```
+
+  Two indexes walking toward each other — remember this shape. It returns as the
+  **two pointers** technique in data structures and algorithms.
+key_points:
+  - Strings behave like lists of characters with indexes from 0.
+  - Python and Java strings are immutable; build text with join or StringBuilder.
+  - Characters have numeric codes; 'c' - 'a' gives a letter's position.
+  - In Java compare strings with equals, not ==.
+pitfalls:
+  - Using == for strings in Java.
+  - Building long strings with repeated + in a loop (slow in Python/Java).
+  - Forgetting that input lines may carry trailing spaces or newlines.
+resources:
+  - title: "Text sequence type: str methods"
+    url: https://docs.python.org/3/library/stdtypes.html
+    kind: docs
+    source: Python docs
+    minutes: 20
+    languages: [python]
+  - title: std::basic_string reference
+    url: https://en.cppreference.com/w/cpp/string/basic_string
+    kind: docs
+    source: cppreference
+    minutes: 15
+    languages: [cpp]
+  - title: Learn Java on dev.java (Strings and StringBuilder)
+    url: https://dev.java/learn/
+    kind: course
+    source: Oracle dev.java
+    minutes: 20
+    languages: [java]
+  - title: "Tech Interview Handbook: String cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/string/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+    level: deep
+quiz:
+  - id: char-math
+    kind: mcq
+    prompt: What is the value of 'e' - 'a' (C++/Java) or ord('e') - ord('a') (Python)?
+    options: ["4", "5", "101", "An error"]
+    answer: 0
+    explanation: Letters are consecutive codes, and e is four letters after a.
+    difficulty: 2
+  - id: java-equals
+    kind: mcq
+    prompt: In Java, how should you check whether two strings have the same text?
+    options: ["a.equals(b)", "a == b", "a = b", "a.compare(b)"]
+    answer: 0
+    explanation: == compares object identity in Java; equals compares the characters.
+    difficulty: 1
+  - id: immutability
+    kind: mcq
+    prompt: In Python, what does `name.upper()` do to the string stored in name?
+    options:
+      - Nothing — it returns a new uppercase string
+      - Changes name to uppercase in place
+      - Raises an error
+      - Deletes name
+    answer: 0
+    explanation: Python strings are immutable. Assign the result (name = name.upper()) to keep it.
+    difficulty: 2
+  - id: string-index
+    kind: output
+    prompt: What is printed?
+    code:
+      python: |
+        s = "algorithm"
+        print(s[2] + s[len(s) - 1])
+      cpp: |
+        string s = "algorithm";
+        cout << s[2] << s[s.size() - 1];
+      java: |
+        String s = "algorithm";
+        System.out.println("" + s.charAt(2) + s.charAt(s.length() - 1));
+    options: ["gm", "lm", "gh", "ga"]
+    answer: 0
+    explanation: Index 2 is g (a=0, l=1, g=2) and the last character is m.
+    difficulty: 1
+problems: [vowel-count, caesar-shift]
+practice_links:
+  - title: Petya and Strings
+    url: https://codeforces.com/problemset/problem/112/A
+    platform: Codeforces
+    difficulty: easy
+  - title: Repetitions
+    url: https://cses.fi/problemset/task/1069
+    platform: CSES
+    difficulty: easy

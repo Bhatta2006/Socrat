@@ -1,0 +1,135 @@
+id: bitmask-dp
+title: Bitmask DP
+summary: DP over subsets — assignments, orderings and travelling-salesman style problems for n ≤ 20.
+module: dp-module
+prerequisites: [dp-classics, bitmasks]
+difficulty: 5
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  When a problem asks for the best **order** or **assignment** of up to ~20 items, trying all
+  n! orders is impossible, but the set of items **already used** has only 2^n possibilities.
+  **Bitmask DP** stores, for each subset (as a mask), the best result so far — often with
+  the last item as a second coordinate.
+
+  ## Travelling salesman / Hamiltonian paths
+
+  `dp[mask][v]` = best cost of a path visiting exactly the cities in `mask`, ending at `v`.
+
+  - Base: `dp[1 << s][s] = 0` for the start s.
+  - Transition: from `(mask, v)`, go to any `u` not in `mask`:
+    `dp[mask | 1 << u][u] = min(..., dp[mask][v] + dist[v][u])`.
+  - Answer: the minimum over `dp[full][v]` (plus the return edge for a cycle).
+
+  ```python
+  INF = float("inf")
+  dp = [[INF] * n for _ in range(1 << n)]
+  dp[1][0] = 0
+  for mask in range(1 << n):
+      for v in range(n):
+          if dp[mask][v] == INF or not mask >> v & 1:
+              continue
+          for u in range(n):
+              if not mask >> u & 1:
+                  nm = mask | 1 << u
+                  dp[nm][u] = min(dp[nm][u], dp[mask][v] + dist[v][u])
+  ```
+
+  ```cpp
+  vector<vector<long long>> dp(1 << n, vector<long long>(n, LLONG_MAX / 2));
+  dp[1][0] = 0;
+  for (int mask = 1; mask < (1 << n); mask++)
+      for (int v = 0; v < n; v++) {
+          if (!(mask >> v & 1) || dp[mask][v] >= LLONG_MAX / 2) continue;
+          for (int u = 0; u < n; u++)
+              if (!(mask >> u & 1))
+                  dp[mask | 1 << u][u] = min(dp[mask | 1 << u][u], dp[mask][v] + dist[v][u]);
+      }
+  ```
+
+  ```java
+  long[][] dp = new long[1 << n][n];
+  for (long[] row : dp) Arrays.fill(row, Long.MAX_VALUE / 2);
+  dp[1][0] = 0;
+  for (int mask = 1; mask < (1 << n); mask++)
+      for (int v = 0; v < n; v++) {
+          if ((mask >> v & 1) == 0 || dp[mask][v] >= Long.MAX_VALUE / 2) continue;
+          for (int u = 0; u < n; u++)
+              if ((mask >> u & 1) == 0)
+                  dp[mask | 1 << u][u] = Math.min(dp[mask | 1 << u][u], dp[mask][v] + dist[v][u]);
+      }
+  ```
+
+  Complexity: O(2^n · n²) — about 4·10^8 for n = 20 in C++ (tight), comfortable for n ≤ 16.
+  Masks are processed in increasing order, which is a valid topological order because adding
+  an element always increases the mask.
+
+  ## Assignment problems
+
+  Assign n people to n jobs: `dp[mask]` = best cost where the first popcount(mask) people
+  were assigned to the jobs in `mask`. Transition: the next person takes any free job.
+  O(2^n · n) — no second coordinate needed because the person index is implied.
+
+  ## Recognising it
+
+  - n ≤ 20 and "order", "assign", "visit all", "partition into groups".
+  - The state needs "which items are used", not just "how many".
+key_points:
+  - dp[mask] (optionally × last element) over subsets replaces n! orderings with 2^n states.
+  - Increasing mask order is a valid DP order.
+  - TSP-style - O(2^n · n²); assignment - O(2^n · n) using popcount as the implicit index.
+  - Fits n ≤ ~20; check memory - 2^20 × 20 longs is 160 MB.
+pitfalls:
+  - Memory blow-up with dp[1 << 20][20] of 64-bit values.
+  - Forgetting to skip unreachable states (wasted time and overflow).
+  - Off-by-one between bit positions and 1-indexed items.
+resources:
+  - title: "USACO Guide: Bitmask DP"
+    url: https://usaco.guide/gold/dp-bitmasks
+    kind: article
+    source: USACO Guide
+    minutes: 40
+  - title: Hamiltonian Flights
+    url: https://cses.fi/problemset/task/1690
+    kind: interactive
+    source: CSES
+    minutes: 30
+  - title: Elevator Rides
+    url: https://cses.fi/problemset/task/1653
+    kind: interactive
+    source: CSES
+    minutes: 40
+    level: deep
+quiz:
+  - id: states
+    kind: mcq
+    prompt: TSP bitmask DP with n = 15 has how many (mask, last) states?
+    options: ["2^15 · 15 ≈ 4.9·10^5", "15! ≈ 1.3·10^12", "15²", "2^15"]
+    answer: 0
+    explanation: Every subset paired with every possible last city.
+    difficulty: 2
+  - id: order
+    kind: mcq
+    prompt: Why can masks be processed in increasing numeric order?
+    options: ["Transitions only add bits, so the next mask is always larger", "Masks are sorted by popcount", "It's arbitrary", "To save memory"]
+    answer: 0
+    explanation: mask | (1 << u) > mask whenever u is not in mask.
+    difficulty: 2
+  - id: assignment
+    kind: mcq
+    prompt: In the assignment DP, which person is assigned next from state mask?
+    options: ["Person number popcount(mask)", "The last person", "Any person", "Person mask"]
+    answer: 0
+    explanation: popcount(mask) people have already been assigned, in order.
+    difficulty: 3
+problems: [shortest-tour]
+practice_links:
+  - title: Hamiltonian Flights
+    url: https://cses.fi/problemset/task/1690
+    platform: CSES
+    difficulty: hard
+  - title: Elevator Rides
+    url: https://cses.fi/problemset/task/1653
+    platform: CSES
+    difficulty: hard

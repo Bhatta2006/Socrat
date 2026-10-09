@@ -1,0 +1,128 @@
+id: simulation
+title: Simulation and implementation
+summary: Translate a long statement into exact code — the skill behind most Div 3 A–C problems.
+module: contest-basics
+prerequisites: [fast-io, zero:grids]
+difficulty: 2
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  Many contest problems need no clever algorithm — just **doing exactly what the statement
+  says**, efficiently and without bugs. These "implementation" problems reward careful
+  reading, clean state, and testing edge cases. They are also where speed comes from: the
+  faster you finish them, the more time you have for the hard problems.
+
+  ## A reliable workflow
+
+  1. **Model the state.** What variables fully describe the situation at any moment?
+     (positions, directions, a grid, counters)
+  2. **Write one step.** Implement a single time step / operation as a small function.
+  3. **Loop** the step the required number of times — and check that number against the
+     time limit.
+  4. **Check edges**: n = 1, all equal, walls, wrap-around, simultaneous events.
+
+  ## Directions and grids
+
+  ```python
+  # 0 = north, 1 = east, 2 = south, 3 = west
+  dr = [-1, 0, 1, 0]
+  dc = [0, 1, 0, -1]
+  d = (d + 1) % 4          # turn right
+  d = (d + 3) % 4          # turn left
+  r, c = r + dr[d], c + dc[d]
+  ```
+
+  ```cpp
+  int dr[] = {-1, 0, 1, 0}, dc[] = {0, 1, 0, -1};
+  d = (d + 1) % 4;   // right
+  d = (d + 3) % 4;   // left
+  r += dr[d]; c += dc[d];
+  ```
+
+  ```java
+  int[] dr = {-1, 0, 1, 0}, dc = {0, 1, 0, -1};
+  d = (d + 1) % 4;   // right
+  d = (d + 3) % 4;   // left
+  r += dr[d]; c += dc[d];
+  ```
+
+  ## When simulation is too slow
+
+  If the statement asks for step 10^18, you cannot simulate every step. Look for:
+
+  - a **cycle**: record each state's first time seen; once a state repeats, the process
+    loops with a known period, so jump ahead with modulo;
+  - a **closed form**: the k-th step can be computed directly;
+  - **batching**: apply many identical steps at once.
+
+  ## Cleanliness pays
+
+  Use meaningful names, avoid copy-pasted branches (use direction arrays), and keep the
+  update for one step in one place. In contests, a messy simulation is where 20 minutes of
+  debugging hides.
+key_points:
+  - Model the full state, implement one step, then loop.
+  - Direction arrays turn four branches into one formula.
+  - Check the number of steps against the time limit before simulating.
+  - For huge step counts, find a cycle or closed form.
+pitfalls:
+  - Updating state in place when all updates should happen "simultaneously".
+  - Misreading the order of operations in the statement.
+  - Simulating 10^18 steps instead of finding the cycle.
+resources:
+  - title: "USACO Guide: Simulation"
+    url: https://usaco.guide/bronze/simulation
+    kind: article
+    source: USACO Guide
+    minutes: 30
+  - title: Competitive Programmer's Handbook (free PDF)
+    url: https://cses.fi/book/book.pdf
+    kind: book
+    source: Antti Laaksonen
+    minutes: 30
+    level: deep
+quiz:
+  - id: turn-right
+    kind: mcq
+    prompt: With directions 0=N, 1=E, 2=S, 3=W, how do you turn left?
+    options: ["d = (d + 3) % 4", "d = (d + 1) % 4", "d = d - 1", "d = (d + 2) % 4"]
+    answer: 0
+    explanation: Turning left is three right turns; +3 avoids negative values with %.
+    difficulty: 2
+  - id: simultaneous
+    kind: mcq
+    prompt: In Game of Life–style updates, why use a second grid?
+    options:
+      - All cells must update from the same previous state
+      - It is faster
+      - To save memory
+      - The judge requires it
+    answer: 0
+    explanation: Updating in place would let early cells' new values affect later cells in the same step.
+    difficulty: 2
+  - id: huge-steps
+    kind: mcq
+    prompt: A deterministic process has at most 1000 possible states. You need its state after 10^18 steps. Approach?
+    options:
+      - Detect the cycle (it must repeat within 1001 steps) and use modulo
+      - Simulate all 10^18 steps
+      - Binary search on the step
+      - It is impossible
+    answer: 0
+    explanation: By the pigeonhole principle a state repeats quickly; the rest is periodic.
+    difficulty: 3
+problems: [robot-walk]
+practice_links:
+  - title: Beautiful Matrix
+    url: https://codeforces.com/problemset/problem/263/A
+    platform: Codeforces
+    difficulty: easy
+  - title: Bit++
+    url: https://codeforces.com/problemset/problem/282/A
+    platform: Codeforces
+    difficulty: easy
+  - title: Number Spiral
+    url: https://cses.fi/problemset/task/1071
+    platform: CSES
+    difficulty: medium

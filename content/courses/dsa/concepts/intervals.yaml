@@ -1,0 +1,154 @@
+id: intervals
+title: Intervals
+summary: Sort intervals by start, then sweep once to merge, insert, or detect overlaps.
+module: ordering
+prerequisites: [sorting]
+difficulty: 3
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Meetings, bookings, time ranges, ranges of numbers — interval problems are everywhere.
+  Almost all of them start the same way: **sort by start time**. After sorting, any
+  interval can only overlap the ones right around it, so a single left-to-right sweep
+  suffices.
+
+  ## Overlap test
+
+  Intervals `[a, b]` and `[c, d]` (closed) overlap when **`a ≤ d` and `c ≤ b`** — each starts
+  before the other ends. Ask whether touching endpoints (`b == c`) count as overlapping;
+  problems differ, and interviewers love that clarification.
+
+  ## Merge overlapping intervals
+
+  ```python
+  def merge(intervals):
+      intervals.sort()
+      merged = []
+      for start, end in intervals:
+          if merged and start <= merged[-1][1]:
+              merged[-1][1] = max(merged[-1][1], end)   # extend the current block
+          else:
+              merged.append([start, end])                # start a new block
+      return merged
+  ```
+
+  ```cpp
+  vector<pair<long long,long long>> mergeIntervals(vector<pair<long long,long long>> v) {
+      sort(v.begin(), v.end());
+      vector<pair<long long,long long>> out;
+      for (auto [s, e] : v) {
+          if (!out.empty() && s <= out.back().second)
+              out.back().second = max(out.back().second, e);
+          else
+              out.push_back({s, e});
+      }
+      return out;
+  }
+  ```
+
+  ```java
+  static List<long[]> merge(long[][] v) {
+      Arrays.sort(v, (x, y) -> Long.compare(x[0], y[0]));
+      List<long[]> out = new ArrayList<>();
+      for (long[] it : v) {
+          if (!out.isEmpty() && it[0] <= out.get(out.size() - 1)[1])
+              out.get(out.size() - 1)[1] = Math.max(out.get(out.size() - 1)[1], it[1]);
+          else out.add(new long[]{it[0], it[1]});
+      }
+      return out;
+  }
+  ```
+
+  Note `max`: a later interval may be entirely inside the current block, e.g. `[1, 10]`
+  then `[2, 3]`.
+
+  ## Other classic interval questions
+
+  - **Insert an interval** into a sorted non-overlapping list: copy the ones entirely
+    before, merge everything that overlaps, copy the rest.
+  - **Can one person attend all meetings?** Sort by start; any `start < previous end`
+    means a conflict.
+  - **Minimum meeting rooms** — sweep line: turn each interval into a +1 event at start and
+    a −1 event at end, sort events, and track the running count; the peak is the answer.
+  - **Remove the fewest intervals to make the rest non-overlapping** — that is a greedy
+    problem: sort by **end** and keep each interval that starts after the last kept end.
+
+  ## Sweep line in one sentence
+
+  Turn intervals into sorted events and walk through time keeping a running state. It
+  solves overlap counting, union length, and skyline-style problems.
+key_points:
+  - Sort by start; then overlaps involve only neighbours in the sweep.
+  - Overlap of [a, b] and [c, d] ⇔ a ≤ d and c ≤ b — clarify whether touching counts.
+  - Merge by extending the last block with max(end).
+  - Sweep line - +1/−1 events sorted by time give concurrent counts.
+  - Sorting by end time enables greedy selection.
+pitfalls:
+  - Forgetting max() when merging nested intervals.
+  - Mis-ordering events at equal times (end before start or vice versa).
+  - Not clarifying whether touching intervals overlap.
+resources:
+  - title: Merge Intervals – Sorting
+    url: https://www.youtube.com/watch?v=44H3cEC2fFM
+    kind: video
+    source: NeetCode
+    minutes: 9
+  - title: "Tech Interview Handbook: Interval cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/interval/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+  - title: Restaurant Customers (sweep line practice)
+    url: https://cses.fi/problemset/task/1619
+    kind: interactive
+    source: CSES
+    minutes: 20
+    level: deep
+quiz:
+  - id: overlap
+    kind: mcq
+    prompt: Do the closed intervals [1, 5] and [5, 9] overlap?
+    options: ["Yes, they share the point 5", "No", "Only if sorted", "Only if open intervals"]
+    answer: 0
+    explanation: 1 ≤ 9 and 5 ≤ 5, so the closed intervals share point 5. Always confirm the convention.
+    difficulty: 1
+  - id: nested
+    kind: mcq
+    prompt: Merging sorted intervals [1, 10] then [2, 3], what is the merged result?
+    options: ["[1, 10]", "[1, 3]", "[1, 10] and [2, 3]", "[2, 10]"]
+    answer: 0
+    explanation: The end is max(10, 3) = 10 — that's why merging uses max.
+    difficulty: 2
+  - id: rooms
+    kind: mcq
+    prompt: Which technique finds the minimum number of meeting rooms?
+    options: ["Sweep line over start/end events tracking the maximum concurrent count", "Binary search on the answer only", "Sorting by length", "Hashing start times"]
+    answer: 0
+    explanation: The peak number of simultaneous meetings is the number of rooms needed.
+    difficulty: 2
+  - id: first-step
+    kind: mcq
+    prompt: What is almost always the first step in an interval problem?
+    options: ["Sort the intervals", "Build a hash map", "Reverse the list", "Use recursion"]
+    answer: 0
+    explanation: Sorting (by start, or by end for greedy selection) makes a linear sweep possible.
+    difficulty: 1
+problems: [merge-intervals]
+practice_links:
+  - title: Merge Intervals
+    url: https://leetcode.com/problems/merge-intervals/
+    platform: LeetCode
+    difficulty: medium
+  - title: Insert Interval
+    url: https://leetcode.com/problems/insert-interval/
+    platform: LeetCode
+    difficulty: medium
+  - title: Non-overlapping Intervals
+    url: https://leetcode.com/problems/non-overlapping-intervals/
+    platform: LeetCode
+    difficulty: medium
+  - title: Restaurant Customers
+    url: https://cses.fi/problemset/task/1619
+    platform: CSES
+    difficulty: easy

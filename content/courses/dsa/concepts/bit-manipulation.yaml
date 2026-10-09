@@ -1,0 +1,155 @@
+id: bit-manipulation
+title: Bit manipulation
+summary: Treat integers as arrays of bits — XOR tricks, masks, and counting set bits.
+module: dynamic-programming
+prerequisites: [complexity]
+difficulty: 3
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  Every integer is stored in binary. Operating on its bits directly is extremely fast and
+  unlocks elegant solutions: finding the one unpaired number, enumerating subsets, checking
+  powers of two.
+
+  | Operator | Meaning | 6 (110) op 3 (011) |
+  |---|---|---|
+  | `&` | AND: 1 if both bits 1 | 2 (010) |
+  | `\|` | OR: 1 if either bit 1 | 7 (111) |
+  | `^` | XOR: 1 if bits differ | 5 (101) |
+  | `~` | NOT: flip every bit | |
+  | `<<` / `>>` | shift left / right | `1 << 3` = 8 |
+
+  ## Essential tricks
+
+  - **Test bit k**: `(x >> k) & 1`
+  - **Set bit k**: `x | (1 << k)`; **clear**: `x & ~(1 << k)`; **toggle**: `x ^ (1 << k)`
+  - **Lowest set bit**: `x & -x`
+  - **Remove lowest set bit**: `x & (x − 1)`
+  - **Power of two?** `x > 0 and (x & (x − 1)) == 0`
+  - **Count set bits**: Python `bin(x).count("1")` or `x.bit_count()`, C++
+    `__builtin_popcountll(x)`, Java `Long.bitCount(x)`
+
+  ## XOR's superpower
+
+  XOR is its own inverse: `a ^ a = 0` and `a ^ 0 = a`, and order doesn't matter. So XOR-ing
+  a list where every value appears twice except one leaves exactly that one:
+
+  ```python
+  def single(nums):
+      result = 0
+      for x in nums:
+          result ^= x
+      return result
+  ```
+
+  ```cpp
+  long long single(const vector<long long>& nums) {
+      long long r = 0;
+      for (long long x : nums) r ^= x;
+      return r;
+  }
+  ```
+
+  ```java
+  static long single(long[] nums) {
+      long r = 0;
+      for (long x : nums) r ^= x;
+      return r;
+  }
+  ```
+
+  O(n) time, O(1) space — no hash set needed.
+
+  ## Bitmasks as sets
+
+  A number from `0` to `2^n − 1` can represent a **subset** of n items: bit i set means item
+  i is included. Looping `mask` over that range enumerates every subset, which is a compact
+  alternative to recursion and the basis of **bitmask DP** (common in competitive
+  programming for n ≤ 20).
+
+  ```python
+  items = [3, 5, 7]
+  for mask in range(1 << len(items)):
+      subset = [items[i] for i in range(len(items)) if mask >> i & 1]
+  ```
+
+  ## Language notes
+
+  - Python integers are unbounded; `~x` is `−x − 1`.
+  - In C++ and Java, shifting `1 << 40` overflows an `int`; write `1LL << 40` (C++) or
+    `1L << 40` (Java).
+  - Java's `>>>` shifts in zeros (unsigned); `>>` keeps the sign.
+key_points:
+  - AND, OR, XOR, NOT and shifts manipulate bits directly.
+  - x & (x − 1) removes the lowest set bit; power of two ⇔ x > 0 and x & (x − 1) == 0.
+  - XOR cancels pairs - a ^ a = 0, so XOR of all values finds the unpaired one.
+  - Masks from 0 to 2^n − 1 enumerate all subsets.
+  - Use 64-bit shifts (1LL, 1L) for large bit positions.
+pitfalls:
+  - Operator precedence — wrap bit expressions in parentheses (in C++/Java & binds weaker than ==).
+  - Overflow from 1 << k with 32-bit ints.
+  - Python's ~ producing negative numbers unexpectedly.
+resources:
+  - title: Counting Bits
+    url: https://www.youtube.com/watch?v=RyBM56RIWrM
+    kind: video
+    source: NeetCode
+    minutes: 13
+  - title: Bitmask operations visualized
+    url: https://visualgo.net/en/bitmask
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 10
+  - title: "Tech Interview Handbook: Binary cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/binary/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: xor-pairs
+    kind: mcq
+    prompt: What is 4 ^ 9 ^ 4?
+    options: ["9", "17", "0", "4"]
+    answer: 0
+    explanation: The two 4s cancel (4 ^ 4 = 0), leaving 9.
+    difficulty: 1
+  - id: power-two
+    kind: mcq
+    prompt: For x > 0, what does (x & (x − 1)) == 0 test?
+    options: ["x is a power of two", "x is even", "x is odd", "x is prime"]
+    answer: 0
+    explanation: Powers of two have a single set bit, which x − 1 clears entirely.
+    difficulty: 2
+  - id: subsets
+    kind: mcq
+    prompt: Looping mask from 0 to 2^n − 1 visits...
+    options: ["Every subset of n items exactly once", "Every permutation", "Only subsets of size n", "n subsets"]
+    answer: 0
+    explanation: Each n-bit pattern corresponds to exactly one subset.
+    difficulty: 2
+  - id: and-value
+    kind: mcq
+    prompt: What is 12 & 10?
+    options: ["8", "14", "6", "2"]
+    answer: 0
+    explanation: 1100 & 1010 = 1000, which is 8.
+    difficulty: 2
+problems: [single-number]
+practice_links:
+  - title: Single Number
+    url: https://leetcode.com/problems/single-number/
+    platform: LeetCode
+    difficulty: easy
+  - title: Number of 1 Bits
+    url: https://leetcode.com/problems/number-of-1-bits/
+    platform: LeetCode
+    difficulty: easy
+  - title: Counting Bits
+    url: https://leetcode.com/problems/counting-bits/
+    platform: LeetCode
+    difficulty: easy
+  - title: Missing Number
+    url: https://leetcode.com/problems/missing-number/
+    platform: LeetCode
+    difficulty: easy

@@ -1,0 +1,191 @@
+id: variables-and-types
+title: Variables and types
+summary: Variables are named boxes that hold values; every value has a type that decides what you can do with it.
+module: first-steps
+prerequisites: [programs-and-output]
+difficulty: 1
+estimated_minutes: 35
+lesson: |
+  ## The big idea
+
+  A **variable** is a name attached to a value, like a labelled box. You put a value in,
+  and later you refer to it by name. Variables let a program *remember* things.
+
+  ```python
+  age = 17
+  name = "Ada"
+  print(name)
+  print(age + 1)
+  ```
+
+  ```cpp
+  int age = 17;
+  std::string name = "Ada";
+  std::cout << name << "\n";
+  std::cout << age + 1 << "\n";
+  ```
+
+  ```java
+  int age = 17;
+  String name = "Ada";
+  System.out.println(name);
+  System.out.println(age + 1);
+  ```
+
+  ## `=` means "store", not "equals"
+
+  `age = 17` does **not** claim that age equals 17 forever. It means: *evaluate the right
+  side, then store the result in the box on the left.* That is why this is valid:
+
+  ```python
+  score = 10
+  score = score + 5   # take the old score (10), add 5, store 15
+  print(score)        # 15
+  ```
+
+  ```cpp
+  int score = 10;
+  score = score + 5;  // take the old score (10), add 5, store 15
+  std::cout << score; // 15
+  ```
+
+  ```java
+  int score = 10;
+  score = score + 5;          // take the old score (10), add 5, store 15
+  System.out.println(score);  // 15
+  ```
+
+  The box holds **one** value at a time. Assigning again replaces the old value.
+
+  ## Types
+
+  Every value has a **type**:
+
+  | Idea | Python | C++ | Java |
+  |---|---|---|---|
+  | whole number | `int` | `int`, `long long` | `int`, `long` |
+  | decimal number | `float` | `double` | `double` |
+  | text | `str` | `std::string` | `String` |
+  | true/false | `bool` | `bool` | `boolean` |
+
+  Python figures out the type from the value. C++ and Java ask you to **declare** it
+  (`int age`), and then the variable can only ever hold that type. Declaring types feels
+  like extra work at first, but it catches many mistakes before the program runs.
+
+  ## Naming
+
+  Choose names that say what the value *means*: `total_price` beats `x`. Names cannot
+  contain spaces or start with a digit, and they are case-sensitive (`Score` ≠ `score`).
+
+  ## Tracing
+
+  The best way to understand code is to **trace** it: keep a little table of each
+  variable's current value and update it line by line. Programmers do this in their heads
+  constantly — practise it now and every later topic gets easier.
+key_points:
+  - A variable is a named place that stores one value at a time.
+  - "`=` evaluates the right side, then stores the result on the left."
+  - Every value has a type (whole number, decimal, text, true/false).
+  - C++ and Java require declaring a variable's type; Python infers it.
+  - Trace code by tracking each variable's value line by line.
+pitfalls:
+  - Reading `x = x + 1` as a false equation instead of an update.
+  - Using a variable before giving it a value.
+  - Mixing text and numbers without converting (e.g. "5" + 3).
+resources:
+  - title: Python Tutor – watch variables change step by step
+    url: https://pythontutor.com/
+    kind: visualizer
+    source: Python Tutor
+    minutes: 15
+    level: intro
+  - title: Built-in types (numbers, strings, booleans)
+    url: https://docs.python.org/3/library/stdtypes.html
+    kind: docs
+    source: Python docs
+    minutes: 20
+    level: deep
+    languages: [python]
+  - title: "Learn C++: Introduction to objects and variables"
+    url: https://www.learncpp.com/cpp-tutorial/introduction-to-objects-and-variables/
+    kind: article
+    source: LearnCpp
+    minutes: 15
+    languages: [cpp]
+  - title: "Java Tutorials: Variables"
+    url: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/variables.html
+    kind: docs
+    source: Oracle
+    minutes: 15
+    languages: [java]
+quiz:
+  - id: reassign
+    kind: output
+    prompt: What is printed?
+    code:
+      python: |
+        x = 3
+        x = x * 2
+        x = x + 1
+        print(x)
+      cpp: |
+        int x = 3;
+        x = x * 2;
+        x = x + 1;
+        std::cout << x;
+      java: |
+        int x = 3;
+        x = x * 2;
+        x = x + 1;
+        System.out.println(x);
+    options: ["7", "3", "6", "4"]
+    answer: 0
+    explanation: x becomes 3, then 3*2 = 6, then 6+1 = 7. Each assignment replaces the old value.
+    difficulty: 1
+  - id: swap-trace
+    kind: output
+    prompt: Trace carefully. What are a and b at the end?
+    code:
+      python: |
+        a = 5
+        b = 9
+        a = b
+        b = a
+      cpp: |
+        int a = 5, b = 9;
+        a = b;
+        b = a;
+      java: |
+        int a = 5, b = 9;
+        a = b;
+        b = a;
+    options: ["a = 9, b = 9", "a = 9, b = 5", "a = 5, b = 9", "a = 5, b = 5"]
+    answer: 0
+    explanation: After a = b, a is 9. Then b = a copies 9 into b. The original 5 is lost — swapping needs a temporary variable.
+    difficulty: 2
+  - id: type-of-text
+    kind: mcq
+    prompt: Which value is text (a string)?
+    options: ['"42"', "42", "4.2", "true"]
+    answer: 0
+    explanation: Quotes make it text. "42" is two characters, not a number you can do arithmetic with.
+    difficulty: 1
+  - id: declared-type
+    kind: mcq
+    prompt: In C++ or Java you declared `int count`. What can count hold?
+    options: ["Only whole numbers", "Any value", "Only text", "Only true or false"]
+    answer: 0
+    explanation: A declared type is a promise. An int variable can only store whole numbers.
+    difficulty: 1
+  - id: equals-meaning
+    kind: mcq
+    prompt: What does `total = total + price` do?
+    options:
+      - Adds price to the current total and stores the result in total
+      - Checks whether total equals total plus price
+      - Causes an error because total appears twice
+      - Creates a second variable named total
+    answer: 0
+    explanation: The right side is evaluated using the old total, then the result replaces it.
+    difficulty: 1
+problems: []

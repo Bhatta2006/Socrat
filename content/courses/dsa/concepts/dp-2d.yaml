@@ -1,0 +1,172 @@
+id: dp-2d
+title: Dynamic programming (2D)
+summary: States with two indexes — grids, two strings, items × capacity — filled row by row.
+module: dynamic-programming
+prerequisites: [dp-1d]
+difficulty: 5
+estimated_minutes: 70
+lesson: |
+  ## The big idea
+
+  Many DP problems need **two** coordinates to describe a subproblem: a position in a grid,
+  prefixes of two strings, or "first i items with capacity w". The method is identical to
+  1D DP — state, transition, base, answer — the table is just a grid.
+
+  ## Grid paths
+
+  Count paths from the top-left to the bottom-right of a grid moving only right or down,
+  avoiding blocked cells:
+
+  - State: `dp[r][c]` = number of ways to reach cell (r, c).
+  - Transition: `dp[r][c] = dp[r−1][c] + dp[r][c−1]` (0 if blocked).
+  - Base: `dp[0][0] = 1` if open.
+
+  ## Longest common subsequence (LCS)
+
+  The longest sequence appearing in order (not necessarily contiguous) in both strings —
+  the core of `diff` tools.
+
+  - State: `dp[i][j]` = LCS length of `a[:i]` and `b[:j]`.
+  - Transition: if `a[i−1] == b[j−1]`, `dp[i][j] = dp[i−1][j−1] + 1`; otherwise
+    `max(dp[i−1][j], dp[i][j−1])`.
+  - Base: row 0 and column 0 are 0.
+
+  ```python
+  def lcs(a, b):
+      prev = [0] * (len(b) + 1)
+      for i in range(1, len(a) + 1):
+          cur = [0] * (len(b) + 1)
+          for j in range(1, len(b) + 1):
+              if a[i - 1] == b[j - 1]:
+                  cur[j] = prev[j - 1] + 1
+              else:
+                  cur[j] = max(prev[j], cur[j - 1])
+          prev = cur
+      return prev[len(b)]
+  ```
+
+  ```cpp
+  int lcs(const string& a, const string& b) {
+      vector<int> prev(b.size() + 1, 0), cur(b.size() + 1, 0);
+      for (size_t i = 1; i <= a.size(); i++) {
+          for (size_t j = 1; j <= b.size(); j++)
+              cur[j] = a[i-1] == b[j-1] ? prev[j-1] + 1 : max(prev[j], cur[j-1]);
+          swap(prev, cur);
+      }
+      return prev[b.size()];
+  }
+  ```
+
+  ```java
+  static int lcs(String a, String b) {
+      int[] prev = new int[b.length() + 1], cur = new int[b.length() + 1];
+      for (int i = 1; i <= a.length(); i++) {
+          for (int j = 1; j <= b.length(); j++)
+              cur[j] = a.charAt(i-1) == b.charAt(j-1) ? prev[j-1] + 1 : Math.max(prev[j], cur[j-1]);
+          int[] t = prev; prev = cur; cur = t;
+      }
+      return prev[b.length()];
+  }
+  ```
+
+  Only the previous row is needed, so memory is O(len(b)). **Edit distance** (insertions,
+  deletions, replacements) uses the same table shape with a `min` of three moves.
+
+  ## 0/1 knapsack
+
+  Items with weight `w[i]` and value `v[i]`, capacity W, each item used at most once:
+  `dp[i][c] = max(dp[i−1][c], dp[i−1][c − w[i]] + v[i])`. In one dimension, iterate `c`
+  **downwards** so each item is counted once (iterating upwards would allow unlimited
+  copies — that's the unbounded version).
+
+  ## Getting the order right
+
+  Fill the table so every state's dependencies are already computed: row by row, left to
+  right for grid paths and LCS; capacity descending for 0/1 knapsack in 1D.
+
+  ## Reconstructing the answer
+
+  To output the actual path or subsequence, walk back from the final cell, at each step
+  choosing the transition that produced the stored value.
+key_points:
+  - 2D states describe grid positions, prefix pairs of two strings, or items × capacity.
+  - LCS - match → diagonal + 1, otherwise max of top and left.
+  - Fill in dependency order; often only the previous row is needed.
+  - 0/1 knapsack in 1D iterates capacity downwards.
+  - Reconstruct solutions by walking back through the table.
+pitfalls:
+  - Index offsets between dp (1-based prefixes) and strings (0-based).
+  - Iterating knapsack capacity upwards (accidentally unbounded).
+  - O(n·m) memory when only one previous row is needed.
+resources:
+  - title: Longest Common Subsequence
+    url: https://www.youtube.com/watch?v=Ua0GhsJSlWM
+    kind: video
+    source: NeetCode
+    minutes: 18
+  - title: Unique Paths
+    url: https://www.youtube.com/watch?v=IlEsdxuD4lY
+    kind: video
+    source: NeetCode
+    minutes: 10
+  - title: Recursion trees and DP visualized
+    url: https://visualgo.net/en/recursion
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 15
+  - title: "Tech Interview Handbook: Dynamic programming cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/dynamic-programming/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: lcs-match
+    kind: mcq
+    prompt: In LCS, if a[i−1] == b[j−1], then dp[i][j] equals...
+    options: ["dp[i−1][j−1] + 1", "max(dp[i−1][j], dp[i][j−1])", "dp[i−1][j] + 1", "0"]
+    answer: 0
+    explanation: A matching character extends the LCS of both shorter prefixes.
+    difficulty: 2
+  - id: lcs-value
+    kind: mcq
+    prompt: What is the LCS length of "abcde" and "ace"?
+    options: ["3", "2", "5", "1"]
+    answer: 0
+    explanation: '"ace" itself is a subsequence of both.'
+    difficulty: 1
+  - id: knapsack-direction
+    kind: mcq
+    prompt: In 1D 0/1 knapsack, why iterate capacity from high to low?
+    options:
+      - So each item is used at most once
+      - It is faster
+      - To find the minimum
+      - Low-to-high causes overflow
+    answer: 0
+    explanation: Going upward would reuse the current item's own updated values — unbounded knapsack.
+    difficulty: 3
+  - id: grid-paths
+    kind: mcq
+    prompt: Moving only right or down, how many paths cross an open 3 × 3 grid of cells from corner to corner?
+    options: ["6", "9", "3", "4"]
+    answer: 0
+    explanation: 2 rights and 2 downs in any order — C(4, 2) = 6.
+    difficulty: 2
+problems: [lcs-length, grid-paths]
+practice_links:
+  - title: Unique Paths
+    url: https://leetcode.com/problems/unique-paths/
+    platform: LeetCode
+    difficulty: medium
+  - title: Longest Common Subsequence
+    url: https://leetcode.com/problems/longest-common-subsequence/
+    platform: LeetCode
+    difficulty: medium
+  - title: Edit Distance
+    url: https://leetcode.com/problems/edit-distance/
+    platform: LeetCode
+    difficulty: medium
+  - title: Book Shop
+    url: https://cses.fi/problemset/task/1158
+    platform: CSES
+    difficulty: medium

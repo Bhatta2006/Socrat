@@ -1,0 +1,196 @@
+id: stacks
+title: Stacks, queues and monotonic stacks
+summary: Last-in-first-out and first-in-first-out containers, and the monotonic stack trick for "next greater" questions.
+module: linear-patterns
+prerequisites: [arrays-hashing]
+difficulty: 3
+estimated_minutes: 55
+lesson: |
+  ## The big idea
+
+  A **stack** is last-in, first-out (LIFO): like a pile of plates, you push on top and pop
+  from the top. A **queue** is first-in, first-out (FIFO): like a line at a shop. Both give
+  O(1) push and pop, and the right choice often *is* the solution.
+
+  | | Python | C++ | Java |
+  |---|---|---|---|
+  | stack | `list` (`append`, `pop`) | `stack<T>` / `vector<T>` | `ArrayDeque` (`push`, `pop`) |
+  | queue | `collections.deque` (`append`, `popleft`) | `queue<T>` / `deque<T>` | `ArrayDeque` (`offer`, `poll`) |
+
+  (Never use `list.pop(0)` in Python for a queue — it is O(n).)
+
+  ## Stacks match "most recent unfinished thing"
+
+  Balanced brackets: every closing bracket must match the **most recent unmatched**
+  opening bracket — exactly what the top of a stack holds.
+
+  ```python
+  def balanced(s):
+      pairs = {")": "(", "]": "[", "}": "{"}
+      stack = []
+      for ch in s:
+          if ch in "([{":
+              stack.append(ch)
+          elif not stack or stack.pop() != pairs[ch]:
+              return False
+      return not stack            # leftovers are unmatched openers
+  ```
+
+  ```cpp
+  bool balanced(const string& s) {
+      vector<char> st;
+      for (char ch : s) {
+          if (ch == '(' || ch == '[' || ch == '{') { st.push_back(ch); continue; }
+          char want = ch == ')' ? '(' : ch == ']' ? '[' : '{';
+          if (st.empty() || st.back() != want) return false;
+          st.pop_back();
+      }
+      return st.empty();
+  }
+  ```
+
+  ```java
+  static boolean balanced(String s) {
+      ArrayDeque<Character> st = new ArrayDeque<>();
+      for (char ch : s.toCharArray()) {
+          if (ch == '(' || ch == '[' || ch == '{') { st.push(ch); continue; }
+          char want = ch == ')' ? '(' : ch == ']' ? '[' : '{';
+          if (st.isEmpty() || st.pop() != want) return false;
+      }
+      return st.isEmpty();
+  }
+  ```
+
+  Other stack problems: undo history, evaluating expressions, simplifying paths, and
+  turning recursion into iteration.
+
+  ## The monotonic stack
+
+  "For each day, how many days until a warmer temperature?" Brute force checks every later
+  day: O(n²). Instead keep a stack of indexes whose answer is **still unknown**, with
+  temperatures **decreasing** from bottom to top. When a warmer day arrives, it is the
+  answer for every colder day on top — pop them all.
+
+  ```python
+  def next_greater(a):
+      res = [-1] * len(a)
+      stack = []                       # indexes, values decreasing
+      for i, x in enumerate(a):
+          while stack and a[stack[-1]] < x:
+              res[stack.pop()] = x
+          stack.append(i)
+      return res
+  ```
+
+  ```cpp
+  vector<long long> nextGreater(const vector<long long>& a) {
+      vector<long long> res(a.size(), -1);
+      vector<int> st;
+      for (int i = 0; i < (int)a.size(); i++) {
+          while (!st.empty() && a[st.back()] < a[i]) { res[st.back()] = a[i]; st.pop_back(); }
+          st.push_back(i);
+      }
+      return res;
+  }
+  ```
+
+  ```java
+  static long[] nextGreater(long[] a) {
+      long[] res = new long[a.length];
+      java.util.Arrays.fill(res, -1);
+      int[] st = new int[a.length];
+      int top = 0;
+      for (int i = 0; i < a.length; i++) {
+          while (top > 0 && a[st[top - 1]] < a[i]) res[st[--top]] = a[i];
+          st[top++] = i;
+      }
+      return res;
+  }
+  ```
+
+  Each index is pushed once and popped at most once, so the total is **O(n)** even though
+  there is a loop inside a loop. Variants answer "previous smaller", "largest rectangle in
+  a histogram" and "stock span".
+
+  ## Queues
+
+  Queues process things **in arrival order**: simulations, task scheduling, and above all
+  **breadth-first search**, which you will meet in graphs.
+key_points:
+  - Stack = LIFO, queue = FIFO; both O(1) per operation with the right container.
+  - A stack holds the most recent unfinished item — perfect for matching brackets.
+  - Monotonic stacks answer next/previous greater/smaller in O(n) total.
+  - Amortised analysis — each element is pushed and popped at most once.
+  - Use deque for queues in Python, never list.pop(0).
+pitfalls:
+  - Popping from an empty stack (check first).
+  - Forgetting to check that the stack is empty at the end (unmatched openers).
+  - Storing values instead of indexes when you need positions or distances.
+resources:
+  - title: Valid Parentheses – Stack
+    url: https://www.youtube.com/watch?v=WTzjTskDFMg
+    kind: video
+    source: NeetCode
+    minutes: 10
+  - title: Daily Temperatures – Monotonic Stack
+    url: https://www.youtube.com/watch?v=cTBiBSnjO3c
+    kind: video
+    source: NeetCode
+    minutes: 13
+  - title: Stacks and queues visualized
+    url: https://visualgo.net/en/list
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 15
+  - title: "Tech Interview Handbook: Stack cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/stack/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: lifo
+    kind: mcq
+    prompt: Push 1, push 2, push 3, pop, push 4, pop. What is on top?
+    options: ["2", "4", "3", "1"]
+    answer: 0
+    explanation: After popping 3 and pushing then popping 4, the stack is [1, 2] with 2 on top.
+    difficulty: 1
+  - id: queue-structure
+    kind: mcq
+    prompt: Which structure processes items strictly in arrival order?
+    options: ["Queue", "Stack", "Hash set", "Heap"]
+    answer: 0
+    explanation: A queue is first-in, first-out.
+    difficulty: 1
+  - id: amortized
+    kind: mcq
+    prompt: Why is the monotonic-stack "next greater element" O(n) despite a nested while loop?
+    options:
+      - Each index is pushed once and popped at most once overall
+      - The while loop runs at most once per step
+      - The array is sorted
+      - It isn't — it's O(n²)
+    answer: 0
+    explanation: Total pops can't exceed total pushes (n), so the combined work is linear.
+    difficulty: 3
+  - id: brackets
+    kind: mcq
+    prompt: For "(]", what does the stack algorithm decide?
+    options: ["Not balanced — ] does not match the top (", "Balanced", "Error: empty stack", "Balanced because the counts match"]
+    answer: 0
+    explanation: Types must match the most recent opener, not just the counts.
+    difficulty: 2
+problems: [balanced-brackets, next-greater]
+practice_links:
+  - title: Valid Parentheses
+    url: https://leetcode.com/problems/valid-parentheses/
+    platform: LeetCode
+    difficulty: easy
+  - title: Min Stack
+    url: https://leetcode.com/problems/min-stack/
+    platform: LeetCode
+    difficulty: medium
+  - title: Daily Temperatures
+    url: https://leetcode.com/problems/daily-temperatures/
+    platform: LeetCode
+    difficulty: medium

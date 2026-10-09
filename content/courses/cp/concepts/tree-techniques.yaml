@@ -1,0 +1,150 @@
+id: tree-techniques
+title: Tree techniques
+summary: Root a general tree, compute subtree DP bottom-up, flatten it with an Euler tour, and find its diameter.
+module: graph-module
+prerequisites: [dsa:binary-trees, dsa:graph-traversal]
+difficulty: 4
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  Contest trees are usually given as `n − 1` undirected edges, not as left/right children.
+  Root the tree at node 1, and suddenly every tree question becomes "compute something for
+  each subtree from its children" — **tree DP**.
+
+  ## Rooting without recursion
+
+  Deep trees (a chain of 2·10^5 nodes) overflow recursion in Python and Java, and sometimes
+  C++. Use an iterative BFS/DFS to get a parent array and a visiting order; then process
+  nodes in **reverse order** so children are always done before parents.
+
+  ```python
+  def root_tree(n, adj, root=1):
+      parent = [0] * (n + 1)
+      order = [root]
+      parent[root] = -1
+      for u in order:                       # BFS order; the list grows as we go
+          for v in adj[u]:
+              if v != parent[u]:
+                  parent[v] = u
+                  order.append(v)
+      return parent, order
+
+  # subtree sizes, bottom-up
+  size = [1] * (n + 1)
+  for u in reversed(order):
+      if parent[u] > 0:
+          size[parent[u]] += size[u]
+  ```
+
+  ```cpp
+  vector<int> parent(n + 1, 0), order{1}, sz(n + 1, 1);
+  parent[1] = -1;
+  for (int i = 0; i < (int)order.size(); i++) {
+      int u = order[i];
+      for (int v : adj[u]) if (v != parent[u]) { parent[v] = u; order.push_back(v); }
+  }
+  for (int i = n - 1; i > 0; i--) sz[parent[order[i]]] += sz[order[i]];
+  ```
+
+  ```java
+  int[] parent = new int[n + 1], order = new int[n], sz = new int[n + 1];
+  int head = 0, tail = 0;
+  order[tail++] = 1; parent[1] = -1;
+  while (head < tail) {
+      int u = order[head++];
+      for (int v : adj.get(u)) if (v != parent[u]) { parent[v] = u; order[tail++] = v; }
+  }
+  Arrays.fill(sz, 1);
+  for (int i = n - 1; i > 0; i--) sz[parent[order[i]]] += sz[order[i]];
+  ```
+
+  ## Classic tree DPs
+
+  - **Subtree size / sum** — add each child into its parent.
+  - **Maximum independent set / matching** — two states per node (taken / not taken).
+  - **Diameter** — the longest path. Two BFS passes: BFS from any node to find the farthest
+    node A; BFS from A; the farthest distance is the diameter.
+
+  ## Euler tour (flattening)
+
+  Record the time each node is **entered** (tin) and the time its subtree **ends** (tout)
+  in a DFS. Then the subtree of u is exactly the contiguous range `[tin[u], tout[u]]`, so
+  **subtree queries become range queries** — combine with a Fenwick tree for "update a node,
+  query a subtree sum".
+
+  ## Rerooting
+
+  To answer something "for every possible root" (e.g. sum of distances from each node),
+  compute the answer for root 1, then move the root across each edge in O(1) using the
+  subtree sizes: `ans[child] = ans[parent] − size[child] + (n − size[child])`.
+key_points:
+  - Root the tree, then compute subtree values bottom-up in reverse BFS order.
+  - Iterative traversal avoids recursion limits on deep trees.
+  - Diameter via two BFS passes.
+  - Euler tour turns subtrees into contiguous ranges.
+  - Rerooting computes all-roots answers in O(n).
+pitfalls:
+  - Recursive DFS overflowing on chain-shaped trees.
+  - Treating the undirected edge back to the parent as a child.
+  - Forgetting 64-bit for sums of distances (can reach ~10^10 or more).
+resources:
+  - title: Subordinates (subtree sizes)
+    url: https://cses.fi/problemset/task/1674
+    kind: interactive
+    source: CSES
+    minutes: 15
+  - title: Tree Distances I
+    url: https://cses.fi/problemset/task/1132
+    kind: interactive
+    source: CSES
+    minutes: 25
+  - title: Depth First Search
+    url: https://cp-algorithms.com/graph/depth-first-search.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 20
+    level: deep
+quiz:
+  - id: edges-tree
+    kind: mcq
+    prompt: A tree with n nodes has how many edges?
+    options: ["n − 1", "n", "n + 1", "2n"]
+    answer: 0
+    explanation: Connected and acyclic means exactly n − 1 edges.
+    difficulty: 1
+  - id: reverse-order
+    kind: mcq
+    prompt: Why process nodes in reverse BFS order for subtree sums?
+    options: ["Children appear after parents in BFS order, so reversing handles children first", "It's faster", "BFS order is random", "To avoid cycles"]
+    answer: 0
+    explanation: Bottom-up DP needs every child finished before its parent.
+    difficulty: 2
+  - id: euler
+    kind: mcq
+    prompt: With an Euler tour, the subtree of u corresponds to...
+    options: ["The contiguous range [tin[u], tout[u]]", "All nodes with larger labels", "The path from root to u", "A random set"]
+    answer: 0
+    explanation: DFS visits an entire subtree before leaving it.
+    difficulty: 2
+  - id: reroot
+    kind: mcq
+    prompt: Rerooting from parent p to child c changes the sum of distances by...
+    options: ["−size[c] + (n − size[c])", "+size[c]", "+1", "Nothing"]
+    answer: 0
+    explanation: Nodes in c's subtree get 1 closer; all others get 1 farther.
+    difficulty: 3
+problems: [subtree-sizes, sum-of-distances]
+practice_links:
+  - title: Subordinates
+    url: https://cses.fi/problemset/task/1674
+    platform: CSES
+    difficulty: easy
+  - title: Tree Diameter
+    url: https://cses.fi/problemset/task/1131
+    platform: CSES
+    difficulty: medium
+  - title: Tree Distances II
+    url: https://cses.fi/problemset/task/1133
+    platform: CSES
+    difficulty: hard

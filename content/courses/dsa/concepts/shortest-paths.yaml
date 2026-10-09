@@ -1,0 +1,168 @@
+id: shortest-paths
+title: Weighted shortest paths
+summary: Dijkstra's algorithm — always settle the closest unsettled node — for graphs with non-negative weights.
+module: graphs
+prerequisites: [graph-traversal, heaps]
+difficulty: 4
+estimated_minutes: 55
+lesson: |
+  ## The big idea
+
+  BFS finds shortest paths when every edge costs the same. With **weights** (distances,
+  times, prices), the path with fewest edges may not be cheapest. **Dijkstra's algorithm**
+  generalises BFS: instead of a queue, use a **min-heap keyed by distance**, and always
+  expand the closest node not yet finalised.
+
+  ## Why it works
+
+  With **non-negative** weights, the closest unsettled node cannot be reached more cheaply
+  through any other unsettled node — any detour would start at a node that is at least as
+  far away. So when a node is popped from the heap for the first time, its distance is
+  final.
+
+  ```python
+  import heapq
+  def dijkstra(n, adj, src):
+      INF = float("inf")
+      dist = [INF] * (n + 1)
+      dist[src] = 0
+      heap = [(0, src)]
+      while heap:
+          d, u = heapq.heappop(heap)
+          if d > dist[u]:
+              continue                    # stale entry; u already settled
+          for v, w in adj[u]:
+              if d + w < dist[v]:
+                  dist[v] = d + w
+                  heapq.heappush(heap, (dist[v], v))
+      return dist
+  ```
+
+  ```cpp
+  vector<long long> dijkstra(int n, const vector<vector<pair<int,long long>>>& adj, int src) {
+      const long long INF = LLONG_MAX;
+      vector<long long> dist(n + 1, INF);
+      priority_queue<pair<long long,int>, vector<pair<long long,int>>, greater<>> pq;
+      dist[src] = 0; pq.push({0, src});
+      while (!pq.empty()) {
+          auto [d, u] = pq.top(); pq.pop();
+          if (d > dist[u]) continue;
+          for (auto [v, w] : adj[u])
+              if (d + w < dist[v]) { dist[v] = d + w; pq.push({dist[v], v}); }
+      }
+      return dist;
+  }
+  ```
+
+  ```java
+  static long[] dijkstra(int n, List<List<long[]>> adj, int src) {
+      long[] dist = new long[n + 1];
+      Arrays.fill(dist, Long.MAX_VALUE);
+      PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));
+      dist[src] = 0; pq.add(new long[]{0, src});
+      while (!pq.isEmpty()) {
+          long[] top = pq.poll();
+          long d = top[0]; int u = (int) top[1];
+          if (d > dist[u]) continue;
+          for (long[] e : adj.get(u)) {
+              int v = (int) e[0]; long w = e[1];
+              if (d + w < dist[v]) { dist[v] = d + w; pq.add(new long[]{dist[v], v}); }
+          }
+      }
+      return dist;
+  }
+  ```
+
+  The "lazy deletion" check `d > dist[u]` skips outdated heap entries instead of
+  decreasing keys. Complexity: **O((V + E) log V)**.
+
+  ## Limits and alternatives
+
+  - **Negative weights break Dijkstra.** Use Bellman–Ford (O(V·E)), which also detects
+    negative cycles.
+  - **All pairs** on small graphs (V ≤ ~400): Floyd–Warshall, O(V³).
+  - Weights only 0 or 1: **0-1 BFS** with a deque.
+  - "At most k edges" (cheapest flight with ≤ k stops): Bellman–Ford limited to k rounds.
+
+  ## Use 64-bit distances
+
+  Path lengths can be up to (number of edges) × (max weight) — easily beyond 2^31.
+key_points:
+  - Dijkstra = BFS with a min-heap on distance; works only with non-negative weights.
+  - The first time a node is popped, its distance is final.
+  - Skip stale heap entries with if d > dist[u]; continue.
+  - O((V + E) log V); use 64-bit distances.
+  - Negative edges → Bellman-Ford; all pairs → Floyd-Warshall; 0/1 weights → 0-1 BFS.
+pitfalls:
+  - Running Dijkstra with negative weights.
+  - Not skipping stale entries (still correct, but slow on dense updates).
+  - Overflow from 32-bit distances or from INF + w.
+resources:
+  - title: Network Delay Time – Dijkstra's algorithm
+    url: https://www.youtube.com/watch?v=EaphyqKU4PQ
+    kind: video
+    source: NeetCode
+    minutes: 19
+  - title: Dijkstra — finding shortest paths from a given vertex
+    url: https://cp-algorithms.com/graph/dijkstra.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 25
+  - title: Single-source shortest paths visualized
+    url: https://visualgo.net/en/sssp
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 15
+  - title: "USACO Guide: Shortest paths with non-negative edge weights"
+    url: https://usaco.guide/gold/shortest-paths
+    kind: article
+    source: USACO Guide
+    minutes: 40
+    level: deep
+quiz:
+  - id: negative
+    kind: mcq
+    prompt: Why does Dijkstra fail with negative edge weights?
+    options:
+      - A settled node might later be reached more cheaply through a negative edge
+      - Heaps cannot store negative numbers
+      - It runs forever
+      - It only fails on undirected graphs
+    answer: 0
+    explanation: The "closest node is final" argument relies on detours never getting cheaper.
+    difficulty: 3
+  - id: structure
+    kind: mcq
+    prompt: Which data structure picks the next node in Dijkstra?
+    options: ["A min-heap keyed by tentative distance", "A FIFO queue", "A stack", "A sorted array rebuilt each step"]
+    answer: 0
+    explanation: The heap gives the closest unsettled node in O(log V).
+    difficulty: 1
+  - id: stale
+    kind: mcq
+    prompt: Popped (d, u) has d > dist[u]. What should happen?
+    options: ["Skip it — it's an outdated entry", "Update dist[u] = d", "Stop the algorithm", "Push it back"]
+    answer: 0
+    explanation: A shorter distance for u was already found and processed.
+    difficulty: 2
+  - id: unit-weights
+    kind: mcq
+    prompt: Every edge weighs exactly 1. What is the simplest correct algorithm?
+    options: ["BFS", "Dijkstra with a heap", "Bellman–Ford", "Floyd–Warshall"]
+    answer: 0
+    explanation: Unit weights make BFS order equal to distance order — no heap needed.
+    difficulty: 1
+problems: [cheapest-routes]
+practice_links:
+  - title: Network Delay Time
+    url: https://leetcode.com/problems/network-delay-time/
+    platform: LeetCode
+    difficulty: medium
+  - title: Cheapest Flights Within K Stops
+    url: https://leetcode.com/problems/cheapest-flights-within-k-stops/
+    platform: LeetCode
+    difficulty: medium
+  - title: Shortest Routes I
+    url: https://cses.fi/problemset/task/1671
+    platform: CSES
+    difficulty: medium

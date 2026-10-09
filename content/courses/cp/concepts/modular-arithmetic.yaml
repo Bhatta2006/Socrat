@@ -1,0 +1,146 @@
+id: modular-arithmetic
+title: Modular arithmetic
+summary: Keep huge answers small with mod 1e9+7, fast exponentiation, and modular inverses.
+module: math
+prerequisites: [number-theory]
+difficulty: 3
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  "Print the answer modulo 10^9 + 7" means the true answer is astronomically large, and
+  you should keep every intermediate value reduced. The rules:
+
+  - `(a + b) mod m = ((a mod m) + (b mod m)) mod m`
+  - `(a − b) mod m = ((a mod m) − (b mod m) + m) mod m` (add m to stay non-negative!)
+  - `(a · b) mod m = ((a mod m) · (b mod m)) mod m`
+  - **Division is different**: you multiply by a modular inverse.
+
+  With m = 10^9 + 7, a product of two reduced values is below 10^18 + ..., which fits in a
+  signed 64-bit integer.
+
+  ## Fast exponentiation
+
+  Compute `a^b mod m` in O(log b) by squaring:
+
+  ```python
+  def power(a, b, m):
+      result = 1
+      a %= m
+      while b > 0:
+          if b & 1:
+              result = result * a % m
+          a = a * a % m
+          b >>= 1
+      return result
+  # Python has it built in: pow(a, b, m)
+  ```
+
+  ```cpp
+  long long power(long long a, long long b, long long m) {
+      long long r = 1; a %= m;
+      while (b > 0) {
+          if (b & 1) r = r * a % m;
+          a = a * a % m;
+          b >>= 1;
+      }
+      return r;
+  }
+  ```
+
+  ```java
+  static long power(long a, long b, long m) {
+      long r = 1; a %= m;
+      while (b > 0) {
+          if ((b & 1) == 1) r = r * a % m;
+          a = a * a % m;
+          b >>= 1;
+      }
+      return r;
+  }
+  ```
+
+  ## Modular inverse
+
+  To divide by `x` modulo a **prime** p, multiply by `x^(p−2) mod p` (Fermat's little
+  theorem): `inverse(x) = power(x, p − 2, p)`. It exists only when `x` is not a multiple of
+  p. For non-prime moduli, use the extended Euclidean algorithm (inverse exists iff
+  gcd(x, m) = 1).
+
+  ## Negative numbers
+
+  In C++ and Java, `(-7) % 5` is `-2`, not `3`. Normalise with `((x % m) + m) % m`. Python's
+  `%` already returns a non-negative result for positive m.
+
+  ## Common mistakes
+
+  - Reducing only at the end — overflow happens in the middle.
+  - Forgetting `+ m` after subtraction.
+  - Dividing directly (`a / b % m`) instead of multiplying by the inverse.
+  - Using 32-bit types for products.
+key_points:
+  - Reduce after every addition, subtraction and multiplication.
+  - Subtraction - add m before taking mod to stay non-negative.
+  - Fast exponentiation computes a^b mod m in O(log b).
+  - Division mod a prime = multiplication by x^(p−2) (Fermat).
+  - Use 64-bit integers for products of reduced values.
+pitfalls:
+  - Negative results from % in C++/Java.
+  - Dividing modular values directly.
+  - Overflow from multiplying before reducing.
+resources:
+  - title: Binary exponentiation
+    url: https://cp-algorithms.com/algebra/binary-exp.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 20
+  - title: Modular inverse
+    url: https://cp-algorithms.com/algebra/module-inverse.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 20
+  - title: Exponentiation II
+    url: https://cses.fi/problemset/task/1712
+    kind: interactive
+    source: CSES
+    minutes: 20
+    level: deep
+quiz:
+  - id: subtract
+    kind: mcq
+    prompt: In C++, a = 3 and b = 5 (both already reduced mod 7). What is the correct (a − b) mod 7?
+    options: ["((a − b) % 7 + 7) % 7 = 5", "(a − b) % 7 = −2", "(b − a) % 7 = 2", "0"]
+    answer: 0
+    explanation: C++ % keeps the sign of the dividend; adding 7 normalises it to 5.
+    difficulty: 2
+  - id: fermat
+    kind: mcq
+    prompt: Modulo the prime p = 10^9 + 7, the inverse of x is...
+    options: ["x^(p−2) mod p", "1 / x", "x^(p−1) mod p", "p − x"]
+    answer: 0
+    explanation: Fermat's little theorem gives x^(p−1) ≡ 1, so x^(p−2) is the inverse.
+    difficulty: 2
+  - id: pow-steps
+    kind: mcq
+    prompt: How many multiplications does fast exponentiation need for b ≈ 10^18?
+    options: ["About 120 (2 per bit, 60 bits)", "10^18", "10^9", "18"]
+    answer: 0
+    explanation: One squaring per bit plus one multiply per set bit — at most ~2·60.
+    difficulty: 2
+  - id: when-inverse
+    kind: mcq
+    prompt: When does x have an inverse modulo m?
+    options: ["When gcd(x, m) = 1", "Always", "When x is prime", "When x < m"]
+    answer: 0
+    explanation: An inverse exists exactly when x and m are coprime.
+    difficulty: 3
+problems: [mod-expressions]
+practice_links:
+  - title: Exponentiation
+    url: https://cses.fi/problemset/task/1095
+    platform: CSES
+    difficulty: easy
+  - title: Exponentiation II
+    url: https://cses.fi/problemset/task/1712
+    platform: CSES
+    difficulty: medium

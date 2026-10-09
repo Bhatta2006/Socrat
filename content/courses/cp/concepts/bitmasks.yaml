@@ -1,0 +1,117 @@
+id: bitmasks
+title: Bitmasks and XOR tricks
+summary: Use integers as sets, iterate submasks, and exploit XOR's algebra in contest problems.
+module: techniques
+prerequisites: [dsa:bit-manipulation, complete-search]
+difficulty: 4
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  A 64-bit integer is a set of up to 64 elements with O(1) union (`|`), intersection (`&`)
+  and difference (`& ~`). Contest problems use this for subset enumeration, state
+  compression, and XOR puzzles where values cancel.
+
+  ## Set operations on masks
+
+  | Operation | Mask expression |
+  |---|---|
+  | add element i | `m \| (1 << i)` |
+  | remove element i | `m & ~(1 << i)` |
+  | contains i | `(m >> i) & 1` |
+  | size | popcount(m) |
+  | union / intersection | `a \| b`, `a & b` |
+  | is a ⊆ b | `(a & b) == a` |
+
+  ## Iterating the submasks of a mask
+
+  ```python
+  sub = mask
+  while sub:
+      # process sub
+      sub = (sub - 1) & mask
+  # (the empty submask 0 is handled separately)
+  ```
+
+  ```cpp
+  for (int sub = mask; sub > 0; sub = (sub - 1) & mask) { /* process sub */ }
+  ```
+
+  ```java
+  for (int sub = mask; sub > 0; sub = (sub - 1) & mask) { /* process sub */ }
+  ```
+
+  Iterating all submasks of all masks of n bits takes O(3^n) in total — feasible to n ≈ 15.
+
+  ## XOR algebra
+
+  - `x ^ x = 0`, `x ^ 0 = x`, XOR is associative and commutative.
+  - **Prefix XOR**: `px[i] = a[0] ^ ... ^ a[i−1]`; XOR of `a[l..r]` = `px[r+1] ^ px[l]`.
+  - **Count subarrays with XOR k**: like prefix sums + hash map — count earlier
+    prefixes equal to `current ^ k`.
+  - Bit-by-bit thinking: many XOR/AND/OR sum problems decompose into independent
+    contributions per bit — count how many numbers have bit b set, and combine.
+
+  ## Gray code and parity
+
+  Gray code `i ^ (i >> 1)` changes exactly one bit between consecutive values. The parity
+  of popcount appears in many invariant arguments ("each move flips two bits, so parity is
+  preserved").
+key_points:
+  - Masks are sets - |, &, & ~ and shifts are O(1) set operations.
+  - sub = (sub − 1) & mask enumerates all submasks; all-masks-all-submasks is O(3^n).
+  - Prefix XOR gives O(1) range XOR; count XOR-k subarrays with a hash map.
+  - Decompose XOR/AND/OR sums bit by bit.
+pitfalls:
+  - Forgetting the empty submask in enumeration loops.
+  - Using 1 << i with i ≥ 31 on 32-bit ints.
+  - Operator precedence - & and ^ bind weaker than == in C++/Java.
+resources:
+  - title: Bitmask visualized
+    url: https://visualgo.net/en/bitmask
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 10
+  - title: Gray Code
+    url: https://cses.fi/problemset/task/2205
+    kind: interactive
+    source: CSES
+    minutes: 15
+  - title: Competitive Programmer's Handbook — Chapter 10, Bit manipulation
+    url: https://cses.fi/book/book.pdf
+    kind: book
+    source: Antti Laaksonen
+    minutes: 30
+    level: deep
+quiz:
+  - id: subset-test
+    kind: mcq
+    prompt: How do you test whether mask a is a subset of mask b?
+    options: ["(a & b) == a", "(a | b) == a", "(a ^ b) == 0", "a < b"]
+    answer: 0
+    explanation: Every bit of a must also be set in b.
+    difficulty: 2
+  - id: range-xor
+    kind: mcq
+    prompt: With prefix XOR px, the XOR of a[l..r] is...
+    options: ["px[r+1] ^ px[l]", "px[r] − px[l]", "px[r+1] & px[l]", "px[r] ^ px[r]"]
+    answer: 0
+    explanation: XOR cancels the common prefix a[0..l−1].
+    difficulty: 2
+  - id: three-n
+    kind: mcq
+    prompt: Enumerating every submask of every mask of n bits takes...
+    options: ["O(3^n)", "O(4^n)", "O(2^n)", "O(n · 2^n)"]
+    answer: 0
+    explanation: Each element is either outside the mask, in the mask but not the submask, or in both — 3 choices.
+    difficulty: 3
+problems: [xor-subarrays]
+practice_links:
+  - title: Gray Code
+    url: https://cses.fi/problemset/task/2205
+    platform: CSES
+    difficulty: medium
+  - title: Apple Division
+    url: https://cses.fi/problemset/task/1623
+    platform: CSES
+    difficulty: easy

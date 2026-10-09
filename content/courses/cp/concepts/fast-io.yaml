@@ -1,0 +1,157 @@
+id: fast-io
+title: Fast I/O, overflow and operation budgets
+summary: The contest basics that silently cost points — slow input, 32-bit overflow, and solutions that cannot fit the time limit.
+module: contest-basics
+prerequisites: [zero:input-and-arithmetic, dsa:complexity]
+difficulty: 2
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  In contests, a correct idea can still get **Time Limit Exceeded** or **Wrong Answer**
+  because of boring details: reading a million numbers slowly, a sum that overflows 32
+  bits, or an O(n²) loop that looked fine on the sample. Fix these habits once and they
+  stop costing you.
+
+  ## Fast input and output
+
+  ```python
+  import sys
+  data = sys.stdin.buffer.read().split()   # read everything at once
+  n = int(data[0])
+  a = list(map(int, data[1:1 + n]))
+  out = []
+  # ... build answers into out ...
+  sys.stdout.write("\n".join(map(str, out)) + "\n")   # print once
+  ```
+
+  ```cpp
+  #include <bits/stdc++.h>
+  using namespace std;
+  int main() {
+      ios::sync_with_stdio(false);
+      cin.tie(nullptr);
+      int n; cin >> n;
+      vector<long long> a(n);
+      for (auto &x : a) cin >> x;
+      // use '\n', not endl — endl flushes every line
+  }
+  ```
+
+  ```java
+  import java.io.*;
+  import java.util.*;
+  public class Solution {
+      public static void main(String[] args) throws IOException {
+          DataInputStream in = new DataInputStream(new BufferedInputStream(System.in, 1 << 16));
+          // Or: BufferedReader + StringTokenizer — never Scanner for large input.
+          PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
+          // ... out.println(...) ...
+          out.flush();
+      }
+  }
+  ```
+
+  - Python: `input()` per line and `print()` per answer are slow for 10^5+ lines.
+  - C++: untie streams; avoid `endl`.
+  - Java: `Scanner` is very slow; use `BufferedReader` + `StringTokenizer` and a
+    `PrintWriter`.
+
+  ## Overflow
+
+  `int` holds up to about 2.1·10^9. Sums of 10^5 values up to 10^9 reach 10^14 — use
+  `long long` (C++) / `long` (Java). Watch **products**: `a * b` with two ints overflows
+  *before* being stored in a long. Write `1LL * a * b` (C++) or `(long) a * b` (Java).
+  Python integers never overflow, but they are slower.
+
+  ## The operation budget
+
+  Rule of thumb: about **10^8 simple operations per second in C++**, a few times fewer in
+  Java, and roughly **10^7 in Python**. Before coding, multiply out your complexity with the
+  largest inputs:
+
+  | n | O(n²) | O(n log n) |
+  |---|---|---|
+  | 10^3 | 10^6 ✓ | ✓ |
+  | 10^5 | 10^10 ✗ | 1.7·10^6 ✓ |
+  | 10^6 | ✗ | 2·10^7 ✓ (C++) |
+
+  ## Multiple test cases
+
+  Many problems start with `t`, the number of test cases, and promise that the **sum** of
+  n over all cases is bounded. Reset your data structures per test, but never allocate
+  something of size max-n per test when t is large.
+
+  ## Read the statement twice
+
+  Most wrong answers come from misread constraints: inclusive vs exclusive bounds, 0- vs
+  1-indexing, "print any" vs "print the smallest". Underline the exact output format.
+key_points:
+  - Read input in bulk and write output once; avoid Scanner (Java) and endl (C++).
+  - Use 64-bit integers for sums and products; cast before multiplying.
+  - Budget ~10^8 simple ops/s in C++, ~10^7 in Python before you code.
+  - With many test cases, reset state per case and rely on the sum-of-n bound.
+pitfalls:
+  - TLE from slow I/O on an otherwise correct solution.
+  - Overflow in int × int before assigning to a 64-bit variable.
+  - Re-allocating large arrays for every test case.
+resources:
+  - title: "USACO Guide: Fast input and output"
+    url: https://usaco.guide/general/fast-io
+    kind: article
+    source: USACO Guide
+    minutes: 15
+  - title: "USACO Guide: Time complexity"
+    url: https://usaco.guide/bronze/time-comp
+    kind: article
+    source: USACO Guide
+    minutes: 25
+  - title: Competitive Programmer's Handbook (free PDF)
+    url: https://cses.fi/book/book.pdf
+    kind: book
+    source: Antti Laaksonen
+    minutes: 60
+    level: deep
+quiz:
+  - id: overflow-product
+    kind: mcq
+    prompt: In C++, int a = 100000, b = 100000; long long c = a * b; — what goes wrong?
+    options:
+      - a * b overflows as int before being stored in c
+      - Nothing, c is long long
+      - It is a compile error
+      - c becomes 10^10 exactly
+    answer: 0
+    explanation: The multiplication happens in int; write 1LL * a * b.
+    difficulty: 2
+  - id: budget
+    kind: mcq
+    prompt: n = 2·10^5 and the limit is 1 second. Which is safe in C++?
+    options: ["O(n log n)", "O(n²)", "O(n² log n)", "O(2^n)"]
+    answer: 0
+    explanation: n log n ≈ 3.5·10^6 operations; n² is 4·10^10.
+    difficulty: 1
+  - id: java-input
+    kind: mcq
+    prompt: Which Java approach reads 10^6 integers fast enough?
+    options: ["BufferedReader with StringTokenizer (or a custom byte reader)", "Scanner.nextInt", "System.console()", "Reading one char at a time with System.in.read() unbuffered"]
+    answer: 0
+    explanation: Scanner's regex parsing is far too slow at this scale.
+    difficulty: 2
+  - id: endl
+    kind: mcq
+    prompt: Why avoid endl in C++ when printing many lines?
+    options: ["It flushes the output buffer every time", "It is not portable", "It adds two newlines", "It is a compile error"]
+    answer: 0
+    explanation: Flushing on every line turns buffered output into many slow system calls.
+    difficulty: 1
+problems: [sum-big]
+practice_links:
+  - title: Weird Algorithm
+    url: https://cses.fi/problemset/task/1068
+    platform: CSES
+    difficulty: easy
+  - title: Theatre Square
+    url: https://codeforces.com/problemset/problem/1/A
+    platform: Codeforces
+    difficulty: easy

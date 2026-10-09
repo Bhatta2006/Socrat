@@ -1,0 +1,174 @@
+id: for-loops
+title: For loops
+summary: Repeat a block a known number of times, or once for each item — the everyday loop.
+module: control-flow
+prerequisites: [while-loops]
+difficulty: 2
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  Most loops count: "do this 10 times", "for each number from 1 to n". A `for` loop
+  packages the start, condition and progress of a counting loop into one line, so you
+  cannot forget the progress step.
+
+  ```python
+  for i in range(1, 6):     # i = 1, 2, 3, 4, 5
+      print(i * i)
+  ```
+
+  ```cpp
+  for (int i = 1; i <= 5; i++) {   // i = 1, 2, 3, 4, 5
+      cout << i * i << "\n";
+  }
+  ```
+
+  ```java
+  for (int i = 1; i <= 5; i++) {   // i = 1, 2, 3, 4, 5
+      System.out.println(i * i);
+  }
+  ```
+
+  ## Reading the header
+
+  - **Python**: `range(a, b)` produces a, a+1, ..., **b−1** — the end is *excluded*.
+    `range(n)` is 0..n−1, exactly n numbers. `range(a, b, step)` counts by step.
+  - **C++ / Java**: `for (start; condition; progress)` — `int i = 1` runs once, `i <= 5`
+    is checked before each round, and `i++` (add one) runs after each round.
+
+  These are the same loop:
+
+  ```python
+  for i in range(10, 0, -2):   # 10, 8, 6, 4, 2
+      print(i)
+  ```
+
+  ```cpp
+  for (int i = 10; i > 0; i -= 2) cout << i << "\n";
+  ```
+
+  ```java
+  for (int i = 10; i > 0; i -= 2) System.out.println(i);
+  ```
+
+  ## for or while?
+
+  - Known number of rounds, or a range of values → `for`.
+  - Repeat until something happens, round count unknown → `while`.
+
+  ## Worked example: sum of 1 to n
+
+  ```python
+  n = int(input())
+  total = 0
+  for i in range(1, n + 1):
+      total += i
+  print(total)
+  ```
+
+  ```cpp
+  long long n, total = 0;
+  cin >> n;
+  for (long long i = 1; i <= n; i++) total += i;
+  cout << total << "\n";
+  ```
+
+  ```java
+  long n = in.nextLong(), total = 0;
+  for (long i = 1; i <= n; i++) total += i;
+  System.out.println(total);
+  ```
+
+  Notice `range(1, n + 1)` — to *include* n in Python you go one past it. Off-by-one
+  errors ("fencepost errors") are the most common loop bug; trace the first and last round
+  every time.
+
+  (Fun fact: this sum also equals n·(n+1)/2. Spotting a formula that replaces a loop is a
+  skill you will grow later.)
+
+  ## Skipping and stopping
+
+  - `continue` jumps straight to the next round.
+  - `break` leaves the loop immediately.
+
+  Use them sparingly — a clear condition is usually easier to read.
+key_points:
+  - A for loop bundles start, condition and progress for counting loops.
+  - "Python's range(a, b) stops before b; C++/Java conditions decide inclusion explicitly."
+  - Use for when the number of rounds is known, while when it is not.
+  - Trace the first and last round to catch off-by-one errors.
+pitfalls:
+  - Writing range(1, n) when you meant 1..n inclusive.
+  - Modifying the loop counter inside the body.
+  - Using int for sums that can exceed about 2.1 billion in C++/Java.
+resources:
+  - title: "Learn C++: For statements"
+    url: https://www.learncpp.com/cpp-tutorial/for-statements/
+    kind: article
+    source: LearnCpp
+    minutes: 15
+    languages: [cpp]
+  - title: "Java Tutorials: The for statement"
+    url: https://docs.oracle.com/javase/tutorial/java/nutsandbolts/for.html
+    kind: docs
+    source: Oracle
+    minutes: 10
+    languages: [java]
+  - title: "for statements and range()"
+    url: https://docs.python.org/3/tutorial/controlflow.html
+    kind: docs
+    source: Python docs
+    minutes: 15
+    languages: [python]
+  - title: Python Tutor – step through a for loop
+    url: https://pythontutor.com/
+    kind: visualizer
+    source: Python Tutor
+    minutes: 10
+quiz:
+  - id: range-end
+    kind: mcq
+    prompt: "In Python, which numbers does range(2, 6) produce?"
+    options: ["2, 3, 4, 5", "2, 3, 4, 5, 6", "3, 4, 5, 6", "2, 6"]
+    answer: 0
+    explanation: range includes the start and stops before the end.
+    difficulty: 1
+  - id: count-rounds
+    kind: output
+    prompt: How many lines are printed?
+    code:
+      python: |
+        for i in range(0, 20, 5):
+            print(i)
+      cpp: |
+        for (int i = 0; i < 20; i += 5) cout << i << "\n";
+      java: |
+        for (int i = 0; i < 20; i += 5) System.out.println(i);
+    options: ["4", "5", "20", "3"]
+    answer: 0
+    explanation: i takes 0, 5, 10 and 15. At 20 the condition fails, so 4 lines.
+    difficulty: 2
+  - id: for-vs-while
+    kind: mcq
+    prompt: Which task suits a while loop better than a for loop?
+    options:
+      - Keep asking for a password until it is correct
+      - Print the numbers 1 to 100
+      - Add up every value in a list
+      - Repeat a message 5 times
+    answer: 0
+    explanation: You cannot know in advance how many attempts it will take, so loop until the condition changes.
+    difficulty: 1
+  - id: break-meaning
+    kind: mcq
+    prompt: What does break do inside a loop?
+    options: ["Leaves the loop immediately", "Skips to the next round", "Restarts the loop", "Ends the program"]
+    answer: 0
+    explanation: break exits the loop; continue skips to the next round.
+    difficulty: 1
+problems: [fizzbuzz, sum-of-multiples]
+practice_links:
+  - title: Way Too Long Words
+    url: https://codeforces.com/problemset/problem/71/A
+    platform: Codeforces
+    difficulty: easy

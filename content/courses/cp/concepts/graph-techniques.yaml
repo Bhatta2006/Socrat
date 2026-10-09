@@ -1,0 +1,153 @@
+id: graph-techniques
+title: Graph techniques for contests
+summary: Multi-source BFS, 0-1 BFS, state-space graphs and Bellman-Ford — the BFS/Dijkstra variants contests love.
+module: graph-module
+prerequisites: [dsa:shortest-paths, fast-io]
+difficulty: 4
+estimated_minutes: 55
+lesson: |
+  ## The big idea
+
+  Contest graph problems rarely say "run Dijkstra". They hide the graph: in a grid, in a
+  set of states, or in rules like "teleport costs 0, walking costs 1". Recognising the
+  right BFS variant is often the whole problem.
+
+  ## Multi-source BFS
+
+  "Distance from each cell to the **nearest** monster/exit/fire": push **all** sources into
+  the queue at distance 0 before starting. One BFS answers every cell in O(V + E) — not one
+  BFS per source.
+
+  ## 0-1 BFS
+
+  When every edge weighs 0 or 1, use a **deque**: push 0-edges to the front and 1-edges to
+  the back. It produces Dijkstra's result in O(V + E).
+
+  ```python
+  from collections import deque
+  def zero_one_bfs(n, adj, src):          # adj[u] = [(v, w)] with w in {0, 1}
+      INF = float("inf")
+      dist = [INF] * n
+      dist[src] = 0
+      dq = deque([src])
+      while dq:
+          u = dq.popleft()
+          for v, w in adj[u]:
+              if dist[u] + w < dist[v]:
+                  dist[v] = dist[u] + w
+                  if w == 0:
+                      dq.appendleft(v)
+                  else:
+                      dq.append(v)
+      return dist
+  ```
+
+  ```cpp
+  vector<int> zeroOneBfs(int n, const vector<vector<pair<int,int>>>& adj, int src) {
+      vector<int> dist(n, INT_MAX);
+      deque<int> dq;
+      dist[src] = 0; dq.push_back(src);
+      while (!dq.empty()) {
+          int u = dq.front(); dq.pop_front();
+          for (auto [v, w] : adj[u])
+              if (dist[u] + w < dist[v]) {
+                  dist[v] = dist[u] + w;
+                  if (w == 0) dq.push_front(v); else dq.push_back(v);
+              }
+      }
+      return dist;
+  }
+  ```
+
+  ```java
+  static int[] zeroOneBfs(int n, List<List<int[]>> adj, int src) {
+      int[] dist = new int[n];
+      Arrays.fill(dist, Integer.MAX_VALUE);
+      ArrayDeque<Integer> dq = new ArrayDeque<>();
+      dist[src] = 0; dq.add(src);
+      while (!dq.isEmpty()) {
+          int u = dq.pollFirst();
+          for (int[] e : adj.get(u))
+              if (dist[u] + e[1] < dist[e[0]]) {
+                  dist[e[0]] = dist[u] + e[1];
+                  if (e[1] == 0) dq.addFirst(e[0]); else dq.addLast(e[0]);
+              }
+      }
+      return dist;
+  }
+  ```
+
+  ## State-space graphs
+
+  If the answer depends on more than position — keys collected, remaining fuel, direction
+  faced, whether a power-up was used — make the **state** a tuple `(position, extra)` and run
+  BFS/Dijkstra over states. Count states first: rows × cols × 2^keys must fit in memory.
+
+  ## Negative weights and cycles
+
+  **Bellman–Ford** relaxes all edges n − 1 times (O(V·E)); if any edge still relaxes in an
+  n-th round, a negative cycle is reachable. Use it when weights can be negative, or for
+  "at most k edges" constraints (limit the rounds to k).
+
+  ## Path reconstruction
+
+  Store `parent[v]` when you relax an edge; walk back from the target and reverse.
+key_points:
+  - Multi-source BFS - enqueue every source at distance 0 first.
+  - 0-1 BFS with a deque replaces Dijkstra for weights in {0, 1}.
+  - Encode extra conditions into the state and search the state graph.
+  - Bellman–Ford handles negative weights and detects negative cycles.
+  - Keep parent pointers to reconstruct paths.
+pitfalls:
+  - Running one BFS per source (O(k · (V + E))).
+  - Forgetting that a state may need re-processing in 0-1 BFS when its distance improves.
+  - State spaces too large for memory.
+resources:
+  - title: Breadth First Search (including 0-1 BFS links)
+    url: https://cp-algorithms.com/graph/breadth-first-search.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 25
+  - title: Labyrinth
+    url: https://cses.fi/problemset/task/1193
+    kind: interactive
+    source: CSES
+    minutes: 25
+  - title: Algorithms Course – Graph Theory Tutorial
+    url: https://www.youtube.com/watch?v=09_LlHjoEiY
+    kind: video
+    source: freeCodeCamp
+    minutes: 360
+    level: deep
+quiz:
+  - id: multisource
+    kind: mcq
+    prompt: Distance from every cell to the nearest of k exits — most efficient approach?
+    options: ["One BFS with all exits enqueued at distance 0", "k separate BFS runs", "Dijkstra from each cell", "Floyd–Warshall"]
+    answer: 0
+    explanation: Multi-source BFS solves it in a single O(V + E) pass.
+    difficulty: 2
+  - id: deque
+    kind: mcq
+    prompt: In 0-1 BFS, where does a node reached by a 0-weight edge go?
+    options: ["Front of the deque", "Back of the deque", "A separate heap", "It's skipped"]
+    answer: 0
+    explanation: Same distance as the current node, so it should be processed next.
+    difficulty: 2
+  - id: negcycle
+    kind: mcq
+    prompt: Bellman–Ford detects a negative cycle when...
+    options: ["An edge still relaxes in the n-th round", "The graph is disconnected", "All distances are negative", "Dijkstra fails"]
+    answer: 0
+    explanation: Without negative cycles, n − 1 rounds suffice; further improvement proves a cycle.
+    difficulty: 3
+problems: [nearest-exit]
+practice_links:
+  - title: Labyrinth
+    url: https://cses.fi/problemset/task/1193
+    platform: CSES
+    difficulty: medium
+  - title: Shortest Routes II
+    url: https://cses.fi/problemset/task/1672
+    platform: CSES
+    difficulty: medium

@@ -1,0 +1,163 @@
+id: classes-and-objects
+title: Classes and objects
+summary: Bundle related data and the operations on it into your own types.
+module: craft
+prerequisites: [scope-and-mutation]
+difficulty: 3
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  So far your data has been loose variables and lists. Real programs model *things* — a
+  bank account, a student, a point on a map — and each thing has **data** (balance, name,
+  coordinates) and **behaviour** (deposit, enroll, move). A **class** defines a new type
+  that bundles both. An **object** is one instance of that class.
+
+  ```python
+  class Account:
+      def __init__(self, owner, balance=0):
+          self.owner = owner          # data (attributes)
+          self.balance = balance
+
+      def deposit(self, amount):     # behaviour (methods)
+          if amount <= 0:
+              raise ValueError("deposit must be positive")
+          self.balance += amount
+
+  a = Account("Ada")
+  a.deposit(50)
+  print(a.owner, a.balance)          # Ada 50
+  ```
+
+  ```cpp
+  class Account {
+  public:
+      Account(string owner, long long balance = 0) : owner(owner), balance(balance) {}
+
+      void deposit(long long amount) {
+          if (amount <= 0) throw invalid_argument("deposit must be positive");
+          balance += amount;
+      }
+
+      string owner;
+      long long balance;
+  };
+
+  Account a("Ada");
+  a.deposit(50);
+  cout << a.owner << " " << a.balance << "\n";   // Ada 50
+  ```
+
+  ```java
+  class Account {
+      String owner;
+      long balance;
+
+      Account(String owner) {            // constructor
+          this.owner = owner;
+          this.balance = 0;
+      }
+
+      void deposit(long amount) {
+          if (amount <= 0) throw new IllegalArgumentException("deposit must be positive");
+          balance += amount;
+      }
+  }
+
+  Account a = new Account("Ada");
+  a.deposit(50);
+  System.out.println(a.owner + " " + a.balance);  // Ada 50
+  ```
+
+  ## Key vocabulary
+
+  - **Constructor** (`__init__`, or a method named like the class) sets up a new object.
+  - **Attributes / fields** are the object's data.
+  - **Methods** are functions that belong to the class and act on one object.
+  - `self` (Python) / `this` (C++, Java) refers to the object the method was called on.
+
+  Each object has its **own** copy of the attributes: two accounts have two balances.
+
+  ## Why bother?
+
+  **Encapsulation**: the class protects its rules. Here, no one can deposit a negative
+  amount because every deposit goes through `deposit`. In larger programs, keeping data and
+  the rules about it together prevents a whole category of bugs.
+
+  **Readability**: `account.deposit(50)` says what it means. Compare with
+  `balances[i] += 50` scattered across a program.
+
+  ## In data structures
+
+  You will use classes constantly: a linked-list **node** holds a value and a reference to
+  the next node; a **tree node** holds a value and its children; a custom **comparator**
+  sorts objects by a field. Learning to design small, focused classes now pays off in the
+  next course.
+
+  ## Keep classes small
+
+  A good class has one clear responsibility. If you cannot describe it in a sentence, split
+  it. Prefer methods that keep the object valid over code outside that edits fields
+  directly.
+key_points:
+  - A class defines a type with data (attributes) and behaviour (methods).
+  - An object is an instance with its own copy of the attributes.
+  - Constructors initialise objects; self/this refers to the current object.
+  - Encapsulation keeps data and its rules together, preventing invalid states.
+pitfalls:
+  - Forgetting self in Python method definitions or attribute access.
+  - Sharing one mutable default (like a list) between all Python objects.
+  - Huge classes that do everything instead of one clear job.
+resources:
+  - title: Classes
+    url: https://docs.python.org/3/tutorial/classes.html
+    kind: docs
+    source: Python docs
+    minutes: 30
+    languages: [python]
+  - title: "Java Tutorials: Classes"
+    url: https://docs.oracle.com/javase/tutorial/java/javaOO/classes.html
+    kind: docs
+    source: Oracle
+    minutes: 20
+    languages: [java]
+  - title: C++ Tutorial for Beginners – Full Course (classes section)
+    url: https://www.youtube.com/watch?v=vLnPwxZdW4Y
+    kind: video
+    source: freeCodeCamp
+    minutes: 40
+    languages: [cpp]
+quiz:
+  - id: own-copy
+    kind: mcq
+    prompt: Two Account objects are created and money is deposited into the first. What happens to the second's balance?
+    options: ["It is unchanged", "It increases too", "It becomes zero", "It causes an error"]
+    answer: 0
+    explanation: Each object has its own attributes.
+    difficulty: 1
+  - id: constructor
+    kind: mcq
+    prompt: What is a constructor for?
+    options: ["Initialising a new object's data", "Deleting objects", "Printing objects", "Comparing two classes"]
+    answer: 0
+    explanation: The constructor runs when an object is created and sets its starting state.
+    difficulty: 1
+  - id: encapsulation
+    kind: mcq
+    prompt: Why route every balance change through a deposit method?
+    options:
+      - So the rule "deposits must be positive" is enforced in one place
+      - Methods run faster than direct assignment
+      - Fields cannot be changed otherwise in any language
+      - It uses less memory
+    answer: 0
+    explanation: Encapsulation keeps the invariant in one place so no caller can break it.
+    difficulty: 2
+  - id: self-this
+    kind: mcq
+    prompt: Inside a method, what does self (Python) or this (C++/Java) refer to?
+    options: ["The object the method was called on", "The class itself", "The first parameter passed in", "The program"]
+    answer: 0
+    explanation: a.deposit(50) runs deposit with self/this bound to a.
+    difficulty: 1
+problems: [bank-ledger]

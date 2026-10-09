@@ -1,0 +1,149 @@
+id: problem-solving
+title: Solving unfamiliar problems
+summary: A repeatable process for turning a problem statement you have never seen into working code.
+module: craft
+prerequisites: [debugging, maps]
+difficulty: 3
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Tutorial hell feels like this: you can follow along with any video, but a blank editor
+  and a new problem leave you stuck. The way out is not more videos — it is a **process**
+  you apply every time, until it becomes instinct.
+
+  ## The process
+
+  **1. Understand.** Restate the problem in your own words. What exactly is the input?
+  What exactly must be printed? Work the given examples **by hand** and check you get the
+  stated answers. Note the constraints (n ≤ 10? n ≤ 200,000?) — they hint at how fast your
+  solution must be.
+
+  **2. Make examples.** Invent small cases of your own, especially edges: smallest input,
+  all equal, already sorted, negative values. Write the expected answers.
+
+  **3. Solve by hand, then notice what you did.** Solve one example on paper as a human
+  would. Then ask: *what steps did I take?* That sequence of steps is your algorithm.
+
+  **4. Start simple.** Write the straightforward (even slow) solution first if you are not
+  sure. A correct slow solution is a great stepping stone — and a checker for a faster one.
+
+  **5. Plan in plain words (pseudocode).** Before typing code:
+
+  ```text
+  read n and the list
+  best = first element
+  for each remaining element x:
+      if x > best: best = x
+  print best
+  ```
+
+  **6. Code it**, translating one line of the plan at a time.
+
+  **7. Test** with the examples and your own edge cases. If something fails, debug
+  methodically (smallest failing input, find the first wrong value).
+
+  **8. Reflect.** After solving (or reading a solution), ask: *what was the key insight?
+  Where else would it apply?* This step turns one solved problem into a reusable pattern.
+
+  ## Common moves when stuck
+
+  - **Simplify**: solve it for n = 1, 2, 3 and look for the pattern.
+  - **Work backwards** from what the output needs.
+  - **Change representation**: count with a map, sort first, draw it as a grid.
+  - **Ask what you would need to know** at each step, and store exactly that.
+  - **Brute force first**, then ask which work is repeated and remember it.
+
+  ## Reading constraints
+
+  | n up to | Usually acceptable |
+  |---|---|
+  | 10 | try everything (2^n, n!) |
+  | 1,000 | nested loops (n²) |
+  | 200,000 | one pass or sorting (n, n log n) |
+
+  You will learn this properly in time complexity, but start glancing at constraints now.
+
+  ## Asking for help well
+
+  When you ask Socrat (or anyone), share what you tried, a small failing case, and where
+  your understanding stops. Good questions get you unstuck faster — and often answer
+  themselves.
+key_points:
+  - Understand the input, output, examples and constraints before coding.
+  - Solve small examples by hand and turn your own steps into an algorithm.
+  - Write pseudocode, then code, then test edge cases.
+  - A correct simple solution first; optimize after.
+  - Reflect on the key insight so each problem teaches a reusable pattern.
+pitfalls:
+  - Coding before understanding the examples.
+  - Never testing beyond the given examples.
+  - Watching the solution immediately instead of struggling productively for a while.
+resources:
+  - title: "CS50x Week 0: Computational thinking"
+    url: https://cs50.harvard.edu/x/2024/weeks/0/
+    kind: course
+    source: Harvard CS50
+    minutes: 90
+    level: intro
+  - title: Google Coding Interview With A College Student (watch the process)
+    url: https://www.youtube.com/watch?v=3Q_oYDQ2whs
+    kind: video
+    source: YouTube
+    minutes: 45
+  - title: "USACO Guide: Simulation (turning a statement into steps)"
+    url: https://usaco.guide/bronze/simulation
+    kind: article
+    source: USACO Guide
+    minutes: 25
+quiz:
+  - id: first-step
+    kind: mcq
+    prompt: You open a brand-new problem. What should you do first?
+    options:
+      - Work through the given examples by hand to confirm you understand them
+      - Start typing the solution immediately
+      - Search for the answer online
+      - Pick the fastest algorithm you know
+    answer: 0
+    explanation: If you cannot produce the example outputs by hand, any code you write is guesswork.
+    difficulty: 1
+  - id: constraints
+    kind: mcq
+    prompt: A problem has n up to 200,000. Which approach is most likely too slow?
+    options: ["Checking every pair with nested loops", "One pass with a map", "Sorting then scanning", "Reading input once"]
+    answer: 0
+    explanation: 200,000² is 4·10^10 operations — far too many. One pass or sorting is fine.
+    difficulty: 2
+  - id: brute-force
+    kind: mcq
+    prompt: You see a slow but simple correct solution and are unsure of a fast one. Good move?
+    options:
+      - Write the simple one first, then look for repeated work to remove
+      - Give up
+      - Submit nothing until you know the optimal solution
+      - Skip testing to save time
+    answer: 0
+    explanation: A correct baseline gives progress, confidence, and a checker for faster versions.
+    difficulty: 1
+  - id: reflect
+    kind: mcq
+    prompt: Why reflect after solving a problem?
+    options:
+      - To extract the key insight so you recognise it in future problems
+      - To make the submission faster
+      - It is required by the judge
+      - To memorise the exact code
+    answer: 0
+    explanation: Patterns, not memorized code, transfer to new problems.
+    difficulty: 1
+problems: [two-sum-exists]
+practice_links:
+  - title: Next Round
+    url: https://codeforces.com/problemset/problem/158/A
+    platform: Codeforces
+    difficulty: easy
+  - title: Distinct Numbers
+    url: https://cses.fi/problemset/task/1621
+    platform: CSES
+    difficulty: easy

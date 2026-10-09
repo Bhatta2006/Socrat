@@ -1,0 +1,177 @@
+id: dp-1d
+title: Dynamic programming (1D)
+summary: Define a state, write the recurrence, fill a table — and turn exponential recursion into linear time.
+module: dynamic-programming
+prerequisites: [zero:recursion, complexity]
+difficulty: 4
+estimated_minutes: 70
+lesson: |
+  ## The big idea
+
+  **Dynamic programming (DP)** solves problems whose answer is built from answers to
+  smaller **overlapping** subproblems. Plain recursion recomputes them exponentially; DP
+  computes each **once** and stores it.
+
+  Every DP comes down to four decisions:
+
+  1. **State** — what does `dp[i]` mean, in one precise sentence?
+  2. **Transition** — how is `dp[i]` built from smaller states?
+  3. **Base cases** — the smallest states, answered directly.
+  4. **Answer** — which state (or combination) is the final answer?
+
+  ## Example: house robber
+
+  Houses in a row hold `a[i]` money; you cannot rob two adjacent houses. Maximise the loot.
+
+  - State: `dp[i]` = best loot using houses `0..i`.
+  - Transition: either skip house i (`dp[i−1]`) or rob it (`dp[i−2] + a[i]`):
+    `dp[i] = max(dp[i−1], dp[i−2] + a[i])`.
+  - Base: `dp[0] = a[0]`, `dp[1] = max(a[0], a[1])`.
+
+  ```python
+  def rob(a):
+      prev2, prev1 = 0, 0            # dp[i-2], dp[i-1]
+      for x in a:
+          prev2, prev1 = prev1, max(prev1, prev2 + x)
+      return prev1
+  ```
+
+  ```cpp
+  long long rob(const vector<long long>& a) {
+      long long prev2 = 0, prev1 = 0;
+      for (long long x : a) {
+          long long cur = max(prev1, prev2 + x);
+          prev2 = prev1; prev1 = cur;
+      }
+      return prev1;
+  }
+  ```
+
+  ```java
+  static long rob(long[] a) {
+      long prev2 = 0, prev1 = 0;
+      for (long x : a) {
+          long cur = Math.max(prev1, prev2 + x);
+          prev2 = prev1; prev1 = cur;
+      }
+      return prev1;
+  }
+  ```
+
+  Because each state only needs the previous two, memory drops to O(1).
+
+  ## Example: coin change (minimum coins)
+
+  `dp[x]` = fewest coins to make amount x. For each coin c ≤ x:
+  `dp[x] = min(dp[x], dp[x − c] + 1)`, with `dp[0] = 0` and everything else ∞ initially.
+  This is the fix for greedy's failure with coins {1, 3, 4}: DP considers *every* last coin.
+
+  ```python
+  def min_coins(coins, amount):
+      INF = float("inf")
+      dp = [0] + [INF] * amount
+      for x in range(1, amount + 1):
+          for c in coins:
+              if c <= x and dp[x - c] + 1 < dp[x]:
+                  dp[x] = dp[x - c] + 1
+      return dp[amount] if dp[amount] != INF else -1
+  ```
+
+  ## Top-down vs bottom-up
+
+  - **Top-down (memoization)**: write the natural recursion, cache results. Easy to derive.
+  - **Bottom-up (tabulation)**: fill the table in an order where dependencies are ready. No
+    recursion limits, easy to optimise memory.
+
+  Derive top-down, ship bottom-up when inputs are large.
+
+  ## Recognising DP
+
+  Phrases like "number of ways", "minimum/maximum ... such that", "can you reach / make
+  ...", with choices at each step whose effects combine, signal DP. If brute force is
+  "try every sequence of choices" and subproblems repeat, it is DP.
+
+  ## Counting problems and modulo
+
+  "Number of ways" answers grow fast; take everything modulo 1,000,000,007 at every
+  addition.
+key_points:
+  - DP = state + transition + base cases + answer.
+  - Each state is computed once, so exponential recursion becomes polynomial.
+  - Top-down (memo) to derive; bottom-up (table) to scale.
+  - Often only the last few states are needed — reduce memory to O(1).
+  - Counting DPs take results modulo 1e9+7.
+pitfalls:
+  - A vague state definition — write it as a full sentence.
+  - Wrong iteration order so a state is used before it's computed.
+  - Forgetting unreachable states (∞ or −1) and printing them as answers.
+resources:
+  - title: Dynamic Programming – Learn to Solve Algorithmic Problems
+    url: https://www.youtube.com/watch?v=oBt53YbR9Kk
+    kind: video
+    source: freeCodeCamp
+    minutes: 300
+  - title: Climbing Stairs – Dynamic Programming
+    url: https://www.youtube.com/watch?v=Y0lT9Fck7qI
+    kind: video
+    source: NeetCode
+    minutes: 18
+    level: intro
+  - title: House Robber
+    url: https://www.youtube.com/watch?v=73r3KWiEvyk
+    kind: video
+    source: NeetCode
+    minutes: 10
+  - title: "USACO Guide: Introduction to DP"
+    url: https://usaco.guide/gold/intro-dp
+    kind: article
+    source: USACO Guide
+    minutes: 40
+    level: deep
+quiz:
+  - id: components
+    kind: mcq
+    prompt: Which is NOT one of the four decisions of a DP solution?
+    options: ["Choosing a sorting algorithm", "Defining the state", "Writing the transition", "Setting base cases"]
+    answer: 0
+    explanation: State, transition, base cases and the final answer define a DP.
+    difficulty: 1
+  - id: robber
+    kind: mcq
+    prompt: For house robber with a = [2, 7, 9, 3, 1], what is the maximum loot?
+    options: ["12", "11", "10", "13"]
+    answer: 0
+    explanation: Rob houses with 2, 9 and 1 for 12.
+    difficulty: 2
+  - id: overlap
+    kind: mcq
+    prompt: What makes a problem a good fit for DP rather than plain recursion?
+    options: ["Overlapping subproblems", "Sorted input", "A small alphabet", "Negative numbers"]
+    answer: 0
+    explanation: DP pays off when the same subproblems would otherwise be solved repeatedly.
+    difficulty: 2
+  - id: coins
+    kind: mcq
+    prompt: In min-coins DP, dp[x] = min over coins c of dp[x − c] + 1. What is dp[0]?
+    options: ["0", "1", "∞", "−1"]
+    answer: 0
+    explanation: Zero coins make amount zero; it is the base case all others build on.
+    difficulty: 1
+problems: [house-robber, min-coins]
+practice_links:
+  - title: Climbing Stairs
+    url: https://leetcode.com/problems/climbing-stairs/
+    platform: LeetCode
+    difficulty: easy
+  - title: House Robber
+    url: https://leetcode.com/problems/house-robber/
+    platform: LeetCode
+    difficulty: medium
+  - title: Coin Change
+    url: https://leetcode.com/problems/coin-change/
+    platform: LeetCode
+    difficulty: medium
+  - title: Dice Combinations
+    url: https://cses.fi/problemset/task/1633
+    platform: CSES
+    difficulty: easy

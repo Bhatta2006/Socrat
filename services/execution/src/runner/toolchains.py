@@ -9,6 +9,29 @@ from functools import lru_cache
 from pathlib import Path
 
 
+def java_major(banner: bytes) -> int:
+    """Major version from `java -version` / `javac -version` output (21+ is supported)."""
+    match = re.search(r"\b(?:javac|version)\s+\"?(\d+)", banner.decode(errors="replace"))
+    return int(match.group(1)) if match else 0
+
+
+def real_java_bin(directory: Path, suffix: str) -> Path:
+    try:
+        probe = subprocess.run(
+            [str(directory / f"java{suffix}"), "-XshowSettings:properties", "-version"],
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return directory
+    match = re.search(r"java\.home = (.+)", (probe.stdout + probe.stderr).decode(errors="replace"))
+    if match:
+        home = Path(match.group(1).strip()) / "bin"
+        if (home / f"javac{suffix}").is_file() and (home / f"java{suffix}").is_file():
+            return home
+    return directory
+
+
 @lru_cache(maxsize=1)
 def toolchains() -> dict[str, list[str]]:
     tools = {"python": [str(Path(sys.executable).resolve())]}
@@ -44,6 +67,9 @@ def toolchains() -> dict[str, list[str]]:
     if javac:
         java_bins.append(Path(javac).parent)
     suffix = ".exe" if os.name == "nt" else ""
+    # Launcher shims (e.g. Oracle's "javapath") write logs into TEMP, which is the job's
+    # work directory. Resolve every candidate to its real JDK home first.
+    java_bins = [real_java_bin(directory, suffix) for directory in java_bins]
     for directory in java_bins:
         commands = [str(directory / (name + suffix)) for name in ("javac", "java")]
         try:
@@ -52,10 +78,7 @@ def toolchains() -> dict[str, list[str]]:
                 for command in commands
             ]
             if all(
-                version.returncode == 0
-                and re.search(
-                    r"\b21(?:\.|\b)", (version.stdout + version.stderr).decode(errors="replace")
-                )
+                version.returncode == 0 and java_major(version.stdout + version.stderr) >= 21
                 for version in versions
             ):
                 tools["java"] = commands

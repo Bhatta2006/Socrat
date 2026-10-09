@@ -1,0 +1,175 @@
+id: complexity
+title: Time and space complexity
+summary: Predict how running time and memory grow with input size using Big-O, before you write a line.
+module: foundations
+prerequisites: [zero:nested-loops, zero:functions]
+difficulty: 2
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Interviewers rarely ask "does it work?" alone — they ask **"how does it scale?"**.
+  **Big-O notation** describes how the number of steps (time) or memory (space) grows as
+  the input size `n` grows, ignoring constant factors and small terms.
+
+  | Big-O | Name | Typical code | n = 10^5 → steps |
+  |---|---|---|---|
+  | O(1) | constant | arithmetic, hash lookup | 1 |
+  | O(log n) | logarithmic | binary search, halving | ~17 |
+  | O(n) | linear | one loop over the input | 10^5 |
+  | O(n log n) | linearithmic | good sorting | ~1.7·10^6 |
+  | O(n²) | quadratic | nested loops over pairs | 10^10 |
+  | O(2^n) | exponential | trying every subset | astronomical |
+
+  A computer does roughly **10^8 simple operations per second** (less in Python). So for
+  n = 10^5, an O(n²) solution is ~100 seconds — too slow — while O(n log n) is instant.
+
+  ## Counting steps
+
+  - Sequential blocks **add**: O(n) then O(n) is O(2n) = **O(n)**.
+  - Nested loops **multiply**: a loop of n inside a loop of n is **O(n²)**.
+  - Drop constants and smaller terms: O(3n² + 5n + 2) is **O(n²)**.
+  - A loop that **halves** its range each round runs **O(log n)** times.
+
+  ```python
+  def has_duplicate_slow(a):            # O(n²) time, O(1) extra space
+      for i in range(len(a)):
+          for j in range(i + 1, len(a)):
+              if a[i] == a[j]:
+                  return True
+      return False
+
+  def has_duplicate_fast(a):            # O(n) time, O(n) extra space
+      seen = set()
+      for x in a:
+          if x in seen:
+              return True
+          seen.add(x)
+      return False
+  ```
+
+  ```cpp
+  bool hasDuplicateFast(const vector<int>& a) {   // O(n) time, O(n) space
+      unordered_set<int> seen;
+      for (int x : a) {
+          if (seen.count(x)) return true;
+          seen.insert(x);
+      }
+      return false;
+  }
+  ```
+
+  ```java
+  static boolean hasDuplicateFast(int[] a) {      // O(n) time, O(n) space
+      HashSet<Integer> seen = new HashSet<>();
+      for (int x : a) if (!seen.add(x)) return true;
+      return false;
+  }
+  ```
+
+  This is the most common trade in interviews: **spend memory to save time**.
+
+  ## Space complexity
+
+  Count **extra** memory beyond the input: a set of up to n items is O(n); a few variables
+  are O(1). Recursion uses stack space proportional to its depth.
+
+  ## Reading constraints like an expert
+
+  | Max n | Target complexity |
+  |---|---|
+  | ≤ 12 | O(n!) or O(2^n · n) |
+  | ≤ 25 | O(2^n) |
+  | ≤ 500 | O(n³) |
+  | ≤ 5,000 | O(n²) |
+  | ≤ 10^6 | O(n log n) or O(n) |
+  | ≥ 10^9 | O(log n) or O(1) — math or binary search |
+
+  Before coding, state your planned complexity out loud. In interviews this shows you
+  understand the trade-offs; on judges it saves you from writing a solution that cannot
+  pass.
+
+  ## Hidden costs
+
+  `x in list` is O(n) (it scans); `x in set` is O(1) average. Slicing or copying a list is
+  O(k). String `+` in a loop can be O(n²) in Python and Java. Know the cost of the
+  operations you call.
+key_points:
+  - Big-O describes growth with input size, ignoring constants and lower terms.
+  - Sequential code adds, nested loops multiply, halving gives log n.
+  - About 10^8 simple operations per second — check your plan against the constraints.
+  - Trading memory for time (hash sets/maps) is the most common optimisation.
+  - Know the hidden cost of library operations (list membership, slicing, string concat).
+pitfalls:
+  - Calling an O(n) operation (like list membership) inside a loop, making O(n²).
+  - Ignoring recursion depth as a space cost.
+  - Optimising constant factors before fixing the complexity class.
+resources:
+  - title: Big-O notation in 5 minutes
+    url: https://www.youtube.com/watch?v=__vX2sjlpXU
+    kind: video
+    source: Michael Sambol
+    minutes: 5
+    level: intro
+  - title: Introduction to Big O Notation and Time Complexity
+    url: https://www.youtube.com/watch?v=D6xkbGLQesk
+    kind: video
+    source: CS Dojo
+    minutes: 36
+  - title: Big-O Algorithm Complexity Cheat Sheet
+    url: https://www.bigocheatsheet.com/
+    kind: article
+    source: bigocheatsheet.com
+    minutes: 10
+  - title: "USACO Guide: Time complexity"
+    url: https://usaco.guide/bronze/time-comp
+    kind: article
+    source: USACO Guide
+    minutes: 25
+    level: deep
+quiz:
+  - id: nested-cost
+    kind: mcq
+    prompt: A loop over n elements contains another loop over the same n elements. What is the time complexity?
+    options: ["O(n²)", "O(n)", "O(2n)", "O(n log n)"]
+    answer: 0
+    explanation: The inner loop runs n times for each of the n outer rounds.
+    difficulty: 1
+  - id: halving
+    kind: mcq
+    prompt: "`while n > 1: n = n // 2` runs about how many times?"
+    options: ["log₂ n", "n", "n / 2", "√n"]
+    answer: 0
+    explanation: Halving repeatedly reaches 1 after about log₂ n rounds.
+    difficulty: 2
+  - id: constraint-fit
+    kind: mcq
+    prompt: n can be 200,000. Which complexity is safe?
+    options: ["O(n log n)", "O(n²)", "O(n³)", "O(2^n)"]
+    answer: 0
+    explanation: 200,000 × 18 ≈ 3.6·10^6 is fast; n² is 4·10^10.
+    difficulty: 2
+  - id: hidden-cost
+    kind: mcq
+    prompt: Inside a loop over n items you check `if x in my_list` (a Python list of size n). Total time?
+    options: ["O(n²)", "O(n)", "O(1)", "O(log n)"]
+    answer: 0
+    explanation: List membership scans the list, O(n), inside an O(n) loop. A set would make it O(n) overall.
+    difficulty: 3
+  - id: drop-terms
+    kind: mcq
+    prompt: Simplify O(4n² + 100n + 7).
+    options: ["O(n²)", "O(4n²)", "O(n² + n)", "O(100n)"]
+    answer: 0
+    explanation: Constants and lower-order terms are dropped; growth is dominated by n².
+    difficulty: 1
+problems: [sum-queries]
+practice_links:
+  - title: Contains Duplicate
+    url: https://leetcode.com/problems/contains-duplicate/
+    platform: LeetCode
+    difficulty: easy
+  - title: Missing Number
+    url: https://cses.fi/problemset/task/1083
+    platform: CSES
+    difficulty: easy

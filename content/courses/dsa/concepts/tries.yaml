@@ -1,0 +1,178 @@
+id: tries
+title: Tries (prefix trees)
+summary: Store strings character by character in a tree so prefix questions cost O(length), not O(number of words).
+module: trees
+prerequisites: [binary-trees, zero:strings]
+difficulty: 4
+estimated_minutes: 45
+lesson: |
+  ## The big idea
+
+  Autocomplete, spell-check and "does any word start with `pre`?" all ask about
+  **prefixes**. A **trie** stores words in a tree where each edge is a character: the path
+  from the root spells a prefix. All words sharing a prefix share that path, so you can
+  answer prefix queries in **O(length of the query)**, independent of how many words are
+  stored.
+
+  ```python
+  class Trie:
+      def __init__(self):
+          self.children = {}       # char -> Trie
+          self.count = 0           # words passing through this node
+          self.end = 0             # words ending exactly here
+
+      def insert(self, word):
+          node = self
+          for ch in word:
+              node = node.children.setdefault(ch, Trie())
+              node.count += 1
+          node.end += 1
+
+      def count_prefix(self, prefix):
+          node = self
+          for ch in prefix:
+              node = node.children.get(ch)
+              if node is None:
+                  return 0
+          return node.count
+  ```
+
+  ```cpp
+  struct Trie {
+      vector<array<int, 26>> next{array<int, 26>{}};   // node 0 is the root; 0 = no child
+      vector<int> cnt{0}, endc{0};
+      void insert(const string& w) {
+          int v = 0;
+          for (char ch : w) {
+              int c = ch - 'a';
+              if (!next[v][c]) { next[v][c] = next.size(); next.push_back({}); cnt.push_back(0); endc.push_back(0); }
+              v = next[v][c];
+              cnt[v]++;
+          }
+          endc[v]++;
+      }
+      int countPrefix(const string& p) {
+          int v = 0;
+          for (char ch : p) { v = next[v][ch - 'a']; if (!v) return 0; }
+          return cnt[v];
+      }
+  };
+  ```
+
+  ```java
+  static class Trie {
+      Trie[] next = new Trie[26];
+      int count, end;
+      void insert(String w) {
+          Trie node = this;
+          for (char ch : w.toCharArray()) {
+              int c = ch - 'a';
+              if (node.next[c] == null) node.next[c] = new Trie();
+              node = node.next[c];
+              node.count++;
+          }
+          node.end++;
+      }
+      int countPrefix(String p) {
+          Trie node = this;
+          for (char ch : p.toCharArray()) {
+              node = node.next[ch - 'a'];
+              if (node == null) return 0;
+          }
+          return node.count;
+      }
+  }
+  ```
+
+  ## Design choices
+
+  - **Children as a map** (flexible alphabets) or **an array of 26** (fast, fixed alphabet).
+  - Store **counts** on nodes to answer "how many words have this prefix".
+  - Store an **end marker** to distinguish the word "app" from merely the prefix of "apple".
+  - The array-of-nodes style (C++ above) avoids pointer allocation overhead and is common in
+    competitive programming.
+
+  ## Where tries shine
+
+  - Autocomplete and prefix counting.
+  - Word search in a grid with many words (Word Search II): walk the trie and the grid
+    together, pruning when no word continues.
+  - **Binary tries** over the bits of integers answer "maximum XOR of two numbers".
+
+  ## Cost
+
+  Insert and query are O(L) for a word of length L. Memory is O(total characters), which
+  can be large — a hash set is simpler if you only need exact-match lookups.
+key_points:
+  - Each trie edge is a character; a root-to-node path spells a prefix.
+  - Insert and prefix queries take O(length), independent of the number of words.
+  - Node counts answer how many words share a prefix; end markers mark whole words.
+  - Use a hash set instead when you only need exact lookups.
+pitfalls:
+  - Confusing "prefix exists" with "word exists" (missing end markers).
+  - Excess memory from allocating 26 children for every node with huge inputs.
+  - Recursion depth when deleting or traversing very long words.
+resources:
+  - title: Implement Trie (Prefix Tree)
+    url: https://www.youtube.com/watch?v=oobqoCJlHA0
+    kind: video
+    source: NeetCode
+    minutes: 18
+  - title: "Tech Interview Handbook: Trie cheatsheet"
+    url: https://www.techinterviewhandbook.org/algorithms/trie/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+  - title: Data Structures Easy to Advanced (full course)
+    url: https://www.youtube.com/watch?v=RBSGKlAvoiM
+    kind: video
+    source: freeCodeCamp
+    minutes: 60
+    level: deep
+quiz:
+  - id: prefix-cost
+    kind: mcq
+    prompt: A trie holds a million words. How long does checking a prefix of length 5 take?
+    options: ["O(5)", "O(1,000,000)", "O(log 1,000,000)", "O(5 × 1,000,000)"]
+    answer: 0
+    explanation: You follow one edge per character, regardless of how many words are stored.
+    difficulty: 1
+  - id: end-marker
+    kind: mcq
+    prompt: You insert "apple" only. Why does a search for the word "app" need an end marker?
+    options:
+      - The path for "app" exists, but no word ends there
+      - Because "app" is shorter
+      - Tries cannot store short words
+      - To make search O(1)
+    answer: 0
+    explanation: Without end markers, every prefix of a stored word would look like a stored word.
+    difficulty: 2
+  - id: counts
+    kind: mcq
+    prompt: How do you count words starting with a prefix in O(length)?
+    options:
+      - Keep a counter on each node of how many words pass through it
+      - Traverse the whole subtree each time
+      - Store the words in a list
+      - Hash every prefix
+    answer: 0
+    explanation: Increment counts during insertion; the count at the prefix's node is the answer.
+    difficulty: 2
+  - id: when-not
+    kind: mcq
+    prompt: When is a hash set a better choice than a trie?
+    options: ["When you only need exact-word lookups", "When you need prefix counts", "For autocomplete", "For Word Search II"]
+    answer: 0
+    explanation: Tries earn their memory cost through prefix operations.
+    difficulty: 2
+problems: [prefix-counts]
+practice_links:
+  - title: Implement Trie (Prefix Tree)
+    url: https://leetcode.com/problems/implement-trie-prefix-tree/
+    platform: LeetCode
+    difficulty: medium
+  - title: Word Search II
+    url: https://leetcode.com/problems/word-search-ii/
+    platform: LeetCode
+    difficulty: hard

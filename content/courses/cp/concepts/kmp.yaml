@@ -1,0 +1,135 @@
+id: kmp
+title: Prefix function and KMP
+summary: Deterministic linear-time pattern matching and border analysis with the prefix function.
+module: strings-module
+prerequisites: [string-hashing]
+difficulty: 5
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  The **prefix function** `π[i]` of a string is the length of the longest proper prefix of
+  `s[0..i]` that is also a suffix of it (a **border**). For `s = "aabaaab"`,
+  `π = [0, 1, 0, 1, 2, 2, 3]`. Computed in O(n), it powers the **Knuth–Morris–Pratt** (KMP)
+  algorithm: find every occurrence of a pattern in a text in O(n + m), with no hashing and
+  no collision risk.
+
+  ## Computing π in O(n)
+
+  ```python
+  def prefix_function(s):
+      pi = [0] * len(s)
+      for i in range(1, len(s)):
+          k = pi[i - 1]
+          while k > 0 and s[i] != s[k]:
+              k = pi[k - 1]            # fall back to the next shorter border
+          if s[i] == s[k]:
+              k += 1
+          pi[i] = k
+      return pi
+  ```
+
+  ```cpp
+  vector<int> prefixFunction(const string& s) {
+      vector<int> pi(s.size(), 0);
+      for (size_t i = 1; i < s.size(); i++) {
+          int k = pi[i - 1];
+          while (k > 0 && s[i] != s[k]) k = pi[k - 1];
+          if (s[i] == s[k]) k++;
+          pi[i] = k;
+      }
+      return pi;
+  }
+  ```
+
+  ```java
+  static int[] prefixFunction(String s) {
+      int[] pi = new int[s.length()];
+      for (int i = 1; i < s.length(); i++) {
+          int k = pi[i - 1];
+          while (k > 0 && s.charAt(i) != s.charAt(k)) k = pi[k - 1];
+          if (s.charAt(i) == s.charAt(k)) k++;
+          pi[i] = k;
+      }
+      return pi;
+  }
+  ```
+
+  Amortised O(n): `k` increases by at most one per step, and each fallback decreases it.
+
+  ## KMP pattern matching
+
+  Compute π of `pattern + "#" + text` (with a separator that appears in neither). Every
+  position where `π[i] == len(pattern)` marks an occurrence ending there. Count or list them.
+
+  ## Borders and periods
+
+  - The borders of s are π[n−1], π[π[n−1]−1], ... — follow the chain.
+  - The smallest period of s is `n − π[n−1]`; s is a repetition of a block iff that period
+    divides n.
+
+  ## Prefix function vs hashing
+
+  Hashing is flexible (compare any two substrings) but probabilistic; the prefix function is
+  exact and linear but answers prefix/border questions. The related **Z-function** gives,
+  for each position, the longest common prefix with the whole string — another exact
+  linear-time tool.
+key_points:
+  - π[i] = length of the longest proper border of s[0..i].
+  - Computed in O(n) by falling back through borders.
+  - KMP - π of pattern + '#' + text; π[i] == |pattern| marks a match.
+  - Smallest period = n − π[n−1].
+  - Exact (no collisions), unlike hashing.
+pitfalls:
+  - Forgetting the separator, so matches straddle pattern and text.
+  - Using π[i − 1] instead of π[k − 1] when falling back.
+  - Confusing "proper" border (excludes the whole string).
+resources:
+  - title: Prefix function — Knuth–Morris–Pratt
+    url: https://cp-algorithms.com/string/prefix-function.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 40
+  - title: String Matching
+    url: https://cses.fi/problemset/task/1753
+    kind: interactive
+    source: CSES
+    minutes: 20
+  - title: Finding Periods
+    url: https://cses.fi/problemset/task/1733
+    kind: interactive
+    source: CSES
+    minutes: 25
+    level: deep
+quiz:
+  - id: pi-value
+    kind: mcq
+    prompt: For s = "abab", what is π[3]?
+    options: ["2", "1", "3", "0"]
+    answer: 0
+    explanation: '"ab" is both a proper prefix and a suffix of "abab".'
+    difficulty: 2
+  - id: period
+    kind: mcq
+    prompt: For s = "abcabcabc", π[n−1] = 6. What is the smallest period?
+    options: ["3", "6", "9", "1"]
+    answer: 0
+    explanation: n − π[n−1] = 9 − 6 = 3.
+    difficulty: 2
+  - id: separator
+    kind: mcq
+    prompt: Why insert a separator between pattern and text in KMP?
+    options: ["So borders can never extend across the boundary", "To speed it up", "To handle uppercase", "It is optional and never matters"]
+    answer: 0
+    explanation: Without it, π could exceed the pattern length and report false matches.
+    difficulty: 3
+problems: [pattern-count]
+practice_links:
+  - title: String Matching
+    url: https://cses.fi/problemset/task/1753
+    platform: CSES
+    difficulty: easy
+  - title: Finding Periods
+    url: https://cses.fi/problemset/task/1733
+    platform: CSES
+    difficulty: medium

@@ -1,0 +1,206 @@
+id: while-loops
+title: While loops
+summary: Repeat a block for as long as a condition stays true — the tool for "keep going until...".
+module: control-flow
+prerequisites: [boolean-logic]
+difficulty: 2
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  A **loop** repeats code. A `while` loop repeats **as long as** its condition is true:
+  check the condition, run the body, check again, run again... and stop the first time the
+  condition is false.
+
+  ```python
+  count = 3
+  while count > 0:
+      print(count)
+      count = count - 1
+  print("Go!")
+  ```
+
+  ```cpp
+  int count = 3;
+  while (count > 0) {
+      cout << count << "\n";
+      count = count - 1;
+  }
+  cout << "Go!\n";
+  ```
+
+  ```java
+  int count = 3;
+  while (count > 0) {
+      System.out.println(count);
+      count = count - 1;
+  }
+  System.out.println("Go!");
+  ```
+
+  Output: `3`, `2`, `1`, `Go!`. Trace it: count goes 3 → 2 → 1 → 0, and at 0 the condition
+  `count > 0` is false, so the loop ends.
+
+  ## The three parts of every loop
+
+  1. **Start**: set up the variables the condition uses (`count = 3`).
+  2. **Condition**: the question checked before each round (`count > 0`).
+  3. **Progress**: something in the body that moves toward stopping (`count - 1`).
+
+  Forget the progress step and the condition never becomes false — an **infinite loop**.
+  If your program hangs, this is the first thing to check.
+
+  ## When to use while
+
+  Use `while` when you do not know in advance how many rounds you need:
+
+  - keep halving a number until it reaches 1;
+  - keep reading until there is no more input;
+  - keep peeling off digits until the number is 0.
+
+  ## Worked example: sum of digits
+
+  To add up the digits of 4071, repeatedly take the last digit (`n % 10`) and then remove it
+  (`n // 10` in Python, `n / 10` in C++/Java):
+
+  | n | last digit | total |
+  |---|---|---|
+  | 4071 | 1 | 1 |
+  | 407 | 7 | 8 |
+  | 40 | 0 | 8 |
+  | 4 | 4 | 12 |
+  | 0 | stop | 12 |
+
+  ```python
+  n = int(input())
+  total = 0
+  while n > 0:
+      total += n % 10
+      n //= 10
+  print(total)
+  ```
+
+  ```cpp
+  long long n, total = 0;
+  cin >> n;
+  while (n > 0) {
+      total += n % 10;
+      n /= 10;
+  }
+  cout << total << "\n";
+  ```
+
+  ```java
+  long n = in.nextLong(), total = 0;
+  while (n > 0) {
+      total += n % 10;
+      n /= 10;
+  }
+  System.out.println(total);
+  ```
+
+  `total += x` is shorthand for `total = total + x`. Notice the **accumulator** pattern:
+  a variable that starts at 0 and absorbs one piece of work per round. You will use it in
+  almost every loop you write.
+key_points:
+  - while repeats its body as long as the condition is true, checking before each round.
+  - Every loop needs a start, a condition, and progress toward stopping.
+  - Missing progress causes an infinite loop.
+  - The accumulator pattern builds an answer one round at a time.
+pitfalls:
+  - Forgetting to update the loop variable (infinite loop).
+  - Off-by-one conditions — `>` versus `>=` changes the number of rounds.
+  - Special input like 0 that skips the loop entirely; make sure the answer is still right.
+resources:
+  - title: "Learn C++: Introduction to loops and while statements"
+    url: https://www.learncpp.com/cpp-tutorial/introduction-to-loops-and-while-statements/
+    kind: article
+    source: LearnCpp
+    minutes: 15
+    languages: [cpp]
+  - title: Python Tutor – watch a while loop run round by round
+    url: https://pythontutor.com/
+    kind: visualizer
+    source: Python Tutor
+    minutes: 10
+    level: intro
+  - title: More control flow tools
+    url: https://docs.python.org/3/tutorial/controlflow.html
+    kind: docs
+    source: Python docs
+    minutes: 15
+    languages: [python]
+  - title: "CS50x Week 1: Loops"
+    url: https://cs50.harvard.edu/x/2024/weeks/1/
+    kind: course
+    source: Harvard CS50
+    minutes: 120
+quiz:
+  - id: rounds
+    kind: output
+    prompt: How many times does the body run?
+    code:
+      python: |
+        i = 0
+        while i < 10:
+            i = i + 3
+      cpp: |
+        int i = 0;
+        while (i < 10) i = i + 3;
+      java: |
+        int i = 0;
+        while (i < 10) i = i + 3;
+    options: ["4", "3", "10", "Forever"]
+    answer: 0
+    explanation: i goes 0 → 3 → 6 → 9 → 12. The body runs at i = 0, 3, 6 and 9, which is 4 times.
+    difficulty: 2
+  - id: infinite
+    kind: mcq
+    prompt: "Why does this loop never end? `n = 5; while n > 0: print(n)`"
+    options:
+      - n never changes, so n > 0 stays true
+      - The condition is wrong syntax
+      - print stops the loop
+      - It ends after 5 rounds
+    answer: 0
+    explanation: Nothing moves n toward 0. Every loop needs progress.
+    difficulty: 1
+  - id: zero-input
+    kind: mcq
+    prompt: For the digit-sum loop `while n > 0`, what happens when n starts at 0?
+    options:
+      - The body never runs, and total stays 0 — still the right answer
+      - The loop runs once
+      - It crashes
+      - It runs forever
+    answer: 0
+    explanation: The condition is checked first. 0 > 0 is false, so the loop is skipped and 0 is printed.
+    difficulty: 2
+  - id: accumulator
+    kind: output
+    prompt: What is printed?
+    code:
+      python: |
+        n, total = 4, 0
+        while n > 0:
+            total += n
+            n -= 1
+        print(total)
+      cpp: |
+        int n = 4, total = 0;
+        while (n > 0) { total += n; n -= 1; }
+        cout << total;
+      java: |
+        int n = 4, total = 0;
+        while (n > 0) { total += n; n -= 1; }
+        System.out.println(total);
+    options: ["10", "4", "6", "0"]
+    answer: 0
+    explanation: total absorbs 4 + 3 + 2 + 1 = 10.
+    difficulty: 2
+problems: [digit-sum, collatz-steps]
+practice_links:
+  - title: Weird Algorithm
+    url: https://cses.fi/problemset/task/1068
+    platform: CSES
+    difficulty: easy

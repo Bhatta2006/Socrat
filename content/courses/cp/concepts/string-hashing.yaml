@@ -1,0 +1,129 @@
+id: string-hashing
+title: String hashing
+summary: Compare any two substrings in O(1) with polynomial rolling hashes — and keep collisions away.
+module: strings-module
+prerequisites: [modular-arithmetic, zero:strings]
+difficulty: 4
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  Comparing two substrings character by character costs O(length). A **polynomial hash**
+  maps each substring to a number so that equal substrings always have equal hashes and
+  different substrings almost always have different hashes. With prefix hashes, any
+  substring's hash is O(1) — so substring equality, palindromes, periods and pattern
+  matching all become fast.
+
+  ## Prefix hashes
+
+  Pick a base `B` (a random number around 10^5 – 10^9) and a large prime modulus `M`.
+
+  `h[0] = 0`, `h[i+1] = (h[i]·B + code(s[i])) mod M`, and `pw[i] = B^i mod M`.
+
+  The hash of `s[l..r)` is `(h[r] − h[l]·pw[r − l]) mod M`.
+
+  ```python
+  M = (1 << 61) - 1
+  B = 911382323                      # pick randomly in real contests
+  def build(s):
+      h = [0] * (len(s) + 1)
+      pw = [1] * (len(s) + 1)
+      for i, ch in enumerate(s):
+          h[i + 1] = (h[i] * B + ord(ch)) % M
+          pw[i + 1] = pw[i] * B % M
+      return h, pw
+
+  def sub(h, pw, l, r):              # hash of s[l:r]
+      return (h[r] - h[l] * pw[r - l]) % M
+  ```
+
+  ```cpp
+  using ull = unsigned long long;
+  const ull MOD = (1ULL << 61) - 1;
+  ull mulmod(ull a, ull b) { return (__uint128_t)a * b % MOD; }
+  // h[i+1] = (mulmod(h[i], B) + s[i]) % MOD; pw[i+1] = mulmod(pw[i], B)
+  ull sub(const vector<ull>& h, const vector<ull>& pw, int l, int r) {
+      return (h[r] + MOD - mulmod(h[l], pw[r - l])) % MOD;
+  }
+  ```
+
+  ```java
+  // Two moduli around 1e9 keep products inside long and make collisions negligible.
+  static final long M1 = 1_000_000_007L, M2 = 998_244_353L, B = 131;
+  // h1[i+1] = (h1[i] * B + s[i]) % M1, same for M2; compare both hashes.
+  static long sub(long[] h, long[] pw, int l, int r, long m) {
+      return ((h[r] - h[l] * pw[r - l]) % m + m) % m;
+  }
+  ```
+
+  ## Collisions
+
+  With a single modulus near 10^9, comparing about 10^6 pairs of substrings risks a false
+  match (birthday paradox), and fixed bases can be attacked by hack tests. Use a 2^61 − 1
+  modulus or **two** independent moduli, and a random base.
+
+  ## Typical uses
+
+  - Find a pattern's occurrences: compare the pattern hash with each window hash.
+  - Longest repeated substring / longest common substring: binary search the length, hash
+    all windows, look for duplicates.
+  - Palindrome checks: compare a substring's hash with the reversed string's hash.
+  - Counting distinct substrings of a given length.
+key_points:
+  - Prefix hashes make any substring hash O(1) - h[r] − h[l]·B^(r−l).
+  - Equal strings ⇒ equal hashes; unequal strings collide only with tiny probability.
+  - Use a large modulus (2^61 − 1) or double hashing, with a random base.
+  - Combine with binary search for longest-substring style problems.
+pitfalls:
+  - Negative values after subtraction (add M before %).
+  - A single 32-bit-sized modulus with many comparisons — collisions.
+  - Character code 0 (use ord(ch) or ch − 'a' + 1, never 0).
+resources:
+  - title: String Hashing
+    url: https://cp-algorithms.com/string/string-hashing.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 30
+  - title: String Matching
+    url: https://cses.fi/problemset/task/1753
+    kind: interactive
+    source: CSES
+    minutes: 20
+  - title: Competitive Programmer's Handbook — Chapter 26, String algorithms
+    url: https://cses.fi/book/book.pdf
+    kind: book
+    source: Antti Laaksonen
+    minutes: 30
+    level: deep
+quiz:
+  - id: formula
+    kind: mcq
+    prompt: With prefix hashes h and powers pw, the hash of s[l:r] is...
+    options: ["(h[r] − h[l]·pw[r − l]) mod M", "h[r] − h[l]", "h[r]·pw[l]", "(h[r] + h[l]) mod M"]
+    answer: 0
+    explanation: Shift h[l] up by r − l positions before subtracting it from h[r].
+    difficulty: 2
+  - id: collisions
+    kind: mcq
+    prompt: Why use two moduli (or 2^61 − 1)?
+    options: ["To make accidental and adversarial collisions negligible", "To make hashing faster", "To support uppercase letters", "Because one modulus is incorrect"]
+    answer: 0
+    explanation: Many comparisons with a ~10^9 modulus make a false match likely (birthday paradox).
+    difficulty: 2
+  - id: zero-code
+    kind: mcq
+    prompt: Why avoid mapping 'a' to 0 in a polynomial hash?
+    options: ['"a" and "aa" would both hash to 0', "It's slower", "Zero is not allowed modulo a prime", "It changes the base"]
+    answer: 0
+    explanation: Leading zeros vanish, so strings of a's of different lengths collide.
+    difficulty: 3
+problems: [repeated-substring]
+practice_links:
+  - title: String Matching
+    url: https://cses.fi/problemset/task/1753
+    platform: CSES
+    difficulty: easy
+  - title: Finding Borders
+    url: https://cses.fi/problemset/task/1732
+    platform: CSES
+    difficulty: medium

@@ -14,7 +14,7 @@ import psutil
 
 from runner.docker_backend import SandboxUnavailable
 from runner.toolchains import toolchains
-from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile
+from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile, same_output
 
 
 @dataclass
@@ -280,7 +280,7 @@ class LocalProcessBackend:
                         seconds=limits.wall_seconds,
                         memory_mb=limits.memory_mb,
                         pids=limits.pids,
-                        output_bytes=min(limits.output_bytes, 16000),
+                        output_bytes=limits.output_bytes,
                         cpu_seconds=limits.cpu_seconds,
                     )
                 )
@@ -292,7 +292,7 @@ class LocalProcessBackend:
                     else "executed"
                     if test.expected is None
                     else "passed"
-                    if result.stdout.strip() == test.expected.strip()
+                    if same_output(result.stdout, test.expected)
                     else "wrong_answer"
                 )
                 public = test.visibility == "public"

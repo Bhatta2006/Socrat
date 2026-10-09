@@ -1,0 +1,171 @@
+id: binary-search
+title: Binary search
+summary: Halve the search space each step — on sorted arrays and on the answer itself.
+module: linear-patterns
+prerequisites: [complexity, arrays-hashing]
+difficulty: 3
+estimated_minutes: 60
+lesson: |
+  ## The big idea
+
+  In a sorted array, look at the middle: if the target is larger, it must be in the right
+  half; otherwise the left half. Each step discards half the remaining range, so a million
+  elements need only ~20 steps: **O(log n)**.
+
+  ## The one template to rely on
+
+  Off-by-one bugs make binary search notorious. Avoid them with a single, precise
+  template: **find the first index where a condition becomes true**, where the condition
+  is false…false, true…true across the array.
+
+  ```python
+  def first_true(lo, hi, ok):
+      # Smallest x in [lo, hi] with ok(x) true; returns hi + 1 if none.
+      while lo <= hi:
+          mid = (lo + hi) // 2
+          if ok(mid):
+              hi = mid - 1      # mid works; look for an earlier one
+          else:
+              lo = mid + 1      # mid fails; answer is to the right
+      return lo
+
+  # lower bound: first index with a[i] >= x
+  i = first_true(0, len(a) - 1, lambda m: a[m] >= x)
+  ```
+
+  ```cpp
+  // first index with a[i] >= x (returns n if none)
+  int lowerBound(const vector<long long>& a, long long x) {
+      int lo = 0, hi = (int)a.size() - 1;
+      while (lo <= hi) {
+          int mid = lo + (hi - lo) / 2;
+          if (a[mid] >= x) hi = mid - 1; else lo = mid + 1;
+      }
+      return lo;
+  }
+  // The standard library does the same: lower_bound(a.begin(), a.end(), x) - a.begin()
+  ```
+
+  ```java
+  // first index with a[i] >= x (returns n if none)
+  static int lowerBound(long[] a, long x) {
+      int lo = 0, hi = a.length - 1;
+      while (lo <= hi) {
+          int mid = lo + (hi - lo) / 2;
+          if (a[mid] >= x) hi = mid - 1; else lo = mid + 1;
+      }
+      return lo;
+  }
+  ```
+
+  Everything else derives from it:
+
+  - **Exists?** `i < n and a[i] == x` after lower bound.
+  - **Count of x** = (first index with `a[i] > x`) − (first index with `a[i] >= x`).
+  - **Count ≤ x** = first index with `a[i] > x`.
+
+  Use `mid = lo + (hi − lo) / 2` in C++/Java to avoid integer overflow.
+
+  ## Binary search on the answer
+
+  The most powerful version searches over **possible answers**, not array positions. It
+  works when feasibility is **monotonic**: if speed `k` is fast enough, every faster speed
+  is too.
+
+  *Koko eats bananas*: piles must be finished in `h` hours at speed `k` per hour (each pile
+  takes `ceil(pile / k)` hours). Find the minimum `k`.
+
+  ```python
+  def hours(piles, k):
+      return sum((p + k - 1) // k for p in piles)
+
+  k = first_true(1, max(piles), lambda k: hours(piles, k) <= h)
+  ```
+
+  Total time: O(n log(max)). Recognise this shape whenever a problem says "minimum value
+  such that..." or "maximum value such that...".
+
+  ## Rotated arrays
+
+  In a sorted array rotated at an unknown pivot, at least one half around `mid` is always
+  sorted; check whether the target lies inside that sorted half to decide which way to go.
+key_points:
+  - Binary search halves the range each step — O(log n).
+  - Use one template - the first index where a monotonic condition becomes true.
+  - Lower/upper bounds give existence, counts and insertion positions.
+  - Binary search on the answer when feasibility is monotonic.
+  - mid = lo + (hi − lo) / 2 avoids overflow.
+pitfalls:
+  - Infinite loops from lo = mid instead of mid + 1.
+  - Using it on unsorted data, or on a non-monotonic condition.
+  - Forgetting the "not found" case (index n).
+resources:
+  - title: Binary Search Algorithm in 100 Seconds
+    url: https://www.youtube.com/watch?v=MFhxShGxHWc
+    kind: video
+    source: Fireship
+    minutes: 2
+    level: intro
+  - title: Binary Search – Leetcode 704
+    url: https://www.youtube.com/watch?v=s4DPM8ct1pI
+    kind: video
+    source: NeetCode
+    minutes: 9
+  - title: "USACO Guide: Binary search (including on the answer)"
+    url: https://usaco.guide/silver/binary-search
+    kind: article
+    source: USACO Guide
+    minutes: 40
+    level: deep
+  - title: "Tech Interview Handbook: Sorting and searching"
+    url: https://www.techinterviewhandbook.org/algorithms/sorting-searching/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: steps
+    kind: mcq
+    prompt: About how many comparisons does binary search need for 1,000,000 sorted items?
+    options: ["20", "1,000", "500,000", "1,000,000"]
+    answer: 0
+    explanation: 2^20 ≈ 10^6, so about 20 halvings.
+    difficulty: 1
+  - id: count-x
+    kind: mcq
+    prompt: How do you count occurrences of x in a sorted array with binary search?
+    options:
+      - (first index with a[i] > x) − (first index with a[i] >= x)
+      - Find x once and return 1
+      - Scan the whole array
+      - (last index) − (first index)
+    answer: 0
+    explanation: The two bounds bracket exactly the block of x values.
+    difficulty: 2
+  - id: answer-search
+    kind: mcq
+    prompt: Binary search on the answer requires feasibility to be...
+    options: ["Monotonic (false...false then true...true)", "Random", "Sorted by index", "Always true"]
+    answer: 0
+    explanation: Only a monotonic condition lets you discard half the candidates safely.
+    difficulty: 2
+  - id: overflow
+    kind: mcq
+    prompt: In Java, why write mid = lo + (hi - lo) / 2 instead of (lo + hi) / 2?
+    options: ["lo + hi can overflow int", "It is faster", "It rounds up", "It avoids negative indexes"]
+    answer: 0
+    explanation: For large lo and hi their sum can exceed 2^31 − 1.
+    difficulty: 2
+problems: [lower-bound-queries, koko-speed]
+practice_links:
+  - title: Search in Rotated Sorted Array
+    url: https://leetcode.com/problems/search-in-rotated-sorted-array/
+    platform: LeetCode
+    difficulty: medium
+  - title: Koko Eating Bananas
+    url: https://leetcode.com/problems/koko-eating-bananas/
+    platform: LeetCode
+    difficulty: medium
+  - title: Factory Machines
+    url: https://cses.fi/problemset/task/1620
+    platform: CSES
+    difficulty: medium

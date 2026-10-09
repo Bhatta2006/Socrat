@@ -1,0 +1,171 @@
+id: prefix-sums
+title: Prefix sums
+summary: Precompute running totals once so any range sum costs O(1), and count subarrays with hash maps.
+module: foundations
+prerequisites: [arrays-hashing]
+difficulty: 3
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  "What is the sum of a[l..r]?" costs O(n) if you add it up each time. With `q` queries
+  that is O(n·q). Instead, compute the **prefix sum** array once:
+
+  `p[0] = 0`, and `p[i] = a[0] + a[1] + ... + a[i−1]`.
+
+  Then the sum of `a[l..r]` (inclusive, 0-indexed) is **`p[r + 1] − p[l]`** — one
+  subtraction.
+
+  ```python
+  a = [3, 1, 4, 1, 5]
+  p = [0]
+  for x in a:
+      p.append(p[-1] + x)      # p = [0, 3, 4, 8, 9, 14]
+  l, r = 1, 3
+  print(p[r + 1] - p[l])       # 1 + 4 + 1 = 6
+  ```
+
+  ```cpp
+  vector<long long> p(n + 1, 0);
+  for (int i = 0; i < n; i++) p[i + 1] = p[i] + a[i];
+  long long rangeSum = p[r + 1] - p[l];
+  ```
+
+  ```java
+  long[] p = new long[n + 1];
+  for (int i = 0; i < n; i++) p[i + 1] = p[i] + a[i];
+  long rangeSum = p[r + 1] - p[l];
+  ```
+
+  The extra leading 0 removes every special case for ranges starting at index 0.
+
+  ## Counting subarrays with a given sum
+
+  "How many contiguous subarrays sum to k?" A subarray `a[l..r]` has sum
+  `p[r + 1] − p[l]`. That equals k exactly when **`p[l] = p[r + 1] − k`**. So scan the
+  prefix sums left to right and, at each one, ask a hash map: *how many earlier prefix sums
+  equal current − k?* This combines prefix sums with the complement-lookup pattern and
+  works even with negative numbers (where sliding windows fail).
+
+  ```python
+  def count_subarrays(a, k):
+      seen = {0: 1}          # the empty prefix
+      total = count = 0
+      for x in a:
+          total += x
+          count += seen.get(total - k, 0)
+          seen[total] = seen.get(total, 0) + 1
+      return count
+  ```
+
+  ```cpp
+  long long countSubarrays(const vector<long long>& a, long long k) {
+      unordered_map<long long, long long> seen{{0, 1}};
+      long long total = 0, count = 0;
+      for (long long x : a) {
+          total += x;
+          auto it = seen.find(total - k);
+          if (it != seen.end()) count += it->second;
+          seen[total]++;
+      }
+      return count;
+  }
+  ```
+
+  ```java
+  static long countSubarrays(long[] a, long k) {
+      HashMap<Long, Long> seen = new HashMap<>();
+      seen.put(0L, 1L);
+      long total = 0, count = 0;
+      for (long x : a) {
+          total += x;
+          count += seen.getOrDefault(total - k, 0L);
+          seen.merge(total, 1L, Long::sum);
+      }
+      return count;
+  }
+  ```
+
+  ## Variations you will meet
+
+  - **2D prefix sums** for rectangle sums in a grid.
+  - **Difference arrays** — the inverse trick for many range *updates* then one read.
+  - Prefix **counts**, prefix **XOR**, prefix **min/max** (from the left and right).
+
+  Use 64-bit integers: prefix sums of 2·10^5 values up to 10^9 overflow 32 bits.
+key_points:
+  - p[i] holds the sum of the first i elements; sum(l..r) = p[r+1] − p[l].
+  - One O(n) precomputation makes every range query O(1).
+  - Subarrays summing to k ⇔ earlier prefix equal to current − k; count with a hash map.
+  - Prefix ideas extend to 2D, XOR, counts and difference arrays.
+pitfalls:
+  - Off-by-one between p indexes and array indexes.
+  - Forgetting to seed the map with prefix 0 (count 1).
+  - 32-bit overflow on large sums.
+resources:
+  - title: "USACO Guide: Introduction to prefix sums"
+    url: https://usaco.guide/silver/prefix-sums
+    kind: article
+    source: USACO Guide
+    minutes: 30
+  - title: Static Range Sum Queries
+    url: https://cses.fi/problemset/task/1646
+    kind: interactive
+    source: CSES
+    minutes: 15
+  - title: "Tech Interview Handbook: Array cheatsheet (prefix sums)"
+    url: https://www.techinterviewhandbook.org/algorithms/array/
+    kind: article
+    source: Tech Interview Handbook
+    minutes: 10
+quiz:
+  - id: range-formula
+    kind: mcq
+    prompt: With p[0] = 0 and p[i+1] = p[i] + a[i], the sum of a[2..5] (inclusive) is...
+    options: ["p[6] − p[2]", "p[5] − p[2]", "p[5] − p[1]", "p[6] − p[3]"]
+    answer: 0
+    explanation: Sum of a[l..r] is p[r+1] − p[l] with l = 2, r = 5.
+    difficulty: 2
+  - id: seed
+    kind: mcq
+    prompt: "When counting subarrays with sum k using a prefix-sum map, why start the map with {0: 1}?"
+    options:
+      - To count subarrays that start at index 0
+      - To avoid division by zero
+      - Because maps cannot be empty
+      - To handle negative numbers
+    answer: 0
+    explanation: A subarray starting at 0 has sum equal to the current prefix, matching an earlier prefix of 0.
+    difficulty: 3
+  - id: query-cost
+    kind: mcq
+    prompt: After building prefix sums, what is the cost of each range-sum query?
+    options: ["O(1)", "O(log n)", "O(n)", "O(r − l)"]
+    answer: 0
+    explanation: A single subtraction of two stored values.
+    difficulty: 1
+  - id: negatives
+    kind: mcq
+    prompt: Why does "count subarrays with sum k" use prefix sums + hashing rather than a sliding window?
+    options:
+      - Negative numbers break the sliding window's monotonic behaviour
+      - Sliding windows are always slower
+      - Hash maps use less memory
+      - Prefix sums sort the array
+    answer: 0
+    explanation: With negatives, extending a window can decrease the sum, so you cannot decide when to shrink.
+    difficulty: 3
+problems: [range-sum-queries, subarray-sum-k]
+practice_links:
+  - title: Subarray Sum Equals K
+    url: https://leetcode.com/problems/subarray-sum-equals-k/
+    platform: LeetCode
+    difficulty: medium
+  - title: Range Sum Query - Immutable
+    url: https://leetcode.com/problems/range-sum-query-immutable/
+    platform: LeetCode
+    difficulty: easy
+  - title: Subarray Sums II
+    url: https://cses.fi/problemset/task/1661
+    platform: CSES
+    difficulty: medium

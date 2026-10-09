@@ -1,0 +1,165 @@
+id: input-and-arithmetic
+title: Input and arithmetic
+summary: Read values the user gives your program, convert them to numbers, and compute with + - * / and remainder.
+module: first-steps
+prerequisites: [variables-and-types]
+difficulty: 1
+estimated_minutes: 40
+lesson: |
+  ## The big idea
+
+  Real programs take **input**, compute something, and produce **output**. In Socrat's
+  practice problems, input arrives as text on *standard input* (as if typed), and you
+  print the answer to *standard output*.
+
+  ## Reading input
+
+  ```python
+  name = input()          # reads one line as text
+  n = int(input())        # reads one line and converts it to a whole number
+  a, b = map(int, input().split())   # two numbers on one line
+  ```
+
+  ```cpp
+  #include <iostream>
+  #include <string>
+  using namespace std;
+
+  int main() {
+      string name;
+      getline(cin, name);   // reads a whole line
+      int a, b;
+      cin >> a >> b;        // reads two whitespace-separated numbers
+  }
+  ```
+
+  ```java
+  import java.util.Scanner;
+
+  public class Solution {
+      public static void main(String[] args) {
+          Scanner in = new Scanner(System.in);
+          String name = in.nextLine();  // reads a whole line
+          int a = in.nextInt();         // reads the next number
+          int b = in.nextInt();
+      }
+  }
+  ```
+
+  Input always starts as **text**. `"12"` is two characters; you must convert it to the
+  number 12 before doing maths. C++ `cin >> a` and Java `nextInt()` convert for you.
+
+  ## Arithmetic
+
+  | Operation | Symbol | 17 and 5 |
+  |---|---|---|
+  | add | `+` | 22 |
+  | subtract | `-` | 12 |
+  | multiply | `*` | 85 |
+  | divide | `/` | see below |
+  | remainder | `%` | 2 |
+
+  **Division is the classic trap.** With two whole numbers:
+
+  - C++ and Java: `17 / 5` is `3` — whole-number division drops the fraction.
+  - Python: `17 / 5` is `3.4`; use `17 // 5` to get `3`.
+
+  The **remainder** `17 % 5` is `2` — what is left after taking out as many 5s as
+  possible. Remainders answer questions like "is n even?" (`n % 2 == 0`) and "what is the
+  last digit?" (`n % 10`).
+
+  ## Worked example: minutes to hours
+
+  Convert 135 minutes into hours and minutes: `135 // 60 = 2` hours (C++/Java: `135 / 60`)
+  and `135 % 60 = 15` minutes, so the answer is 2 hours 15 minutes. Division tells you how
+  many whole groups; remainder tells you what is left over. You will use this pair forever.
+
+  ## Order of operations
+
+  `*`, `/` and `%` happen before `+` and `-`, just like in maths: `2 + 3 * 4` is `14`.
+  Use parentheses whenever it makes your intent clearer: `(2 + 3) * 4` is `20`.
+
+  ## Very large numbers
+
+  Python integers grow as large as needed. In C++ and Java, `int` overflows past about
+  2.1 billion — use `long long` (C++) or `long` (Java) when values can be large.
+key_points:
+  - Input arrives as text; convert it before doing arithmetic.
+  - "Whole-number division: `//` in Python, `/` between ints in C++ and Java."
+  - "`%` gives the remainder: great for even/odd, last digit and unit conversions."
+  - Multiplication and division happen before addition and subtraction.
+pitfalls:
+  - Forgetting to convert input in Python, then adding text instead of numbers.
+  - Using `/` in Python when you wanted a whole number.
+  - Integer overflow in C++/Java when results exceed about 2.1 billion.
+resources:
+  - title: Input and Output
+    url: https://docs.python.org/3/tutorial/inputoutput.html
+    kind: docs
+    source: Python docs
+    minutes: 20
+    languages: [python]
+  - title: Python Tutor – step through arithmetic
+    url: https://pythontutor.com/
+    kind: visualizer
+    source: Python Tutor
+    minutes: 10
+    level: intro
+  - title: "CS50x Week 1: C, types, operators and input"
+    url: https://cs50.harvard.edu/x/2024/weeks/1/
+    kind: course
+    source: Harvard CS50
+    minutes: 120
+    languages: [cpp]
+  - title: Java Full Course for Beginners
+    url: https://www.youtube.com/watch?v=eIrMbAQSU34
+    kind: video
+    source: Programming with Mosh
+    minutes: 150
+    languages: [java]
+quiz:
+  - id: int-division
+    kind: output
+    prompt: What is printed?
+    code:
+      python: print(17 // 5, 17 % 5)
+      cpp: std::cout << 17 / 5 << " " << 17 % 5;
+      java: System.out.println(17 / 5 + " " + 17 % 5);
+    options: ["3 2", "3.4 2", "3 0", "2 3"]
+    answer: 0
+    explanation: Five fits into 17 three whole times (15), leaving a remainder of 2.
+    difficulty: 1
+  - id: precedence
+    kind: output
+    prompt: What is the value of `10 - 2 * 3`?
+    options: ["4", "24", "-4", "6"]
+    answer: 0
+    explanation: Multiplication first (2*3 = 6), then 10 - 6 = 4.
+    difficulty: 1
+  - id: last-digit
+    kind: mcq
+    prompt: Which expression gives the last digit of a positive whole number n?
+    options: ["n % 10", "n / 10", "n - 10", "n * 10"]
+    answer: 0
+    explanation: Dividing by 10 leaves the last digit as the remainder.
+    difficulty: 2
+  - id: input-is-text
+    kind: mcq
+    prompt: "In Python, `x = input()` and the user types 5. What is `x + x`?"
+    options: ['"55" — text joined together', "10", "An error", "25"]
+    answer: 0
+    explanation: input() returns text. Adding two strings joins them. Use int(input()) to get a number.
+    difficulty: 2
+  - id: even-check
+    kind: mcq
+    prompt: How do you check if n is even?
+    options: ["n % 2 == 0", "n / 2 == 0", "n % 2 == 1", "n * 2 == n"]
+    answer: 0
+    explanation: Even numbers leave no remainder when divided by 2.
+    difficulty: 1
+problems: [greeting, time-convert]
+practice_links:
+  - title: Watermelon (even split)
+    url: https://codeforces.com/problemset/problem/4/A
+    platform: Codeforces
+    difficulty: easy

@@ -1,0 +1,170 @@
+id: union-find
+title: Union-Find (Disjoint Set Union)
+summary: Merge groups and ask "same group?" in near-constant time — connectivity, cycles and Kruskal's MST.
+module: graphs
+prerequisites: [graph-traversal]
+difficulty: 4
+estimated_minutes: 50
+lesson: |
+  ## The big idea
+
+  Suppose friendships arrive one by one and you must keep answering "are these two people
+  in the same friend group?". Re-running BFS each time is too slow. **Union-Find** (Disjoint
+  Set Union, DSU) maintains groups as trees: each element points to a **parent**, and the
+  root names the group.
+
+  - `find(x)`: follow parents to the root.
+  - `union(a, b)`: attach one root under the other.
+
+  ## Two optimisations make it near O(1)
+
+  - **Path compression**: during `find`, point every visited node directly at the root.
+  - **Union by size (or rank)**: attach the smaller tree under the larger.
+
+  Together, operations cost O(α(n)) amortised — the inverse Ackermann function, which is
+  at most 4 for any realistic n. Treat it as constant.
+
+  ```python
+  class DSU:
+      def __init__(self, n):
+          self.parent = list(range(n))
+          self.size = [1] * n
+
+      def find(self, x):
+          root = x
+          while self.parent[root] != root:
+              root = self.parent[root]
+          while self.parent[x] != root:          # path compression
+              self.parent[x], x = root, self.parent[x]
+          return root
+
+      def union(self, a, b):
+          a, b = self.find(a), self.find(b)
+          if a == b:
+              return False                       # already connected
+          if self.size[a] < self.size[b]:
+              a, b = b, a
+          self.parent[b] = a                     # smaller under larger
+          self.size[a] += self.size[b]
+          return True
+  ```
+
+  ```cpp
+  struct DSU {
+      vector<int> p, sz;
+      DSU(int n) : p(n), sz(n, 1) { iota(p.begin(), p.end(), 0); }
+      int find(int x) { return p[x] == x ? x : p[x] = find(p[x]); }
+      bool unite(int a, int b) {
+          a = find(a); b = find(b);
+          if (a == b) return false;
+          if (sz[a] < sz[b]) swap(a, b);
+          p[b] = a; sz[a] += sz[b];
+          return true;
+      }
+  };
+  ```
+
+  ```java
+  static int[] parent, size;
+  static int find(int x) {
+      while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; }  // path halving
+      return x;
+  }
+  static boolean union(int a, int b) {
+      a = find(a); b = find(b);
+      if (a == b) return false;
+      if (size[a] < size[b]) { int t = a; a = b; b = t; }
+      parent[b] = a; size[a] += size[b];
+      return true;
+  }
+  ```
+
+  (The recursive C++ `find` is fine in practice because union by size keeps trees shallow.)
+
+  ## Classic uses
+
+  - **Number of components** as edges arrive: start at n, decrement on each successful union.
+  - **Cycle detection** in an undirected graph: an edge whose endpoints are already
+    connected closes a cycle (*Redundant Connection*).
+  - **Kruskal's minimum spanning tree**: sort edges by weight; take each edge that joins two
+    different components.
+
+  ## Limits
+
+  DSU only **merges** — it cannot split groups. If edges are deleted, process offline in
+  reverse, or use other techniques.
+key_points:
+  - DSU keeps groups as trees; the root identifies the group.
+  - Path compression + union by size give near-constant amortised operations.
+  - union returns whether a merge happened — that detects cycles.
+  - Track component count by decrementing on successful unions.
+  - Kruskal's MST = sorted edges + DSU.
+pitfalls:
+  - Comparing elements instead of their roots.
+  - Skipping both optimisations, leading to O(n) chains.
+  - Expecting DSU to support splitting groups.
+resources:
+  - title: Union Find Introduction
+    url: https://www.youtube.com/watch?v=ibjEGG7ylHk
+    kind: video
+    source: WilliamFiset
+    minutes: 10
+  - title: Redundant Connection – Union Find
+    url: https://www.youtube.com/watch?v=FXWRE67PLL0
+    kind: video
+    source: NeetCode
+    minutes: 12
+  - title: Disjoint Set Union
+    url: https://cp-algorithms.com/data_structures/disjoint_set_union.html
+    kind: article
+    source: CP-Algorithms
+    minutes: 25
+    level: deep
+  - title: Union-Find visualized
+    url: https://visualgo.net/en/ufds
+    kind: visualizer
+    source: VisuAlgo
+    minutes: 10
+quiz:
+  - id: same-group
+    kind: mcq
+    prompt: How does DSU decide whether a and b are in the same group?
+    options: ["find(a) == find(b)", "parent[a] == parent[b]", "a == b", "size[a] == size[b]"]
+    answer: 0
+    explanation: Two elements share a group exactly when they have the same root.
+    difficulty: 1
+  - id: cycle
+    kind: mcq
+    prompt: Processing undirected edges with DSU, union(u, v) returns false. What does that mean?
+    options: ["Edge (u, v) closes a cycle", "u and v are isolated", "The DSU is broken", "u equals v always"]
+    answer: 0
+    explanation: u and v were already connected, so adding the edge creates a cycle.
+    difficulty: 2
+  - id: components
+    kind: mcq
+    prompt: n nodes, then 5 successful unions. How many components remain?
+    options: ["n − 5", "n", "5", "n + 5"]
+    answer: 0
+    explanation: Each successful union merges two components into one.
+    difficulty: 1
+  - id: optimisations
+    kind: mcq
+    prompt: Which pair of optimisations makes DSU nearly constant time?
+    options: ["Path compression and union by size/rank", "Sorting and hashing", "Recursion and memoization", "Binary search and heaps"]
+    answer: 0
+    explanation: Together they bound the amortised cost by the inverse Ackermann function.
+    difficulty: 2
+problems: [online-components]
+practice_links:
+  - title: Redundant Connection
+    url: https://leetcode.com/problems/redundant-connection/
+    platform: LeetCode
+    difficulty: medium
+  - title: Building Roads
+    url: https://cses.fi/problemset/task/1666
+    platform: CSES
+    difficulty: easy
+  - title: Road Construction
+    url: https://cses.fi/problemset/task/1676
+    platform: CSES
+    difficulty: medium
