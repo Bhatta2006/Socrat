@@ -2,17 +2,11 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import quote, urlparse
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LOCAL_SESSION_SECRET = "local-development-only-change-before-deploy"
 LOCAL_DATABASE_URL = "sqlite:///socrat.local.db"
-
-
-class ContentAdminIdentity(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    issuer: str = Field(min_length=1, max_length=512)
-    subject: str = Field(min_length=1, max_length=255)
 
 
 def _read_secret_file(name: str, file_name: str) -> str:
@@ -51,7 +45,6 @@ class DatabaseSettings(BaseSettings):
     database_name: str = ""
     database_user: str = ""
     database_password_file: str = ""
-    reminders_enabled: bool = False
 
     @model_validator(mode="after")
     def load_database_password(self):
@@ -81,48 +74,30 @@ class DatabaseSettings(BaseSettings):
 
 
 class Settings(DatabaseSettings):
-    demo_mode: bool = False
-    execution_backend: Literal["gvisor", "gvisor_docker", "local_process", "demo_docker"] = (
-        "gvisor_docker"
-    )
-    dashboard_enabled: bool = False
-    tutor_enabled: bool = False
-    tutor_model_enabled: bool = False
-    tutor_model_rollout_percent: int = Field(default=100, ge=0, le=100)
-    tutor_advisor_shadow_enabled: bool = False
-    tutor_prompt_version: Literal["tutor_1.0.0", "tutor_1.0.1", "tutor_1.0.2"] = "tutor_1.0.1"
-    tutor_model: str = ""
-    tutor_provider: Literal["structured_gateway", "openai_responses", "openai_chat"] = (
-        "structured_gateway"
-    )
-    tutor_model_allowlist: list[str] = Field(default_factory=list, max_length=10)
-    tutor_gateway_url: str = ""
-    tutor_reasoning_effort: Literal["", "none", "low", "medium", "high"] = ""
-    tutor_temperature: float | None = Field(default=None, ge=0, le=2, allow_inf_nan=False)
-    tutor_top_p: float | None = Field(default=None, gt=0, le=1, allow_inf_nan=False)
-    tutor_gateway_secret: SecretStr = SecretStr("")
-    tutor_gateway_secret_file: str = ""
-    tutor_timeout_seconds: float = Field(default=4, ge=0.1, le=4)
-    tutor_output_tokens: int = Field(default=600, ge=100, le=2000)
-    tutor_session_calls: int = Field(default=12, ge=1, le=50)
-    tutor_daily_calls: int = Field(default=40, ge=1, le=200)
-    tutor_call_reserve_microusd: int = Field(default=10000, ge=1, le=1000000)
-    tutor_daily_budget_microusd: int = Field(default=400000, ge=1, le=10000000)
-    learning_sessions_enabled: bool = False
-    execution_enabled: bool = False
+    environment: Literal["development", "test", "staging", "production"] = "development"
+    public_origin: str = "http://localhost:3000"
+    session_secret: SecretStr = SecretStr(LOCAL_SESSION_SECRET)
+    session_secret_file: str = ""
+    session_ttl_seconds: int = 30 * 86400
+    dev_login_enabled: bool = False
+    oidc_issuer: str = ""
+    oidc_client_id: str = ""
+    oidc_client_secret: SecretStr = SecretStr("")
+    oidc_client_secret_file: str = ""
+    metrics_token: SecretStr = SecretStr("")
+    metrics_token_file: str = ""
+
+    # Code judge. "local_process" is an insecure native runner for development only;
+    # deployed environments use gVisor workers with attested images.
+    execution_backend: Literal["gvisor_docker", "local_process", "demo_docker"] = "gvisor_docker"
     execution_signing_secret: SecretStr = SecretStr("")
     execution_worker_secret: SecretStr = SecretStr("")
     execution_signing_secret_file: str = ""
     execution_worker_secret_file: str = ""
     execution_profiles: list[dict] = Field(default_factory=list, max_length=3)
-    execution_daily_quota: int = Field(default=100, ge=1, le=1000)
-    execution_queue_limit: int = Field(default=4, ge=1, le=20)
-    execution_ip_daily_quota: int = Field(default=500, ge=1, le=10000)
-    execution_global_queue_limit: int = Field(default=100, ge=1, le=1000)
-    planning_enabled: bool = False
-    assessments_enabled: bool = False
-    diagnostics_enabled: bool = False
-    onboarding_enabled: bool = False
+    execution_daily_quota: int = Field(default=400, ge=1, le=5000)
+    execution_queue_limit: int = Field(default=3, ge=1, le=20)
+
     # Socrat assistant. Keys may also come from ANTHROPIC_API_KEY / OPENAI_API_KEY,
     # which the official SDKs resolve themselves when these are empty.
     ai_provider: Literal["anthropic", "openai", "offline"] = "offline"
@@ -135,66 +110,32 @@ class Settings(DatabaseSettings):
     openai_base_url: str = ""
     ai_timeout_seconds: float = Field(default=45, ge=5, le=120)
     ai_daily_messages: int = Field(default=150, ge=1, le=5000)
-    ai_reply_tokens: int = Field(default=1200, ge=200, le=8000)
-    content_admin_identities: list[ContentAdminIdentity] = Field(
-        default_factory=list, max_length=100
-    )
-    environment: Literal["development", "test", "staging", "production"] = "development"
-    public_origin: str = "http://localhost:3000"
-    session_secret: SecretStr = SecretStr(LOCAL_SESSION_SECRET)
-    session_secret_file: str = ""
-    session_ttl_seconds: int = 28800
-    dev_login_enabled: bool = False
-    oidc_issuer: str = ""
-    oidc_client_id: str = ""
-    oidc_client_secret: SecretStr = SecretStr("")
-    oidc_client_secret_file: str = ""
-    metrics_token: SecretStr = SecretStr("")
-    metrics_token_file: str = ""
+    ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
+
+    # Local demo conveniences (seeded sample learners). Rejected outside development/test.
+    demo_mode: bool = False
 
     @property
     def secure(self) -> bool:
         return self.environment in {"staging", "production"}
 
+    @property
+    def execution_enabled(self) -> bool:
+        return bool(self.execution_profiles)
+
     @model_validator(mode="after")
     def enforce_boundaries(self):
         if self.demo_mode and self.environment not in {"development", "test"}:
             raise ValueError("Demo mode is only accepted in development/test")
-        if self.execution_backend in {"local_process", "demo_docker"} and not (
-            self.demo_mode and self.environment in {"development", "test"}
-        ):
-            raise ValueError("The local demo sandbox requires development/test demo mode")
-        self.tutor_gateway_secret = _secret_from_file(
-            "tutor_gateway_secret", self.tutor_gateway_secret, self.tutor_gateway_secret_file
-        )
-        if self.tutor_model_enabled:
-            gateway = urlparse(self.tutor_gateway_url)
-            if (
-                gateway.scheme != "https"
-                or not gateway.hostname
-                or gateway.username
-                or gateway.password
-                or gateway.query
-                or gateway.fragment
-                or self.tutor_model not in self.tutor_model_allowlist
-                or not self.tutor_gateway_secret.get_secret_value()
-            ):
-                raise ValueError(
-                    "Tutor models require an HTTPS adapter, secret and allow-listed model"
-                )
-        self.execution_signing_secret = _secret_from_file(
-            "execution_signing_secret",
-            self.execution_signing_secret,
-            self.execution_signing_secret_file,
-            "",
-        )
-        self.execution_worker_secret = _secret_from_file(
-            "execution_worker_secret",
-            self.execution_worker_secret,
-            self.execution_worker_secret_file,
-            "",
-        )
-        if self.execution_enabled:
+        if self.execution_backend in {"local_process", "demo_docker"} and self.secure:
+            raise ValueError("The insecure local runner is only allowed in development/test")
+        for name in ("execution_signing_secret", "execution_worker_secret"):
+            setattr(
+                self,
+                name,
+                _secret_from_file(name, getattr(self, name), getattr(self, f"{name}_file")),
+            )
+        if self.execution_profiles:
             if (
                 len(self.execution_signing_secret.get_secret_value()) < 48
                 or len(self.execution_worker_secret.get_secret_value()) < 48
@@ -204,17 +145,12 @@ class Settings(DatabaseSettings):
             from socrat.execution.protocol import RuntimeProfile
 
             profiles = [RuntimeProfile.model_validate(x) for x in self.execution_profiles]
-            if (
-                not profiles
-                or len({x.language for x in profiles}) != len(profiles)
-                or len({x.id for x in profiles}) != len(profiles)
-            ):
-                raise ValueError("Execution requires unique immutable runtime profiles")
+            if len({x.language for x in profiles}) != len(profiles) or len(
+                {x.id for x in profiles}
+            ) != len(profiles):
+                raise ValueError("Execution requires unique runtime profiles")
         self.session_secret = _secret_from_file(
-            "session_secret",
-            self.session_secret,
-            self.session_secret_file,
-            LOCAL_SESSION_SECRET,
+            "session_secret", self.session_secret, self.session_secret_file, LOCAL_SESSION_SECRET
         )
         self.oidc_client_secret = _secret_from_file(
             "oidc_client_secret", self.oidc_client_secret, self.oidc_client_secret_file
@@ -222,7 +158,6 @@ class Settings(DatabaseSettings):
         self.metrics_token = _secret_from_file(
             "metrics_token", self.metrics_token, self.metrics_token_file
         )
-
         if self.ai_provider == "openai" and not self.openai_model:
             raise ValueError("The OpenAI provider requires SOCRAT_OPENAI_MODEL")
         if self.ai_provider == "anthropic" and not self.ai_model.startswith("claude-"):
@@ -231,8 +166,8 @@ class Settings(DatabaseSettings):
         origin = urlparse(self.public_origin)
         if origin.scheme not in {"http", "https"} or not origin.netloc or origin.path:
             raise ValueError("public_origin must be an origin without a trailing slash")
-        if not 300 <= self.session_ttl_seconds <= 86400:
-            raise ValueError("Session lifetime must be between 5 minutes and 24 hours")
+        if not 300 <= self.session_ttl_seconds <= 90 * 86400:
+            raise ValueError("Session lifetime must be between 5 minutes and 90 days")
         if self.dev_login_enabled and (
             self.secure or origin.hostname not in {"localhost", "127.0.0.1"}
         ):

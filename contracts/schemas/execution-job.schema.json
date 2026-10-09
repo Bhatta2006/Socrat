@@ -3,29 +3,25 @@
     "JobManifest": {
       "additionalProperties": false,
       "properties": {
+        "version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Version",
+          "type": "string"
+        },
+        "job_id": {
+          "pattern": "^[a-f0-9-]{36}$",
+          "title": "Job Id",
+          "type": "string"
+        },
         "attempt_id": {
           "pattern": "^[a-f0-9-]{36}$",
           "title": "Attempt Id",
           "type": "string"
         },
-        "code_hash": {
-          "pattern": "^sha256:[a-f0-9]{64}$",
-          "title": "Code Hash",
-          "type": "string"
-        },
-        "compile_config": {
-          "additionalProperties": true,
-          "title": "Compile Config",
-          "type": "object"
-        },
-        "expires_at": {
-          "minimum": 0,
-          "title": "Expires At",
-          "type": "integer"
-        },
-        "image": {
-          "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
-          "title": "Image",
+        "nonce": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Nonce",
           "type": "string"
         },
         "issued_at": {
@@ -33,10 +29,10 @@
           "title": "Issued At",
           "type": "integer"
         },
-        "job_id": {
-          "pattern": "^[a-f0-9-]{36}$",
-          "title": "Job Id",
-          "type": "string"
+        "expires_at": {
+          "minimum": 0,
+          "title": "Expires At",
+          "type": "integer"
         },
         "language": {
           "enum": [
@@ -47,8 +43,29 @@
           "title": "Language",
           "type": "string"
         },
-        "limits": {
-          "$ref": "#/$defs/Limits"
+        "image": {
+          "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
+          "title": "Image",
+          "type": "string"
+        },
+        "runtime_id": {
+          "title": "Runtime Id",
+          "type": "string"
+        },
+        "code_hash": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Code Hash",
+          "type": "string"
+        },
+        "test_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Test Digest",
+          "type": "string"
+        },
+        "pack_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Pack Digest",
+          "type": "string"
         },
         "mode": {
           "enum": [
@@ -58,30 +75,13 @@
           "title": "Mode",
           "type": "string"
         },
-        "nonce": {
-          "pattern": "^[a-f0-9]{64}$",
-          "title": "Nonce",
-          "type": "string"
+        "limits": {
+          "$ref": "#/$defs/Limits"
         },
-        "pack_digest": {
-          "pattern": "^sha256:[a-f0-9]{64}$",
-          "title": "Pack Digest",
-          "type": "string"
-        },
-        "runtime_id": {
-          "title": "Runtime Id",
-          "type": "string"
-        },
-        "test_digest": {
-          "pattern": "^sha256:[a-f0-9]{64}$",
-          "title": "Test Digest",
-          "type": "string"
-        },
-        "version": {
-          "const": "1.0.0",
-          "default": "1.0.0",
-          "title": "Version",
-          "type": "string"
+        "compile_config": {
+          "additionalProperties": true,
+          "title": "Compile Config",
+          "type": "object"
         }
       },
       "required": [
@@ -106,13 +106,6 @@
     "Limits": {
       "additionalProperties": false,
       "properties": {
-        "compile_seconds": {
-          "default": 15,
-          "maximum": 30,
-          "minimum": 1,
-          "title": "Compile Seconds",
-          "type": "integer"
-        },
         "cpu_seconds": {
           "default": 2,
           "maximum": 5,
@@ -120,11 +113,11 @@
           "title": "Cpu Seconds",
           "type": "integer"
         },
-        "disk_mb": {
-          "default": 10,
-          "maximum": 32,
+        "wall_seconds": {
+          "default": 5,
+          "maximum": 15,
           "minimum": 1,
-          "title": "Disk Mb",
+          "title": "Wall Seconds",
           "type": "integer"
         },
         "memory_mb": {
@@ -134,13 +127,6 @@
           "title": "Memory Mb",
           "type": "integer"
         },
-        "output_bytes": {
-          "default": 10000000,
-          "maximum": 10000000,
-          "minimum": 1024,
-          "title": "Output Bytes",
-          "type": "integer"
-        },
         "pids": {
           "default": 64,
           "maximum": 128,
@@ -148,11 +134,25 @@
           "title": "Pids",
           "type": "integer"
         },
-        "wall_seconds": {
-          "default": 5,
-          "maximum": 15,
+        "output_bytes": {
+          "default": 10000000,
+          "maximum": 10000000,
+          "minimum": 1024,
+          "title": "Output Bytes",
+          "type": "integer"
+        },
+        "disk_mb": {
+          "default": 10,
+          "maximum": 32,
           "minimum": 1,
-          "title": "Wall Seconds",
+          "title": "Disk Mb",
+          "type": "integer"
+        },
+        "compile_seconds": {
+          "default": 15,
+          "maximum": 30,
+          "minimum": 1,
+          "title": "Compile Seconds",
           "type": "integer"
         }
       },
@@ -162,10 +162,15 @@
     "TestInput": {
       "additionalProperties": false,
       "properties": {
+        "input": {
+          "maxLength": 2000000,
+          "title": "Input",
+          "type": "string"
+        },
         "expected": {
           "anyOf": [
             {
-              "maxLength": 8000,
+              "maxLength": 2000000,
               "type": "string"
             },
             {
@@ -174,11 +179,6 @@
           ],
           "default": null,
           "title": "Expected"
-        },
-        "input": {
-          "maxLength": 8000,
-          "title": "Input",
-          "type": "string"
         },
         "visibility": {
           "enum": [

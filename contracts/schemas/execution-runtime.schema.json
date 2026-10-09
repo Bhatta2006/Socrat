@@ -3,13 +3,6 @@
     "Limits": {
       "additionalProperties": false,
       "properties": {
-        "compile_seconds": {
-          "default": 15,
-          "maximum": 30,
-          "minimum": 1,
-          "title": "Compile Seconds",
-          "type": "integer"
-        },
         "cpu_seconds": {
           "default": 2,
           "maximum": 5,
@@ -17,11 +10,11 @@
           "title": "Cpu Seconds",
           "type": "integer"
         },
-        "disk_mb": {
-          "default": 10,
-          "maximum": 32,
+        "wall_seconds": {
+          "default": 5,
+          "maximum": 15,
           "minimum": 1,
-          "title": "Disk Mb",
+          "title": "Wall Seconds",
           "type": "integer"
         },
         "memory_mb": {
@@ -31,13 +24,6 @@
           "title": "Memory Mb",
           "type": "integer"
         },
-        "output_bytes": {
-          "default": 10000000,
-          "maximum": 10000000,
-          "minimum": 1024,
-          "title": "Output Bytes",
-          "type": "integer"
-        },
         "pids": {
           "default": 64,
           "maximum": 128,
@@ -45,11 +31,25 @@
           "title": "Pids",
           "type": "integer"
         },
-        "wall_seconds": {
-          "default": 5,
-          "maximum": 15,
+        "output_bytes": {
+          "default": 10000000,
+          "maximum": 10000000,
+          "minimum": 1024,
+          "title": "Output Bytes",
+          "type": "integer"
+        },
+        "disk_mb": {
+          "default": 10,
+          "maximum": 32,
           "minimum": 1,
-          "title": "Wall Seconds",
+          "title": "Disk Mb",
+          "type": "integer"
+        },
+        "compile_seconds": {
+          "default": 15,
+          "maximum": 30,
+          "minimum": 1,
+          "title": "Compile Seconds",
           "type": "integer"
         }
       },
@@ -59,20 +59,9 @@
   },
   "additionalProperties": false,
   "properties": {
-    "attestation_reference": {
-      "maxLength": 512,
-      "minLength": 1,
-      "title": "Attestation Reference",
-      "type": "string"
-    },
     "id": {
       "pattern": "^[a-z0-9_-]{1,64}$",
       "title": "Id",
-      "type": "string"
-    },
-    "image": {
-      "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
-      "title": "Image",
       "type": "string"
     },
     "language": {
@@ -84,8 +73,19 @@
       "title": "Language",
       "type": "string"
     },
+    "image": {
+      "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
+      "title": "Image",
+      "type": "string"
+    },
     "limits": {
       "$ref": "#/$defs/Limits"
+    },
+    "attestation_reference": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Attestation Reference",
+      "type": "string"
     }
   },
   "required": [

@@ -4,9 +4,9 @@ import json
 import subprocess
 
 import pytest
-from m6_support import SIGNING, profiles
 from runner.docker_backend import DockerBackend, SandboxUnavailable, container_args, cpu_usage
 from runner.worker import execute
+from runner_support import SIGNING, profiles
 
 from socrat.execution.protocol import (
     COMMANDS,

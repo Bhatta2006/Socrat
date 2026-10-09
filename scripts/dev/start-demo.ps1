@@ -14,12 +14,8 @@ foreach ($line in Get-Content .env.local) {
 $env:PYTHONPATH = "$(Get-Location)/services/api/src;$(Get-Location)/services/execution/src"
 & .venv/Scripts/alembic.exe upgrade head
 if ($LASTEXITCODE) { throw 'Database migration failed' }
-& .venv/Scripts/python.exe -m socrat.demo.seed
-if ($LASTEXITCODE) { throw 'Demo seed failed' }
-if (-not $SkipPersonas) {
-  & .venv/Scripts/python.exe -m socrat.demo.personas
-  if ($LASTEXITCODE) { throw 'Sample persona initialization failed' }
-}
+& .venv/Scripts/python.exe scripts/content/build.py
+if ($LASTEXITCODE) { throw 'Course content build failed' }
 if ($PrepareOnly) { exit 0 }
 $children = @()
 try {

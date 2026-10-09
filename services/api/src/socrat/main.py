@@ -4,75 +4,31 @@ import secrets
 import time
 import uuid
 from contextlib import asynccontextmanager
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
-from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import select, text
+from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
-from socrat.accountability.routes import router as accountability_router
-from socrat.assessment.routes import router as assessment_router
 from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
-from socrat.diagnostics.routes import router as diagnostic_router
-from socrat.execution.routes import router as execution_router
-from socrat.learning.routes import router as learning_router
-from socrat.models import (
-    AdvisorShadow,
-    AssessmentSession,
-    DiagnosticSession,
-    PrivacyRequest,
-    TutorTurn,
-    User,
-    now,
-)
-from socrat.onboarding.routes import router as onboarding_router
-from socrat.planning.routes import router as planning_router
+from socrat.learn.routes import router as learner_router
+from socrat.models import User
 from socrat.schema_revision import SCHEMA_REVISION
-from socrat.skillpacks.routes import router as skill_pack_router
-from socrat.tutor.routes import router as tutor_router
 
 logger = logging.getLogger("socrat.requests")
-
-
-class ProfileUpdate(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    display_name: str = Field(min_length=1, max_length=80)
-    timezone: str = Field(max_length=64)
-    adult_confirmed: bool
-
-    @field_validator("timezone")
-    @classmethod
-    def known_timezone(cls, value):
-        try:
-            ZoneInfo(value)
-        except (ValueError, ZoneInfoNotFoundError) as exc:
-            raise ValueError("Choose an IANA timezone") from exc
-        return value
 
 
 class DevIdentity(BaseModel):
     model_config = ConfigDict(extra="forbid")
     subject: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,64}$")
-
-
-def profile_view(user: User | None, csrf: str) -> dict:
-    if user is None:
-        raise HTTPException(401, "authentication_required")
-    return {
-        "id": user.id,
-        "display_name": user.display_name,
-        "timezone": user.timezone,
-        "adult_confirmed": user.adult_confirmed,
-        "csrf_token": csrf,
-    }
+    display_name: str | None = Field(default=None, max_length=80)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -86,36 +42,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Socrat API",
-        version="0.1.0",
+        version="2.0.0",
         lifespan=lifespan,
         docs_url=None if settings.secure else "/api/docs",
         openapi_url=None if settings.secure else "/api/openapi.json",
     )
     app.state.engine = engine
     app.state.settings = settings
-    if settings.demo_mode:
-        from socrat.clock import demo_offset, offset_for
-        from socrat.demo.routes import router as demo_router
-
-        app.include_router(demo_router)
-
-        @app.middleware("http")
-        async def demo_clock_scope(request: Request, call_next):
-            token = demo_offset.set(offset_for(engine))
-            try:
-                return await call_next(request)
-            finally:
-                demo_offset.reset(token)
-
-    app.include_router(skill_pack_router)
-    app.include_router(onboarding_router)
-    app.include_router(diagnostic_router)
-    app.include_router(planning_router)
-    app.include_router(execution_router)
-    app.include_router(learning_router)
-    app.include_router(tutor_router)
-    app.include_router(assessment_router)
-    app.include_router(accountability_router)
+    app.include_router(learner_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -134,47 +68,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     latency = Histogram(
         "socrat_http_duration_seconds", "HTTP latency", ["route"], registry=registry
     )
-    diagnostic_sessions = Gauge(
-        "socrat_diagnostic_sessions",
-        "Diagnostic sessions by track, language and status",
-        ["track", "language", "status"],
-        registry=registry,
-    )
     oauth = OAuth()
-    privacy_requests = Gauge(
-        "socrat_privacy_requests",
-        "Incomplete privacy requests by status",
-        ["status"],
-        registry=registry,
-    )
-    privacy_overdue = Gauge(
-        "socrat_privacy_overdue_requests",
-        "Incomplete erasure requests past the cleanup deadline",
-        registry=registry,
-    )
-    tutor_budget_alerts = Gauge(
-        "socrat_tutor_budget_exhaustions",
-        "Budget fallbacks in the last 15 minutes",
-        registry=registry,
-    )
-    tutor_reserved = Gauge(
-        "socrat_tutor_reserved_microusd",
-        "Conservative model spend reservations in the last 24 hours",
-        registry=registry,
-    )
-    assessment_sessions = Gauge(
-        "socrat_assessment_sessions",
-        "Assessment sessions by kind, track, language and status",
-        ["kind", "track", "language", "status"],
-        registry=registry,
-    )
     if settings.oidc_issuer:
         oauth.register(
             "identity",
             client_id=settings.oidc_client_id,
             client_secret=settings.oidc_client_secret.get_secret_value(),
             server_metadata_url=f"{settings.oidc_issuer.rstrip('/')}/.well-known/openid-configuration",
-            client_kwargs={"scope": "openid", "code_challenge_method": "S256"},
+            client_kwargs={"scope": "openid profile", "code_challenge_method": "S256"},
         )
 
     def error(code: str, status: int, request_id: str = ""):
@@ -185,8 +86,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
         started = time.perf_counter()
+        worker_call = request.url.path.startswith("/api/v1/execution/worker/")
         if (
             request.method in {"POST", "PATCH", "PUT", "DELETE"}
+            and not worker_call
             and request.headers.get("origin") != settings.public_origin
         ):
             response = error("origin_rejected", 403, request_id)
@@ -194,7 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             try:
                 response = await call_next(request)
             except Exception:
-                logger.error(json.dumps({"event": "request_failed", "request_id": request_id}))
+                logger.exception(json.dumps({"event": "request_failed", "request_id": request_id}))
                 response = error("internal_error", 500, request_id)
         response.headers.update(
             {
@@ -228,9 +131,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, exc):
-        # Never echo submitted profile values or auth credentials in errors.
-        if request.url.path.startswith("/api/v1/onboarding/"):
-            return error("input_confirmation_required", 422, request.state.request_id)
+        # Never echo submitted values (code, messages, credentials) in errors.
         return error("validation_failed", 422, request.state.request_id)
 
     @app.get("/api/health/live")
@@ -257,105 +158,38 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             request.headers.get("authorization", ""), f"Bearer {metrics_token}"
         ):
             raise HTTPException(404, "not_found")
-        diagnostic_sessions.clear()
-        assessment_sessions.clear()
-        with Session(engine) as db:
-            privacy_requests.clear()
-            privacy_rows = list(
-                db.scalars(select(PrivacyRequest).where(PrivacyRequest.status != "complete"))
-            )
-            for status in ("queued", "erasing", "awaiting_external_cleanup"):
-                privacy_requests.labels(status).set(
-                    sum(row.status == status for row in privacy_rows)
-                )
-            privacy_overdue.set(sum(row.deadline_at < now() for row in privacy_rows))
-            assessment_counts: dict[tuple[str, str, str, str], int] = {}
-            for assessment in db.scalars(select(AssessmentSession)):
-                cell = (
-                    assessment.snapshot["kind"],
-                    assessment.snapshot["track"],
-                    assessment.snapshot["language"],
-                    "expired"
-                    if assessment.result is None
-                    and assessment.status == "in_progress"
-                    and now() >= assessment.deadline_at
-                    else assessment.status,
-                )
-                assessment_counts[cell] = assessment_counts.get(cell, 0) + 1
-            for cell, count in assessment_counts.items():
-                assessment_sessions.labels(*cell).set(count)
-            counts: dict[tuple[str, str, str], int] = {}
-            for diagnostic in db.scalars(select(DiagnosticSession)):
-                key = (
-                    diagnostic.snapshot["declared_track"],
-                    diagnostic.snapshot["language"],
-                    diagnostic.status,
-                )
-                counts[key] = counts.get(key, 0) + 1
-            for key, count in counts.items():
-                diagnostic_sessions.labels(*key).set(count)
-            turns = list(db.scalars(select(TutorTurn).where(TutorTurn.created_at >= now() - 86400)))
-            shadows = list(
-                db.scalars(select(AdvisorShadow).where(AdvisorShadow.created_at >= now() - 86400))
-            )
-            tutor_budget_alerts.set(
-                sum(x.telemetry["budget_alert"] for x in turns if x.created_at >= now() - 900)
-            )
-            tutor_reserved.set(
-                sum(x.telemetry["reserved_microusd"] for x in turns)
-                + sum(x.outcome["reserved_microusd"] for x in shadows)
-            )
         return Response(generate_latest(registry), media_type="text/plain; version=0.0.4")
 
     @app.get("/api/v1/features")
     def features():
         return {
-            "demo_mode": settings.demo_mode,
-            "execution_backend": settings.execution_backend,
-            "llm_advisor": False,
-            "tutor": settings.tutor_enabled,
-            "code_execution": settings.execution_enabled,
-            "learning_sessions": settings.learning_sessions_enabled,
             "dev_login": settings.dev_login_enabled,
             "oidc_login": bool(settings.oidc_issuer),
-            "onboarding": settings.onboarding_enabled,
-            "diagnostics": settings.diagnostics_enabled,
-            "planning": settings.planning_enabled,
-            "assessments": settings.assessments_enabled,
-            "dashboard": settings.dashboard_enabled,
-            "reminders": settings.reminders_enabled,
-        }
-
-    @app.get("/api/v1/execution/languages")
-    def execution_languages():
-        if settings.execution_backend == "local_process":
-            from runner.toolchains import availability
-
-            return {"backend": "local_process", "languages": availability()}
-        with Session(app.state.engine) as db:
-            from socrat.execution.service import healthy_images
-
-            images = healthy_images(db, settings, now()) if settings.execution_enabled else []
-        return {
-            "backend": settings.execution_backend,
-            "languages": {
-                profile["language"]: {
-                    "ready": profile["image"] in images,
-                    "message": "Ready"
-                    if profile["image"] in images
-                    else "Execution worker is not connected",
-                }
-                for profile in settings.execution_profiles
-            },
+            "ai_provider": settings.ai_provider,
+            "code_execution": settings.execution_enabled,
+            "execution_backend": settings.execution_backend,
+            "demo_mode": settings.demo_mode,
         }
 
     @app.post("/api/v1/auth/dev-login")
     def dev_login(body: DevIdentity, request: Request):
         if not settings.dev_login_enabled:
             raise HTTPException(404, "not_found")
-        return establish_session(
+        response = establish_session(
             request, JSONResponse({"authenticated": True}), "local-development", body.subject
         )
+        if body.display_name:
+            with Session(engine) as db, db.begin():
+                from sqlalchemy import select
+
+                user = db.scalar(
+                    select(User).where(
+                        User.issuer == "local-development", User.subject == body.subject
+                    )
+                )
+                if user is not None and not user.display_name:
+                    user.display_name = body.display_name
+        return response
 
     @app.get("/api/v1/auth/login")
     async def oidc_login(request: Request):
@@ -379,47 +213,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             request.session.clear()
             raise HTTPException(401, "identity_verification_failed") from exc
         request.session.clear()
-        return establish_session(
-            request, RedirectResponse("/", status_code=303), identity["iss"], identity["sub"]
+        response = establish_session(
+            request, RedirectResponse("/start", status_code=303), identity["iss"], identity["sub"]
         )
+        name = str(identity.get("given_name") or identity.get("name") or "")[:80]
+        if name:
+            with Session(engine) as db, db.begin():
+                from sqlalchemy import select
 
-    @app.get("/api/v1/me")
-    def me(request: Request):
-        with Session(engine) as db:
-            session = require_session(request, db)
-            return profile_view(db.get(User, session.user_id), session.csrf_token)
-
-    @app.get("/api/v1/auth/status")
-    def auth_status(request: Request):
-        with Session(engine) as db:
-            try:
-                session = require_session(request, db)
-            except HTTPException as exc:
-                if exc.status_code != 401:
-                    raise
-                return {"profile": None}
-            return {"profile": profile_view(db.get(User, session.user_id), session.csrf_token)}
-
-    @app.get("/api/v1/profiles/{user_id}")
-    def own_profile(user_id: str, request: Request):
-        with Session(engine) as db:
-            session = require_session(request, db)
-            if user_id != session.user_id:
-                raise HTTPException(404, "not_found")
-            return profile_view(db.get(User, user_id), session.csrf_token)
-
-    @app.patch("/api/v1/me")
-    def update_me(body: ProfileUpdate, request: Request):
-        with Session(engine) as db, db.begin():
-            session = require_session(request, db)
-            require_csrf(request, session)
-            user = db.get(User, session.user_id)
-            if user is None:
-                raise HTTPException(401, "authentication_required")
-            for name, value in body.model_dump().items():
-                setattr(user, name, value)
-            record_event(db, user.id, "profile.updated")
-            return profile_view(user, session.csrf_token)
+                user = db.scalar(
+                    select(User).where(
+                        User.issuer == identity["iss"], User.subject == identity["sub"]
+                    )
+                )
+                if user is not None and not user.display_name:
+                    user.display_name = name
+        return response
 
     @app.post("/api/v1/auth/logout", status_code=204)
     def logout(request: Request):

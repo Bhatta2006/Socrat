@@ -5,9 +5,14 @@ import hmac
 import json
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, ConfigDict, Field, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
-from socrat.skillpacks.types import Contract, Language
+Language = Literal["python", "cpp", "java"]
+
+
+class Contract(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
+
 
 Hash = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
 Image = Annotated[str, Field(pattern=r"^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$")]

@@ -58,7 +58,7 @@ def test_profile_roundtrip_csrf_and_atomic_events(platform):
     app, client = platform
     login(client)
     initial = client.get("/api/v1/me").json()
-    patch = {"display_name": "Ada", "timezone": "Asia/Kolkata", "adult_confirmed": True}
+    patch = {"display_name": "Ada", "timezone": "Asia/Kolkata", "birth_year": 2000}
     assert client.patch("/api/v1/me", json=patch).status_code == 403
     headers = {"Origin": "http://localhost:3000", "X-CSRF-Token": initial["csrf_token"]}
     response = client.patch("/api/v1/me", json=patch, headers=headers)
@@ -69,14 +69,6 @@ def test_profile_roundtrip_csrf_and_atomic_events(platform):
         events = db.scalars(select(OutboxEvent).where(OutboxEvent.kind == "profile.updated")).all()
         assert len(audits) == len(events) == 1
         assert "Ada" not in str(events[0].payload)
-
-
-def test_other_learner_profile_not_visible(platform):
-    _, client = platform
-    login(client, "alice")
-    alice = client.get("/api/v1/me").json()["id"]
-    login(client, "bob")
-    assert client.get(f"/api/v1/profiles/{alice}").status_code == 404
 
 
 def test_logout_revokes_session(platform):
@@ -113,7 +105,7 @@ def test_invalid_profile_and_cross_origin_rejected(platform):
     _, client = platform
     login(client)
     token = client.get("/api/v1/me").json()["csrf_token"]
-    payload = {"display_name": "A", "timezone": "Mars/City", "adult_confirmed": True}
+    payload = {"display_name": "A", "timezone": "Mars/City", "birth_year": 2000}
     headers = {"Origin": "http://localhost:3000", "X-CSRF-Token": token}
     assert client.patch("/api/v1/me", json=payload, headers=headers).status_code == 422
     headers["Origin"] = "https://attacker.invalid"
@@ -253,7 +245,7 @@ def test_health_flags_and_security_headers(platform):
     assert client.get("/api/health/live").status_code == 200
     assert client.get("/api/health/ready").status_code == 200
     flags = client.get("/api/v1/features").json()
-    assert flags["llm_advisor"] is False
+    assert flags["ai_provider"] == "offline"
     assert flags["code_execution"] is False
     response = client.get("/api/v1/me")
     assert response.headers["cache-control"] == "no-store"

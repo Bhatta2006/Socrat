@@ -1,0 +1,484 @@
+"""Context-aware Socratic replies streamed over SSE, with server-side reveal control.
+
+The provider writes the words; this module decides how much it may reveal, watches the
+stream for leaks below the allowed level, and falls back to curated hints when a model is
+unavailable, refuses, or oversteps.
+"""
+
+import json
+import re
+from collections.abc import AsyncIterator
+from dataclasses import dataclass
+
+from fastapi import HTTPException
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from socrat.assistant import socratic
+from socrat.assistant.gateway import Provider, ProviderError, Turn
+from socrat.assistant.prompts import LESSON_STYLES, LESSON_SYSTEM, SYSTEM, render_context
+from socrat.catalog.registry import Catalog
+from socrat.catalog.schema import Problem
+from socrat.config import Settings
+from socrat.learn import service as learn
+from socrat.mastery.model import band
+from socrat.models import (
+    AssistantMessage,
+    AssistantThread,
+    Enrollment,
+    LessonVariant,
+    Submission,
+    User,
+)
+from socrat.models import (
+    now as clock,
+)
+
+HISTORY_TURNS = 12
+LANGUAGE_NAMES = {"python": "Python", "cpp": "C++", "java": "Java"}
+_SCOPE = re.compile(r"^(general|problem:[a-z0-9-]{1,64}|concept:[a-z0-9-]{1,64}:[a-z0-9-]{1,64})$")
+
+
+@dataclass
+class TurnPlan:
+    thread_id: str
+    scope: str
+    allowed: int
+    problem: Problem | None
+    turns: list[Turn]
+    fallback: str
+    reveal_blocked: str = ""
+
+
+def validate_scope(scope: str) -> str:
+    if not _SCOPE.match(scope):
+        raise HTTPException(422, "invalid_scope")
+    return scope
+
+
+def thread_for(db: Session, user_id: str, scope: str) -> AssistantThread:
+    thread = db.scalar(
+        select(AssistantThread).where(
+            AssistantThread.user_id == user_id, AssistantThread.scope == scope
+        )
+    )
+    if thread is None:
+        thread = AssistantThread(user_id=user_id, scope=scope, ladder={})
+        db.add(thread)
+        db.flush()
+    return thread
+
+
+def history(db: Session, thread: AssistantThread) -> list[AssistantMessage]:
+    rows = list(
+        db.scalars(
+            select(AssistantMessage)
+            .where(AssistantMessage.thread_id == thread.id)
+            .order_by(AssistantMessage.seq.desc())
+            .limit(HISTORY_TURNS)
+        )
+    )
+    return list(reversed(rows))
+
+
+def check_quota(db: Session, settings: Settings, user_id: str, now: int):
+    sent = db.scalar(
+        select(func.count())
+        .select_from(AssistantMessage)
+        .join(AssistantThread, AssistantThread.id == AssistantMessage.thread_id)
+        .where(
+            AssistantThread.user_id == user_id,
+            AssistantMessage.role == "user",
+            AssistantMessage.created_at >= now - 86400,
+        )
+    )
+    if (sent or 0) >= settings.ai_daily_messages:
+        raise HTTPException(429, "assistant_daily_limit")
+
+
+def learner_sections(
+    db: Session, catalog: Catalog, user: User, enrollment: Enrollment | None, now: int
+) -> dict[str, str]:
+    if enrollment is None:
+        return {"learner": f"Name: {user.display_name or 'learner'}. Not enrolled in a course yet."}
+    course = catalog.course(enrollment.course_id)
+    plan = learn.plan_for(db, catalog, user, enrollment, now)
+    states = learn.states_for(db, enrollment)
+    groups: dict[str, list[str]] = {
+        "strong": [],
+        "developing": [],
+        "needs_practice": [],
+        "likely_known": [],
+    }
+    for item in plan.roadmap:
+        state = states.get(item["concept"])
+        if state is None:
+            continue
+        label = band(state, now)
+        if label in groups:
+            groups[label].append(item["title"])
+    upcoming = [a.title for a in plan.queue[:5]]
+    recent = learn.history_for(db, enrollment, limit=6)
+    streak = learn.streak(db, user, enrollment, now)
+    level = next(
+        (x.label for x in course.levels if x.id == enrollment.level_id), enrollment.level_id
+    )
+    learner = (
+        f"Name: {user.display_name or 'learner'}\n"
+        f"Course: {course.title}; self-described level: {level}\n"
+        f"Goal details: {json.dumps(enrollment.goal) if enrollment.goal else 'none given'}\n"
+        f"Language: {LANGUAGE_NAMES.get(enrollment.language, enrollment.language)}\n"
+        f"Study budget: {enrollment.minutes_per_day} min on {len(enrollment.weekdays)} days/week\n"
+        f"Current pace: {plan.pace} ({plan.pace_reason})\n"
+        f"Streak: {streak['current']} study days; projected finish {plan.projected_finish}"
+    )
+    mastery = "\n".join(
+        f"{name}: {', '.join(values[:12])}" for name, values in groups.items() if values
+    )
+    recent_text = "\n".join(
+        f"{x['kind']} on {catalog.concept(x['concept']).title}: score {x['score']:.2f}"
+        f"{' (with help level ' + str(x['assistance']) + ')' if x['assistance'] else ''}"
+        for x in recent
+        if x["concept"] in catalog.concepts
+    )
+    return {
+        "learner": learner,
+        "mastery": mastery or "No scored evidence yet.",
+        "next_up": "\n".join(upcoming) or "Nothing scheduled.",
+        "recent_results": recent_text or "No results yet.",
+    }
+
+
+def problem_sections(
+    db: Session, problem: Problem, user_id: str, code: str, language: str, allowed: int
+) -> dict[str, str]:
+    last = db.scalar(
+        select(Submission)
+        .where(
+            Submission.user_id == user_id,
+            Submission.problem_id == problem.id,
+            Submission.status == "done",
+        )
+        .order_by(Submission.created_at.desc())
+    )
+    result = "No runs yet."
+    if last is not None:
+        result = f"Last {last.mode}: {last.verdict}, {last.passed}/{last.total} tests passed."
+        failing = next((c for c in last.cases if c["status"] != "passed" and c.get("public")), None)
+        if failing:
+            result += (
+                f"\nFirst failing visible test input:\n{failing.get('input') or ''}\n"
+                f"Expected:\n{failing.get('expected') or ''}\nGot:\n{failing.get('stdout') or ''}\n"
+                f"Errors:\n{(failing.get('stderr') or '')[:1500]}"
+            )
+    examples = "\n".join(f"Input:\n{e.input}\nOutput:\n{e.output}" for e in problem.examples)
+    sections = {
+        "practice_problem": f"{problem.title}\n{problem.statement}\nInput: {problem.input_format}\n"
+        f"Output: {problem.output_format}\nConstraints: {'; '.join(problem.constraints)}\n"
+        f"Examples:\n{examples}",
+        "tutor_notes": "Progressive hints (for you, reveal only as the level allows):\n"
+        + "\n".join(f"- {h}" for h in problem.hints)
+        + f"\nIntended approach (do not reveal below level 4): {problem.approach}",
+        "learner_code": f"Language: {LANGUAGE_NAMES.get(language, language)}\n{code[:12000] or '(empty)'}",
+        "latest_result": result,
+        "help_policy": f"ALLOWED_LEVEL: {allowed} — {socratic.LEVELS[allowed]}",
+    }
+    if allowed >= 5:
+        sections["reference_solution_python"] = problem.reference
+    return sections
+
+
+def offline_reply(
+    scope: str, allowed: int, problem: Problem | None, catalog: Catalog, language: str
+) -> str:
+    if problem is not None:
+        if allowed == 0:
+            return (
+                "Let's work through it together. What have you tried so far, and where does your "
+                "output first differ from the expected output on the examples?"
+            )
+        if allowed <= 3:
+            hint = problem.hints[min(allowed - 1, len(problem.hints) - 1)]
+            return f"{hint}\n\nTry that on the first example by hand. What do you notice?"
+        if allowed == 4:
+            first = problem.approach.split(". ")[0].strip().rstrip(".")
+            return f"Here's the shape of the idea: {first}. What would the core step look like in your code?"
+        code = (
+            f"\n\nA reference solution in Python:\n\n```python\n{problem.reference.strip()}\n```"
+            if language == "python"
+            else ""
+        )
+        return f"**Full walkthrough**\n\n{problem.approach.strip()}{code}\n\nOnce it makes sense, close this and rewrite it yourself from memory — then try a similar problem."
+    if scope.startswith("concept:"):
+        concept = catalog.concept(scope.removeprefix("concept:"))
+        points = "\n".join(f"- {p}" for p in concept.key_points)
+        return f"**{concept.title}** — {concept.summary}\n\nThe key ideas:\n{points}\n\nWhich of these feels least clear right now?"
+    return (
+        "I'm running in offline mode right now, so I can give curated hints on practice problems "
+        "but not open-ended answers. Open a lesson or a problem and ask me there — or check your "
+        "plan on the Today page for what to focus on next."
+    )
+
+
+def prepare(
+    db: Session,
+    catalog: Catalog,
+    settings: Settings,
+    user: User,
+    scope: str,
+    message: str,
+    intent: str,
+    code: str,
+    new_attempt: bool,
+    now: int,
+) -> TurnPlan:
+    scope = validate_scope(scope)
+    check_quota(db, settings, user.id, now)
+    enrollment = learn.active_enrollment(db, user.id)
+    language = enrollment.language if enrollment else "python"
+    thread = thread_for(db, user.id, scope)
+    problem: Problem | None = None
+    allowed = 5
+    reveal_blocked = ""
+    sections = learner_sections(db, catalog, user, enrollment, now)
+    if scope.startswith("problem:"):
+        problem_id = scope.removeprefix("problem:")
+        if problem_id not in catalog.problems:
+            raise HTTPException(404, "not_found")
+        problem = catalog.problem(problem_id)
+        ladder = socratic.Ladder.from_dict(thread.ladder.get("state"))
+        ladder = socratic.advance(ladder, message, new_attempt)
+        failed = (
+            db.scalar(
+                select(func.count())
+                .select_from(Submission)
+                .where(
+                    Submission.user_id == user.id,
+                    Submission.problem_id == problem.id,
+                    Submission.mode == "submit",
+                    Submission.status == "done",
+                    Submission.verdict != "accepted",
+                )
+            )
+            or 0
+        )
+        if intent in {"reveal", "reveal_confirmed"}:
+            ok, why = socratic.reveal_eligibility(ladder, failed)
+            if not ok:
+                reveal_blocked = why
+            elif intent == "reveal_confirmed":
+                ladder = socratic.Ladder(ladder.ceiling, ladder.turns_at_ceiling, revealed=True)
+        allowed = 5 if ladder.revealed else ladder.ceiling
+        thread.ladder = {**thread.ladder, "state": ladder.to_dict()}
+        sections.update(problem_sections(db, problem, user.id, code, language, allowed))
+    elif scope.startswith("concept:"):
+        qualified = scope.removeprefix("concept:")
+        if qualified not in catalog.concepts:
+            raise HTTPException(404, "not_found")
+        concept = catalog.concept(qualified)
+        sections["current_lesson"] = f"{concept.title}: {concept.summary}\n" + "\n".join(
+            concept.key_points
+        )
+        sections["help_policy"] = (
+            "ALLOWED_LEVEL: 5 — general concept teaching (not a graded problem)."
+        )
+    else:
+        sections["help_policy"] = (
+            "ALLOWED_LEVEL: 5 — general questions about learning and the plan."
+        )
+    text = message.strip() or ("I'd like a hint." if intent == "hint" else "Can you help me?")
+    if intent == "reveal_confirmed" and not reveal_blocked:
+        text = "I've tried my best and I'm still stuck. Please walk me through the full solution."
+    db.add(AssistantMessage(thread_id=thread.id, role="user", content=text, created_at=now))
+    thread.updated_at = now
+    turns = [Turn(m.role, m.content) for m in history(db, thread)[:-1]]
+    turns.append(
+        Turn("user", f"{render_context(sections)}\n\n<learner_message>\n{text}\n</learner_message>")
+    )
+    fallback = offline_reply(scope, allowed, problem, catalog, language)
+    return TurnPlan(thread.id, scope, allowed, problem, turns, fallback, reveal_blocked)
+
+
+def _sse(event: str, data: dict) -> str:
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+async def stream_reply(
+    provider: Provider, plan: TurnPlan, settings: Settings
+) -> AsyncIterator[tuple[str, dict]]:
+    """Yield (event, payload); the final ("done", ...) carries the persisted text and level."""
+    yield (
+        "meta",
+        {
+            "allowed_level": plan.allowed,
+            "thread_id": plan.thread_id,
+            "reveal_blocked": plan.reveal_blocked,
+        },
+    )
+    if plan.reveal_blocked:
+        text = (
+            f"I can tell you want to move on — that's fair. To unlock the full walkthrough, "
+            f"{plan.reveal_blocked}. Until then: {plan.fallback}"
+        )
+        yield "delta", {"text": text}
+        yield "done", {"text": text, "level": min(plan.allowed, 4), "provider": "policy"}
+        return
+    reference = plan.problem.reference if plan.problem else ""
+    raw = ""
+    shown = ""
+    level: int | None = None
+    try:
+        async for delta in provider.stream(SYSTEM, plan.turns, settings.ai_reply_tokens):
+            raw += delta
+            if level is None:
+                if "</level>" not in raw and len(raw) < 40:
+                    continue
+                level, body = socratic.parse_level(raw)
+                level = plan.allowed if level is None else min(level, plan.allowed)
+                shown = body
+                if shown:
+                    yield "delta", {"text": shown}
+                continue
+            if plan.problem is not None and plan.allowed < 5 and opens_code(raw):
+                raise ProviderError("leak_guard")
+            shown += delta
+            yield "delta", {"text": delta}
+        if level is None:
+            level, shown = socratic.parse_level(raw)
+            level = plan.allowed if level is None else min(level, plan.allowed)
+            if shown:
+                yield "delta", {"text": shown}
+        if plan.problem is not None and socratic.leaks(shown, plan.allowed, reference):
+            raise ProviderError("leak_guard")
+        if not shown.strip():
+            raise ProviderError("empty_reply")
+        yield "done", {"text": shown.strip(), "level": level, "provider": provider.name}
+    except ProviderError as exc:
+        text = plan.fallback
+        if str(exc) != "provider_offline":
+            yield "replace", {"text": text}
+        else:
+            yield "delta", {"text": text}
+        yield (
+            "done",
+            {"text": text, "level": plan.allowed, "provider": "curated", "reason": str(exc)},
+        )
+
+
+def opens_code(text: str) -> bool:
+    """A code fence in a programming language has started (checked while streaming)."""
+    for match in re.finditer(r"```([a-zA-Z+#]*)", text):
+        if match.group(1).lower() in {
+            "python",
+            "py",
+            "cpp",
+            "c++",
+            "java",
+            "c",
+            "js",
+            "javascript",
+        }:
+            return True
+    return False
+
+
+def persist_reply(db: Session, thread_id: str, text: str, level: int, provider: str, now: int):
+    thread = db.get(AssistantThread, thread_id)
+    if thread is None:
+        return None
+    message = AssistantMessage(
+        thread_id=thread_id,
+        role="assistant",
+        content=text,
+        level=level,
+        provider=provider,
+        created_at=now,
+    )
+    db.add(message)
+    thread.ladder = {
+        **thread.ladder,
+        "max_level": max(int(thread.ladder.get("max_level", 0)), level),
+    }
+    thread.updated_at = now
+    db.flush()
+    return message
+
+
+def assistance_for(db: Session, user_id: str, problem_id: str) -> int:
+    thread = db.scalar(
+        select(AssistantThread).where(
+            AssistantThread.user_id == user_id, AssistantThread.scope == f"problem:{problem_id}"
+        )
+    )
+    return int(thread.ladder.get("max_level", 0)) if thread else 0
+
+
+def thread_view(db: Session, user_id: str, scope: str) -> dict:
+    scope = validate_scope(scope)
+    thread = db.scalar(
+        select(AssistantThread).where(
+            AssistantThread.user_id == user_id, AssistantThread.scope == scope
+        )
+    )
+    if thread is None:
+        return {"scope": scope, "messages": [], "ladder": {}}
+    rows = db.scalars(
+        select(AssistantMessage)
+        .where(AssistantMessage.thread_id == thread.id)
+        .order_by(AssistantMessage.seq)
+        .limit(200)
+    )
+    return {
+        "scope": scope,
+        "ladder": thread.ladder.get("state", {}),
+        "messages": [
+            {"id": m.id, "role": m.role, "content": m.content, "level": m.level, "at": m.created_at}
+            for m in rows
+        ],
+    }
+
+
+async def lesson_variant(
+    db: Session,
+    provider: Provider,
+    catalog: Catalog,
+    settings: Settings,
+    qualified: str,
+    language: str,
+    style: str,
+) -> tuple[str, str]:
+    cached = db.get(LessonVariant, (qualified, language, style))
+    if cached is not None:
+        return cached.content, cached.provider
+    concept = catalog.concept(qualified)
+    prompt = (
+        f"Learner language: {LANGUAGE_NAMES.get(language, language)}\n"
+        f"Request: {LESSON_STYLES[style]}\n\nOriginal lesson:\n{concept.lesson}"
+    )
+    text = ""
+    try:
+        async for delta in provider.stream(LESSON_SYSTEM, [Turn("user", prompt)], 1500):
+            text += delta
+    except ProviderError:
+        text = ""
+    if not text.strip():
+        points = "\n".join(f"- {p}" for p in concept.key_points)
+        pitfalls = "\n".join(f"- {p}" for p in concept.pitfalls)
+        text = f"## {concept.title} in short\n\n{concept.summary}\n\n### Remember\n{points}"
+        if pitfalls:
+            text += f"\n\n### Watch out for\n{pitfalls}"
+        return text, "curated"
+    db.add(
+        LessonVariant(
+            concept=qualified,
+            language=language,
+            style=style,
+            content=text,
+            provider=provider.name,
+            created_at=clock(),
+        )
+    )
+    return text, provider.name
+
+
+sse = _sse

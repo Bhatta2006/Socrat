@@ -1,1 +1,0 @@
-"""Versioned deterministic evidence projections."""

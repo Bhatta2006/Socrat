@@ -39,6 +39,13 @@ class QuizItem(Model):
     explanation: str = Field(min_length=5, max_length=2000)
     difficulty: int = Field(ge=1, le=5)
 
+    def snippet(self, language: str) -> str | None:
+        """The code shown with this question in the learner's language, if any."""
+        for key, value in self.code.items():
+            if key == language:
+                return value
+        return next(iter(self.code.values()), None)
+
     @model_validator(mode="after")
     def answer_in_range(self):
         if self.answer >= len(self.options):

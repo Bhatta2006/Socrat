@@ -235,8 +235,8 @@ def test_missing_compiler_is_operational_zero_case_result(monkeypatch):
 def test_production_worker_always_requires_https(environment, monkeypatch):
     import json
 
-    from m6_support import profiles
     from runner.worker import main
+    from runner_support import profiles
 
     for key, value in {
         "SOCRAT_ENVIRONMENT": environment,
@@ -256,8 +256,8 @@ def test_production_worker_always_requires_https(environment, monkeypatch):
 def test_local_worker_http_only_with_demo_guards(environment, monkeypatch):
     import json
 
-    from m6_support import profiles
     from runner.worker import main
+    from runner_support import profiles
 
     for key, value in {
         "SOCRAT_ENVIRONMENT": environment,

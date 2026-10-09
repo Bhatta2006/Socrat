@@ -23,11 +23,11 @@
           "title": "Status",
           "type": "string"
         },
-        "stderr": {
-          "default": "",
-          "maxLength": 16000,
-          "title": "Stderr",
-          "type": "string"
+        "wall_ms": {
+          "maximum": 60000,
+          "minimum": 0,
+          "title": "Wall Ms",
+          "type": "integer"
         },
         "stdout": {
           "default": "",
@@ -35,11 +35,11 @@
           "title": "Stdout",
           "type": "string"
         },
-        "wall_ms": {
-          "maximum": 60000,
-          "minimum": 0,
-          "title": "Wall Ms",
-          "type": "integer"
+        "stderr": {
+          "default": "",
+          "maxLength": 16000,
+          "title": "Stderr",
+          "type": "string"
         }
       },
       "required": [
@@ -53,22 +53,10 @@
     "ExecutionResult": {
       "additionalProperties": false,
       "properties": {
-        "cases": {
-          "items": {
-            "$ref": "#/$defs/CaseResult"
-          },
-          "maxItems": 100,
-          "title": "Cases",
-          "type": "array"
-        },
-        "code_hash": {
-          "pattern": "^sha256:[a-f0-9]{64}$",
-          "title": "Code Hash",
-          "type": "string"
-        },
-        "image": {
-          "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
-          "title": "Image",
+        "version": {
+          "const": "1.0.0",
+          "default": "1.0.0",
+          "title": "Version",
           "type": "string"
         },
         "job_id": {
@@ -79,6 +67,21 @@
           "title": "Nonce",
           "type": "string"
         },
+        "code_hash": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Code Hash",
+          "type": "string"
+        },
+        "test_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Test Digest",
+          "type": "string"
+        },
+        "image": {
+          "pattern": "^[a-z0-9./:_-]+@sha256:[a-f0-9]{64}$",
+          "title": "Image",
+          "type": "string"
+        },
         "operational_status": {
           "enum": [
             "healthy",
@@ -86,6 +89,14 @@
           ],
           "title": "Operational Status",
           "type": "string"
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/CaseResult"
+          },
+          "maxItems": 100,
+          "title": "Cases",
+          "type": "array"
         },
         "reason_code": {
           "enum": [
@@ -96,17 +107,6 @@
             "content_withdrawn"
           ],
           "title": "Reason Code",
-          "type": "string"
-        },
-        "test_digest": {
-          "pattern": "^sha256:[a-f0-9]{64}$",
-          "title": "Test Digest",
-          "type": "string"
-        },
-        "version": {
-          "const": "1.0.0",
-          "default": "1.0.0",
-          "title": "Version",
           "type": "string"
         }
       },

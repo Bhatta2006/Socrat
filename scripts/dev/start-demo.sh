@@ -8,8 +8,7 @@ test -d node_modules || npm ci
 eval "$(.venv/bin/python -c 'import json,shlex; from pathlib import Path; print("\n".join("export "+k+"="+shlex.quote(json.loads(v)) for k,v in (line.split("=",1) for line in Path(".env.local").read_text().splitlines())))')"
 export PYTHONPATH="$PWD/services/api/src:$PWD/services/execution/src"
 .venv/bin/alembic upgrade head
-.venv/bin/python -m socrat.demo.seed
-.venv/bin/python -m socrat.demo.personas
+.venv/bin/python scripts/content/build.py
 test "${1:-}" != '--prepare-only' || exit 0
 pids=()
 trap 'for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done; wait || true' EXIT INT TERM

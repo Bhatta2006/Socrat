@@ -232,11 +232,9 @@ def build_plan(
     if skipped:
         reasons.append(f"Skipped {skipped} concept(s) you already know; they'll get quick reviews.")
     reviews = sorted(
-        
-            (states[q].next_review_at, q)
-            for q in path
-            if q in states and states[q].next_review_at and q not in {a.concept for a in queue[:3]}
-        
+        (states[q].next_review_at, q)
+        for q in path
+        if q in states and states[q].next_review_at and q not in {a.concept for a in queue[:3]}
     )
     days: list[dict] = []
     pending_queue = list(queue)

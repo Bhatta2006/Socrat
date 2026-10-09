@@ -1,0 +1,424 @@
+"""Read models for the learner UI: today, plan, concepts, problems, progress, export."""
+
+from datetime import date, timedelta
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from socrat.catalog.registry import Catalog
+from socrat.learn import service as learn
+from socrat.mastery.model import ConceptState, band
+from socrat.models import (
+    ActivityRecord,
+    AssistantMessage,
+    AssistantThread,
+    DailyActivity,
+    Draft,
+    Enrollment,
+    Evidence,
+    Submission,
+    User,
+)
+from socrat.planner.engine import Plan
+
+LANGUAGES = {"python": "Python", "cpp": "C++", "java": "Java"}
+
+
+def course_card(catalog: Catalog, course_id: str) -> dict:
+    course = catalog.course(course_id)
+    return dict(
+        id=course.id,
+        title=course.title,
+        tagline=course.tagline,
+        description=course.description,
+        languages=course.languages,
+        levels=[dict(id=x.id, label=x.label, description=x.description) for x in course.levels],
+        modules=[
+            dict(id=m.id, title=m.title, summary=m.summary, concepts=len(m.concepts))
+            for m in course.modules
+        ],
+        concept_count=len(course.concepts),
+        problem_count=len(course.problems),
+    )
+
+
+def describe(catalog: Catalog, activity_id: str) -> dict:
+    kind, _, target = activity_id.partition(":")
+    if kind == "problem":
+        course_id, problem = catalog.problems[target]
+        return dict(kind=kind, title=problem.title, concept=f"{course_id}:{problem.concepts[0]}")
+    if kind == "checkpoint":
+        course_id, module_id = target.split(":", 1)
+        module = next(m for m in catalog.course(course_id).modules if m.id == module_id)
+        return dict(kind=kind, title=f"Checkpoint: {module.title}", concept=target)
+    concept = catalog.concept(target)
+    titles = {
+        "lesson": concept.title,
+        "quiz": f"{concept.title} check",
+        "review": f"Review: {concept.title}",
+        "remedial": f"Refresh: {concept.title}",
+    }
+    return dict(kind=kind, title=titles.get(kind, concept.title), concept=target)
+
+
+def today_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int) -> dict:
+    plan = learn.plan_for(db, catalog, user, enrollment, now)
+    done_ids = learn.completed_today(db, user, enrollment, now)
+    done = [dict(id=a, status="done", **describe(catalog, a)) for a in done_ids]
+    pending = [
+        dict(item, status="pending") for item in (plan.days[0]["items"] if plan.days else [])
+    ]
+    pending = [p for p in pending if p["id"] not in done_ids]
+    budget = enrollment.minutes_per_day
+    day = next(
+        (
+            d
+            for d in [db.get(DailyActivity, (user.id, learn.local_day(user, now).isoformat()))]
+            if d
+        ),
+        None,
+    )
+    revisions = learn.latest_revisions(db, enrollment, limit=1)
+    course = catalog.course(enrollment.course_id)
+    hour = learn.local_now(user, now).hour
+    greeting = "Good morning" if hour < 12 else "Good afternoon" if hour < 18 else "Good evening"
+    return dict(
+        greeting=f"{greeting}, {user.display_name.split(' ')[0] if user.display_name else 'there'}",
+        course=dict(id=course.id, title=course.title),
+        language=enrollment.language,
+        date=learn.local_day(user, now).isoformat(),
+        study_day=learn.local_day(user, now).weekday() in set(enrollment.weekdays),
+        streak=learn.streak(db, user, enrollment, now),
+        minutes=dict(done=day.minutes if day else 0, goal=budget),
+        done=done,
+        next=pending[0] if pending else None,
+        queue=pending[1:],
+        pace=plan.pace,
+        pace_reason=plan.pace_reason,
+        latest_update=revisions[0] if revisions else None,
+        reviews_due=sum(1 for p in pending if p["kind"] == "review"),
+        progress=progress_numbers(plan),
+        projected_finish=plan.projected_finish,
+    )
+
+
+def progress_numbers(plan: Plan) -> dict:
+    total = len(plan.roadmap)
+    finished = sum(1 for r in plan.roadmap if r["status"] in {"mastered", "assumed", "practiced"})
+    return dict(
+        total=total, finished=finished, percent=round(100 * finished / total) if total else 0
+    )
+
+
+def plan_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int) -> dict:
+    plan = learn.plan_for(db, catalog, user, enrollment, now)
+    modules: list[dict] = []
+    index: dict[str, dict] = {}
+    for item in plan.roadmap:
+        module_key = item["module"]
+        if module_key not in index:
+            course_id, module_id = module_key.split(":", 1)
+            module = next(m for m in catalog.course(course_id).modules if m.id == module_id)
+            index[module_key] = dict(
+                id=module_key,
+                title=module.title,
+                summary=module.summary,
+                course=catalog.course(course_id).title,
+                bridge=course_id != enrollment.course_id,
+                concepts=[],
+            )
+            modules.append(index[module_key])
+        index[module_key]["concepts"].append(item)
+    target = enrollment.goal.get("target_date")
+    on_track = None if not target else plan.projected_finish <= target
+    current = next((r for r in plan.roadmap if r["status"] in {"in_progress", "upcoming"}), None)
+    return dict(
+        pace=plan.pace,
+        pace_reason=plan.pace_reason,
+        projected_finish=plan.projected_finish,
+        remaining_minutes=plan.remaining_minutes,
+        target_date=target,
+        on_track=on_track,
+        current_concept=current["concept"] if current else None,
+        modules=modules,
+        days=plan.days,
+        reasons=plan.reasons,
+        revisions=learn.latest_revisions(db, enrollment),
+        progress=progress_numbers(plan),
+    )
+
+
+def concept_view(
+    db: Session,
+    catalog: Catalog,
+    user: User,
+    enrollment: Enrollment | None,
+    qualified: str,
+    now: int,
+) -> dict:
+    concept = catalog.concept(qualified)
+    course_id = catalog.owner[qualified]
+    language = enrollment.language if enrollment else "python"
+    states = learn.states_for(db, enrollment) if enrollment else {}
+    state = states.get(qualified, ConceptState())
+    completed = learn.completed_for(db, enrollment) if enrollment else set()
+    solved = solved_problems(db, user.id)
+    return dict(
+        id=qualified,
+        course=course_id,
+        title=concept.title,
+        summary=concept.summary,
+        module=catalog.module_of(qualified),
+        lesson=concept.lesson,
+        key_points=concept.key_points,
+        pitfalls=concept.pitfalls,
+        resources=[
+            r.model_dump(mode="json")
+            for r in concept.resources
+            if not r.languages or language in r.languages
+        ],
+        practice_links=[p.model_dump(mode="json") for p in concept.practice_links],
+        problems=[
+            dict(
+                id=p,
+                title=catalog.problem(p).title,
+                difficulty=catalog.problem(p).difficulty,
+                solved=p in solved,
+            )
+            for p in concept.problems
+        ],
+        prerequisites=[
+            dict(
+                id=p, title=catalog.concept(p).title, band=band(states.get(p, ConceptState()), now)
+            )
+            for p in catalog.prerequisites[qualified]
+        ],
+        band=band(state, now),
+        lesson_done=f"lesson:{qualified}" in completed,
+        quiz_done=f"quiz:{qualified}" in completed,
+        language=language,
+    )
+
+
+def solved_problems(db: Session, user_id: str) -> set[str]:
+    return set(
+        db.scalars(
+            select(Submission.problem_id).where(
+                Submission.user_id == user_id,
+                Submission.mode == "submit",
+                Submission.verdict == "accepted",
+            )
+        )
+    )
+
+
+STARTERS = {
+    "python": "import sys\n\n\ndef main():\n    data = sys.stdin.read().split()\n    # Your solution here\n\n\nmain()\n",
+    "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    // Your solution here\n    return 0;\n}\n",
+    "java": "import java.io.*;\nimport java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) throws IOException {\n        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));\n        // Your solution here\n    }\n}\n",
+}
+
+
+def problem_view(
+    db: Session,
+    catalog: Catalog,
+    user: User,
+    enrollment: Enrollment | None,
+    problem_id: str,
+    language: str,
+) -> dict:
+    course_id, problem = catalog.problems[problem_id]
+    draft = db.get(Draft, (user.id, problem_id, language))
+    recent = db.scalars(
+        select(Submission)
+        .where(Submission.user_id == user.id, Submission.problem_id == problem_id)
+        .order_by(Submission.created_at.desc())
+        .limit(10)
+    )
+    concept = f"{course_id}:{problem.concepts[0]}"
+    return dict(
+        id=problem.id,
+        title=problem.title,
+        difficulty=problem.difficulty,
+        concept=dict(id=concept, title=catalog.concept(concept).title),
+        statement=problem.statement,
+        input_format=problem.input_format,
+        output_format=problem.output_format,
+        constraints=problem.constraints,
+        examples=[e.model_dump() for e in problem.examples],
+        language=language,
+        starter=problem.starter.get(language) or STARTERS[language],  # type: ignore[call-overload]
+        draft=draft.source if draft else None,
+        solved=problem_id in solved_problems(db, user.id),
+        history=[
+            dict(
+                id=s.id,
+                mode=s.mode,
+                verdict=s.verdict,
+                status=s.status,
+                passed=s.passed,
+                total=s.total,
+                at=s.created_at,
+            )
+            for s in recent
+        ],
+        hint_count=len(problem.hints),
+    )
+
+
+def progress_view(
+    db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int
+) -> dict:
+    plan = learn.plan_for(db, catalog, user, enrollment, now)
+    states = learn.states_for(db, enrollment)
+    modules: dict[str, dict] = {}
+    for item in plan.roadmap:
+        state = states.get(item["concept"], ConceptState())
+        entry = modules.setdefault(item["module"], dict(id=item["module"], title="", concepts=[]))
+        if not entry["title"]:
+            course_id, module_id = item["module"].split(":", 1)
+            entry["title"] = next(
+                m.title for m in catalog.course(course_id).modules if m.id == module_id
+            )
+        entry["concepts"].append(
+            dict(
+                id=item["concept"],
+                title=item["title"],
+                band=band(state, now),
+                mastery=round(state.effective(now), 3),
+                confidence=round(state.confidence, 3),
+                evidence=state.evidence_count,
+                next_review=state.next_review_at or None,
+            )
+        )
+    today = learn.local_day(user, now)
+    start = today - timedelta(days=7 * 26 - 1)
+    days = {
+        row.day: row
+        for row in db.scalars(
+            select(DailyActivity).where(
+                DailyActivity.user_id == user.id, DailyActivity.day >= start.isoformat()
+            )
+        )
+    }
+    heatmap = []
+    cursor = start
+    while cursor <= today:
+        row = days.get(cursor.isoformat())
+        heatmap.append(
+            dict(
+                day=cursor.isoformat(),
+                minutes=row.minutes if row else 0,
+                activities=row.activities if row else 0,
+            )
+        )
+        cursor += timedelta(days=1)
+    week_start = today - timedelta(days=today.weekday())
+    week_minutes = sum(r.minutes for d, r in days.items() if date.fromisoformat(d) >= week_start)
+    recent = db.scalars(
+        select(Evidence)
+        .where(Evidence.enrollment_id == enrollment.id)
+        .order_by(Evidence.created_at.desc())
+        .limit(15)
+    )
+    return dict(
+        modules=list(modules.values()),
+        progress=progress_numbers(plan),
+        streak=learn.streak(db, user, enrollment, now),
+        heatmap=heatmap,
+        week=dict(minutes=week_minutes, goal=enrollment.minutes_per_day * len(enrollment.weekdays)),
+        solves=learn.evidence_counts(db, enrollment),
+        total_minutes=sum(r.minutes for r in days.values()),
+        revisions=learn.latest_revisions(db, enrollment, limit=10),
+        recent=[
+            dict(
+                concept=catalog.concept(e.concept).title
+                if e.concept in catalog.concepts
+                else e.concept,
+                kind=e.kind,
+                score=e.score,
+                assisted=e.assistance > 0,
+                at=e.created_at,
+            )
+            for e in recent
+        ],
+        pace=plan.pace,
+        projected_finish=plan.projected_finish,
+    )
+
+
+def export(db: Session, user: User) -> dict:
+    enrollments = list(db.scalars(select(Enrollment).where(Enrollment.user_id == user.id)))
+    ids = [e.id for e in enrollments]
+    threads = list(db.scalars(select(AssistantThread).where(AssistantThread.user_id == user.id)))
+    return dict(
+        profile=dict(
+            id=user.id,
+            display_name=user.display_name,
+            birth_year=user.birth_year,
+            timezone=user.timezone,
+            created_at=user.created_at,
+        ),
+        enrollments=[
+            dict(
+                id=e.id,
+                course=e.course_id,
+                language=e.language,
+                level=e.level_id,
+                goal=e.goal,
+                minutes_per_day=e.minutes_per_day,
+                weekdays=e.weekdays,
+                created_at=e.created_at,
+            )
+            for e in enrollments
+        ],
+        evidence=[
+            dict(
+                concept=x.concept,
+                kind=x.kind,
+                score=x.score,
+                assistance=x.assistance,
+                activity=x.activity_id,
+                at=x.created_at,
+            )
+            for x in db.scalars(select(Evidence).where(Evidence.enrollment_id.in_(ids)))
+        ],
+        activities=[
+            dict(
+                activity=x.activity_id,
+                started=x.started_at,
+                completed=x.completed_at,
+                outcome=x.outcome,
+            )
+            for x in db.scalars(select(ActivityRecord).where(ActivityRecord.enrollment_id.in_(ids)))
+        ],
+        submissions=[
+            dict(
+                problem=s.problem_id,
+                language=s.language,
+                mode=s.mode,
+                verdict=s.verdict,
+                source=s.source,
+                at=s.created_at,
+            )
+            for s in db.scalars(select(Submission).where(Submission.user_id == user.id))
+        ],
+        assistant=[
+            dict(
+                scope=t.scope,
+                messages=[
+                    dict(role=m.role, content=m.content, at=m.created_at)
+                    for m in db.scalars(
+                        select(AssistantMessage)
+                        .where(AssistantMessage.thread_id == t.id)
+                        .order_by(AssistantMessage.seq)
+                    )
+                ],
+            )
+            for t in threads
+        ],
+        daily=[
+            dict(day=d.day, minutes=d.minutes, activities=d.activities, solved=d.solved)
+            for d in db.scalars(select(DailyActivity).where(DailyActivity.user_id == user.id))
+        ],
+    )
