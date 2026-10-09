@@ -3,40 +3,30 @@ import path from 'node:path';
 
 const scripts = path.resolve('.venv', process.platform === 'win32' ? 'Scripts' : 'bin');
 const executable = (name: string) => `"${path.join(scripts, `${name}${process.platform === 'win32' ? '.exe' : ''}`)}"`;
+// Set PW_CHANNEL=msedge (or chrome) to use an installed browser instead of Playwright's Chromium.
+const channel = process.env.PW_CHANNEL || undefined;
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testIgnore: 'demo-walkthrough.spec.ts',
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure' },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' } },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], channel } },
+    { name: 'mobile', use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium', channel } },
   ],
   webServer: [
     {
-      command: `${executable('alembic')} upgrade head && ${executable('uvicorn')} socrat.main:create_app --factory --app-dir services/api/src --host 127.0.0.1 --port 8000`,
+      command: `${executable('alembic')} upgrade head && ${executable('python')} scripts/content/build.py && ${executable('uvicorn')} socrat.main:create_app --factory --app-dir services/api/src --host 127.0.0.1 --port 8000`,
       url: 'http://127.0.0.1:8000/api/health/ready',
       reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
+      timeout: 180_000,
       env: {
         SOCRAT_ENVIRONMENT: 'test',
-        SOCRAT_DEMO_MODE: 'false',
-        SOCRAT_EXECUTION_BACKEND: 'gvisor_docker',
-        SOCRAT_TUTOR_MODEL_ENABLED: 'false',
-        SOCRAT_TUTOR_ADVISOR_SHADOW_ENABLED: 'false',
-        SOCRAT_EXECUTION_ENABLED: 'false',
         SOCRAT_DATABASE_URL: 'sqlite:///socrat.e2e.db',
         SOCRAT_DEV_LOGIN_ENABLED: 'true',
-        SOCRAT_ONBOARDING_ENABLED: 'true',
-        SOCRAT_DIAGNOSTICS_ENABLED: 'true',
-        SOCRAT_PLANNING_ENABLED: 'true',
-        SOCRAT_LEARNING_SESSIONS_ENABLED: 'true',
-        SOCRAT_ASSESSMENTS_ENABLED: 'true',
-        SOCRAT_DASHBOARD_ENABLED: 'true',
-        SOCRAT_REMINDERS_ENABLED: 'true',
+        SOCRAT_AI_PROVIDER: 'offline',
         SOCRAT_PUBLIC_ORIGIN: 'http://localhost:3000',
       },
     },
