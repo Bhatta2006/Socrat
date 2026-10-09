@@ -91,6 +91,7 @@ def session_view(catalog: Catalog, session: QuizSession, language: str) -> dict:
     for concept, item_id in session.items:
         q = item(catalog, concept, item_id)
         answer = session.answers.get(item_id)
+        shown = q.shown(session.id)
         entry = dict(
             id=q.id,
             concept=concept,
@@ -98,12 +99,14 @@ def session_view(catalog: Catalog, session: QuizSession, language: str) -> dict:
             kind=q.kind,
             prompt=q.prompt,
             code=q.snippet(language),
-            options=q.options,
+            options=shown["options"],
             answered=answer is not None,
             choice=answer["choice"] if answer else None,
         )
         if answer is not None and graded:
-            entry.update(correct=answer["correct"], answer=q.answer, explanation=q.explanation)
+            entry.update(
+                correct=answer["correct"], answer=shown["answer"], explanation=q.explanation
+            )
         questions.append(entry)
     return dict(
         id=session.id,
@@ -141,14 +144,12 @@ def answer(
         raise HTTPException(422, "invalid_choice")
     if item_id in session.answers:
         raise HTTPException(409, "already_answered")
-    session.answers = {
-        **session.answers,
-        item_id: {"choice": choice, "correct": choice == q.answer},
-    }
+    correct = q.is_correct(session.id, choice)  # choice is a display position
+    session.answers = {**session.answers, item_id: {"choice": choice, "correct": correct}}
     finished = len(session.answers) == len(session.items)
     if finished:
         finish(db, catalog, user, enrollment, session, now)
-    return dict(finished=finished, correct=choice == q.answer)
+    return dict(finished=finished, correct=correct)
 
 
 def finish(

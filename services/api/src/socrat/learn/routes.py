@@ -8,23 +8,28 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from socrat.assistant import service as assistant
 from socrat.assistant.gateway import make_provider
+from socrat.assistant.tools import Toolbox
 from socrat.auth import COOKIE, require_csrf, require_session
+from socrat.catalog import practice
 from socrat.catalog.registry import Catalog, CatalogError, default_catalog
 from socrat.database import record_event
 from socrat.execution.protocol import ResultEnvelope
 from socrat.judge import service as judge
 from socrat.learn import placement, quizzes, views
 from socrat.learn import service as learn
+from socrat.mastery.model import ConceptState, band
 from socrat.models import (
     AuditEvent,
     DeliveredEvent,
     Draft,
     Enrollment,
     OutboxEvent,
+    PlanRevision,
     Submission,
     User,
     now,
@@ -73,6 +78,24 @@ class EnrollInput(Strict):
     @classmethod
     def valid_days(cls, value):
         if any(d not in range(7) for d in value):
+            raise ValueError("weekdays are 0 (Monday) to 6 (Sunday)")
+        return value
+
+
+class ScheduleUpdate(Strict):
+    language: Literal["python", "cpp", "java"] | None = None
+    minutes_per_day: Literal[15, 20, 30, 45, 60, 90, 120] | None = None
+    weekdays: list[int] | None = Field(default=None, min_length=1, max_length=7)
+    target_date: date | None = None
+    clear_target_date: bool = False
+    target_role: Literal["internship", "new-grad", "mid-level", "senior"] | None = None
+    target_rating: int | None = Field(default=None, ge=0, le=4000)
+    motivation: str | None = Field(default=None, max_length=280)
+
+    @field_validator("weekdays")
+    @classmethod
+    def valid_days(cls, value):
+        if value is not None and any(d not in range(7) for d in value):
             raise ValueError("weekdays are 0 (Monday) to 6 (Sunday)")
         return value
 
@@ -298,6 +321,67 @@ def enroll(body: EnrollInput, request: Request):
         return dict(id=enrollment.id, status=enrollment.status)
 
 
+@router.patch("/enrollments/current")
+def update_enrollment(body: ScheduleUpdate, request: Request):
+    """Change study budget, language or goal; the plan re-flows and the revision says why."""
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        enrollment = learn.require_enrollment(db, user.id)
+        changes = []
+        if body.language is not None and body.language != enrollment.language:
+            if body.language not in cat.course(enrollment.course_id).languages:
+                raise HTTPException(422, "language_not_offered")
+            enrollment.language = body.language
+            changes.append(f"language is now {views.LANGUAGES[body.language]}")
+        if body.minutes_per_day is not None and body.minutes_per_day != enrollment.minutes_per_day:
+            enrollment.minutes_per_day = body.minutes_per_day
+            changes.append(f"{body.minutes_per_day} min per study day")
+        if body.weekdays is not None and sorted(set(body.weekdays)) != enrollment.weekdays:
+            enrollment.weekdays = sorted(set(body.weekdays))
+            changes.append(f"{len(enrollment.weekdays)} study days a week")
+        goal = dict(enrollment.goal)
+        if body.clear_target_date and "target_date" in goal:
+            goal.pop("target_date")
+            changes.append("no target date")
+        elif (
+            body.target_date is not None and goal.get("target_date") != body.target_date.isoformat()
+        ):
+            goal["target_date"] = body.target_date.isoformat()
+            changes.append(f"target date {body.target_date.isoformat()}")
+        for key in ("target_role", "target_rating", "motivation"):
+            value = getattr(body, key)
+            if value is not None and goal.get(key) != value:
+                goal[key] = value
+        enrollment.goal = goal
+        if changes and enrollment.status == "active":
+            earlier = dict(
+                db.execute(
+                    select(PlanRevision.id, PlanRevision.created_at).where(
+                        PlanRevision.enrollment_id == enrollment.id
+                    )
+                ).all()
+            )
+            enrollment.plan_signature = ""  # Force a fresh, explained revision.
+            learn.plan_for(db, cat, user, enrollment, now())
+            db.flush()
+            revision = db.scalar(
+                select(PlanRevision).where(
+                    PlanRevision.enrollment_id == enrollment.id,
+                    PlanRevision.id.not_in(list(earlier)),
+                )
+            )
+            if revision is not None:
+                # Revisions sort by whole seconds; keep this one strictly latest.
+                revision.created_at = max([revision.created_at, *(t + 1 for t in earlier.values())])
+                revision.reasons = [f"You updated your plan: {', '.join(changes)}."] + [
+                    r for r in revision.reasons if r != "Your personalised path is ready."
+                ]
+        record_event(db, user.id, "enrollment.updated", enrollment.id)
+        session = require_session(request, db)
+        return profile_view(db, user, session.csrf_token)
+
+
 @router.get("/placement")
 def placement_question(request: Request):
     with Session(engine(request)) as db:
@@ -408,11 +492,14 @@ def valid_activity(cat: Catalog, activity_id: str) -> str:
 @router.post("/activities/{activity_id}/start")
 def start_activity(activity_id: str, request: Request):
     cat = catalog()
-    with Session(engine(request)) as db, db.begin():
-        user = user_of(request, db, write=True)
-        enrollment = active(db, user)
-        learn.start_activity(db, enrollment, valid_activity(cat, activity_id), now())
-        return {"started": True}
+    try:
+        with Session(engine(request)) as db, db.begin():
+            user = user_of(request, db, write=True)
+            enrollment = active(db, user)
+            learn.start_activity(db, enrollment, valid_activity(cat, activity_id), now())
+    except IntegrityError:
+        pass  # A concurrent request (e.g. a double-mounted page) started it first.
+    return {"started": True}
 
 
 @router.post("/activities/{activity_id}/complete")
@@ -448,6 +535,75 @@ def quiz_answer(activity_id: str, body: QuizAnswer, request: Request):
         session = quizzes.open_session(db, cat, enrollment, valid_activity(cat, activity_id), now())
         quizzes.answer(db, cat, user, enrollment, session, body.item, body.choice, now())
         return quizzes.session_view(cat, session, enrollment.language)
+
+
+# ---------------------------------------------------------------- company practice
+
+
+@router.get("/companies")
+def companies(request: Request, q: str = "", limit: int = 60):
+    index = practice.default_index()
+    with Session(engine(request)) as db:
+        user_of(request, db)
+    needle = q.strip().lower()
+    items = [
+        dict(slug=slug, name=c["name"], problems=len(c["problems"]))
+        for slug, c in index.companies.items()
+        if not needle or needle in c["name"].lower()
+    ]
+    items.sort(key=lambda c: (-c["problems"], c["name"]))
+    return {"items": items[: max(1, min(limit, 700))], "total": len(items)}
+
+
+@router.get("/companies/{slug}")
+def company(
+    slug: str,
+    request: Request,
+    window: Literal["thirty-days", "three-months", "six-months", "all"] = "all",
+    difficulty: Literal["easy", "medium", "hard", "all"] = "all",
+    offset: int = 0,
+    limit: int = 50,
+):
+    index = practice.default_index()
+    entry = index.companies.get(slug)
+    if entry is None:
+        raise HTTPException(404, "not_found")
+    cat = catalog()
+    with Session(engine(request)) as db:
+        user = user_of(request, db)
+        enrollment = learn.active_enrollment(db, user.id)
+        states = learn.states_for(db, enrollment) if enrollment else {}
+        stamp = now()
+    cutoff = practice.WINDOW_RANK[window]
+    rows = []
+    for problem_id, frequency, seen in entry["problems"]:
+        problem = index.problems.get(problem_id)
+        if problem is None or practice.WINDOW_RANK.get(seen, 4) > cutoff:
+            continue
+        if difficulty != "all" and problem["difficulty"] != difficulty:
+            continue
+        primary = problem["concepts"][0] if problem["concepts"] else None
+        rows.append(
+            dict(
+                practice.public(problem),
+                frequency=frequency,
+                window=seen,
+                concept=None
+                if primary is None or primary not in cat.concepts
+                else dict(
+                    id=primary,
+                    title=cat.concept(primary).title,
+                    band=band(states.get(primary, ConceptState()), stamp),
+                ),
+            )
+        )
+    offset = max(0, offset)
+    return {
+        "slug": slug,
+        "name": entry["name"],
+        "total": len(rows),
+        "items": rows[offset : offset + max(1, min(limit, 100))],
+    }
 
 
 # ---------------------------------------------------------------- practice
@@ -681,6 +837,7 @@ async def assistant_message(body: MessageInput, request: Request):
     settings = request.app.state.settings
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
+        user_id = user.id
         turn = assistant.prepare(
             db,
             cat,
@@ -695,9 +852,12 @@ async def assistant_message(body: MessageInput, request: Request):
         )
     provider = make_provider(settings)
     bind = engine(request)
+    toolbox = Toolbox(bind, cat, user_id)
 
     async def events():
-        async for event, data in assistant.stream_reply(provider, turn, settings):
+        async for event, data in assistant.stream_reply(
+            provider, turn, settings, toolbox.specs, toolbox.run
+        ):
             if event == "done":
                 with Session(bind) as db, db.begin():
                     message = assistant.persist_reply(

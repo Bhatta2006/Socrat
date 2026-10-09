@@ -10,9 +10,28 @@ npm ci
 npm run dev:demo
 ```
 
-Open http://localhost:3000. The command installs locked Python dependencies, migrates a local SQLite database, generates untracked throwaway credentials in `.env.local`, seeds the original sample curriculum and available personas, and starts the API, native execution worker and web app. Ctrl+C stops the demo processes. Python works without optional C++ or Java tools. The doctor prints installation commands for MSYS2 GNU C++20 and Microsoft OpenJDK 21; restart the demo after installing tools. Bash users can run the same npm command or `bash scripts/dev/start-demo.sh`.
+Open http://localhost:3000. The command installs locked Python dependencies, migrates a local SQLite database, generates untracked throwaway credentials in `.env.local`, builds the course content (judge tests are generated from each problem's reference solution into `.cache/content-tests`), and starts the API, native execution worker and web app. Ctrl+C stops the demo processes. Python works without optional C++ or Java tools. The doctor prints installation commands for MSYS2 GNU C++20 and Microsoft OpenJDK 21; restart the demo after installing tools. Bash users can run the same npm command or `bash scripts/dev/start-demo.sh`.
 
-This is an explicitly insecure local development sandbox. The coding workspace displays **Local dev sandbox — not secure for untrusted code**. Production still requires the existing Linux gVisor execution host and private HTTPS broker. See the [presenter guide](docs/demo/DEMO.md), [native execution operations](docs/operations/m6-execution.md), and [editor ADR](docs/architecture/adr/0007-code-editor.md).
+With the demo running, `npx playwright test` drives the learner journey on desktop and mobile; set `PW_CHANNEL=msedge` to use the installed Edge instead of downloading Chromium.
+
+### Tutor model
+
+The tutor runs offline (curated hints) until a provider is configured in an untracked `.env` at the repository root. Any OpenAI-compatible endpoint works; for Nebius Token Factory:
+
+```dotenv
+NEBIUS_API_KEY=...            # also accepted as SOCRAT_OPENAI_API_KEY
+SOCRAT_AI_PROVIDER=openai
+SOCRAT_OPENAI_BASE_URL=https://api.tokenfactory.us-central1.nebius.com/v1/
+SOCRAT_OPENAI_MODEL=nvidia/nemotron-3-super-120b-a12b
+```
+
+For Claude, set `SOCRAT_AI_PROVIDER=anthropic` and `SOCRAT_ANTHROPIC_API_KEY` (model `SOCRAT_AI_MODEL`, default `claude-opus-5-5`). The tutor can call learner-scoped tools (progress, plan, recent work, next topics, concept guides, Codeforces profile, problem recommendations, library search, saving to the practice list); `SOCRAT_AI_TOOLS=false` turns them off. The server still enforces the Socratic help ladder and leak guard on every reply. Restart the demo after changing `.env`.
+
+### Practice library
+
+`content/practice/` holds a metadata-and-links index of LeetCode, CSES and Codeforces problems mapped to Socrat concepts (no statements or solutions). Rebuild it with `python scripts/content/import_practice.py --fetch`. Learners browse it at `/library`, mark problems solved or save them, and can link a public Codeforces handle in Settings; recommendations combine mastery, a linked rating and Socrat's own judged problems.
+
+This is an explicitly insecure local development sandbox. The coding workspace displays **Local dev sandbox — not secure for untrusted code**. Production still requires the existing Linux gVisor execution host and private HTTPS broker. See the archived [native execution operations](docs/archive/m6-execution.md) and the [editor ADR](docs/architecture/adr/0007-code-editor.md).
 
 Socrat is a deterministic-first personalized learning platform. V1 delivers Data Structures and Algorithms preparation for complete beginners, interview learners, and competitive programmers in Python, C++, and Java. The core platform is designed to support additional skill packs after V1 without rewriting learner state, planning, assessment, or analytics.
 

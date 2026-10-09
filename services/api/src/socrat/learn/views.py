@@ -5,8 +5,10 @@ from datetime import date, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from socrat.catalog import practice
 from socrat.catalog.registry import Catalog
 from socrat.learn import service as learn
+from socrat.library import service as library
 from socrat.mastery.model import ConceptState, band
 from socrat.models import (
     ActivityRecord,
@@ -16,6 +18,8 @@ from socrat.models import (
     Draft,
     Enrollment,
     Evidence,
+    LinkedAccount,
+    PracticeMark,
     Submission,
     User,
 )
@@ -163,6 +167,8 @@ def concept_view(
     state = states.get(qualified, ConceptState())
     completed = learn.completed_for(db, enrollment) if enrollment else set()
     solved = solved_problems(db, user.id)
+    index = practice.default_index()
+    current_band = band(state, now)
     return dict(
         id=qualified,
         course=course_id,
@@ -177,7 +183,24 @@ def concept_view(
             for r in concept.resources
             if not r.languages or language in r.languages
         ],
-        practice_links=[p.model_dump(mode="json") for p in concept.practice_links],
+        # Authored links that are in the library become library rows (with status);
+        # the rest stay plain links.
+        practice_links=[
+            p.model_dump(mode="json")
+            for p in concept.practice_links
+            if index.find_url(str(p.url)) is None
+        ],
+        more_practice=library.concept_practice(
+            db,
+            catalog,
+            user,
+            enrollment,
+            qualified,
+            now,
+            [str(p.url) for p in concept.practice_links],
+        ),
+        implementations=index.implementations_for(qualified, language),
+        handbook=index.book_for(qualified),
         problems=[
             dict(
                 id=p,
@@ -193,7 +216,7 @@ def concept_view(
             )
             for p in catalog.prerequisites[qualified]
         ],
-        band=band(state, now),
+        band=current_band,
         lesson_done=f"lesson:{qualified}" in completed,
         quiz_done=f"quiz:{qualified}" in completed,
         language=language,
@@ -201,15 +224,7 @@ def concept_view(
 
 
 def solved_problems(db: Session, user_id: str) -> set[str]:
-    return set(
-        db.scalars(
-            select(Submission.problem_id).where(
-                Submission.user_id == user_id,
-                Submission.mode == "submit",
-                Submission.verdict == "accepted",
-            )
-        )
-    )
+    return library.native_solved(db, user_id)
 
 
 STARTERS = {
@@ -420,5 +435,19 @@ def export(db: Session, user: User) -> dict:
         daily=[
             dict(day=d.day, minutes=d.minutes, activities=d.activities, solved=d.solved)
             for d in db.scalars(select(DailyActivity).where(DailyActivity.user_id == user.id))
+        ],
+        practice_marks=[
+            dict(
+                problem=m.problem_id,
+                status=m.status,
+                bookmarked=m.bookmarked,
+                opened_at=m.opened_at,
+                solved_at=m.solved_at,
+            )
+            for m in db.scalars(select(PracticeMark).where(PracticeMark.user_id == user.id))
+        ],
+        linked_accounts=[
+            dict(platform=a.platform, handle=a.handle, rating=a.rating, synced_at=a.synced_at)
+            for a in db.scalars(select(LinkedAccount).where(LinkedAccount.user_id == user.id))
         ],
     )

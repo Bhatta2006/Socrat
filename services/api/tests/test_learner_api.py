@@ -1,6 +1,7 @@
 """End-to-end learner journey through the v2 API, on a freshly migrated database."""
 
 import json
+from datetime import date
 
 import pytest
 from runner_support import SIGNING, WORKER, profiles
@@ -103,7 +104,11 @@ def test_beginner_skips_placement_and_learns(client):
 
     quiz = client.get("/api/v1/quiz/quiz:zero:programs-and-output").json()
     catalog = default_catalog()
-    answers = {q.id: q.answer for q in catalog.concept("zero:programs-and-output").quiz}
+    # Options are shuffled per session; the server maps display positions back.
+    answers = {
+        q.id: q.shown(quiz["id"])["answer"]
+        for q in catalog.concept("zero:programs-and-output").quiz
+    }
     for question in quiz["questions"]:
         view = client.post(
             "/api/v1/quiz/quiz:zero:programs-and-output/answer",
@@ -125,6 +130,36 @@ def test_beginner_skips_placement_and_learns(client):
     assert first_module["evidence"] == 1 and 1 / 3 < first_module["mastery"] <= 1 / 3 + 0.15 + 1e-9
 
 
+def test_schedule_update_reflows_the_plan_and_explains_it(client):
+    headers = login(client)
+    onboard(client, headers)
+    before = client.get("/api/v1/plan").json()
+    response = client.patch(
+        "/api/v1/enrollments/current",
+        json={"minutes_per_day": 15, "weekdays": [5, 6], "target_date": "2030-01-01"},
+        headers=headers,
+    )
+    assert response.status_code == 200, response.text
+    enrollment = response.json()["enrollment"]
+    assert enrollment["minutes_per_day"] == 15 and enrollment["weekdays"] == [5, 6]
+    assert enrollment["goal"]["target_date"] == "2030-01-01"
+    after = client.get("/api/v1/plan").json()
+    assert after["projected_finish"] > before["projected_finish"]
+    assert after["revisions"][0]["reasons"][0].startswith("You updated your plan: 15 min")
+    # Today always counts; every later scheduled day follows the new weekdays.
+    assert all(date.fromisoformat(d["date"]).weekday() in {5, 6} for d in after["days"][1:])
+
+    cleared = client.patch(
+        "/api/v1/enrollments/current", json={"clear_target_date": True}, headers=headers
+    ).json()
+    assert "target_date" not in cleared["enrollment"]["goal"]
+    unchanged = client.patch("/api/v1/enrollments/current", json={}, headers=headers)
+    assert unchanged.status_code == 200
+    assert len(client.get("/api/v1/plan").json()["revisions"]) == len(after["revisions"]) + 1
+    bad = client.patch("/api/v1/enrollments/current", json={"weekdays": [9]}, headers=headers)
+    assert bad.json()["error"]["code"] == "validation_failed"
+
+
 def test_placement_adapts_and_seeds_the_plan(client):
     headers = login(client)
     enrollment = onboard(
@@ -141,7 +176,10 @@ def test_placement_adapts_and_seeds_the_plan(client):
         concept = next(
             c for c in catalog.concepts.values() if any(q.id == question["id"] for q in c.quiz)
         )
-        correct = next(q.answer for q in concept.quiz if q.id == question["id"])
+        item = next(q for q in concept.quiz if q.id == question["id"])
+        correct = item.shown(f"placement:{int(enrollment['id'].replace('-', '')[:8], 16)}")[
+            "answer"
+        ]
         # Knows the basics course, not yet DSA.
         known = concept in [catalog.concept(k) for k in catalog.course_concepts("zero")]
         choice = correct if known else None
@@ -279,3 +317,26 @@ def test_export_and_delete_account(client):
     assert data["profile"]["display_name"] == "Ada" and data["enrollments"]
     assert client.delete("/api/v1/me", headers=headers).status_code == 204
     assert client.get("/api/v1/me").status_code == 401
+
+
+def test_concepts_link_curated_practice_and_company_lists(client):
+    headers = login(client)
+    onboard(client, headers, course="dsa", level="new-to-programming")
+    concept = client.get("/api/v1/concepts/dsa:two-pointers").json()
+    practice = concept["more_practice"]
+    assert practice and all("dsa:two-pointers" in p["concepts"] for p in practice)
+    # A not-yet-started learner is offered easier problems first.
+    assert practice[0]["difficulty"] == "easy"
+    assert all(set(p) >= {"title", "url", "platform", "difficulty"} for p in practice)
+    assert concept["handbook"][0]["url"].startswith("https://cses.fi/book/book.pdf#page=")
+    assert all(
+        i["url"].startswith("https://github.com/TheAlgorithms/") for i in concept["implementations"]
+    )
+
+    listing = client.get("/api/v1/companies?q=goo").json()
+    assert any(c["slug"] == "google" for c in listing["items"])
+    google = client.get("/api/v1/companies/google?window=thirty-days&difficulty=easy").json()
+    assert google["total"] > 0
+    assert all(p["difficulty"] == "easy" and p["window"] == "thirty-days" for p in google["items"])
+    assert all(p["concept"] is None or p["concept"]["band"] for p in google["items"])
+    assert client.get("/api/v1/companies/not-a-company").status_code == 404

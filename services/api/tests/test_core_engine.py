@@ -91,7 +91,8 @@ def test_placement_finds_the_frontier(knows):
         item = placement.question(cat, state)
         assert item is not None
         index = state.pending["index"]
-        placement.answer(cat, state, item.answer if index < knows else (item.answer + 1) % 3)
+        right = item.shown(placement.seed_of(state))["answer"]
+        placement.answer(cat, state, right if index < knows else (right + 1) % len(item.options))
     known = placement.result(state)
     assert [known[c] for c in path] == [i < knows for i in range(len(path))]
     assert len(state.asked) <= placement.MAX_QUESTIONS
@@ -237,3 +238,18 @@ def test_leak_detection():
     assert leaks(copied, 4, reference)
     assert parse_level("<level>2</level>\nThink about it.") == (2, "Think about it.")
     assert parse_level("No tag") == (None, "No tag")
+
+
+def test_options_are_shuffled_so_position_never_gives_the_answer_away():
+    cat = catalog()
+    items = [q for c in cat.concepts.values() for q in c.quiz]
+    positions = [q.shown("session-1")["answer"] for q in items]
+    # Authors put the right option first; learners must not see it there every time.
+    assert positions.count(0) < len(items) * 0.6
+    for q in items[:20]:
+        shown = q.shown("session-1")
+        assert sorted(shown["options"]) == sorted(q.options)
+        assert shown["options"][shown["answer"]] == q.options[q.answer]
+        assert q.is_correct("session-1", shown["answer"])
+        assert not q.is_correct("session-1", -1)
+        assert q.shown("session-1") == shown  # stable for the same session

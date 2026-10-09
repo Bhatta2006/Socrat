@@ -105,37 +105,47 @@ def main():
         if demo:
             threading.Thread(target=background_heartbeat, daemon=True).start()
         while True:
-            heartbeat = beat()  # Failed verification never advertises a healthy runtime.
-            clock_offset = (
-                heartbeat.json().get("server_now", int(time.time())) - int(time.time())
-                if demo
-                else 0
-            )
-            response = client.post("/api/v1/execution/worker/claim", json={"worker_id": worker_id})
-            if demo and response.status_code == 403:
-                # Moving the shared demo clock can age out the heartbeat in the
-                # milliseconds between heartbeat and claim. Re-authenticate and
-                # advertise current health; do not loosen the broker's check.
-                beat()
-                continue
-            response.raise_for_status()
-            envelope = response.json()["job"]
-            if envelope:
-                job = JobEnvelope.model_validate(envelope)
-                result = execute(job, backend, secret, int(time.time()) + clock_offset)
-                for retry in range(3):
-                    try:
-                        client.post(
-                            "/api/v1/execution/worker/result",
-                            json={"worker_id": worker_id, "envelope": result},
-                        ).raise_for_status()
-                        break
-                    except httpx.TransportError:
-                        if retry == 2:
-                            raise
-                        time.sleep(1)
-            else:
-                time.sleep(1)
+            try:
+                heartbeat = beat()  # Failed verification never advertises a healthy runtime.
+                clock_offset = (
+                    heartbeat.json().get("server_now", int(time.time())) - int(time.time())
+                    if demo
+                    else 0
+                )
+                response = client.post(
+                    "/api/v1/execution/worker/claim", json={"worker_id": worker_id}
+                )
+                if demo and response.status_code == 403:
+                    # Moving the shared demo clock can age out the heartbeat in the
+                    # milliseconds between heartbeat and claim. Re-authenticate and
+                    # advertise current health; do not loosen the broker's check.
+                    beat()
+                    continue
+                response.raise_for_status()
+                envelope = response.json()["job"]
+                if envelope:
+                    job = JobEnvelope.model_validate(envelope)
+                    result = execute(job, backend, secret, int(time.time()) + clock_offset)
+                    for retry in range(3):
+                        try:
+                            client.post(
+                                "/api/v1/execution/worker/result",
+                                json={"worker_id": worker_id, "envelope": result},
+                            ).raise_for_status()
+                            break
+                        except httpx.TransportError:
+                            if retry == 2:
+                                raise
+                            time.sleep(1)
+                else:
+                    time.sleep(1)
+
+            except (httpx.TransportError, httpx.HTTPStatusError) as exc:
+                # A slow or restarting API must not kill the worker; auth failures still do.
+                status = getattr(getattr(exc, "response", None), "status_code", 0)
+                if status and status < 500:
+                    raise
+                time.sleep(2)
 
 
 if __name__ == "__main__":

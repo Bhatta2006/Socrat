@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import quote, urlparse
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import AliasChoices, Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LOCAL_SESSION_SECRET = "local-development-only-change-before-deploy"
@@ -99,18 +99,24 @@ class Settings(DatabaseSettings):
     execution_queue_limit: int = Field(default=3, ge=1, le=20)
 
     # Socrat assistant. Keys may also come from ANTHROPIC_API_KEY / OPENAI_API_KEY,
-    # which the official SDKs resolve themselves when these are empty.
+    # which the official SDKs resolve themselves when these are empty. "openai" covers any
+    # OpenAI-compatible endpoint (e.g. Nebius Token Factory via SOCRAT_OPENAI_BASE_URL).
     ai_provider: Literal["anthropic", "openai", "offline"] = "offline"
-    ai_model: str = "claude-opus-5"
+    ai_model: str = "claude-opus-5-5"
     ai_effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
     ai_server_fallbacks: bool = True
     anthropic_api_key: SecretStr = SecretStr("")
-    openai_api_key: SecretStr = SecretStr("")
+    openai_api_key: SecretStr = Field(
+        default=SecretStr(""),
+        validation_alias=AliasChoices("socrat_openai_api_key", "nebius_api_key", "openai_api_key"),
+    )
     openai_model: str = ""
     openai_base_url: str = ""
     ai_timeout_seconds: float = Field(default=45, ge=5, le=120)
     ai_daily_messages: int = Field(default=150, ge=1, le=5000)
     ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
+    ai_tools: bool = True  # let the tutor look up the learner's data and the library
+    ai_tool_rounds: int = Field(default=4, ge=1, le=8)
 
     # Local demo conveniences (seeded sample learners). Rejected outside development/test.
     demo_mode: bool = False

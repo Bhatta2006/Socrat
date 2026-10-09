@@ -15,12 +15,15 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from socrat.assistant import socratic
-from socrat.assistant.gateway import Provider, ProviderError, Turn
+from socrat.assistant.gateway import Provider, ProviderError, ToolRunner, ToolSpec, Turn, complete
 from socrat.assistant.prompts import LESSON_STYLES, LESSON_SYSTEM, SYSTEM, render_context
+from socrat.assistant.tools import LABELS
 from socrat.catalog.registry import Catalog
 from socrat.catalog.schema import Problem
 from socrat.config import Settings
 from socrat.learn import service as learn
+from socrat.library import recommend
+from socrat.library import service as library
 from socrat.mastery.model import band
 from socrat.models import (
     AssistantMessage,
@@ -96,6 +99,17 @@ def check_quota(db: Session, settings: Settings, user_id: str, now: int):
         raise HTTPException(429, "assistant_daily_limit")
 
 
+def activity_path(activity_id: str) -> str:
+    """Same paths as the web app's activityHref."""
+    kind, _, rest = activity_id.partition(":")
+    segments = rest.replace(":", "/")
+    if kind == "lesson":
+        return f"/learn/{segments}"
+    if kind == "problem":
+        return f"/problems/{segments}"
+    return f"/quiz/{kind}/{segments}"
+
+
 def learner_sections(
     db: Session, catalog: Catalog, user: User, enrollment: Enrollment | None, now: int
 ) -> dict[str, str]:
@@ -117,9 +131,12 @@ def learner_sections(
         label = band(state, now)
         if label in groups:
             groups[label].append(item["title"])
-    upcoming = [a.title for a in plan.queue[:5]]
+    upcoming = [f"{a.kind}: [{a.title}]({activity_path(a.id)})" for a in plan.queue[:5]]
     recent = learn.history_for(db, enrollment, limit=6)
     streak = learn.streak(db, user, enrollment, now)
+    learner_state = library.learner_for(db, catalog, user, enrollment, now)
+    practice_level = recommend.level_view(learner_state.rating)
+    account = library.account_for(db, user.id)
     level = next(
         (x.label for x in course.levels if x.id == enrollment.level_id), enrollment.level_id
     )
@@ -130,7 +147,15 @@ def learner_sections(
         f"Language: {LANGUAGE_NAMES.get(enrollment.language, enrollment.language)}\n"
         f"Study budget: {enrollment.minutes_per_day} min on {len(enrollment.weekdays)} days/week\n"
         f"Current pace: {plan.pace} ({plan.pace_reason})\n"
-        f"Streak: {streak['current']} study days; projected finish {plan.projected_finish}"
+        f"Streak: {streak['current']} study days; projected finish {plan.projected_finish}\n"
+        f"Today: {learn.local_day(user, now).isoformat()}\n"
+        f"Practice level: {practice_level['name']} (~{practice_level['rating']}); "
+        f"{len(learner_state.solved)} library problems solved"
+        + (
+            f"\nCodeforces: {account.handle}, rating {account.rating or 'unrated'}"
+            if account
+            else ""
+        )
     )
     mastery = "\n".join(
         f"{name}: {', '.join(values[:12])}" for name, values in groups.items() if values
@@ -214,9 +239,9 @@ def offline_reply(
         points = "\n".join(f"- {p}" for p in concept.key_points)
         return f"**{concept.title}** — {concept.summary}\n\nThe key ideas:\n{points}\n\nWhich of these feels least clear right now?"
     return (
-        "I'm running in offline mode right now, so I can give curated hints on practice problems "
-        "but not open-ended answers. Open a lesson or a problem and ask me there — or check your "
-        "plan on the Today page for what to focus on next."
+        "I can't give you a full answer just now. Meanwhile, the Today page shows exactly what to "
+        "focus on next, and every lesson and problem has curated hints — ask me there, or try "
+        "again in a minute."
     )
 
 
@@ -304,9 +329,16 @@ def _sse(event: str, data: dict) -> str:
 
 
 async def stream_reply(
-    provider: Provider, plan: TurnPlan, settings: Settings
+    provider: Provider,
+    plan: TurnPlan,
+    settings: Settings,
+    tools: list[ToolSpec] | None = None,
+    run_tool: ToolRunner | None = None,
 ) -> AsyncIterator[tuple[str, dict]]:
-    """Yield (event, payload); the final ("done", ...) carries the persisted text and level."""
+    """Yield (event, payload); the final ("done", ...) carries the persisted text and level.
+
+    "tool" events name the lookup in progress so the UI can show it.
+    """
     yield (
         "meta",
         {
@@ -328,7 +360,28 @@ async def stream_reply(
     shown = ""
     level: int | None = None
     try:
-        async for delta in provider.stream(SYSTEM, plan.turns, settings.ai_reply_tokens):
+        paragraph = False
+        async for event in provider.converse(
+            SYSTEM,
+            plan.turns,
+            settings.ai_reply_tokens,
+            tools if settings.ai_tools else None,
+            run_tool,
+            settings.ai_tool_rounds,
+        ):
+            if event.kind == "tool_call":
+                paragraph = bool(raw.strip())
+                yield (
+                    "tool",
+                    {"name": event.name, "label": LABELS.get(event.name, "Looking that up")},
+                )
+                continue
+            if event.kind != "text":
+                continue
+            delta = event.text
+            if paragraph and level is not None and shown.strip():
+                delta = "\n\n" + delta.lstrip()
+            paragraph = False
             raw += delta
             if level is None:
                 if "</level>" not in raw and len(raw) < 40:
@@ -455,10 +508,8 @@ async def lesson_variant(
         f"Learner language: {LANGUAGE_NAMES.get(language, language)}\n"
         f"Request: {LESSON_STYLES[style]}\n\nOriginal lesson:\n{concept.lesson}"
     )
-    text = ""
     try:
-        async for delta in provider.stream(LESSON_SYSTEM, [Turn("user", prompt)], 1500):
-            text += delta
+        text = await complete(provider, LESSON_SYSTEM, [Turn("user", prompt)], 1500)
     except ProviderError:
         text = ""
     if not text.strip():

@@ -5,6 +5,7 @@ reference concepts in other courses with a ``course:concept`` identifier, so a n
 skill can reuse an existing foundation without duplicating it.
 """
 
+import random
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
@@ -45,6 +46,22 @@ class QuizItem(Model):
             if key == language:
                 return value
         return next(iter(self.code.values()), None)
+
+    def order(self, seed: str) -> list[int]:
+        """Display position -> authored option index, fixed per (seed, item).
+
+        Authors write the correct option first; the order learners see must not leak it.
+        """
+        order = list(range(len(self.options)))
+        random.Random(f"{seed}:{self.id}").shuffle(order)
+        return order
+
+    def shown(self, seed: str) -> dict:
+        order = self.order(seed)
+        return dict(options=[self.options[i] for i in order], answer=order.index(self.answer))
+
+    def is_correct(self, seed: str, choice: int) -> bool:
+        return 0 <= choice < len(self.options) and self.order(seed)[choice] == self.answer
 
     @model_validator(mode="after")
     def answer_in_range(self):

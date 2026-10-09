@@ -42,7 +42,7 @@ generator: |
   def cases(rng):
       yield "3\n1 1\n1000000000 999999999\n1000000000 1000000000"
       yield "2\n987654321 123456789\n2 4"
-      yield "60000\n" + "\n".join(f"{rng.randint(1, 10**9)} {rng.randint(1, 10**9)}" for _ in range(60000))
+      yield "40000\n" + "\n".join(f"{rng.randint(1, 10**9)} {rng.randint(1, 10**9)}" for _ in range(40000))
       for _ in range(5):
           q = rng.randint(1, 10)
           yield f"{q}\n" + "\n".join(f"{rng.randint(1, 100)} {rng.randint(1, 100)}" for _ in range(q))

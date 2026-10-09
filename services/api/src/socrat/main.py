@@ -19,6 +19,7 @@ from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
 from socrat.learn.routes import router as learner_router
+from socrat.library.routes import router as library_router
 from socrat.models import User
 from socrat.schema_revision import SCHEMA_REVISION
 
@@ -50,6 +51,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.settings = settings
     app.include_router(learner_router)
+    app.include_router(library_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),

@@ -10,14 +10,15 @@ from dataclasses import asdict, dataclass, replace
 from typing import Literal
 
 DAY = 86_400
-EvidenceKind = Literal["placement", "quiz", "code", "checkpoint", "review", "external"]
+EvidenceKind = Literal["placement", "quiz", "code", "checkpoint", "review", "external", "verified"]
 WEIGHTS: dict[str, float] = {
     "placement": 1.0,
     "quiz": 0.6,
     "code": 1.2,
     "checkpoint": 1.6,
     "review": 1.4,
-    "external": 0.3,
+    "external": 0.3,  # self-reported solve on another site
+    "verified": 0.6,  # accepted on Codeforces, confirmed through its public API
 }
 # Socratic assistance level 0–5 → how much a success still counts.
 ASSISTANCE = (1.0, 0.85, 0.7, 0.5, 0.3, 0.1)

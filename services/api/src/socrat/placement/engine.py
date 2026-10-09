@@ -73,12 +73,17 @@ def question(catalog: Catalog, state: PlacementState) -> QuizItem | None:
     return next(q for q in concept.quiz if q.id == state.pending["item"])
 
 
+def seed_of(state: PlacementState) -> str:
+    return f"placement:{state.seed}"
+
+
 def answer(catalog: Catalog, state: PlacementState, choice: int) -> bool:
+    """``choice`` is the display position the learner picked, or -1 for "I don't know"."""
     if state.pending is None:
         raise ValueError("placement_complete")
     item = question(catalog, state)
     assert item is not None
-    correct = choice == item.answer
+    correct = item.is_correct(seed_of(state), choice)
     probe = state.pending
     index = probe["index"]
     state.asked.append({"concept": probe["concept"], "item": probe["item"], "correct": correct})

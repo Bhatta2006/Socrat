@@ -76,7 +76,7 @@ def question_view(catalog: Catalog, enrollment: Enrollment) -> dict:
             "prompt": q.prompt,
             "kind": q.kind,
             "code": q.snippet(enrollment.language),
-            "options": q.options,
+            "options": q.shown(placement.seed_of(state))["options"],
         },
     }
 

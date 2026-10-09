@@ -249,3 +249,39 @@ class DeliveredEvent(Base):
     __tablename__ = "delivered_events"
     event_id: Mapped[str] = mapped_column(ForeignKey("outbox_events.id"), primary_key=True)
     delivered_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class PracticeMark(Base):
+    """A learner's own status for an external (linked, not hosted) practice problem."""
+
+    __tablename__ = "practice_marks"
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    problem_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16), default="todo")  # todo|attempted|solved
+    bookmarked: Mapped[bool] = mapped_column(Boolean, default=False)
+    source: Mapped[str] = mapped_column(String(16), default="self")  # self|codeforces
+    opened_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    solved_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class LinkedAccount(Base):
+    """A public competitive-programming profile the learner chose to link (handle only)."""
+
+    __tablename__ = "linked_accounts"
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    platform: Mapped[str] = mapped_column(String(16), primary_key=True)  # codeforces
+    handle: Mapped[str] = mapped_column(String(64))
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    rank: Mapped[str] = mapped_column(String(40), default="")
+    solved: Mapped[list] = mapped_column(JSON, default=list)  # problem ids, e.g. "cf:1873A"
+    attempted: Mapped[list] = mapped_column(JSON, default=list)
+    tag_stats: Mapped[dict] = mapped_column(JSON, default=dict)  # tag -> {solved, failed}
+    synced_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sync_error: Mapped[str] = mapped_column(String(64), default="")
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
