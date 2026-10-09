@@ -8,6 +8,7 @@
 - [Deterministic policy matrices](product/deterministic-policy-matrices.md) — routing, selection, help, mastery, and fallback authority
 - [Metric contract](product/metric-contract.md) — outcome, funnel, quality, and guardrail definitions
 - [Content standard](product/content-standard.md) — concept/exercise/assessment authoring and release bar
+- [Launch backlog](product/launch-backlog.md) — remaining work before launch and how to build each item
 
 ## Research
 
