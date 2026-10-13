@@ -78,7 +78,7 @@ export default function ProgressPage() {
       <Reveal index={2}>
         <Card className="mb-8" aria-labelledby="activity-heading">
           <CardHeader>
-            <CardTitle id="activity-heading">Study activity</CardTitle>
+            <CardTitle as="h2" id="activity-heading">Study activity</CardTitle>
             <CardDescription>{hours(data.total_minutes)} in the last 6 months</CardDescription>
             <CardAction>
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -138,7 +138,7 @@ export default function ProgressPage() {
 
         <aside className="grid content-start gap-6 lg:sticky lg:top-20 lg:self-start">
           <Card aria-labelledby="recent-heading">
-            <CardHeader><CardTitle id="recent-heading">Recent results</CardTitle></CardHeader>
+            <CardHeader><CardTitle as="h2" id="recent-heading">Recent results</CardTitle></CardHeader>
             <CardContent>
               {data.recent.length ? (
                 <ul className="grid divide-y text-sm">

@@ -121,6 +121,11 @@ Priorities:
   - What is left of the shared bundle is mostly React DOM (~70 KB) and the Next runtime (~45 KB).
   - Remaining: LCP and INP measured on a throttled mid-range phone profile (Lighthouse CI against a deployed build), and the keyboard walkthrough.
 
+- **2026-10-14 — Item 15 keyboard walkthrough and item 17 heading review:** done.
+  - `tests/e2e/keyboard.spec.ts` completes sign-in, onboarding, a lesson, its check, the tutor, ⌘K search and navigation with Tab, Enter, Space and Escape only, and asserts a visible focus ring at every stop.
+  - It found that the tutor panel did not take focus. The panel now focuses its message box on open, closes on Escape, and returns focus to its launcher.
+  - The same spec checks that 11 pages have exactly one h1 and no skipped heading levels. Top-level card titles on Library, Plan, Progress, Settings and Achievements are now h2.
+
 ## Status at handoff (2026-10-13)
 
 **Done on `redefined`:**
@@ -132,9 +137,8 @@ Priorities:
   - part 7: audit empty and loading states;
   - part 8: View Transitions and roadmap unlock animation;
   - part 10: Playwright visual-regression screenshots, light and dark, at 1400 px and 390 px.
-- Item 15: keyboard-only walkthrough; LCP and INP on a deployed build. (The JS budget is done.)
+- Item 15: LCP and INP on a deployed build. (The JS budget and keyboard walkthrough are done.)
 - Item 16: review queue for drafted content (pairs with item 5).
-- Item 17: heading-hierarchy review. (The monthly snapshot job and the nightly repeat run are done; see the log.)
 - Item 5: validation tooling for original problems.
 
 **Pending, needs owner input:**

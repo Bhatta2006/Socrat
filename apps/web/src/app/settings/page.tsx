@@ -47,7 +47,7 @@ function Appearance() {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Appearance</CardTitle>
+        <CardTitle as="h2">Appearance</CardTitle>
         <CardDescription>Choose how Socrat looks. System follows your device.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -161,7 +161,7 @@ export default function Settings() {
       <form onSubmit={save}>
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Profile and schedule</CardTitle>
+            <CardTitle as="h2">Profile and schedule</CardTitle>
             <CardDescription>How Socrat addresses you and how much time you have.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6">
@@ -215,7 +215,7 @@ export default function Settings() {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Your data</CardTitle>
+          <CardTitle as="h2">Your data</CardTitle>
           <CardDescription>Download everything Socrat stores about you: profile, enrollments, results, code submissions and tutor conversations.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -226,7 +226,7 @@ export default function Settings() {
 
       <Card className="ring-destructive/30">
         <CardHeader>
-          <CardTitle className="text-destructive">Delete account</CardTitle>
+          <CardTitle as="h2" className="text-destructive">Delete account</CardTitle>
           <CardDescription>Permanently deletes your account, progress, code and conversations. This cannot be undone.</CardDescription>
         </CardHeader>
         <CardContent>

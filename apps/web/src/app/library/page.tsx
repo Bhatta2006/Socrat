@@ -176,7 +176,7 @@ export default function Library() {
           </Card>
           <Card aria-labelledby="for-you-heading">
             <CardHeader>
-              <CardTitle id="for-you-heading" className="flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Recommended for you</CardTitle>
+              <CardTitle as="h2" id="for-you-heading" className="flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Recommended for you</CardTitle>
               <CardDescription>Picked from your mastery, refreshed daily</CardDescription>
             </CardHeader>
             <CardContent>
@@ -215,7 +215,7 @@ export default function Library() {
         {contests.length ? (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Upcoming rated rounds</CardTitle>
+              <CardTitle as="h2" className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Upcoming rated rounds</CardTitle>
               <CardDescription>Live practice on Codeforces when you feel ready</CardDescription>
             </CardHeader>
             <CardContent>
@@ -238,7 +238,7 @@ export default function Library() {
         <aside aria-label="Filters" className="lg:sticky lg:top-20 lg:self-start">
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Filter className="size-3.5" /> Filters</CardTitle>
+              <CardTitle as="h2" className="flex items-center gap-2"><Filter className="size-3.5" /> Filters</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5">
               <InputGroup>

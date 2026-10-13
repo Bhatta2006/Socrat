@@ -45,6 +45,15 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   const [activity, setActivity] = useState<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
+  const launcher = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+
+  // Keyboard users land in the message box on open and back on the launcher on close.
+  useEffect(() => {
+    if (open) input.current?.focus();
+    else if (wasOpen.current) launcher.current?.focus();
+    wasOpen.current = open;
+  }, [open]);
 
   useEffect(() => { if (openSignal) setOpen(true); }, [openSignal]);
   useEffect(() => { setLoaded(false); setMessages([]); setLadder({}); }, [scope]);
@@ -116,7 +125,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   if (!open) {
     return (
       <div className="fixed right-4 bottom-20 z-50 md:right-6 md:bottom-6">
-        <Button size="lg" className="size-12 rounded-full p-0 shadow-lg shadow-primary/25 sm:h-11 sm:w-auto sm:px-5" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={title}>
+        <Button size="lg" className="size-12 rounded-full p-0 shadow-lg shadow-primary/25 sm:h-11 sm:w-auto sm:px-5" ref={launcher} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={title}>
           <Sparkles className="size-5 sm:size-4" /> <span className="hidden sm:inline">{title}</span>
         </Button>
       </div>
@@ -129,6 +138,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
       className="fixed inset-x-2 bottom-2 z-[60] flex h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:h-[min(680px,calc(100dvh-6rem))] sm:w-[420px]"
       role="dialog"
       aria-label={title}
+      onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } }}
     >
       <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">

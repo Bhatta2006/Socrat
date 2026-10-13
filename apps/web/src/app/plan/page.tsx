@@ -121,7 +121,7 @@ export default function PlanPage() {
         <aside className="grid content-start gap-6 lg:sticky lg:top-20 lg:self-start">
           <Card aria-labelledby="schedule-heading">
             <CardHeader>
-              <CardTitle id="schedule-heading" className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Next two weeks</CardTitle>
+              <CardTitle as="h2" id="schedule-heading" className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Next two weeks</CardTitle>
             </CardHeader>
             <CardContent>
               <ol className="relative grid gap-4 border-l pl-4">
@@ -148,7 +148,7 @@ export default function PlanPage() {
           {plan.reasons.length || plan.revisions.length ? (
             <Card aria-labelledby="why-heading">
               <CardHeader>
-                <CardTitle id="why-heading" className="flex items-center gap-2"><History className="size-4 text-primary" /> Why the plan looks like this</CardTitle>
+                <CardTitle as="h2" id="why-heading" className="flex items-center gap-2"><History className="size-4 text-primary" /> Why the plan looks like this</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="grid gap-2 text-sm">

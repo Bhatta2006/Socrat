@@ -70,7 +70,7 @@ export function Achievements({ items }: { items: Achievement[] }) {
   return (
     <Card className="mb-8" aria-labelledby="achievements-heading">
       <CardHeader>
-        <CardTitle id="achievements-heading">Achievements</CardTitle>
+        <CardTitle as="h2" id="achievements-heading">Achievements</CardTitle>
         <CardDescription>{earnedCount} of {items.length} earned · milestones for real skill, not time spent</CardDescription>
       </CardHeader>
       <CardContent>
