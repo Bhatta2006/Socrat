@@ -58,6 +58,7 @@ function Preview() {
       animate={{ opacity: 1, y: 0, rotate: 0 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
       className="relative"
+      aria-hidden="true"
     >
       <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/25 via-sky-400/15 to-transparent blur-2xl" aria-hidden="true" />
       <Card className="gap-0 overflow-hidden p-0 shadow-2xl shadow-primary/10">

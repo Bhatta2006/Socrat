@@ -1,8 +1,15 @@
 {
-  "name": "socrat", "private": true,
-  "workspaces": ["apps/web"],
-  "engines": {"node": ">=22.0.0 <25"},
-  "overrides": {"dompurify": "3.4.16"},
+  "name": "socrat",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=22.0.0 <25"
+  },
+  "overrides": {
+    "dompurify": "3.4.16"
+  },
   "scripts": {
     "dev:demo": "node scripts/dev/run-demo.mjs",
     "demo": "node scripts/demo/start.mjs",
@@ -13,5 +20,8 @@
     "test:m0": "node --test prototypes/concierge/model.test.mjs",
     "test:e2e": "playwright test"
   },
-  "devDependencies": {"@playwright/test": "^1.55.0"}
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.55.0"
+  }
 }

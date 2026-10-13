@@ -137,7 +137,7 @@ export default function Companies() {
                     <TableCell><Difficulty level={p.difficulty} /></TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className="relative h-1.5 w-16 overflow-hidden rounded-full bg-muted" aria-label={`Frequency ${p.frequency}%`}>
+                        <span className="relative h-1.5 w-16 overflow-hidden rounded-full bg-muted" role="img" aria-label={`Frequency ${p.frequency}%`}>
                           <span className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${p.frequency}%` }} />
                         </span>
                         <span className="text-xs text-muted-foreground tabular-nums">{Math.round(p.frequency)}%</span>

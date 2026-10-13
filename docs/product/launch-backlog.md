@@ -71,6 +71,11 @@ Priorities:
   - Background Codeforces re-sync of stale handles, rate-limited and off in tests.
   - None of these labels the long-term goal.
 
+- **2026-10-13 — Item 15 (accessibility), automated part:** done.
+  - `tests/e2e/accessibility.spec.ts` runs axe (WCAG 2.1 A/AA) on 15 pages in light and dark mode and fails on any serious or critical issue.
+  - Fixes: AA-safe light brand, success and destructive tokens; labelled progress bars; the decorative hero marked hidden from assistive tech; valid list and tab semantics; `role="img"` on the frequency bars; and Motion now honours reduced motion.
+  - Remaining: a manual keyboard-only walkthrough and performance budgets.
+
 ## Summary
 
 | # | Item | Priority | Owner input needed |

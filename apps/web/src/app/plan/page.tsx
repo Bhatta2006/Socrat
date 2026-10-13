@@ -58,13 +58,13 @@ export default function PlanPage() {
       <Reveal index={1} className="mb-8 grid gap-4 sm:grid-cols-3">
         <StatCard icon={<Gauge />} label="Pace" value={PACE_LABEL[plan.pace]} hint="Adapts to your results" />
         <StatCard icon={<Hourglass />} label="Study left" value={hours(plan.remaining_minutes)} hint="At your current pace" />
-        <StatCard icon={<Target />} label="Concepts done" value={`${plan.progress.finished}/${plan.progress.total}`} hint={<Progress value={plan.progress.percent} className="mt-2 h-1.5" />} />
+        <StatCard icon={<Target />} label="Concepts done" value={`${plan.progress.finished}/${plan.progress.total}`} hint={<Progress value={plan.progress.percent} className="mt-2 h-1.5" aria-label="Concepts done" />} />
       </Reveal>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section aria-labelledby="roadmap-heading" className="min-w-0">
           <h2 id="roadmap-heading" className="mb-4 text-lg font-semibold">Roadmap</h2>
-          <ol className="grid gap-4">
+          <div className="grid gap-4">
             {plan.modules.map((module, mi) => {
               const done = module.concepts.filter(c => ['mastered', 'assumed', 'practiced'].includes(c.status)).length;
               return (
@@ -96,7 +96,7 @@ export default function PlanPage() {
                           const current = c.concept === plan.current_concept;
                           return (
                             <li key={c.concept}>
-                              <Link href={conceptHref(c.concept)} className={cn('flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted', current && 'bg-primary/5', c.status === 'locked' && 'opacity-60')}>
+                              <Link href={conceptHref(c.concept)} className={cn('flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted', current && 'bg-primary/5', c.status === 'locked' && 'text-muted-foreground')}>
                                 <span className={cn('grid size-6 flex-none place-items-center rounded-full border text-xs', s.tone)} aria-hidden="true">
                                   {['mastered', 'assumed'].includes(c.status) ? <Check className="size-3.5" /> : c.status === 'in_progress' ? <CircleDot className="size-3.5" /> : c.status === 'locked' ? <Lock className="size-3" /> : null}
                                 </span>
@@ -115,7 +115,7 @@ export default function PlanPage() {
                 </Reveal>
               );
             })}
-          </ol>
+          </div>
         </section>
 
         <aside className="grid content-start gap-6 lg:sticky lg:top-20 lg:self-start">

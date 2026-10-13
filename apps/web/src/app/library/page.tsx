@@ -19,7 +19,6 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Meta {
   platforms: Record<string, number>;
@@ -318,13 +317,23 @@ export default function Library() {
         <section className="min-w-0" aria-labelledby="results-heading">
           <h2 id="results-heading" className="sr-only">Problems</h2>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <Tabs value={filters.status} onValueChange={v => update({ status: v as Filters['status'] })}>
-              <TabsList>
-                {STATUSES.map(([id, label]) => (
-                  <TabsTrigger key={id} value={id}>{id === 'bookmarked' ? <Star className="size-3.5" /> : null}{label}</TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+            <div role="tablist" aria-label="Status" className="inline-flex h-8 items-center rounded-lg bg-muted p-[3px] text-muted-foreground">
+              {STATUSES.map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filters.status === id}
+                  onClick={() => update({ status: id })}
+                  className={cn(
+                    'inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-sm font-medium transition-colors',
+                    filters.status === id ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground',
+                  )}
+                >
+                  {id === 'bookmarked' ? <Star className="size-3.5" /> : null}{label}
+                </button>
+              ))}
+            </div>
             <label className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Sort</span>
               <NativeSelect value={filters.sort} onChange={e => update({ sort: e.target.value as Filters['sort'] })}>
