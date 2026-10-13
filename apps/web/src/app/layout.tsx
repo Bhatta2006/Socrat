@@ -4,7 +4,6 @@ import { GeistSans } from 'geist/font/sans';
 import './globals.css';
 import { SessionProvider } from '@/lib/session';
 import Shell from '@/components/shell';
-import { MotionProvider } from '@/components/motion-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
@@ -28,11 +27,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={200}>
-            <MotionProvider>
-              <SessionProvider>
-                <Shell>{children}</Shell>
-              </SessionProvider>
-            </MotionProvider>
+            <SessionProvider>
+              <Shell>{children}</Shell>
+            </SessionProvider>
             <Toaster richColors closeButton position="bottom-right" />
           </TooltipProvider>
         </ThemeProvider>

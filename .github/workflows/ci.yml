@@ -64,6 +64,8 @@ jobs:
           bash scripts/operations/restore-smoke.sh --archive "$archive"
       - run: npm run typecheck
       - run: npm run build
+      - name: First-load JS budget per route (gzip)
+        run: node scripts/web/bundle-report.mjs --budget-kb 250
       - run: docker build --file services/api/Dockerfile --tag socrat-api:ci .
       - run: docker build --file apps/web/Dockerfile --tag socrat-web:ci .
       - run: npm run test:m0

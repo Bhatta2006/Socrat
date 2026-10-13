@@ -110,6 +110,17 @@ Priorities:
   - `practice-refresh.yml` runs on the 2nd of each month. It re-imports the public practice index and writes a diff report with `scripts/content/practice_diff.py` (added, removed and changed problems by field). When anything changed, it opens a review PR with the report as its body. PRs opened with the workflow token do not trigger CI by themselves, so re-run the checks or push to the branch before merging.
   - `e2e-nightly.yml` repeats the learner journeys five times nightly with retries off, and uploads traces on failure.
 
+- **2026-10-14 — Item 15, JavaScript budget:** done.
+  - `scripts/web/bundle-report.mjs` reports first-load JS per route (gzip) from the Turbopack manifests, which `next build` no longer prints. CI fails a route over 250 KB.
+  - Shared JS per route fell from about 271 KB to 216–237 KB:
+    - `Reveal`, `Ring` and `NumberTicker` now use CSS and `requestAnimationFrame` instead of Motion.
+    - Motion loads only on the landing page, through `LazyMotion` with the `m` component.
+    - The lesson's reading bar is a scroll listener.
+    - The ⌘K dialog (cmdk) loads on first use, prefetched on hover or focus.
+    - CodeMirror and confetti were already lazy.
+  - What is left of the shared bundle is mostly React DOM (~70 KB) and the Next runtime (~45 KB).
+  - Remaining: LCP and INP measured on a throttled mid-range phone profile (Lighthouse CI against a deployed build), and the keyboard walkthrough.
+
 ## Status at handoff (2026-10-13)
 
 **Done on `redefined`:**
@@ -121,7 +132,7 @@ Priorities:
   - part 7: audit empty and loading states;
   - part 8: View Transitions and roadmap unlock animation;
   - part 10: Playwright visual-regression screenshots, light and dark, at 1400 px and 390 px.
-- Item 15: keyboard-only walkthrough; performance budgets (LCP and INP), including lazy-loading CodeMirror.
+- Item 15: keyboard-only walkthrough; LCP and INP on a deployed build. (The JS budget is done.)
 - Item 16: review queue for drafted content (pairs with item 5).
 - Item 17: heading-hierarchy review. (The monthly snapshot job and the nightly repeat run are done; see the log.)
 - Item 5: validation tooling for original problems.

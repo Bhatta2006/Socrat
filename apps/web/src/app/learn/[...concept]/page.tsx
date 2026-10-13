@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { motion, useScroll, useSpring } from 'motion/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowRight, BookMarked, CheckCircle2, ChevronDown, Code2, ExternalLink, Lightbulb, ListChecks, Lock, Sparkles, ThumbsDown, ThumbsUp, Trophy, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, explain } from '@/lib/api';
@@ -30,9 +29,21 @@ const STYLES = [
 ] as const;
 
 function ReadingProgress() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 30 });
-  return <motion.div className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-primary" style={{ scaleX }} aria-hidden="true" />;
+  const bar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? Math.min(1, window.scrollY / max) : 0})`;
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); cancelAnimationFrame(frame); };
+  }, []);
+  return <div ref={bar} className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-primary transition-transform duration-150 ease-out" aria-hidden="true" />;
 }
 
 function ResourceList({ concept, resources, onChange }: { concept: string; resources: Resource[]; onChange: (url: string, patch: Partial<Resource>) => void }) {

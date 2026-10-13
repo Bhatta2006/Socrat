@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { animate, motion, useInView, useMotionValue, useTransform } from 'motion/react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { AlertCircle, ArrowLeft, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BAND_LABEL } from '@/lib/routes';
@@ -90,11 +89,16 @@ export function Ring({ value, label, size = 64, stroke = 6, className, tone = 'p
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const color = tone === 'streak' ? 'var(--streak)' : tone === 'success' ? 'var(--success)' : 'var(--primary)';
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setDrawn(true)); // start empty, then fill
+    return () => cancelAnimationFrame(frame);
+  }, []);
   return (
     <div className={cn('relative grid flex-none place-items-center', className)} style={{ width: size, height: size }} role="img" aria-label={`${Math.round(clamped)} percent`}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--muted)" strokeWidth={stroke} />
-        <motion.circle
+        <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -103,9 +107,8 @@ export function Ring({ value, label, size = 64, stroke = 6, className, tone = 'p
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: circumference * (1 - clamped / 100) }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          strokeDashoffset={drawn ? circumference * (1 - clamped / 100) : circumference}
+          className="transition-[stroke-dashoffset] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
         />
       </svg>
       <span className="absolute inset-0 grid place-items-center text-sm font-semibold tabular-nums">{label}</span>
@@ -113,18 +116,33 @@ export function Ring({ value, label, size = 64, stroke = 6, className, tone = 'p
   );
 }
 
-/** Counts up to a number once it scrolls into view. */
+/** Counts up to a number once it scrolls into view (instantly with reduced motion). */
 export function NumberTicker({ value, className }: { value: number; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, v => Math.round(v).toLocaleString());
+  const [shown, setShown] = useState(0);
   useEffect(() => {
-    if (!inView) return;
-    const controls = animate(count, value, { duration: 0.8, ease: 'easeOut' });
-    return () => controls.stop();
-  }, [count, inView, value]);
-  return <motion.span ref={ref} className={cn('tabular-nums', className)}>{rounded}</motion.span>;
+    const node = ref.current;
+    if (!node) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      setShown(value);
+      return;
+    }
+    let frame = 0;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      observer.disconnect();
+      const start = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / 800);
+        setShown(Math.round(value * (1 - (1 - t) ** 3))); // ease-out cubic
+        if (t < 1) frame = requestAnimationFrame(step);
+      };
+      frame = requestAnimationFrame(step);
+    });
+    observer.observe(node);
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+  }, [value]);
+  return <span ref={ref} className={cn('tabular-nums', className)}>{shown.toLocaleString()}</span>;
 }
 
 export function BandBadge({ band, className }: { band: Band; className?: string }) {
@@ -173,16 +191,11 @@ export function StatCard({ icon, label, value, hint, className }: { icon?: React
   );
 }
 
-/** Fade-and-rise entrance for page sections; staggered by index. */
+/** Fade-and-rise entrance for page sections; staggered by index. CSS only, so it costs no JS. */
 export function Reveal({ children, index = 0, className }: { children: ReactNode; index?: number; className?: string }) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: Math.min(index, 8) * 0.05, ease: 'easeOut' }}
-    >
+    <div className={cn('animate-reveal', className)} style={{ '--reveal-delay': `${Math.min(index, 8) * 50}ms` } as CSSProperties}>
       {children}
-    </motion.div>
+    </div>
   );
 }

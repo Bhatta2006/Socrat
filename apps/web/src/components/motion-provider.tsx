@@ -1,9 +1,18 @@
 'use client';
 
-import { MotionConfig } from 'motion/react';
+import { LazyMotion, MotionConfig } from 'motion/react';
 import type { ReactNode } from 'react';
 
-/** Every Motion animation honours the learner's "reduce motion" setting. */
+// Animation features load after first paint; pages render with the small `m` component.
+const features = () => import('./motion-features').then(mod => mod.default);
+
+/** For pages that use Motion: honours "reduce motion" and keeps Motion out of the shared bundle. */
 export function MotionProvider({ children }: { children: ReactNode }) {
-  return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
+  return (
+    <MotionConfig reducedMotion="user">
+      <LazyMotion features={features} strict>
+        {children}
+      </LazyMotion>
+    </MotionConfig>
+  );
 }
