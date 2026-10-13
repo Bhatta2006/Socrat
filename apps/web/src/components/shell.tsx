@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { ViewTransition, useEffect, useState, type ReactNode } from 'react';
 import { useTheme } from 'next-themes';
 import {
   Building2,
@@ -283,8 +283,20 @@ function MarketingShell({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <main id="main" tabIndex={-1} className="outline-none">{children}</main>
+      <main id="main" tabIndex={-1} className="outline-none"><PageTransition>{children}</PageTransition></main>
     </>
+  );
+}
+
+// Route changes animate the content area only; links tagged nav-forward/nav-back slide.
+const PAGE_MOTION = { 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'page-fade' };
+
+function PageTransition({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  return (
+    <ViewTransition key={pathname} name="page" share={PAGE_MOTION} enter={PAGE_MOTION} exit={PAGE_MOTION} default="none">
+      <div>{children}</div>
+    </ViewTransition>
   );
 }
 
@@ -303,7 +315,7 @@ export default function Shell({ children }: { children: ReactNode }) {
       <AppSidebar current={current} />
       <SidebarInset id="main" tabIndex={-1} className="min-w-0 outline-none">
         <DevBanner />
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sm:px-4">
+        <header style={{ viewTransitionName: 'app-header' }} className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sm:px-4">
           <SidebarTrigger className="hidden md:inline-flex" />
           <Link href="/today" className="md:hidden" aria-label="Socrat home"><Wordmark compact /></Link>
           <Separator orientation="vertical" className="mx-1 hidden h-5 md:block" />
@@ -313,7 +325,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             <UserMenu />
           </div>
         </header>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1"><PageTransition>{children}</PageTransition></div>
       </SidebarInset>
       <MobileNav current={current} />
     </SidebarProvider>

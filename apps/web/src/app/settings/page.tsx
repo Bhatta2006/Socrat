@@ -151,7 +151,7 @@ export default function Settings() {
     }
   }
 
-  if (!allowed || !profile?.enrollment) return <Loading />;
+  if (!allowed || !profile?.enrollment) return <Loading variant="form" />;
   const toggleDay = (i: number) => setWeekdays(w => (w.includes(i) ? (w.length > 1 ? w.filter(x => x !== i) : w) : [...w, i].sort()));
 
   return (

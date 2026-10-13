@@ -56,7 +56,7 @@ export default function Placement() {
     }
   }
 
-  if (!allowed || (!state && !error)) return <Loading />;
+  if (!allowed || (!state && !error)) return <Loading variant="quiz" />;
 
   if (summary) {
     const percent = summary.asked ? Math.round((100 * summary.correct) / summary.asked) : 0;

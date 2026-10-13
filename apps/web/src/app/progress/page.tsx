@@ -120,7 +120,7 @@ export default function ProgressPage() {
                   <ul className="-mx-2 grid">
                     {m.concepts.map(c => (
                       <li key={c.id}>
-                        <Link href={conceptHref(c.id)} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-lg px-2 py-2 transition-colors hover:bg-muted sm:grid-cols-[minmax(0,1fr)_160px_130px]">
+                        <Link href={conceptHref(c.id)} transitionTypes={['nav-forward']} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-lg px-2 py-2 transition-colors hover:bg-muted sm:grid-cols-[minmax(0,1fr)_160px_130px]">
                           <span className="text-sm">{c.title}</span>
                           <span className="hidden sm:block">
                             <Progress value={c.evidence ? Math.round(c.mastery * 100) : 0} className="h-1.5" aria-label={`${c.title} mastery`} />

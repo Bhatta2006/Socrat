@@ -60,7 +60,7 @@ export default function Companies() {
   }, [selected, range, difficulty, offset]);
   useEffect(load, [load]);
 
-  if (!allowed || !companies) return <Loading />;
+  if (!allowed || !companies) return <Loading variant="list" />;
 
   return (
     <Page wide>

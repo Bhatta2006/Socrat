@@ -199,7 +199,7 @@ export default function Quiz() {
     else if (gatePassed === undefined && percent >= 80) celebrate(percent === 100 ? 'big' : 'small');
   }, [showResults, percent, gatePassed]);
 
-  if (!allowed || (!session && !error)) return <Loading />;
+  if (!allowed || (!session && !error)) return <Loading variant="quiz" />;
   if (!session) return <div className="mx-auto max-w-3xl p-6"><ErrorNote message={error} retry={load} /></div>;
 
   const title = KIND_LABEL[kind] ?? 'Quiz';

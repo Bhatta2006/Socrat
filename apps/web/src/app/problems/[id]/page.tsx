@@ -213,7 +213,7 @@ export default function Problem() {
     return parseDiagnostics(text);
   }, [result]);
 
-  if (!allowed || (!problem && !error)) return <Loading />;
+  if (!allowed || (!problem && !error)) return <Loading variant="workspace" />;
   if (!problem) return <div className="mx-auto max-w-3xl p-6"><ErrorNote message={error} retry={load} /></div>;
 
   const runtimeKnown = Object.keys(runtimes).length > 0;

@@ -234,6 +234,32 @@
   }
 }
 
+/* Route transitions (React <ViewTransition> in the shell). Content moves; the header stays. */
+::view-transition { pointer-events: none; }
+::view-transition-group(app-header) { animation: none; z-index: 100; }
+::view-transition-old(app-header) { display: none; }
+::view-transition-new(app-header) { animation: none; }
+::view-transition-old(.page-fade) { animation: 120ms ease-in both vt-fade reverse; }
+::view-transition-new(.page-fade) { animation: 180ms ease-out 60ms both vt-fade, 240ms ease-out both vt-rise; }
+::view-transition-old(.nav-forward) { --vt-offset: -40px; animation: 140ms ease-in both vt-fade reverse, 300ms ease-in-out both vt-slide reverse; }
+::view-transition-new(.nav-forward) { --vt-offset: 40px; animation: 200ms ease-out 120ms both vt-fade, 300ms ease-in-out both vt-slide; }
+::view-transition-old(.nav-back) { --vt-offset: 40px; animation: 140ms ease-in both vt-fade reverse, 300ms ease-in-out both vt-slide reverse; }
+::view-transition-new(.nav-back) { --vt-offset: -40px; animation: 200ms ease-out 120ms both vt-fade, 300ms ease-in-out both vt-slide; }
+@keyframes vt-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes vt-rise { from { translate: 0 6px; } to { translate: 0; } }
+@keyframes vt-slide { from { translate: var(--vt-offset); } to { translate: 0; } }
+
+/* A module that unlocked since the last visit to the plan glows twice. */
+@keyframes unlock-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent); }
+  40% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 22%, transparent); }
+}
+.animate-unlock { animation: unlock-glow 1.2s ease-out 0.3s 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*), ::view-transition-new(*), ::view-transition-group(*) { animation-duration: 0s !important; animation-delay: 0s !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }

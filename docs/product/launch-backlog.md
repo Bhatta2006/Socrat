@@ -126,17 +126,21 @@ Priorities:
   - It found that the tutor panel did not take focus. The panel now focuses its message box on open, closes on Escape, and returns focus to its launcher.
   - The same spec checks that 11 pages have exactly one h1 and no skipped heading levels. Top-level card titles on Library, Plan, Progress, Settings and Achievements are now h2.
 
+- **2026-10-14 — Item 12, parts 7 and 8 (loading, empty states, transitions):** done.
+  - **Loading states:** `Loading` has page-shaped variants (article, workspace, list, quiz, form and blank), so each skeleton matches its page and content lands without layout shift. The landing and login pages show a blank placeholder rather than a dashboard skeleton that would flash before the redirect.
+  - **Empty states:** the audit found them already covered, including Today's done and rest-day card, the Library and Companies no-match states, Recent results, and the Assessment and Sprint first-run cards.
+  - **Route transitions:** React `<ViewTransition>` in the shell crossfades the content area on navigation; the header is anchored. Links that go deeper (plan and progress concepts, Today's next activity) slide forward, and back-links slide back. Animation durations are zero under reduced motion.
+  - **Unlock animation:** a module that unlocked since the learner last opened the Plan page glows twice and shows an "Unlocked" badge, with a small confetti burst.
+  - **Fix:** canvas-confetti's default instance draws in a `blob:` worker, which the CSP blocks, so celebrations never rendered. It now uses a main-thread instance.
+
 ## Status at handoff (2026-10-13)
 
 **Done on `redefined`:**
 - Items 1 (in part), 3, 4, 7 (in-app part), 8, 11 (in-app part), 14, 15 (automated axe audit), 16 (first version), 17 (mostly).
-- Item 12, parts 1–6 and 9.
+- Item 12, parts 1–9.
 
 **Pending, no owner input needed:**
-- Item 12:
-  - part 7: audit empty and loading states;
-  - part 8: View Transitions and roadmap unlock animation;
-  - part 10: Playwright visual-regression screenshots, light and dark, at 1400 px and 390 px.
+- Item 12, part 10: Playwright visual-regression screenshots, light and dark, at 1400 px and 390 px.
 - Item 15: LCP and INP on a deployed build. (The JS budget and keyboard walkthrough are done.)
 - Item 16: review queue for drafted content (pairs with item 5).
 - Item 5: validation tooling for original problems.

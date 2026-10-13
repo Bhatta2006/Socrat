@@ -122,7 +122,7 @@ export default function Start() {
     }
   }
 
-  if (!allowed || !courses) return error ? <div className="mx-auto max-w-2xl p-6"><ErrorNote message={error} /></div> : <Loading />;
+  if (!allowed || !courses) return error ? <div className="mx-auto max-w-2xl p-6"><ErrorNote message={error} /></div> : <Loading variant="form" />;
 
   const order: Step[] = ['about', 'course', 'level', 'language', 'schedule'];
   const position = order.indexOf(step);

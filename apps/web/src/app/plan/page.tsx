@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, Check, CircleDot, Gauge, History, Hourglass, Lock, Target, Trophy } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { CalendarClock, Check, CircleDot, Gauge, History, Hourglass, Lock, LockOpen, Target, Trophy } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
 import { KIND_LABEL, PACE_LABEL, activityHref, conceptHref, formatDate, formatStamp, hours } from '@/lib/routes';
@@ -13,6 +13,7 @@ import { ErrorNote, Loading, Page, PageHeader, Reveal, StatCard } from '@/compon
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { celebrate } from '@/components/celebrate';
 
 const STATUS: Record<RoadmapItem['status'], { label: string; tone: string }> = {
   mastered: { label: 'Mastered', tone: 'border-primary bg-primary text-primary-foreground' },
@@ -27,6 +28,29 @@ export default function PlanPage() {
   const allowed = useGuard('active');
   const [plan, setPlan] = useState<PlanView | null>(null);
   const [error, setError] = useState('');
+  const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
+
+  // Remember which modules were locked; one that opened since then gets a brief glow. The
+  // new list is saved only after the news has been on screen a moment, so a reload or a
+  // remount while the page settles still shows it.
+  const celebrated = useRef(false);
+  useEffect(() => {
+    if (!plan) return;
+    const key = 'socrat:locked-modules';
+    const locked = plan.modules.filter(m => m.locked_by).map(m => m.id);
+    let before: string[] = [];
+    try { before = JSON.parse(localStorage.getItem(key) ?? '[]') as string[]; } catch { /* per-viewer nicety only */ }
+    const opened = before.filter(id => plan.modules.some(m => m.id === id && !m.locked_by));
+    setUnlocked(new Set(opened));
+    if (opened.length && !celebrated.current) {
+      celebrated.current = true;
+      celebrate('small');
+    }
+    const save = setTimeout(() => {
+      try { localStorage.setItem(key, JSON.stringify(locked)); } catch { /* ignore */ }
+    }, opened.length ? 3000 : 0);
+    return () => clearTimeout(save);
+  }, [plan]);
 
   const load = useCallback(() => {
     setError('');
@@ -69,9 +93,12 @@ export default function PlanPage() {
               const done = module.concepts.filter(c => ['mastered', 'assumed', 'practiced'].includes(c.status)).length;
               return (
                 <Reveal key={module.id} index={mi + 2}>
-                  <Card size="sm">
+                  <Card size="sm" className={cn(unlocked.has(module.id) && 'animate-unlock border-primary/50')}>
                     <CardHeader>
-                      <CardTitle className="text-base font-semibold">{module.title}</CardTitle>
+                      <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                        {module.title}
+                        {unlocked.has(module.id) ? <Badge className="h-5 gap-1"><LockOpen className="size-3" /> Unlocked</Badge> : null}
+                      </CardTitle>
                       <CardDescription>
                         {module.bridge ? <span className="mr-1 font-medium text-primary">Bridge from {module.course} ·</span> : null}
                         {module.summary}
@@ -96,7 +123,7 @@ export default function PlanPage() {
                           const current = c.concept === plan.current_concept;
                           return (
                             <li key={c.concept}>
-                              <Link href={conceptHref(c.concept)} className={cn('flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted', current && 'bg-primary/5', c.status === 'locked' && 'text-muted-foreground')}>
+                              <Link href={conceptHref(c.concept)} transitionTypes={['nav-forward']} className={cn('flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted', current && 'bg-primary/5', c.status === 'locked' && 'text-muted-foreground')}>
                                 <span className={cn('grid size-6 flex-none place-items-center rounded-full border text-xs', s.tone)} aria-hidden="true">
                                   {['mastered', 'assumed'].includes(c.status) ? <Check className="size-3.5" /> : c.status === 'in_progress' ? <CircleDot className="size-3.5" /> : c.status === 'locked' ? <Lock className="size-3" /> : null}
                                 </span>

@@ -147,7 +147,7 @@ export default function Library() {
     return groups;
   }, [meta]);
 
-  if (!allowed || !filters) return <Loading />;
+  if (!allowed || !filters) return <Loading variant="list" />;
   const total = meta ? Object.values(meta.platforms).reduce((a, b) => a + b, 0) : 0;
   const active = filters.q || filters.platform.length || filters.concept || filters.difficulty || filters.rating_min || filters.rating_max || filters.sheet;
   const conceptTitle = meta?.concepts.find(c => c.id === filters.concept)?.title;

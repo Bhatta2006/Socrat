@@ -58,7 +58,7 @@ export default function Login() {
     }
   }
 
-  if (loading || profile) return <Loading />;
+  if (loading || profile) return <Loading variant="blank" />;
   return (
     <div className="mx-auto grid min-h-[calc(100dvh-3.5rem)] max-w-6xl items-center gap-12 px-4 py-10 sm:px-6 md:grid-cols-2">
       <div className="hidden md:block">

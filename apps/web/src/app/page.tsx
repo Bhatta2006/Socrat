@@ -114,7 +114,7 @@ export default function Home() {
     api.get<{ library: number }>('/library/stats').then(r => setLibrary(r.library)).catch(() => undefined);
   }, []);
 
-  if (loading || profile) return <Loading />;
+  if (loading || profile) return <Loading variant="blank" />;
   const concepts = courses.reduce((n, c) => n + c.concept_count, 0);
   const problems = courses.reduce((n, c) => n + c.problem_count, 0);
 

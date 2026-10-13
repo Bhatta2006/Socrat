@@ -34,7 +34,32 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
 }
 
 /** Content-shaped placeholder; perceived as faster than a spinner. */
-export function Loading({ label = 'Loading…', variant = 'page' }: { label?: string; variant?: 'page' | 'inline' }) {
+type LoadingVariant = 'page' | 'inline' | 'article' | 'workspace' | 'list' | 'quiz' | 'form' | 'blank';
+
+function HeaderSkeleton() {
+  return (
+    <div className="grid gap-3">
+      <Skeleton className="h-3 w-28" />
+      <Skeleton className="h-9 w-80 max-w-full" />
+      <Skeleton className="h-4 w-[28rem] max-w-full" />
+    </div>
+  );
+}
+
+/** Lines of text of varied length, like a paragraph. */
+function Lines({ count, className }: { count: number; className?: string }) {
+  return (
+    <div className={cn('grid gap-2.5', className)}>
+      {Array.from({ length: count }, (_, i) => <Skeleton key={i} className="h-4" style={{ width: `${[96, 88, 92, 70, 84, 60][i % 6]}%` }} />)}
+    </div>
+  );
+}
+
+/**
+ * Page-shaped placeholders: each variant mirrors its page's layout so content lands where
+ * the skeleton was (no layout shift) and the wait feels shorter.
+ */
+export function Loading({ label = 'Loading…', variant = 'page' }: { label?: string; variant?: LoadingVariant }) {
   if (variant === 'inline') {
     return (
       <div className="grid gap-2 p-4" role="status" aria-label={label}>
@@ -42,25 +67,79 @@ export function Loading({ label = 'Loading…', variant = 'page' }: { label?: st
       </div>
     );
   }
+  if (variant === 'blank') {
+    // Public pages that usually redirect: a skeleton would flash a layout that never appears.
+    return <div className="min-h-[60vh]" role="status" aria-label={label}><span className="sr-only">{label}</span></div>;
+  }
+  const body = {
+    page: (
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid gap-4">
+          <Skeleton className="h-44 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
+        <div className="grid content-start gap-4">
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+      </div>
+    ),
+    article: (
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="grid content-start gap-6">
+          <Lines count={5} />
+          <Skeleton className="h-36 w-full rounded-lg" />
+          <Lines count={4} />
+        </div>
+        <Skeleton className="hidden h-64 w-full rounded-xl lg:block" />
+      </div>
+    ),
+    workspace: (
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="grid content-start gap-5">
+          <Lines count={4} />
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Lines count={3} />
+        </div>
+        <Skeleton className="h-[420px] w-full rounded-xl" />
+      </div>
+    ),
+    list: (
+      <div className="grid gap-4">
+        <div className="flex flex-wrap gap-2">
+          <Skeleton className="h-9 w-64 max-w-full" />
+          {[0, 1, 2].map(i => <Skeleton key={i} className="h-9 w-28" />)}
+        </div>
+        <div className="grid gap-px overflow-hidden rounded-xl border">
+          {Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-12 w-full rounded-none" />)}
+        </div>
+      </div>
+    ),
+    quiz: (
+      <div className="mx-auto grid w-full max-w-2xl gap-5">
+        <Skeleton className="h-2 w-full rounded-full" />
+        <Lines count={2} />
+        {[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
+      </div>
+    ),
+    form: (
+      <div className="mx-auto grid w-full max-w-3xl gap-4">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="grid gap-3 rounded-xl border p-5">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-2/3" />
+          </div>
+        ))}
+      </div>
+    ),
+  }[variant];
   return (
     <Page>
       <div role="status" aria-label={label} className="grid gap-6">
         <span className="sr-only">{label}</span>
-        <div className="grid gap-3">
-          <Skeleton className="h-3 w-28" />
-          <Skeleton className="h-9 w-80 max-w-full" />
-          <Skeleton className="h-4 w-[28rem] max-w-full" />
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="grid gap-4">
-            <Skeleton className="h-44 w-full rounded-xl" />
-            <Skeleton className="h-64 w-full rounded-xl" />
-          </div>
-          <div className="grid content-start gap-4">
-            <Skeleton className="h-40 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-          </div>
-        </div>
+        <HeaderSkeleton />
+        {body}
       </div>
     </Page>
   );
@@ -156,7 +235,7 @@ export function BandBadge({ band, className }: { band: Band; className?: string 
 
 export function BackLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="mb-5 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+    <Link href={href} transitionTypes={['nav-back']} className="mb-5 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
       <ArrowLeft className="size-3.5" aria-hidden="true" /> {children}
     </Link>
   );

@@ -144,7 +144,7 @@ export default function Lesson() {
     }
   }
 
-  if (!allowed || (!concept && !error)) return <Loading />;
+  if (!allowed || (!concept && !error)) return <Loading variant="article" />;
   if (!concept) return <div className="mx-auto max-w-3xl p-6"><ErrorNote message={error} retry={load} /></div>;
 
   const weakPrereqs = concept.prerequisites.filter(p => p.band === 'needs_practice' || p.band === 'not_started');

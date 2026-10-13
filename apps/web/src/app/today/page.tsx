@@ -165,7 +165,7 @@ export default function TodayPage() {
                     <h2 id="next-heading" className="text-2xl font-semibold tracking-tight md:text-3xl">{next.title}</h2>
                     {next.reason ? <p className="mt-2 text-sm text-muted-foreground">{next.reason}</p> : null}
                     <Button asChild size="lg" className="mt-5 h-10 px-5 text-sm shadow-sm shadow-primary/20">
-                      <Link href={activityHref(next.id)}>
+                      <Link href={activityHref(next.id)} transitionTypes={['nav-forward']}>
                         {next.kind === 'lesson' ? 'Start lesson' : next.kind === 'problem' ? 'Open problem' : 'Begin'}
                         <ArrowRight data-icon="inline-end" />
                       </Link>

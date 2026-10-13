@@ -77,7 +77,7 @@ export default function Admin() {
       </Page>
     );
   }
-  if (!allowed || (!data && !error)) return <Loading />;
+  if (!allowed || (!data && !error)) return <Loading variant="list" />;
   if (!data) return <Page><ErrorNote message={error} /></Page>;
 
   const e = data.engagement;
