@@ -106,6 +106,10 @@ Priorities:
   - Newly earned badges are marked "New" with a small confetti burst. "Seen" state is kept per browser.
   - No leaderboards.
 
+- **2026-10-14 — Item 17, scheduled jobs:** done.
+  - `practice-refresh.yml` runs on the 2nd of each month. It re-imports the public practice index and writes a diff report with `scripts/content/practice_diff.py` (added, removed and changed problems by field). When anything changed, it opens a review PR with the report as its body. PRs opened with the workflow token do not trigger CI by themselves, so re-run the checks or push to the branch before merging.
+  - `e2e-nightly.yml` repeats the learner journeys five times nightly with retries off, and uploads traces on failure.
+
 ## Status at handoff (2026-10-13)
 
 **Done on `redefined`:**
@@ -119,10 +123,7 @@ Priorities:
   - part 10: Playwright visual-regression screenshots, light and dark, at 1400 px and 390 px.
 - Item 15: keyboard-only walkthrough; performance budgets (LCP and INP), including lazy-loading CodeMirror.
 - Item 16: review queue for drafted content (pairs with item 5).
-- Item 17:
-  - monthly Codeforces snapshot job;
-  - nightly `--repeat-each=5` e2e run;
-  - heading-hierarchy review.
+- Item 17: heading-hierarchy review. (The monthly snapshot job and the nightly repeat run are done; see the log.)
 - Item 5: validation tooling for original problems.
 
 **Pending, needs owner input:**

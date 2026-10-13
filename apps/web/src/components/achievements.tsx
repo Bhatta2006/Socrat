@@ -9,6 +9,7 @@ import type { Achievement } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { celebrate } from '@/components/celebrate';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
@@ -49,6 +50,7 @@ function ordered(items: Achievement[]) {
 
 export function Achievements({ items }: { items: Achievement[] }) {
   const [fresh, setFresh] = useState<Set<string>>(new Set());
+  const [all, setAll] = useState(false);
 
   useEffect(() => {
     const earned = items.filter(a => a.earned).map(a => a.id);
@@ -63,6 +65,8 @@ export function Achievements({ items }: { items: Achievement[] }) {
   }, [items]);
 
   const earnedCount = items.filter(a => a.earned).length;
+  // Phones show what is earned plus the three nearest goals; wider screens show everything.
+  const visible = earnedCount + 3;
   return (
     <Card className="mb-8" aria-labelledby="achievements-heading">
       <CardHeader>
@@ -71,7 +75,7 @@ export function Achievements({ items }: { items: Achievement[] }) {
       </CardHeader>
       <CardContent>
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {ordered(items).map(a => {
+          {ordered(items).map((a, i) => {
             const Icon = ICON[a.id] ?? Medal;
             return (
               <li
@@ -80,6 +84,7 @@ export function Achievements({ items }: { items: Achievement[] }) {
                   'flex items-start gap-3 rounded-lg border p-3 transition-colors',
                   a.earned ? 'bg-card' : 'bg-muted/40',
                   fresh.has(a.id) && 'border-primary ring-2 ring-primary/20',
+                  !all && i >= visible && 'max-sm:hidden',
                 )}
               >
                 <span
@@ -112,6 +117,11 @@ export function Achievements({ items }: { items: Achievement[] }) {
             );
           })}
         </ul>
+        {items.length > visible ? (
+          <Button variant="outline" size="sm" className="mt-3 w-full sm:hidden" onClick={() => setAll(v => !v)} aria-expanded={all}>
+            {all ? 'Show fewer' : `Show all ${items.length}`}
+          </Button>
+        ) : null}
       </CardContent>
     </Card>
   );
