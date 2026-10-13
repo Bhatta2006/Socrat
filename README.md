@@ -12,7 +12,7 @@ npm run dev:demo
 
 Open http://localhost:3000. The command installs locked Python dependencies, migrates a local SQLite database, generates untracked throwaway credentials in `.env.local`, builds the course content (judge tests are generated from each problem's reference solution into `.cache/content-tests`), and starts the API, native execution worker and web app. Ctrl+C stops the demo processes. Python works without optional C++ or Java tools. The doctor prints installation commands for MSYS2 GNU C++20 and Microsoft OpenJDK 21; restart the demo after installing tools. Bash users can run the same npm command or `bash scripts/dev/start-demo.sh`.
 
-With the demo running, `npx playwright test` drives the learner journey on desktop and mobile; set `PW_CHANNEL=msedge` to use the installed Edge instead of downloading Chromium.
+With the demo running, `npx playwright test` drives the learner journey on desktop and mobile; set `PW_CHANNEL=msedge` to use the installed Edge instead of downloading Chromium. `npm run test:visual` compares screenshots of key pages (light and dark, 1400 px and 390 px) with per-platform baselines in `tests/visual/__screenshots__`; add `-- --update-snapshots` after an intended design change. After a production build, `node scripts/web/bundle-report.mjs` prints first-load JavaScript per route against the 250 KB budget CI enforces.
 
 ### Tutor model
 

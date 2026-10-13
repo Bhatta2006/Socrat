@@ -1,0 +1,66 @@
+name: visual-regression
+
+# Screenshot comparison of key pages (light/dark, 1400 px and 390 px) on Linux.
+# Baselines are per platform: run this workflow manually with "update" ticked once (and
+# after intended design changes) to commit Linux baselines; nightly runs then compare.
+on:
+  schedule:
+    - cron: "11 3 * * *"  # daily 03:11 UTC
+  workflow_dispatch:
+    inputs:
+      update:
+        description: Regenerate and commit Linux baselines
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Skip until Linux baselines exist
+        id: baselines
+        run: |
+          if [ "${{ inputs.update }}" != "true" ] && [ ! -d tests/visual/__screenshots__/linux ]; then
+            echo "No Linux baselines yet; run this workflow with update=true." >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.baselines.outputs.skip != 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+      - if: steps.baselines.outputs.skip != 'true'
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.12.20"
+      - if: steps.baselines.outputs.skip != 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: npm
+      - if: steps.baselines.outputs.skip != 'true'
+        run: |
+          uv sync --frozen
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Compare screenshots
+        if: steps.baselines.outputs.skip != 'true' && inputs.update != true
+        run: npx playwright test --config playwright.visual.config.ts --workers=1
+      - name: Regenerate and commit Linux baselines
+        if: inputs.update == true
+        run: |
+          npx playwright test --config playwright.visual.config.ts --workers=1 --update-snapshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/visual/__screenshots__/linux
+          git commit -m "test(visual): update Linux baselines" || echo "Baselines unchanged."
+          git push
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: visual-diffs
+          path: test-results/

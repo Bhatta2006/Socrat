@@ -133,14 +133,18 @@ Priorities:
   - **Unlock animation:** a module that unlocked since the learner last opened the Plan page glows twice and shows an "Unlocked" badge, with a small confetti burst.
   - **Fix:** canvas-confetti's default instance draws in a `blob:` worker, which the CSP blocks, so celebrations never rendered. It now uses a main-thread instance.
 
+- **2026-10-14 — Item 12 part 10 (visual regression):** done.
+  - `npm run test:visual` (`playwright.visual.config.ts`, `tests/visual`) screenshots the landing, login, Today, Plan, Progress, lesson and problem pages in light and dark at 1400 px and 390 px, with a 1% pixel tolerance.
+  - Content that changes on its own is handled: dates, greetings and weekday rows are masked, and the daily-rotating recommendations get fixed titles so page heights stay the same. Baselines were stable over three consecutive runs.
+  - Baselines are per platform. Windows baselines are committed. `visual.yml` creates the Linux baselines on a manual run with `update` ticked and commits them; nightly runs then compare and upload diffs on failure.
+
 ## Status at handoff (2026-10-13)
 
 **Done on `redefined`:**
 - Items 1 (in part), 3, 4, 7 (in-app part), 8, 11 (in-app part), 14, 15 (automated axe audit), 16 (first version), 17 (mostly).
-- Item 12, parts 1–9.
+- Item 12, all parts.
 
 **Pending, no owner input needed:**
-- Item 12, part 10: Playwright visual-regression screenshots, light and dark, at 1400 px and 390 px.
 - Item 15: LCP and INP on a deployed build. (The JS budget and keyboard walkthrough are done.)
 - Item 16: review queue for drafted content (pairs with item 5).
 - Item 5: validation tooling for original problems.
@@ -157,6 +161,7 @@ Priorities:
 **Known local caveats:**
 - 9 C++ tests fail on the local MinGW 6.3 compiler; this is an environment issue.
 - CI has not run on `redefined`, because it only triggers on PRs and `main`. Open a PR to run it.
+- `visual.yml` needs one manual run with `update` ticked to create the Linux baselines.
 - The Postgres migration check was not run, because it needs Docker.
 
 ## Summary
