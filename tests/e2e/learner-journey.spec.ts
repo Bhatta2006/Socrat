@@ -148,3 +148,32 @@ test('later modules are locked behind a checkpoint that gets harder', async ({ p
   }
   await expect(page.getByRole('heading', { name: /unlocked|Not yet/ })).toBeVisible();
 });
+
+test('a weekly assessment is built from what the learner studied', async ({ page }, info) => {
+  test.setTimeout(120_000);
+  await signIn(page, `weekly-${info.project.name}-${Date.now()}`);
+  await onboard(page, /Programming from Zero/, /never written code/);
+  await expect(page).toHaveURL(/\/today$/);
+
+  await page.goto('/assessments');
+  await expect(page.getByText(/unlocks as you study/)).toBeVisible();
+  for (const concept of ['programs-and-output', 'variables-and-types']) {
+    await page.goto(`/learn/zero/${concept}`);
+    await page.getByRole('button', { name: 'Mark lesson complete' }).click();
+    await expect(page.getByRole('heading', { name: 'Lesson complete' })).toBeVisible();
+  }
+
+  await page.goto('/assessments');
+  await page.getByRole('button', { name: 'Start assessment' }).click();
+  const save = page.getByRole('button', { name: 'Save answer' });
+  for (let i = 0; i < 15 && (await save.isVisible()); i++) {
+    await page.getByRole('radio').first().click();
+    await save.click();
+    // Wait for the saved answer to register before touching the next question.
+    await expect(page.getByText(new RegExp(`· ${i + 1} answered`))).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Submit assessment' }).click();
+  await page.getByRole('button', { name: 'Submit', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'By topic' })).toBeVisible();
+  await expect(page.getByText('Programs and output').first()).toBeVisible();
+});

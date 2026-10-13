@@ -93,6 +93,8 @@ const MESSAGES: Record<string, string> = {
   codeforces_unavailable: "Codeforces isn't answering right now. Try again in a minute.",
   not_linked: 'Link a Codeforces handle first.',
   concept_locked: 'This topic unlocks when you pass the checkpoint before it.',
+  assessment_done: "You've already finished this week's assessment. A new one opens next week.",
+  assessment_unavailable: 'Study at least two topics this week to unlock your weekly assessment.',
 };
 
 export function explain(error: unknown): string {

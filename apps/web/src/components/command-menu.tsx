@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { BookOpen, CalendarDays, ChartLine, Home, Library, Search, Settings, Building2 } from 'lucide-react';
+import { BookOpen, CalendarCheck, CalendarDays, ChartLine, Home, Library, Search, Settings, Building2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { conceptHref } from '@/lib/routes';
 import type { LibraryProblem } from '@/lib/types';
@@ -23,6 +23,7 @@ const PAGES = [
   { href: '/today', label: 'Today', icon: Home },
   { href: '/plan', label: 'Plan', icon: CalendarDays },
   { href: '/library', label: 'Practice library', icon: Library },
+  { href: '/assessments', label: 'Weekly assessment', icon: CalendarCheck },
   { href: '/progress', label: 'Progress', icon: ChartLine },
   { href: '/companies', label: 'Company question bank', icon: Building2 },
   { href: '/settings', label: 'Settings', icon: Settings },

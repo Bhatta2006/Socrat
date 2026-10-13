@@ -8,6 +8,7 @@ import {
   Building2,
   CalendarDays,
   ChartLine,
+  ClipboardCheck,
   Flame,
   Home,
   Library,
@@ -58,13 +59,15 @@ const NAV = [
   { href: '/today', label: 'Today', icon: Home },
   { href: '/plan', label: 'Plan', icon: CalendarDays },
   { href: '/library', label: 'Library', icon: Library },
+  { href: '/assessments', label: 'Assessments', icon: ClipboardCheck },
   { href: '/progress', label: 'Progress', icon: ChartLine },
 ];
 const MORE = [
   { href: '/companies', label: 'Company questions', icon: Building2 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
-const MOBILE = [...NAV, { href: '/settings', label: 'Settings', icon: Settings }];
+// Settings stays reachable from the account menu on phones.
+const MOBILE = NAV;
 
 function Wordmark({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
@@ -173,7 +176,19 @@ function Momentum() {
   );
 }
 
-function NavGroup({ label, items, current }: { label: string; items: typeof NAV; current: (href: string) => boolean }) {
+/** Whether this week's assessment is waiting: a small dot that pulls learners back in. */
+function useAssessmentReady() {
+  const pathname = usePathname();
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    api.get<{ current: { state: string } }>('/assessments')
+      .then(r => setReady(r.current.state === 'available' || r.current.state === 'in_progress'))
+      .catch(() => setReady(false));
+  }, [pathname]);
+  return ready;
+}
+
+function NavGroup({ label, items, current, flagged }: { label: string; items: typeof NAV; current: (href: string) => boolean; flagged?: string }) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
@@ -184,6 +199,7 @@ function NavGroup({ label, items, current }: { label: string; items: typeof NAV;
               <SidebarMenuButton asChild isActive={current(item.href)} tooltip={item.label}>
                 <Link href={item.href} aria-current={current(item.href) ? 'page' : undefined}>
                   <item.icon /> <span>{item.label}</span>
+                  {flagged === item.href ? <span className="ml-auto size-2 rounded-full bg-streak" aria-label="ready" /> : null}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -195,6 +211,7 @@ function NavGroup({ label, items, current }: { label: string; items: typeof NAV;
 }
 
 function AppSidebar({ current }: { current: (href: string) => boolean }) {
+  const ready = useAssessmentReady();
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-14 justify-center px-3">
@@ -204,7 +221,7 @@ function AppSidebar({ current }: { current: (href: string) => boolean }) {
       </SidebarHeader>
       <SidebarContent>
         <nav aria-label="Main">
-          <NavGroup label="Learn" items={NAV} current={current} />
+          <NavGroup label="Learn" items={NAV} current={current} flagged={ready ? '/assessments' : undefined} />
           <NavGroup label="More" items={MORE} current={current} />
         </nav>
       </SidebarContent>

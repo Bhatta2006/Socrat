@@ -14,6 +14,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from socrat.assessments import service as assessments
 from socrat.assistant import socratic
 from socrat.assistant.gateway import Provider, ProviderError, ToolRunner, ToolSpec, Turn, complete
 from socrat.assistant.prompts import LESSON_STYLES, LESSON_SYSTEM, SYSTEM, render_context
@@ -51,6 +52,7 @@ class TurnPlan:
     turns: list[Turn]
     fallback: str
     reveal_blocked: str = ""
+    paused: str = ""  # policy reply that replaces the model (e.g. during an assessment)
 
 
 def validate_scope(scope: str) -> str:
@@ -321,7 +323,14 @@ def prepare(
         Turn("user", f"{render_context(sections)}\n\n<learner_message>\n{text}\n</learner_message>")
     )
     fallback = offline_reply(scope, allowed, problem, catalog, language)
-    return TurnPlan(thread.id, scope, allowed, problem, turns, fallback, reveal_blocked)
+    paused = ""
+    if enrollment is not None and assessments.in_progress(db, enrollment, now) is not None:
+        paused = (
+            "Your weekly assessment is in progress, so I'm stepping back until you submit it — "
+            "it measures what *you* know right now. Finish it and I'll go through every "
+            "question with you."
+        )
+    return TurnPlan(thread.id, scope, allowed, problem, turns, fallback, reveal_blocked, paused)
 
 
 def _sse(event: str, data: dict) -> str:
@@ -347,6 +356,10 @@ async def stream_reply(
             "reveal_blocked": plan.reveal_blocked,
         },
     )
+    if plan.paused:
+        yield "delta", {"text": plan.paused}
+        yield "done", {"text": plan.paused, "level": 0, "provider": "policy"}
+        return
     if plan.reveal_blocked:
         text = (
             f"I can tell you want to move on — that's fair. To unlock the full walkthrough, "

@@ -285,3 +285,25 @@ class LinkedAccount(Base):
     synced_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sync_error: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class WeeklyAssessment(Base):
+    """One personalised assessment per learner per ISO week, built from what they studied."""
+
+    __tablename__ = "weekly_assessments"
+    __table_args__ = (UniqueConstraint("enrollment_id", "iso_week"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), index=True
+    )
+    iso_week: Mapped[str] = mapped_column(String(10))  # e.g. 2026-W42, learner's local week
+    concepts: Mapped[list] = mapped_column(JSON)  # [[qualified concept, reason]]
+    items: Mapped[list] = mapped_column(JSON)  # [[qualified concept, item id]]
+    coding: Mapped[list] = mapped_column(JSON, default=list)  # problem ids
+    answers: Mapped[dict] = mapped_column(JSON, default=dict)  # item id -> {choice, correct}
+    timed: Mapped[bool] = mapped_column(Boolean, default=False)
+    started_at: Mapped[int] = mapped_column(Integer, default=now)
+    deadline: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    finished_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    report: Mapped[dict] = mapped_column(JSON, default=dict)

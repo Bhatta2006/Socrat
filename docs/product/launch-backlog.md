@@ -37,6 +37,17 @@ Priorities:
   - Tests: unit and property tests, API flow tests, and an e2e journey.
   - **Content follow-up:** the authored quiz items only reach difficulty 3, and some modules have one or two items at their top level. Add harder items through item 5.
 
+- **2026-10-13 — Item 4 (weekly personalised assessments):** done.
+  - A new `assessments` package, migration `0003_weekly`, and the `/assessments` page.
+  - The assessment opens once per local ISO week, after at least 2 topics studied in the last 7 days.
+  - 12 questions, weighted by exposure × fragility (shaky topics get a fair check, strong topics get their hardest items), plus up to 3 due older topics and 1–2 unsolved Socrat coding tasks.
+  - Answers are hidden until submission. Exam mode adds a 30-minute timer, and the server finishes the assessment at the deadline.
+  - The tutor pauses during a live attempt.
+  - The report shows per-topic results, mastery before and after, strengths, next week's focus, and the change against last week.
+  - Includes a tutor tool, account export, a sidebar dot and a Today card.
+  - Tests: unit and API tests, and an e2e journey.
+  - **Follow-up:** reminders for a ready assessment belong to item 11.
+
 ## Summary
 
 | # | Item | Priority | Owner input needed |

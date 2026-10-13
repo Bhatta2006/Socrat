@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, CheckCircle2, Circle, Code2, Flame, ListChecks, RotateCcw, Sparkles, Target, Trophy } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarCheck, CheckCircle2, Circle, Code2, Flame, ListChecks, RotateCcw, Sparkles, Target, Trophy } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
 import { KIND_LABEL, PACE_LABEL, activityHref, conceptHref, formatDate, hours } from '@/lib/routes';
-import type { Activity, ActivityKind, Recommendations, Today } from '@/lib/types';
+import type { Activity, ActivityKind, AssessmentStatus, Recommendations, Today } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { BandBadge, ErrorNote, Loading, Page, Reveal, Ring } from '@/components/common';
 import { Level, LevelCard, PlatformTag, ProblemName } from '@/components/practice';
@@ -98,11 +98,13 @@ export default function TodayPage() {
   const [today, setToday] = useState<Today | null>(null);
   const [error, setError] = useState('');
   const [recs, setRecs] = useState<Recommendations | null>(null);
+  const [assessment, setAssessment] = useState<AssessmentStatus | null>(null);
 
   const load = useCallback(() => {
     setError('');
     api.get<Today>('/today').then(setToday).catch(e => setError(explain(e)));
     api.get<Recommendations>('/library/recommendations?limit=4').then(setRecs).catch(() => undefined);
+    api.get<{ current: AssessmentStatus }>('/assessments').then(r => setAssessment(r.current)).catch(() => undefined);
   }, []);
   useEffect(() => { if (allowed) load(); }, [allowed, load]);
   useEffect(() => {
@@ -176,6 +178,23 @@ export default function TodayPage() {
               </Card>
             )}
           </Reveal>
+
+          {assessment && (assessment.state === 'available' || assessment.state === 'in_progress') ? (
+            <Reveal index={2}>
+              <Card className="border-streak/30 bg-streak/5">
+                <CardContent className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid size-10 flex-none place-items-center rounded-full bg-streak/15 text-streak"><CalendarCheck className="size-5" /></span>
+                    <div className="min-w-0">
+                      <h2 className="font-semibold">{assessment.state === 'in_progress' ? 'Finish your weekly assessment' : 'Your weekly assessment is ready'}</h2>
+                      <p className="truncate text-sm text-muted-foreground">On what you studied: {assessment.topics.slice(0, 3).join(', ')}{assessment.topics.length > 3 ? '…' : ''}</p>
+                    </div>
+                  </div>
+                  <Button asChild variant="outline"><Link href="/assessments">{assessment.state === 'in_progress' ? 'Continue' : 'Take it'} <ArrowRight data-icon="inline-end" /></Link></Button>
+                </CardContent>
+              </Card>
+            </Reveal>
+          ) : null}
 
           {total ? (
             <Reveal index={2}>

@@ -380,3 +380,40 @@ export interface ChatMessage {
   content: string;
   level?: number | null;
 }
+
+export interface AssessmentStatus {
+  state: 'locked' | 'available' | 'in_progress' | 'done';
+  week: string;
+  id: string | null;
+  topics: string[];
+  questions?: number;
+  time_limit_minutes?: number;
+  needed: number;
+}
+
+export interface AssessmentReport {
+  correct: number;
+  questions: number;
+  coding_solved: number;
+  coding_total: number;
+  minutes: number;
+  previous_score: number | null;
+  topics: { id: string; title: string; correct: number; total: number; before: number; after: number; band: Band }[];
+  strengths: string[];
+  focus: { id: string; title: string }[];
+}
+
+export interface AssessmentView {
+  id: string;
+  week: string;
+  timed: boolean;
+  started_at: number;
+  deadline: number | null;
+  seconds_left: number | null;
+  finished: boolean;
+  score: number | null;
+  topics: { id: string; title: string; reason: 'studied' | 'review' }[];
+  questions: QuizQuestion[];
+  coding: { id: string; title: string; difficulty: string; concept: string; solved: boolean }[];
+  report: AssessmentReport | null;
+}

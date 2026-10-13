@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from socrat.assessments import service as assessments
 from socrat.assistant.gateway import ToolSpec
 from socrat.catalog import practice
 from socrat.catalog.registry import Catalog
@@ -20,7 +21,7 @@ from socrat.learn import service as learn
 from socrat.library import recommend
 from socrat.library import service as library
 from socrat.mastery.model import DAY, ConceptState, band
-from socrat.models import Evidence, PracticeMark, Submission, User
+from socrat.models import Evidence, PracticeMark, Submission, User, WeeklyAssessment
 from socrat.models import now as clock
 
 PLATFORM = {"type": "string", "enum": ["Socrat", "LeetCode", "CSES", "Codeforces"]}
@@ -128,6 +129,13 @@ TOOLS: list[ToolSpec] = [
         {"type": "object", "properties": {}, "required": []},
     ),
     ToolSpec(
+        "get_weekly_report",
+        "The learner's latest weekly assessment: score, per-topic results, strengths, topics "
+        "to focus on, and whether this week's assessment is available. Use when they ask how "
+        "their week went or what to focus on next.",
+        {"type": "object", "properties": {}, "required": []},
+    ),
+    ToolSpec(
         "save_problems",
         "Add library problems to the learner's practice list (bookmarked to-dos). Only call "
         "when the learner asks you to save or plan problems.",
@@ -154,6 +162,7 @@ LABELS = {
     "get_concept_guide": "Opening the lesson notes",
     "get_codeforces_profile": "Checking your Codeforces profile",
     "save_problems": "Saving to your list",
+    "get_weekly_report": "Reading your weekly assessment",
 }
 
 
@@ -485,6 +494,33 @@ class Toolbox:
         if synced:
             view["synced_days_ago"] = round((now - synced) / DAY, 1)
         return view
+
+    def _get_weekly_report(self, db, user, enrollment, now):
+        if enrollment is None:
+            return "Error: the learner has not chosen a course yet."
+        current = assessments.status(db, self.catalog, user, enrollment, now)
+        latest = assessments.history(db, enrollment, limit=2)
+        report = None
+        if latest:
+            row = db.get(WeeklyAssessment, latest[0]["id"])
+            if row is not None:
+                report = {
+                    "week": row.iso_week,
+                    "score": row.score,
+                    "strengths": row.report.get("strengths", []),
+                    "focus": [
+                        lesson_link(self.catalog, f["id"]) for f in row.report.get("focus", [])
+                    ],
+                    "previous_score": row.report.get("previous_score"),
+                }
+        return {
+            "this_week": {
+                "state": current["state"],
+                "topics": current["topics"],
+                "where": "[Weekly assessment](/assessments)",
+            },
+            "latest_report": report or "No finished assessments yet.",
+        }
 
     def _save_problems(self, db, user, enrollment, now, problem_ids: list):
         index = practice.default_index()

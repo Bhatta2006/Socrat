@@ -22,6 +22,7 @@ from socrat.models import (
     PracticeMark,
     Submission,
     User,
+    WeeklyAssessment,
 )
 from socrat.models import now as now_seconds
 from socrat.planner.engine import Plan
@@ -473,6 +474,18 @@ def export(db: Session, user: User) -> dict:
                 solved_at=m.solved_at,
             )
             for m in db.scalars(select(PracticeMark).where(PracticeMark.user_id == user.id))
+        ],
+        weekly_assessments=[
+            dict(
+                week=a.iso_week,
+                score=a.score,
+                started_at=a.started_at,
+                finished_at=a.finished_at,
+                report=a.report,
+            )
+            for a in db.scalars(
+                select(WeeklyAssessment).where(WeeklyAssessment.enrollment_id.in_(ids))
+            )
         ],
         linked_accounts=[
             dict(platform=a.platform, handle=a.handle, rating=a.rating, synced_at=a.synced_at)
