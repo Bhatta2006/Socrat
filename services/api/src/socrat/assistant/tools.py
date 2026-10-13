@@ -286,7 +286,7 @@ class Toolbox:
     def _get_plan(self, db, user, enrollment, now, days: int = 7):
         if enrollment is None:
             return "Error: the learner has not chosen a course yet."
-        plan = learn.plan_for(db, self.catalog, user, enrollment, now)
+        plan = learn.plan_for(db, self.catalog, user, enrollment, now, record=False)
         days = _clamp(days, 1, 14, 7)
         return {
             "pace": plan.pace,
@@ -389,7 +389,11 @@ class Toolbox:
             )
             rows = [self._problem_row(learner, p, why=reason) for p in picks[:count]]
         else:
-            plan = learn.plan_for(db, self.catalog, user, enrollment, now) if enrollment else None
+            plan = (
+                learn.plan_for(db, self.catalog, user, enrollment, now, record=False)
+                if enrollment
+                else None
+            )
             picks = recommend.next_problems(index, self.catalog, learner, plan, limit=count * 3)
             if platform:
                 picks = [p for p in picks if p["platform"] == platform]
@@ -439,7 +443,11 @@ class Toolbox:
 
     def _next_topics(self, db, user, enrollment, now):
         learner = self._learner(db, user, enrollment, now)
-        plan = learn.plan_for(db, self.catalog, user, enrollment, now) if enrollment else None
+        plan = (
+            learn.plan_for(db, self.catalog, user, enrollment, now, record=False)
+            if enrollment
+            else None
+        )
         topics = recommend.next_topics(self.catalog, learner, plan, limit=4)
         return {
             "topics": [

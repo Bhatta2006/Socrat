@@ -171,7 +171,7 @@ def recommendations(db: Session, catalog: Catalog, user: User, now: int, limit: 
     index = practice.default_index()
     enrollment = learn.active_enrollment(db, user.id)
     learner = learner_for(db, catalog, user, enrollment, now)
-    plan = learn.plan_for(db, catalog, user, enrollment, now) if enrollment else None
+    plan = learn.plan_for(db, catalog, user, enrollment, now, record=False) if enrollment else None
     account = account_for(db, user.id)
     return {
         "level": recommend.level_view(learner.rating),

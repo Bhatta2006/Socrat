@@ -118,7 +118,7 @@ def learner_sections(
     if enrollment is None:
         return {"learner": f"Name: {user.display_name or 'learner'}. Not enrolled in a course yet."}
     course = catalog.course(enrollment.course_id)
-    plan = learn.plan_for(db, catalog, user, enrollment, now)
+    plan = learn.plan_for(db, catalog, user, enrollment, now, record=False)
     states = learn.states_for(db, enrollment)
     groups: dict[str, list[str]] = {
         "strong": [],

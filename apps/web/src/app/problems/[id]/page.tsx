@@ -132,6 +132,7 @@ export default function Problem() {
   const [error, setError] = useState('');
   const [hintSignal, setHintSignal] = useState(0);
   const attempted = useRef(false);
+  const canExecuteRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latest = useRef({ source: '', language: null as Language | null });
   latest.current = { source, language };
@@ -218,6 +219,7 @@ export default function Problem() {
   const runtimeKnown = Object.keys(runtimes).length > 0;
   const runtimeReady = !runtimeKnown || runtimes[lang];
   const canExecute = Boolean(features?.code_execution) && runtimeReady && !problem.locked;
+  canExecuteRef.current = canExecute && !pending;
   const verdict = result?.status === 'done' ? VERDICT[result.verdict] ?? { label: result.verdict, tone: 'info' as Tone } : null;
   const VerdictIcon = verdict ? TONE_ICON[verdict.tone] : CheckCircle2;
 
@@ -313,6 +315,8 @@ export default function Problem() {
             diagnostics={diagnostics}
             ariaLabel={`${LANGUAGE_LABEL[lang]} solution editor`}
             assistMode="learning"
+            onRun={() => { if (canExecuteRef.current) execute('run'); }}
+            onSubmit={() => { if (canExecuteRef.current) execute('submit'); }}
           />
           <p id="editor-keyboard-help" className="sr-only">Press Escape, then Tab, to move focus out of the editor.</p>
 
@@ -346,6 +350,10 @@ export default function Problem() {
           ) : !runtimeReady ? (
             <Alert className="border-warning/40 bg-warning/10"><AlertTriangle /><AlertDescription>The {LANGUAGE_LABEL[lang]} runner is offline. Start the execution worker, or switch language.</AlertDescription></Alert>
           ) : null}
+          <p className="hidden text-xs text-muted-foreground sm:block">
+            <kbd className="rounded border bg-muted px-1 font-mono">Ctrl</kbd>+<kbd className="rounded border bg-muted px-1 font-mono">Enter</kbd> runs ·{' '}
+            <kbd className="rounded border bg-muted px-1 font-mono">Ctrl</kbd>+<kbd className="rounded border bg-muted px-1 font-mono">Shift</kbd>+<kbd className="rounded border bg-muted px-1 font-mono">Enter</kbd> submits
+          </p>
           {features?.execution_backend === 'local_process' ? (
             <p className="text-xs text-muted-foreground">Local dev sandbox — not secure for untrusted code.</p>
           ) : null}

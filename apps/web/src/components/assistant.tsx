@@ -111,8 +111,8 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   if (!open) {
     return (
       <div className="fixed right-4 bottom-20 z-50 md:right-6 md:bottom-6">
-        <Button size="lg" className="h-11 rounded-full px-5 shadow-lg shadow-primary/25" onClick={() => setOpen(true)} aria-haspopup="dialog">
-          <Sparkles data-icon="inline-start" /> {title}
+        <Button size="lg" className="size-12 rounded-full p-0 shadow-lg shadow-primary/25 sm:h-11 sm:w-auto sm:px-5" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={title}>
+          <Sparkles className="size-5 sm:size-4" /> <span className="hidden sm:inline">{title}</span>
         </Button>
       </div>
     );

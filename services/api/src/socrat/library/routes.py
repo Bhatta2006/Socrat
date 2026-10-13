@@ -72,6 +72,17 @@ def browse(
         )
 
 
+@router.get("/stats")
+def stats():
+    cat = catalog()
+    return {
+        "courses": len(cat.courses),
+        "concepts": len(cat.concepts),
+        "problems": len(cat.problems),
+        "library": len(practice.default_index().problems),
+    }
+
+
 @router.get("/meta")
 def library_meta(request: Request):
     with Session(engine(request)) as db:

@@ -25,6 +25,7 @@ from socrat.learn import service as learn
 from socrat.mastery.model import ConceptState, band
 from socrat.models import (
     AuditEvent,
+    DailyActivity,
     DeliveredEvent,
     Draft,
     Enrollment,
@@ -221,6 +222,21 @@ def me(request: Request):
         if user is None:
             raise HTTPException(401, "authentication_required")
         return profile_view(db, user, session.csrf_token)
+
+
+@router.get("/me/summary")
+def me_summary(request: Request):
+    with Session(engine(request)) as db:
+        user = user_of(request, db)
+        enrollment = learn.active_enrollment(db, user.id)
+        if enrollment is None or enrollment.status != "active":
+            return {"streak": None, "minutes": None}
+        stamp = now()
+        day = db.get(DailyActivity, (user.id, learn.local_day(user, stamp).isoformat()))
+        return {
+            "streak": learn.streak(db, user, enrollment, stamp),
+            "minutes": {"done": day.minutes if day else 0, "goal": enrollment.minutes_per_day},
+        }
 
 
 @router.patch("/me")

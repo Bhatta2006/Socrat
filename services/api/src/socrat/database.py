@@ -11,6 +11,11 @@ def make_engine(url: str):
         @event.listens_for(engine, "connect")
         def foreign_keys(connection, _):
             connection.execute("PRAGMA foreign_keys=ON")
+            # Local demo only (production is PostgreSQL): readers never block the writer,
+            # and a briefly locked database is waited on rather than failing the request.
+            connection.execute("PRAGMA busy_timeout=15000")
+            if ":memory:" not in url:
+                connection.execute("PRAGMA journal_mode=WAL")
 
     return engine
 

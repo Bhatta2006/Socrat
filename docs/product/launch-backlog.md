@@ -48,6 +48,18 @@ Priorities:
   - Tests: unit and API tests, and an e2e journey.
   - **Follow-up:** reminders for a ready assessment belong to item 11.
 
+- **2026-10-13 — Item 12 (UI polish), parts 1–6:** done.
+  - The editor has an accessible light, dark and high-contrast syntax theme in Geist Mono, plus Ctrl/Cmd+Enter to run and +Shift to submit.
+  - The tutor button is icon-only on phones.
+  - "Open app" is hidden during onboarding, and Next's dev badge is off.
+  - The landing page counts come from a public `/library/stats`.
+  - The streak chip uses a light `/me/summary` instead of `/today`.
+  - Parts 7–10 remain: an empty-state audit, view transitions, achievements, and visual regression tests.
+- **2026-10-13 — Item 17, partly done:**
+  - Tutor tools, recommendations and the assistant context read the plan without recording revisions (`plan_for(record=False)`).
+  - The demo's SQLite uses WAL with a 15-second busy timeout.
+  - Remaining: an idempotent revision insert for concurrent page loads, and precomputing `/library` scoring.
+
 ## Summary
 
 | # | Item | Priority | Owner input needed |

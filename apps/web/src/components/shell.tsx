@@ -136,9 +136,11 @@ function UserMenu() {
 /** Streak and today's minutes, always in view: loss aversion and the goal gradient at a glance. */
 function Momentum() {
   const pathname = usePathname();
-  const [today, setToday] = useState<Today | null>(null);
+  const [today, setToday] = useState<Pick<Today, 'streak' | 'minutes'> | null>(null);
   useEffect(() => {
-    api.get<Today>('/today').then(setToday).catch(() => undefined);
+    api.get<{ streak: Today['streak'] | null; minutes: Today['minutes'] | null }>('/me/summary')
+      .then(s => setToday(s.streak && s.minutes ? { streak: s.streak, minutes: s.minutes } : null))
+      .catch(() => undefined);
   }, [pathname]);
   if (!today) return null;
   const percent = today.minutes.goal ? Math.min(100, Math.round((100 * today.minutes.done) / today.minutes.goal)) : 0;
@@ -268,7 +270,7 @@ function MarketingShell({ children }: { children: ReactNode }) {
             {pathname === '/' ? <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><a href="#how">How it works</a></Button> : null}
             {pathname === '/' ? <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><a href="#courses">Courses</a></Button> : null}
             {profile ? (
-              <Button asChild size="sm"><Link href="/today">Open app</Link></Button>
+              ['/start', '/placement'].includes(pathname) ? null : <Button asChild size="sm"><Link href="/today">Open app</Link></Button>
             ) : pathname !== '/login' ? (
               <>
                 <Button asChild variant="ghost" size="sm"><Link href="/login">Sign in</Link></Button>

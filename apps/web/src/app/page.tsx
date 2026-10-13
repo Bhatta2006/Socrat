@@ -39,7 +39,7 @@ const FEATURES = [
   { icon: Brain, title: 'Knows what you know', body: 'Every quiz, run and submission updates a mastery model. Your plan re-flows around it, every day.', wide: true },
   { icon: Code2, title: 'A real code editor', body: 'Write, run and submit in Python, C++ or Java against hidden tests — with instant, readable verdicts.' },
   { icon: MessageCircleQuestion, title: 'A tutor that teaches', body: 'Hints rise one level at a time as you work. The full answer waits until you have genuinely tried.' },
-  { icon: Library, title: '13,000+ curated problems', body: 'LeetCode, CSES and Codeforces, each tied to a concept and ranked for your level.' },
+  { icon: Library, title: 'Thousands of curated problems', body: 'LeetCode, CSES and Codeforces, each tied to a concept and ranked for your level.' },
   { icon: CalendarCheck, title: 'Fits your week', body: 'Choose minutes per day and study days. Miss one and the plan adjusts — nothing piles up.', wide: true },
 ];
 
@@ -102,12 +102,14 @@ export default function Home() {
   const { profile, loading } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [library, setLibrary] = useState(0);
 
   useEffect(() => {
     if (!loading && profile) router.replace(destination(profile, 'active') ?? '/today');
   }, [loading, profile, router]);
   useEffect(() => {
     api.get<{ items: Course[] }>('/courses').then(r => setCourses(r.items)).catch(() => undefined);
+    api.get<{ library: number }>('/library/stats').then(r => setLibrary(r.library)).catch(() => undefined);
   }, []);
 
   if (loading || profile) return <Loading />;
@@ -155,7 +157,7 @@ export default function Home() {
               [courses.length, 'courses'],
               [concepts, 'concepts taught'],
               [problems, 'judged problems'],
-              [13889, 'curated practice problems'],
+              [library, 'curated practice problems'],
             ].map(([value, label]) => (
               <div key={label as string} className="text-center">
                 <p className="text-3xl font-semibold tracking-tight"><NumberTicker value={value as number} /></p>

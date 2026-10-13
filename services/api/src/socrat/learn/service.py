@@ -267,7 +267,18 @@ def require_unlocked(
         raise HTTPException(423, "concept_locked")
 
 
-def plan_for(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int) -> Plan:
+def plan_for(
+    db: Session,
+    catalog: Catalog,
+    user: User,
+    enrollment: Enrollment,
+    now: int,
+    record: bool = True,
+) -> Plan:
+    """The learner's plan; with `record`, a changed plan is logged as a PlanRevision.
+
+    Pure readers (tutor tools, recommendations) pass record=False so they never write.
+    """
     plan = build_plan(
         catalog,
         catalog.course_concepts(enrollment.course_id),
@@ -284,7 +295,7 @@ def plan_for(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, 
     signature = hashlib.sha256(
         json.dumps([plan.pace, [a.id for a in plan.queue[:12]]], sort_keys=True).encode()
     ).hexdigest()
-    if signature != enrollment.plan_signature:
+    if record and signature != enrollment.plan_signature:
         previous = db.scalar(
             select(PlanRevision)
             .where(PlanRevision.enrollment_id == enrollment.id)

@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { Compartment, EditorState } from '@codemirror/state';
-import { EditorView, keymap, lineNumbers, highlightActiveLineGutter } from '@codemirror/view';
+import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { bracketMatching, indentOnInput, indentUnit, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { bracketMatching, indentOnInput, indentUnit, syntaxHighlighting } from '@codemirror/language';
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap, completeFromList } from '@codemirror/autocomplete';
 import { search, searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { lintGutter, setDiagnostics } from '@codemirror/lint';
@@ -11,6 +11,7 @@ import { python } from '@codemirror/lang-python';
 import { cpp } from '@codemirror/lang-cpp';
 import { java } from '@codemirror/lang-java';
 import type { CodeEditorProps } from './types';
+import { HIGHLIGHT, chrome } from './theme';
 
 const keywords = {
   python: 'def return if else elif for while in and or not True False None class import from',
@@ -18,21 +19,11 @@ const keywords = {
   java: 'public private static class int long boolean void return if else for while true false null',
 };
 function options(props: CodeEditorProps) {
-  const dark = props.theme !== 'light';
-  const contrast = props.theme === 'high-contrast';
   return [
     EditorState.readOnly.of(Boolean(props.readOnly)), EditorView.editable.of(!props.readOnly),
     EditorView.contentAttributes.of({ 'aria-label': props.ariaLabel, 'aria-describedby': 'editor-keyboard-help' }),
-    EditorView.theme({
-      '&': { height: '100%', color: dark ? '#ffffff' : '#182a24', backgroundColor: dark ? (contrast ? '#000000' : '#17251f') : '#fffdf7', fontSize: `${props.fontSize}px` },
-      '.cm-scroller': { overflow: 'auto', fontFamily: 'Consolas, monospace' },
-      '.cm-content': { minHeight: '100%', caretColor: dark ? '#fff' : '#182a24' },
-      '.cm-gutters': { color: dark ? '#f4f1d6' : '#424c42', backgroundColor: dark ? '#17251f' : '#f2eee2', borderRight: '1px solid #92998f' },
-      '&.cm-focused': { outline: `3px solid ${dark ? '#ffd45c' : '#316047'}`, outlineOffset: '-3px' },
-      '.cm-cursor': { borderLeftColor: dark ? '#fff' : '#182a24' },
-      '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { backgroundColor: dark ? '#445f52' : '#c8decb' },
-      '.cm-lint-marker': { outline: contrast ? '1px solid #fff' : 'none' },
-    }, { dark }),
+    chrome(props.theme, props.fontSize),
+    syntaxHighlighting(HIGHLIGHT[props.theme]),
     props.assistMode === 'learning' ? autocompletion({ override: [completeFromList(keywords[props.language].split(' ').map(label => ({ label, type: 'keyword' })))] }) : [],
   ];
 }
@@ -46,9 +37,13 @@ export default function CodeMirror(props: CodeEditorProps) {
     if (!host.current) return;
     const instance = new EditorView({ parent: host.current, state: EditorState.create({ doc: current.current.value, extensions: [
       { python, cpp, java }[current.current.language](), lineNumbers(), highlightActiveLineGutter(),
-      history(), search(), highlightSelectionMatches(), bracketMatching(), indentOnInput(), closeBrackets(),
+      highlightActiveLine(), history(), search(), highlightSelectionMatches(), bracketMatching(), indentOnInput(), closeBrackets(),
       indentUnit.of('    '), EditorState.tabSize.of(4), EditorView.lineWrapping,
-      syntaxHighlighting(defaultHighlightStyle), lintGutter(),
+      lintGutter(),
+      keymap.of([
+        { key: 'Mod-Enter', run: () => { current.current.onRun?.(); return Boolean(current.current.onRun); } },
+        { key: 'Mod-Shift-Enter', run: () => { current.current.onSubmit?.(); return Boolean(current.current.onSubmit); } },
+      ]),
       keymap.of([{ key: 'Escape', run: editor => { editor.setTabFocusMode(10000); return true; } }, ...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, ...searchKeymap, ...completionKeymap, indentWithTab]),
       configuration.current.of(options(current.current)),
       EditorView.updateListener.of(update => { if (update.docChanged) current.current.onChange(update.state.doc.toString()); }),

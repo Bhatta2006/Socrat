@@ -154,3 +154,14 @@ def test_codeforces_link_uses_synced_profile(client, monkeypatch):  # noqa: F811
 def test_level_view_is_bounded(rating):
     view = recommend.level_view(rating)
     assert 0 <= view["progress"] <= 1 and view["name"]
+
+
+def test_public_stats_and_light_summary(client):  # noqa: F811
+    stats = client.get("/api/v1/library/stats").json()  # no sign-in needed
+    assert stats["courses"] == 3 and stats["library"] > 10_000 and stats["problems"] > 50
+    headers = login(client)
+    assert client.get("/api/v1/me/summary").json() == {"streak": None, "minutes": None}
+    onboard(client, headers)
+    summary = client.get("/api/v1/me/summary").json()
+    assert summary["minutes"] == {"done": 0, "goal": 45}
+    assert summary["streak"]["current"] == 0 and summary["streak"]["studied_today"] is False

@@ -10,4 +10,8 @@ export interface CodeEditorProps {
   diagnostics?: EditorDiagnostic[];
   ariaLabel: string;
   assistMode: 'learning' | 'independent' | 'assessment';
+  /** Ctrl/Cmd+Enter. */
+  onRun?(): void;
+  /** Ctrl/Cmd+Shift+Enter. */
+  onSubmit?(): void;
 }
