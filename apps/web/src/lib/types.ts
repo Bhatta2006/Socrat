@@ -89,6 +89,12 @@ export interface Streak {
   current: number;
   longest: number;
   studied_today: boolean;
+  /** Streak freezes banked by meeting a full week's goal; each covers one missed day. */
+  freezes: number;
+  /** Recent days a freeze covered (ISO dates). */
+  frozen: string[];
+  week_minutes: number;
+  week_goal: number;
 }
 
 export interface ProgressNumbers {
@@ -104,6 +110,7 @@ export interface Today {
   date: string;
   study_day: boolean;
   streak: Streak;
+  days_away: number;
   minutes: { done: number; goal: number };
   done: Activity[];
   next: Activity | null;

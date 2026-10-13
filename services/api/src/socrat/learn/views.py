@@ -110,6 +110,7 @@ def today_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment
         date=learn.local_day(user, now).isoformat(),
         study_day=learn.local_day(user, now).weekday() in set(enrollment.weekdays),
         streak=learn.streak(db, user, enrollment, now),
+        days_away=learn.days_away(db, user, enrollment, now),
         minutes=dict(done=day.minutes if day else 0, goal=budget),
         done=done,
         next=pending[0] if pending else None,

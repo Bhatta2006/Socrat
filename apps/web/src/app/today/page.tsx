@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, CalendarCheck, CheckCircle2, Circle, Code2, Flame, ListChecks, RotateCcw, Sparkles, Target, Trophy } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarCheck, CheckCircle2, Circle, Code2, Flame, HeartHandshake, ListChecks, RotateCcw, Shield, Snowflake, Sparkles, Target, Trophy } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
 import { KIND_LABEL, PACE_LABEL, activityHref, conceptHref, formatDate, hours } from '@/lib/routes';
@@ -54,7 +54,7 @@ function ActivityRow({ activity, done = false }: { activity: Activity; done?: bo
 }
 
 /** Seven dots ending today: what's at stake if the learner skips. */
-function WeekStrip({ current, studiedToday }: { current: number; studiedToday: boolean }) {
+function WeekStrip({ current, studiedToday, frozen }: { current: number; studiedToday: boolean; frozen: string[] }) {
   const days = Array.from({ length: 7 }, (_, i) => 6 - i);
   return (
     <div className="flex items-end gap-1.5" aria-hidden="true">
@@ -62,16 +62,19 @@ function WeekStrip({ current, studiedToday }: { current: number; studiedToday: b
         const isToday = offset === 0;
         const lit = isToday ? studiedToday : offset <= current - (studiedToday ? 1 : 0);
         const date = new Date(Date.now() - offset * 86400000);
+        const iso = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+        const covered = frozen.includes(iso);
         return (
           <div key={offset} className="grid justify-items-center gap-1">
             <span
               className={cn(
                 'grid size-7 place-items-center rounded-full border text-[10px] font-semibold',
-                lit ? 'border-streak/40 bg-streak text-white' : 'bg-muted/50 text-muted-foreground',
+                covered ? 'border-sky-400/50 bg-sky-400/15 text-sky-600 dark:text-sky-300' : lit ? 'border-streak/40 bg-streak text-white' : 'bg-muted/50 text-muted-foreground',
                 isToday && !lit && 'border-dashed border-streak/60',
               )}
+              title={covered ? 'Covered by a streak freeze' : undefined}
             >
-              {lit ? <Flame className="size-3.5 fill-current" /> : null}
+              {covered ? <Snowflake className="size-3.5" /> : lit ? <Flame className="size-3.5 fill-current" /> : null}
             </span>
             <span className={cn('text-[10px] text-muted-foreground', isToday && 'font-semibold text-foreground')}>
               {date.toLocaleDateString(undefined, { weekday: 'narrow' })}
@@ -132,6 +135,21 @@ export default function TodayPage() {
           </div>
         </header>
       </Reveal>
+
+      {today.days_away >= 3 ? (
+        <Reveal>
+          <Card className="mb-6 border-primary/25 bg-primary/5">
+            <CardContent className="flex flex-wrap items-center gap-4">
+              <span className="grid size-10 flex-none place-items-center rounded-full bg-primary/15 text-primary"><HeartHandshake className="size-5" /></span>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-semibold">Welcome back — no catching up needed</h2>
+                <p className="text-sm text-muted-foreground">Your plan has re-flowed around the break. Start with just ten minutes; the rest of the day is optional.</p>
+              </div>
+              {today.next ? <Button asChild><Link href={activityHref(today.next.id)}>Restart with 10 minutes <ArrowRight data-icon="inline-end" /></Link></Button> : null}
+            </CardContent>
+          </Card>
+        </Reveal>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="grid min-w-0 content-start gap-6">
@@ -254,7 +272,18 @@ export default function TodayPage() {
                 <CardDescription>{today.streak.studied_today ? 'Secured for today. See you tomorrow.' : 'Study today to keep it alive.'}</CardDescription>
               </CardHeader>
               <CardContent>
-                <WeekStrip current={today.streak.current} studiedToday={today.streak.studied_today} />
+                <WeekStrip current={today.streak.current} studiedToday={today.streak.studied_today} frozen={today.streak.frozen} />
+                <div className="mt-4 grid gap-1.5 border-t pt-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Shield className={cn('size-3.5', today.streak.freezes ? 'fill-sky-400/30 text-sky-500' : 'text-muted-foreground')} />
+                      {today.streak.freezes ? `${today.streak.freezes} streak freeze${today.streak.freezes > 1 ? 's' : ''} ready` : 'Earn a streak freeze'}
+                    </span>
+                    <span className="tabular-nums text-muted-foreground">{today.streak.week_minutes}/{today.streak.week_goal} min this week</span>
+                  </div>
+                  <Progress value={today.streak.week_goal ? Math.min(100, (100 * today.streak.week_minutes) / today.streak.week_goal) : 0} className="h-1" aria-label="Weekly goal progress" />
+                  <p className="text-[11px] text-muted-foreground">Hit the week&apos;s goal to bank a freeze — it covers one missed study day.</p>
+                </div>
                 <p className="mt-3 text-xs text-muted-foreground">Longest: {today.streak.longest} days · {hours(today.minutes.goal)} per study day</p>
               </CardContent>
             </Card>

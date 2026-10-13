@@ -161,7 +161,10 @@ function Momentum() {
             {today.streak.current}
           </Link>
         </TooltipTrigger>
-        <TooltipContent>{lit ? 'Streak secured for today' : 'Study today to keep your streak'}</TooltipContent>
+        <TooltipContent>
+          {lit ? 'Streak secured for today' : 'Study today to keep your streak'}
+          {today.streak.freezes ? ` · ${today.streak.freezes} freeze${today.streak.freezes > 1 ? 's' : ''} banked` : ''}
+        </TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>

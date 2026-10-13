@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from socrat.catalog.registry import Catalog
 from socrat.database import record_event
+from socrat.learn import streaks
 from socrat.mastery import model as mastery
 from socrat.models import (
     ActivityRecord,
@@ -205,34 +206,31 @@ def bump_daily(db: Session, user: User, now: int, minutes: int = 0, solved: int 
     row.solved += solved
 
 
+def minutes_by_day(db: Session, user: User) -> dict[date, int]:
+    rows = db.execute(
+        select(DailyActivity.day, DailyActivity.minutes).where(DailyActivity.user_id == user.id)
+    )
+    return {date.fromisoformat(day): minutes or 0 for day, minutes in rows}
+
+
 def streak(db: Session, user: User, enrollment: Enrollment, now: int) -> dict:
-    """Consecutive scheduled study days with activity; rest days never break a streak."""
-    today = local_day(user, now)
-    days = {
-        date.fromisoformat(d)
-        for d in db.scalars(select(DailyActivity.day).where(DailyActivity.user_id == user.id))
-    }
-    weekdays = set(enrollment.weekdays)
-    current = 0
-    cursor = today if today in days else today - timedelta(days=1)
-    start = date.fromtimestamp(enrollment.created_at) - timedelta(days=1)
-    while cursor >= start:
-        if cursor in days:
-            current += 1
-        elif cursor.weekday() in weekdays:
-            break
-        cursor -= timedelta(days=1)
-    longest = run = 0
-    if days:
-        cursor = min(days)
-        while cursor <= today:
-            if cursor in days:
-                run += 1
-                longest = max(longest, run)
-            elif cursor.weekday() in weekdays:
-                run = 0
-            cursor += timedelta(days=1)
-    return {"current": current, "longest": max(longest, current), "studied_today": today in days}
+    """Consecutive scheduled study days with activity; earned freezes cover missed days."""
+    return streaks.compute(
+        minutes_by_day(db, user),
+        local_day(user, now),
+        set(enrollment.weekdays),
+        date.fromtimestamp(enrollment.created_at) - timedelta(days=1),
+        enrollment.minutes_per_day,
+    )
+
+
+def days_away(db: Session, user: User, enrollment: Enrollment, now: int) -> int:
+    return streaks.days_away(
+        set(minutes_by_day(db, user)),
+        local_day(user, now),
+        set(enrollment.weekdays),
+        date.fromtimestamp(enrollment.created_at),
+    )
 
 
 def gate_cooldowns(db: Session, enrollment: Enrollment) -> dict[str, int]:
