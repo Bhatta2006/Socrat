@@ -55,10 +55,12 @@ Priorities:
   - The landing page counts come from a public `/library/stats`.
   - The streak chip uses a light `/me/summary` instead of `/today`.
   - Parts 7–10 remain: an empty-state audit, view transitions, achievements, and visual regression tests.
-- **2026-10-13 — Item 17, partly done:**
+- **2026-10-13 — Item 17, mostly done:**
   - Tutor tools, recommendations and the assistant context read the plan without recording revisions (`plan_for(record=False)`).
   - The demo's SQLite uses WAL with a 15-second busy timeout.
-  - Remaining: an idempotent revision insert for concurrent page loads, and precomputing `/library` scoring.
+  - Plan revisions are recorded with a compare-and-swap on the enrollment's plan signature, so racing page loads log one revision. A test reproduces the race.
+  - `/library` "Recommended" scores the library once per learner state (an in-process LRU of 64 score maps, keyed by a fingerprint of everything scoring reads, refreshed hourly). Rating windows are computed once per concept, not once per problem. A cache miss dropped from about 65 ms to 33 ms for 13,889 problems; paging and re-filtering reuse the map.
+  - Remaining from the table: the monthly Codeforces snapshot job, the licence review of company data (owner), and a nightly `--repeat-each=5` e2e run.
 
 - **2026-10-13 — Item 11 (retention), in-app parts:** done.
   - Earned streak freezes: one per fully met week, at most 2 banked, each covering one missed study day.

@@ -54,6 +54,7 @@ class Learner:
     native_solved: set[str] = field(default_factory=set)  # Socrat's own judged problems
     locked: set[str] = field(default_factory=set)  # concepts behind an unpassed gate
     upsolve: list[tuple[str, int]] = field(default_factory=list)  # (problem id, days since tried)
+    _windows: dict = field(default_factory=dict, repr=False, compare=False)
 
     def band(self, concept: str) -> str:
         return band(self.states.get(concept, ConceptState()), self.now)
@@ -85,6 +86,13 @@ def platform_weight(learner: Learner, platform: str, stretch: bool = False) -> f
 
 
 def window(learner: Learner, concept: str, stretch: bool = False) -> tuple[int, int]:
+    key = (concept, stretch)
+    if key not in learner._windows:  # one per concept, not one per problem
+        learner._windows[key] = _window(learner, concept, stretch)
+    return learner._windows[key]
+
+
+def _window(learner: Learner, concept: str, stretch: bool) -> tuple[int, int]:
     tier = ladder.tier_of(concept)
     level = learner.rating if tier <= learner.rating else (learner.rating + tier) // 2
     low, high = BAND_WINDOW[learner.band(concept)]
@@ -115,6 +123,24 @@ def score(learner: Learner, problem: dict, concept: str, stretch: bool = False) 
     value += 0.1 * min(1.0, math.log10(problem.get("solvers", 0) + 1) / 5)
     value += 0.3 if problem["id"] in learner.attempted else 0.0  # finish what you started
     return value + _jitter(learner.seed, problem["id"])
+
+
+def fingerprint(learner: Learner) -> str:
+    """Everything `score` depends on; equal fingerprints rank the library identically."""
+    states = sorted(
+        (c, round(s.alpha, 3), round(s.beta, 3), s.next_review_at, s.assumed)
+        for c, s in learner.states.items()
+    )
+    parts = [
+        learner.course,
+        learner.rating,
+        learner.seed,
+        learner.now // 3600,  # bands age with time; hourly is fine for a list order
+        sorted(learner.solved),
+        sorted(learner.attempted),
+        states,
+    ]
+    return hashlib.sha256(repr(parts).encode()).hexdigest()
 
 
 def best_for(

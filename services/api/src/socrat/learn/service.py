@@ -9,8 +9,9 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import set_committed_value
 
 from socrat.catalog.registry import Catalog
 from socrat.database import record_event
@@ -293,7 +294,7 @@ def plan_for(
     signature = hashlib.sha256(
         json.dumps([plan.pace, [a.id for a in plan.queue[:12]]], sort_keys=True).encode()
     ).hexdigest()
-    if record and signature != enrollment.plan_signature:
+    if record and signature != enrollment.plan_signature and _claim(db, enrollment, signature):
         previous = db.scalar(
             select(PlanRevision)
             .where(PlanRevision.enrollment_id == enrollment.id)
@@ -314,8 +315,30 @@ def plan_for(
                 created_at=now,
             )
         )
-        enrollment.plan_signature = signature
     return plan
+
+
+def _claim(db: Session, enrollment: Enrollment, signature: str) -> bool:
+    """Compare-and-swap the plan signature so concurrent page loads log one revision.
+
+    Only the request whose UPDATE still sees the old signature records the change; the
+    others (Postgres re-checks the WHERE after the winner commits) skip it.
+    """
+    current = enrollment.plan_signature
+    same = (
+        Enrollment.plan_signature.is_(None)
+        if current is None
+        else Enrollment.plan_signature == current
+    )
+    result = db.execute(
+        update(Enrollment)
+        .where(Enrollment.id == enrollment.id, same)
+        .values(plan_signature=signature)
+        .execution_options(synchronize_session=False)
+    )
+    claimed = result.rowcount if isinstance(result, CursorResult) else 0
+    set_committed_value(enrollment, "plan_signature", signature)
+    return claimed == 1
 
 
 def latest_revisions(db: Session, enrollment: Enrollment, limit: int = 5) -> list[dict]:

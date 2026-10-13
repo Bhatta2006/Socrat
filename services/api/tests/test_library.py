@@ -203,3 +203,26 @@ def test_autosync_refreshes_stale_accounts(client, monkeypatch):  # noqa: F811
     assert account["solved"] == 2
     exported = client.get("/api/v1/me/export").json()
     assert any(e["kind"] == "verified" for e in exported["evidence"])
+
+
+def test_library_ranking_is_cached_per_learner_state_and_matches_direct_scoring():
+    from socrat.catalog.practice import default_index
+    from socrat.library import service
+
+    index = default_index()
+    states = {"dsa:arrays-hashing": strong()}
+    learner = recommend.Learner(course="dsa", states=states, now=NOW, rating=1300, seed="s")
+    fits = service.fits_for("u1", learner, index, "dsa:arrays-hashing")
+    again = recommend.Learner(course="dsa", states=states, now=NOW, rating=1300, seed="s")
+    assert service.fits_for("u1", again, index, "dsa:arrays-hashing") is fits
+
+    for pid in index.by_concept["dsa:arrays-hashing"][:50]:
+        direct = recommend.score(learner, index.problems[pid], "dsa:arrays-hashing")
+        assert fits.get(pid) == direct
+
+    solved = next(iter(fits))
+    moved = recommend.Learner(
+        course="dsa", states=states, now=NOW, rating=1300, seed="s", solved={solved}
+    )
+    refreshed = service.fits_for("u1", moved, index, "dsa:arrays-hashing")
+    assert refreshed is not fits and solved not in refreshed

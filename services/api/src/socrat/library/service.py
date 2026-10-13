@@ -1,5 +1,8 @@
 """Library state for one learner: marks, linked accounts, listings and recommendations."""
 
+import threading
+from collections import OrderedDict
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -117,6 +120,42 @@ def row(catalog: Catalog, learner: recommend.Learner, problem: dict, marks: dict
     )
 
 
+_FITS: OrderedDict[tuple[str, str, str], dict[str, float]] = OrderedDict()
+_FITS_SIZE = 64
+_FITS_LOCK = threading.Lock()
+
+
+def fits_for(
+    user_id: str, learner: recommend.Learner, index: practice.PracticeIndex, concept: str
+) -> dict[str, float]:
+    """How well each library problem suits the learner now, cached per learner state.
+
+    Scoring the whole library costs tens of milliseconds; paging, filtering and re-sorting
+    reuse one score map until the learner's state (or the hour) changes.
+    """
+    key = (user_id, concept, recommend.fingerprint(learner))
+    with _FITS_LOCK:
+        if key in _FITS:
+            _FITS.move_to_end(key)
+            return _FITS[key]
+    fits = {}
+    pool = (
+        (index.problems[i] for i in index.by_concept.get(concept, []))
+        if concept
+        else index.problems.values()
+    )
+    for p in pool:
+        primary = concept or (p["concepts"][0] if p["concepts"] else "")
+        value = recommend.score(learner, p, primary)
+        if value is not None:
+            fits[p["id"]] = value
+    with _FITS_LOCK:
+        _FITS[key] = fits
+        while len(_FITS) > _FITS_SIZE:
+            _FITS.popitem(last=False)
+    return fits
+
+
 def listing(
     db: Session,
     catalog: Catalog,
@@ -152,13 +191,8 @@ def listing(
     if status == "unsolved":
         items = [p for p in items if p["id"] not in learner.solved]
     if sort == "recommended":
-
-        def fit(p: dict) -> float:
-            primary = concept or (p["concepts"][0] if p["concepts"] else "")
-            value = recommend.score(learner, p, primary)
-            return -(value if value is not None else -1.0)
-
-        items.sort(key=lambda p: (fit(p), p["id"]))
+        fits = fits_for(user.id, learner, index, concept)
+        items.sort(key=lambda p: (-fits.get(p["id"], -1.0), p["id"]))
     elif sort == "easiest":
         items.sort(key=lambda p: (practice.rating_of(p), p["id"]))
     elif sort == "hardest":
