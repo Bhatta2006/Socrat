@@ -11,6 +11,8 @@ export default defineConfig({
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,
   reporter: 'list',
+  // The dev server compiles each route on first visit; give cold navigations room.
+  expect: { timeout: 15_000 },
   use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure' },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], channel } },

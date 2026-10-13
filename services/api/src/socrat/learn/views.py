@@ -23,6 +23,7 @@ from socrat.models import (
     Submission,
     User,
 )
+from socrat.models import now as now_seconds
 from socrat.planner.engine import Plan
 
 LANGUAGES = {"python": "Python", "cpp": "C++", "java": "Java"}
@@ -44,6 +45,21 @@ def course_card(catalog: Catalog, course_id: str) -> dict:
         concept_count=len(course.concepts),
         problem_count=len(course.problems),
     )
+
+
+def lock_info(
+    db: Session, catalog: Catalog, enrollment: Enrollment | None, concept: str
+) -> dict | None:
+    """Which checkpoint must be passed before this concept can be practised, if any."""
+    if enrollment is None or enrollment.status != "active":
+        return None
+    gate = learn.locked_concepts(db, catalog, enrollment, now_seconds()).get(concept)
+    if gate is None:
+        return None
+    module_key = gate.removeprefix("checkpoint:")
+    course_id, module_id = module_key.split(":", 1)
+    title = next(m.title for m in catalog.course(course_id).modules if m.id == module_id)
+    return dict(gate=gate, module=title)
 
 
 def describe(catalog: Catalog, activity_id: str) -> dict:
@@ -130,9 +146,19 @@ def plan_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment,
                 course=catalog.course(course_id).title,
                 bridge=course_id != enrollment.course_id,
                 concepts=[],
+                locked_by=None,
             )
             modules.append(index[module_key])
         index[module_key]["concepts"].append(item)
+        if item.get("locked_by"):
+            gate_module = item["locked_by"].removeprefix("checkpoint:")
+            gate_course, gate_id = gate_module.split(":", 1)
+            index[module_key]["locked_by"] = dict(
+                gate=item["locked_by"],
+                module=next(
+                    m.title for m in catalog.course(gate_course).modules if m.id == gate_id
+                ),
+            )
     target = enrollment.goal.get("target_date")
     on_track = None if not target else plan.projected_finish <= target
     current = next((r for r in plan.roadmap if r["status"] in {"in_progress", "upcoming"}), None)
@@ -217,6 +243,7 @@ def concept_view(
             for p in catalog.prerequisites[qualified]
         ],
         band=current_band,
+        locked=lock_info(db, catalog, enrollment, qualified),
         lesson_done=f"lesson:{qualified}" in completed,
         quiz_done=f"quiz:{qualified}" in completed,
         language=language,
@@ -265,6 +292,7 @@ def problem_view(
         starter=problem.starter.get(language) or STARTERS[language],  # type: ignore[call-overload]
         draft=draft.source if draft else None,
         solved=problem_id in solved_problems(db, user.id),
+        locked=lock_info(db, catalog, enrollment, concept),
         history=[
             dict(
                 id=s.id,

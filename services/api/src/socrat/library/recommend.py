@@ -52,6 +52,7 @@ class Learner:
     seed: str = ""  # rotates near-ties so suggestions change from day to day
     course_concepts: set[str] = field(default_factory=set)
     native_solved: set[str] = field(default_factory=set)  # Socrat's own judged problems
+    locked: set[str] = field(default_factory=set)  # concepts behind an unpassed gate
 
     def band(self, concept: str) -> str:
         return band(self.states.get(concept, ConceptState()), self.now)
@@ -151,7 +152,7 @@ def focus(
     seen: set[str] = set()
 
     def add(concept: str, kind: str, reason: str):
-        if concept not in seen:
+        if concept not in seen and concept not in learner.locked:
             seen.add(concept)
             picks.append((concept, kind, reason))
 
@@ -213,7 +214,7 @@ def focus(
 
 def native_for(catalog: Catalog, learner: Learner, concept: str) -> list[dict]:
     """Socrat's own problems for a concept (run and judged in the app), unsolved first."""
-    if concept not in catalog.concepts:
+    if concept not in catalog.concepts or concept in learner.locked:
         return []
     order = {"easy": 0, "medium": 1, "hard": 2}
     problems = sorted(
@@ -274,7 +275,12 @@ def next_topics(
     seen: set[str] = set()
 
     def add(concept: str, reason: str, kind: str):
-        if concept in seen or concept not in catalog.concepts or len(topics) >= limit:
+        if (
+            concept in seen
+            or concept not in catalog.concepts
+            or concept in learner.locked
+            or len(topics) >= limit
+        ):
             return
         seen.add(concept)
         c = catalog.concept(concept)

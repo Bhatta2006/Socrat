@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { AlertTriangle, CheckCircle2, ChevronDown, Clock, Cloud, CloudOff, Lightbulb, Loader2, Play, Send, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronDown, Clock, Cloud, CloudOff, Lightbulb, Loader2, Lock, Play, Send, Trophy, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, explain } from '@/lib/api';
 import { useGuard, useSession } from '@/lib/session';
-import { LANGUAGE_LABEL, conceptHref, formatStamp } from '@/lib/routes';
+import { LANGUAGE_LABEL, activityHref, conceptHref, formatStamp } from '@/lib/routes';
 import type { Case, Language, ProblemView, Submission } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import CodeEditor from '@/components/code-editor';
@@ -217,7 +217,7 @@ export default function Problem() {
 
   const runtimeKnown = Object.keys(runtimes).length > 0;
   const runtimeReady = !runtimeKnown || runtimes[lang];
-  const canExecute = Boolean(features?.code_execution) && runtimeReady;
+  const canExecute = Boolean(features?.code_execution) && runtimeReady && !problem.locked;
   const verdict = result?.status === 'done' ? VERDICT[result.verdict] ?? { label: result.verdict, tone: 'info' as Tone } : null;
   const VerdictIcon = verdict ? TONE_ICON[verdict.tone] : CheckCircle2;
 
@@ -331,6 +331,15 @@ export default function Problem() {
           </div>
           {useCustom ? (
             <Textarea className="font-mono text-sm" rows={4} value={customInput} onChange={e => setCustomInput(e.target.value)} maxLength={20000} aria-label="Custom input" placeholder="Input to feed your program when you press Run" />
+          ) : null}
+          {problem.locked ? (
+            <Alert className="border-primary/30 bg-primary/5">
+              <Lock className="text-primary" />
+              <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+                <span>This problem unlocks when you pass the <strong className="text-foreground">{problem.locked.module}</strong> checkpoint.</span>
+                <Button asChild size="sm" className="no-underline!"><Link href={activityHref(problem.locked.gate)}><Trophy data-icon="inline-start" /> Go to checkpoint</Link></Button>
+              </AlertDescription>
+            </Alert>
           ) : null}
           {!features?.code_execution ? (
             <Alert><AlertDescription>Code execution is turned off on this server. Your drafts still save, and the tutor can review your code.</AlertDescription></Alert>

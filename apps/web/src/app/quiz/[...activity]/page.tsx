@@ -3,16 +3,15 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, CheckCircle2, Info, XCircle } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, Clock, Heart, Lock, Trophy, Unlock, XCircle } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { KIND_LABEL, conceptHref, joinSegments } from '@/lib/routes';
-import type { ActivityKind, QuizQuestion, QuizSession } from '@/lib/types';
+import { KIND_LABEL, conceptHref, formatStamp, joinSegments } from '@/lib/routes';
+import type { ActivityKind, Gate, QuizQuestion, QuizSession } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { BackLink, ErrorNote, Loading, Ring } from '@/components/common';
 import { Choice } from '@/components/choice';
 import { celebrate } from '@/components/celebrate';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -66,6 +65,89 @@ function Segments({ questions, index }: { questions: QuizQuestion[]; index: numb
   );
 }
 
+/** Difficulty climbs with each correct answer; misses are limited. The stakes stay visible. */
+function GateMeter({ gate, asked }: { gate: Gate; asked: number }) {
+  const position = Math.max(0, gate.levels.indexOf(gate.level));
+  const left = gate.max_strikes - gate.strikes;
+  return (
+    <Card size="sm" className="mb-8">
+      <CardContent className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-medium"><Lock className="size-4 text-primary" /> Checkpoint · {gate.module}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {gate.unlocks ? <>Pass to unlock <span className="font-medium text-foreground">{gate.unlocks}</span>. </> : null}
+            Questions get harder each time you&apos;re right. Results at the end.
+          </p>
+          <div className="mt-3 flex items-end gap-1.5" role="img" aria-label={`Difficulty level ${position + 1} of ${gate.levels.length}`}>
+            {gate.levels.map((level, i) => (
+              <span
+                key={level}
+                className={cn('w-8 rounded-sm transition-all duration-500', i <= position ? 'bg-primary' : 'bg-muted')}
+                style={{ height: `${10 + i * 8}px` }}
+              />
+            ))}
+            <span className="ml-2 text-xs text-muted-foreground">Difficulty {position + 1}/{gate.levels.length}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-5 text-sm">
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">Question</p>
+            <p className="font-semibold tabular-nums">{asked} <span className="font-normal text-muted-foreground">/ up to {gate.max_items}</span></p>
+          </div>
+          <div className="text-center" aria-label={`${left} misses left`}>
+            <p className="text-xs text-muted-foreground">Misses left</p>
+            <p className="flex justify-center gap-0.5">
+              {Array.from({ length: gate.max_strikes }, (_, i) => (
+                <Heart key={i} className={cn('size-4', i < left ? 'fill-destructive text-destructive' : 'text-muted-foreground/40')} />
+              ))}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function GateResult({ gate }: { gate: Gate }) {
+  const percent = Math.round((gate.score ?? 0) * 100);
+  if (gate.passed) {
+    return (
+      <Card className="mb-8 overflow-hidden border-0 bg-gradient-to-br from-success/15 via-card to-card ring-success/30 animate-in fade-in zoom-in-95 duration-500">
+        <CardContent className="flex flex-wrap items-center gap-6 py-2">
+          <span className="grid size-24 place-items-center rounded-full bg-success/15 text-success"><Unlock className="size-10" /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-muted-foreground">Checkpoint passed · {percent}% weighted score</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight">{gate.unlocks ? `${gate.unlocks} unlocked` : 'Course checkpoint passed'}</h1>
+            <p className="mt-2 text-muted-foreground">
+              You held up as the questions got harder — {gate.hard_correct} right at the top level. Your plan now opens the next module.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <Card className="mb-8 animate-in fade-in zoom-in-95 duration-500">
+      <CardContent className="flex flex-wrap items-center gap-6 py-2">
+        <Ring value={percent} size={104} stroke={9} label={<span className="text-xl">{percent}%</span>} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-muted-foreground">Checkpoint · {gate.module}</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Not yet — and that&apos;s useful</h1>
+          <p className="mt-2 text-muted-foreground">
+            Passing needs {Math.round(gate.pass_score * 100)}% and {gate.hard_needed} right at the hardest level ({gate.hard_correct} this time).
+            Your plan added focused reviews on the weakest topics.
+          </p>
+          {gate.retry_at ? (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm">
+              <Clock className="size-4 text-primary" /> Next attempt opens {formatStamp(gate.retry_at)}
+            </p>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Quiz() {
   const allowed = useGuard('active');
   const params = useParams<{ activity: string[] }>();
@@ -110,9 +192,12 @@ export default function Quiz() {
   const total = session?.questions.length ?? 0;
   const showResults = Boolean(session?.completed && (session.feedback === 'at_end' || index === total));
   const percent = Math.round((session?.score ?? 0) * 100);
+  const gatePassed = session?.gate?.passed;
   useEffect(() => {
-    if (showResults && percent >= 80) celebrate(percent === 100 ? 'big' : 'small');
-  }, [showResults, percent]);
+    if (!showResults) return;
+    if (gatePassed) celebrate('big');
+    else if (gatePassed === undefined && percent >= 80) celebrate(percent === 100 ? 'big' : 'small');
+  }, [showResults, percent, gatePassed]);
 
   if (!allowed || (!session && !error)) return <Loading />;
   if (!session) return <div className="mx-auto max-w-3xl p-6"><ErrorNote message={error} retry={load} /></div>;
@@ -126,6 +211,7 @@ export default function Quiz() {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-24 sm:px-6 md:pt-8">
         <BackLink href="/today">Today</BackLink>
+        {session.gate ? <GateResult gate={session.gate} /> : (
         <Card className="mb-8 animate-in fade-in zoom-in-95 duration-500">
           <CardContent className="flex flex-wrap items-center gap-6 py-2">
             <Ring value={percent} size={104} stroke={9} tone={percent >= 80 ? 'success' : 'primary'} label={<span className="text-xl">{percent}%</span>} />
@@ -141,6 +227,7 @@ export default function Quiz() {
             </div>
           </CardContent>
         </Card>
+        )}
         {wrong.length ? (
           <section className="mb-8">
             <h2 className="mb-3 text-lg font-semibold">Worth another look</h2>
@@ -166,7 +253,11 @@ export default function Quiz() {
           </section>
         ) : null}
         <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg" className="h-10 px-5"><Link href="/today">Continue <ArrowRight data-icon="inline-end" /></Link></Button>
+          <Button asChild size="lg" className="h-10 px-5">
+            <Link href={session.gate?.passed ? '/plan' : '/today'}>
+              {session.gate?.passed ? <><Trophy data-icon="inline-start" /> See what&apos;s unlocked</> : 'Continue'} <ArrowRight data-icon="inline-end" />
+            </Link>
+          </Button>
           <Button asChild size="lg" variant="outline" className="h-10"><Link href="/progress">See progress</Link></Button>
         </div>
       </div>
@@ -181,12 +272,9 @@ export default function Quiz() {
       <BackLink href="/today">Today</BackLink>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
         <p className="text-sm font-medium">{title}{topic ? <span className="text-muted-foreground"> · {topic}</span> : null}</p>
-        <p className="text-sm text-muted-foreground tabular-nums">Question {Math.min(index + 1, total)} of {total}</p>
+        {session.gate ? null : <p className="text-sm text-muted-foreground tabular-nums">Question {Math.min(index + 1, total)} of {total}</p>}
       </div>
-      <Segments questions={session.questions} index={index} />
-      {kind === 'checkpoint' ? (
-        <Alert className="mb-6"><Info /><AlertDescription>Checkpoint: results appear at the end. Take your time — there&apos;s no timer.</AlertDescription></Alert>
-      ) : null}
+      {session.gate ? <GateMeter gate={session.gate} asked={Math.min(index + 1, total)} /> : <Segments questions={session.questions} index={index} />}
 
       <div key={q.id} className="grid gap-5 animate-in fade-in slide-in-from-right-4 duration-300">
         {kind === 'checkpoint' ? <Badge variant="outline" className="w-fit">{q.concept_title}</Badge> : null}

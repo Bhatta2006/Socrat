@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
-import { AlertTriangle, ArrowRight, BookMarked, CheckCircle2, Code2, ExternalLink, Lightbulb, ListChecks, Sparkles, Wand2 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BookMarked, CheckCircle2, Code2, ExternalLink, Lightbulb, ListChecks, Lock, Sparkles, Trophy, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, explain } from '@/lib/api';
 import { useGuard, useSession } from '@/lib/session';
@@ -111,6 +111,16 @@ export default function Lesson() {
             <p className="mt-3 text-lg text-muted-foreground text-pretty">{concept.summary}</p>
           </header>
 
+          {concept.locked ? (
+            <Alert className="mb-6 border-primary/30 bg-primary/5">
+              <Lock className="text-primary" />
+              <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+                <span>Preview: this topic unlocks when you pass the <strong className="text-foreground">{concept.locked.module}</strong> checkpoint. Read ahead freely — practice opens after the checkpoint.</span>
+                <Button asChild size="sm" className="no-underline!"><Link href={activityHref(concept.locked.gate)}><Trophy data-icon="inline-start" /> Go to checkpoint</Link></Button>
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           {weakPrereqs.length ? (
             <Alert className="mb-6 border-warning/40 bg-warning/10">
               <AlertTriangle className="text-warning" />
@@ -177,7 +187,7 @@ export default function Lesson() {
                     <h2 id="finish-heading" className="font-semibold">Finished reading?</h2>
                     <p className="text-sm text-muted-foreground">Mark it done, then take the concept check.</p>
                   </div>
-                  <Button size="lg" className="h-10 px-5" disabled={!active || completing} onClick={complete}>
+                  <Button size="lg" className="h-10 px-5" disabled={!active || completing || Boolean(concept.locked)} onClick={complete}>
                     {completing ? <><Spinner /> Saving…</> : <><CheckCircle2 data-icon="inline-start" /> Mark lesson complete</>}
                   </Button>
                 </>

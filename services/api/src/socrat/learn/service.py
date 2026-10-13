@@ -24,6 +24,7 @@ from socrat.models import (
     User,
 )
 from socrat.models import ConceptState as ConceptRow
+from socrat.planner import gates
 from socrat.planner.engine import Plan, build_plan, concept_activities
 
 MAX_ACTIVITY_SECONDS = 90 * 60
@@ -234,6 +235,38 @@ def streak(db: Session, user: User, enrollment: Enrollment, now: int) -> dict:
     return {"current": current, "longest": max(longest, current), "studied_today": today in days}
 
 
+def gate_cooldowns(db: Session, enrollment: Enrollment) -> dict[str, int]:
+    """Failed, not-yet-passed gates -> when the next attempt opens."""
+    rows = db.scalars(
+        select(ActivityRecord).where(
+            ActivityRecord.enrollment_id == enrollment.id,
+            ActivityRecord.activity_id.like("checkpoint:%"),
+            ActivityRecord.completed_at.is_(None),
+        )
+    )
+    return {r.activity_id: int(r.outcome.get("retry_at", 0)) for r in rows if r.outcome}
+
+
+def locked_concepts(
+    db: Session, catalog: Catalog, enrollment: Enrollment, now: int
+) -> dict[str, str]:
+    """Concept -> the gate that must be passed first. Empty when nothing is locked."""
+    return gates.locked_concepts(
+        catalog,
+        enrollment.course_id,
+        states_for(db, enrollment),
+        completed_for(db, enrollment),
+        now,
+    )
+
+
+def require_unlocked(
+    db: Session, catalog: Catalog, enrollment: Enrollment, concept: str, now: int
+) -> None:
+    if concept in locked_concepts(db, catalog, enrollment, now):
+        raise HTTPException(423, "concept_locked")
+
+
 def plan_for(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int) -> Plan:
     plan = build_plan(
         catalog,
@@ -245,6 +278,8 @@ def plan_for(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, 
         now,
         set(enrollment.weekdays),
         enrollment.minutes_per_day,
+        course_id=enrollment.course_id,
+        cooldowns=gate_cooldowns(db, enrollment),
     )
     signature = hashlib.sha256(
         json.dumps([plan.pace, [a.id for a in plan.queue[:12]]], sort_keys=True).encode()

@@ -120,7 +120,8 @@ export interface RoadmapItem {
   concept: string;
   title: string;
   module: string;
-  status: 'mastered' | 'assumed' | 'practiced' | 'in_progress' | 'upcoming';
+  status: 'mastered' | 'assumed' | 'practiced' | 'in_progress' | 'upcoming' | 'locked';
+  locked_by?: string;
   mastery: number;
   confidence: number;
   minutes: number;
@@ -141,6 +142,7 @@ export interface PlanView {
     course: string;
     bridge: boolean;
     concepts: RoadmapItem[];
+    locked_by: LockInfo | null;
   }[];
   days: { date: string; items: Activity[]; minutes: number }[];
   reasons: string[];
@@ -266,6 +268,7 @@ export interface ConceptView {
   band: Band;
   lesson_done: boolean;
   quiz_done: boolean;
+  locked: LockInfo | null;
   language: Language;
 }
 
@@ -277,6 +280,7 @@ export interface QuizQuestion {
   prompt: string;
   code: string | null;
   options: string[];
+  difficulty: number;
   answered: boolean;
   choice: number | null;
   correct?: boolean;
@@ -291,6 +295,31 @@ export interface QuizSession {
   completed: boolean;
   score: number | null;
   feedback: 'immediate' | 'at_end';
+  gate?: Gate;
+}
+
+/** A checkpoint that unlocks the next module: an adaptive staircase graded at the end. */
+export interface Gate {
+  max_items: number;
+  max_strikes: number;
+  strikes: number;
+  levels: number[];
+  level: number;
+  hard_level: number;
+  hard_needed: number;
+  hard_correct: number;
+  pass_score: number;
+  score: number | null;
+  passed: boolean | null;
+  retry_at: number | null;
+  attempts: number;
+  module: string;
+  unlocks: string | null;
+}
+
+export interface LockInfo {
+  gate: string;
+  module: string;
 }
 
 export interface Case {
@@ -320,6 +349,7 @@ export interface Submission {
 
 export interface ProblemView {
   id: string;
+  locked: LockInfo | null;
   title: string;
   difficulty: string;
   concept: { id: string; title: string };

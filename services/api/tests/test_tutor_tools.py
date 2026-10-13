@@ -31,7 +31,7 @@ def test_every_tool_answers_for_an_enrolled_learner(client):  # noqa: F811
     assert progress["concepts"][0]["lesson"].startswith("[")
     plan, _ = call(box, "get_plan", days=3)
     assert len(plan["days"]) <= 3 and plan["projected_finish"]
-    recs, _ = call(box, "recommend_problems", concept="two pointers", count=3)
+    recs, _ = call(box, "recommend_problems", concept="arrays and hashing", count=3)
     assert len(recs["problems"]) == 3
     # Socrat's own judged problems come first, then external ones; all as name-only links.
     assert recs["problems"][0]["platform"] == "Socrat"

@@ -11,6 +11,7 @@ from typing import Literal
 
 from socrat.catalog.registry import Catalog
 from socrat.mastery.model import DAY, ConceptState
+from socrat.planner import gates
 
 Pace = Literal["support", "steady", "fast"]
 PACE_FACTOR: dict[str, float] = {"support": 1.3, "steady": 1.0, "fast": 0.7}
@@ -148,11 +149,19 @@ def build_plan(
     now: int,
     weekdays: set[int],
     minutes_per_day: int,
+    course_id: str | None = None,
+    cooldowns: dict[str, int] | None = None,
 ) -> Plan:
     if not weekdays:
         raise ValueError("at least one study weekday is required")
     pace, pace_reason = pace_of(history)
     path = catalog.closure(targets)
+    cooldowns = cooldowns or {}
+    gate_targets = (
+        gates.locked_modules(catalog, course_id, states, completed, now) if course_id else {}
+    )
+    locked = gates.locked_concepts(catalog, course_id, states, completed, now) if course_id else {}
+    locked_minutes = 0
     roadmap: list[dict] = []
     queue: list[Activity] = []
     reasons: list[str] = []
@@ -165,6 +174,24 @@ def build_plan(
     for qualified in path:
         state = states.get(qualified, ConceptState())
         concept = catalog.concept(qualified)
+        if qualified in locked:
+            # Behind a gate: shown on the roadmap and counted in the forecast, not scheduled.
+            locked_minutes += sum(
+                a.minutes for a in concept_activities(catalog, qualified, state, pace)
+            )
+            roadmap.append(
+                {
+                    "concept": qualified,
+                    "title": concept.title,
+                    "module": module_of(catalog, qualified),
+                    "status": "locked",
+                    "locked_by": locked[qualified],
+                    "mastery": round(state.effective(now), 3),
+                    "confidence": round(state.confidence, 3),
+                    "minutes": concept.estimated_minutes,
+                }
+            )
+            continue
         if state.mastered(now) or (state.assumed and state.evidence_count == 0):
             status = "mastered" if state.mastered(now) else "assumed"
             skipped += 1
@@ -196,28 +223,52 @@ def build_plan(
             queue.extend(pending)
         if qualified in last_of_module:
             module = last_of_module[qualified]
-            course_id, module_id = module.split(":", 1)
+            module_course, module_id = module.split(":", 1)
             members = seen_modules[module]
             needs = [m for m in members if not states.get(m, ConceptState()).mastered(now)]
             check_id = f"checkpoint:{module}"
+            gated_next = next((k for k, g in gate_targets.items() if g == check_id), None)
             if (
                 needs
                 and not all(states.get(m, ConceptState()).assumed for m in needs)
                 and check_id not in completed
             ):
                 title = next(
-                    x.title for x in catalog.course(course_id).modules if x.id == module_id
+                    x.title for x in catalog.course(module_course).modules if x.id == module_id
                 )
-                queue.append(
-                    Activity(
-                        check_id,
-                        "checkpoint",
-                        module,
-                        f"Checkpoint: {title}",
-                        CHECKPOINT_MINUTES,
-                        reason="Unseen mixed questions confirm the module stuck.",
+                if cooldowns.get(check_id, 0) > now:
+                    # Failed recently: strengthen the weakest concepts before the retry opens.
+                    weakest = sorted(
+                        needs, key=lambda m: states.get(m, ConceptState()).effective(now)
                     )
-                )
+                    for weak in weakest[:2]:
+                        if f"review:{weak}" not in {a.id for a in queue}:
+                            queue.append(
+                                Activity(
+                                    f"review:{weak}",
+                                    "review",
+                                    weak,
+                                    f"Review: {catalog.concept(weak).title}",
+                                    REVIEW_MINUTES,
+                                    reason=f"Strengthen this before retrying the {title} checkpoint.",
+                                )
+                            )
+                else:
+                    unlocks = (
+                        f" Passing unlocks {gates_title(catalog, gated_next)}."
+                        if gated_next
+                        else ""
+                    )
+                    queue.append(
+                        Activity(
+                            check_id,
+                            "checkpoint",
+                            module,
+                            f"Checkpoint: {title}",
+                            CHECKPOINT_MINUTES,
+                            reason="Questions get harder as you get them right." + unlocks,
+                        )
+                    )
         roadmap.append(
             {
                 "concept": qualified,
@@ -231,6 +282,12 @@ def build_plan(
         )
     if skipped:
         reasons.append(f"Skipped {skipped} concept(s) you already know; they'll get quick reviews.")
+    if locked:
+        first_gate = next(iter(locked.values()))
+        reasons.append(
+            f"Later modules unlock as you pass checkpoints — next up: "
+            f"{gates_title(catalog, first_gate.removeprefix('checkpoint:'))} checkpoint."
+        )
     reviews = sorted(
         (states[q].next_review_at, q)
         for q in path
@@ -263,11 +320,16 @@ def build_plan(
         days.append({"date": day.isoformat(), "items": items, "minutes": minutes_per_day - budget})
         if not pending_queue and not reviews:
             break
-    remaining = sum(a.minutes for a in queue)
+    remaining = sum(a.minutes for a in queue) + locked_minutes
     weekly = minutes_per_day * len(weekdays)
     weeks = remaining / weekly if weekly else 0
     finish = today + timedelta(days=math.ceil(weeks * 7))
     return Plan(pace, pace_reason, roadmap, queue, days, remaining, finish.isoformat(), reasons)
+
+
+def gates_title(catalog: Catalog, module_key: str) -> str:
+    course_id, module_id = module_key.split(":", 1)
+    return next(m.title for m in catalog.course(course_id).modules if m.id == module_id)
 
 
 def module_of(catalog: Catalog, qualified: str) -> str:

@@ -125,3 +125,26 @@ test('the practice library filters, saves and never shows raw links', async ({ p
   await expect(rows.first()).toContainText(title);
   await expect(rows.first().getByRole('button', { name: /Solved/ })).toBeVisible();
 });
+
+test('later modules are locked behind a checkpoint that gets harder', async ({ page }, info) => {
+  await signIn(page, `gate-${info.project.name}-${Date.now()}`);
+  await onboard(page, /Programming from Zero/, /never written code/);
+  await expect(page).toHaveURL(/\/today$/);
+
+  await page.goto('/plan');
+  const go = page.getByRole('link', { name: 'Go to checkpoint' }).first();
+  await expect(go).toBeVisible();
+  await go.click();
+  await expect(page).toHaveURL(/\/quiz\/checkpoint\//);
+  await expect(page.getByRole('img', { name: /Difficulty level \d of \d/ })).toBeVisible();
+  for (let i = 0; i < 12; i++) {
+    const results = page.getByRole('heading', { name: /unlocked|Not yet/ });
+    if (await results.isVisible()) break;
+    const counter = page.getByText(/^\d+ \/ up to \d+$/);
+    const before = await counter.textContent();
+    await page.getByRole('radio').first().click();
+    await page.getByRole('button', { name: 'Check answer' }).click();
+    await expect(results.or(counter.filter({ hasNotText: before ?? '' }))).toBeVisible();
+  }
+  await expect(page.getByRole('heading', { name: /unlocked|Not yet/ })).toBeVisible();
+});

@@ -17,6 +17,26 @@ Priorities:
 - **P1** is needed for a paid product.
 - **P2** strengthens retention and quality after launch.
 
+## Progress log
+
+- **2026-10-13 — Item 1 (CI readiness), local parity:**
+  - Coverage is 89%, with gateway tool-loop tests using fake SDK clients.
+  - Next.js is 16.4.0, patching GHSA-4jqv-mc3x-m676 and GHSA-3w37-wq28-93x7.
+  - The shadcn CLI is no longer a runtime dependency, and `npm audit --audit-level=high` reports no issues.
+  - Still open:
+    - CI runs only on pull requests and `main`, so it has never run on this branch. Open a PR to run it.
+    - The Postgres migration check needs Docker and has not been run locally.
+- **2026-10-13 — Item 3 (locked topics and compounding gates):** done.
+  - Module checkpoints are now gates (`planner/gates.py`, `learn/quizzes.py`).
+  - Modules unlock in course order; a gate is passed, or a module counts as known through placement or mastery.
+  - The adaptive staircase takes up to 10 items and ends after 3 misses.
+  - Passing needs a weighted score of at least 0.8 **and** two correct answers at the module's top level.
+  - A failed gate gets a 24-hour cooldown and targeted reviews.
+  - Server-side `423 concept_locked` stops practice on locked concepts; lessons stay readable as a preview.
+  - The UI covers the plan, quiz, lesson and problem pages.
+  - Tests: unit and property tests, API flow tests, and an e2e journey.
+  - **Content follow-up:** the authored quiz items only reach difficulty 3, and some modules have one or two items at their top level. Add harder items through item 5.
+
 ## Summary
 
 | # | Item | Priority | Owner input needed |

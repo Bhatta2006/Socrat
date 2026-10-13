@@ -56,6 +56,9 @@ def learner_for(
         seed=f"{user.id}:{learn.local_day(user, now).isoformat()}",
         course_concepts=set(catalog.closure(catalog.course_concepts(course))),
         native_solved=native_solved(db, user.id),
+        locked=set(learn.locked_concepts(db, catalog, enrollment, now))
+        if enrollment is not None and enrollment.status == "active"
+        else set(),
     )
 
 

@@ -469,6 +469,23 @@ async def explain(qualified: str, body: ExplainInput, request: Request):
 ACTIVITY = r"^(lesson|quiz|review|remedial|problem|checkpoint):[a-z0-9:-]{1,160}$"
 
 
+def activity_concept(cat: Catalog, activity_id: str) -> str | None:
+    kind, _, target = activity_id.partition(":")
+    if kind == "checkpoint":
+        return None  # gates check their own module
+    if kind == "problem":
+        course_id, problem = cat.problems[target]
+        return f"{course_id}:{problem.concepts[0]}"
+    return target
+
+
+def guard(db: Session, cat: Catalog, enrollment: Enrollment, activity_id: str) -> None:
+    """Concepts behind an unpassed gate can be previewed but not practised."""
+    concept = activity_concept(cat, activity_id)
+    if concept is not None:
+        learn.require_unlocked(db, cat, enrollment, concept, now())
+
+
 def valid_activity(cat: Catalog, activity_id: str) -> str:
     import re
 
@@ -496,7 +513,9 @@ def start_activity(activity_id: str, request: Request):
         with Session(engine(request)) as db, db.begin():
             user = user_of(request, db, write=True)
             enrollment = active(db, user)
-            learn.start_activity(db, enrollment, valid_activity(cat, activity_id), now())
+            activity = valid_activity(cat, activity_id)
+            guard(db, cat, enrollment, activity)
+            learn.start_activity(db, enrollment, activity, now())
     except IntegrityError:
         pass  # A concurrent request (e.g. a double-mounted page) started it first.
     return {"started": True}
@@ -510,9 +529,9 @@ def complete_lesson(activity_id: str, request: Request):
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
         enrollment = active(db, user)
-        changed = learn.complete_activity(
-            db, user, enrollment, valid_activity(cat, activity_id), now()
-        )
+        activity = valid_activity(cat, activity_id)
+        guard(db, cat, enrollment, activity)
+        changed = learn.complete_activity(db, user, enrollment, activity, now())
         return {"completed": True, "first_time": changed}
 
 
@@ -523,7 +542,7 @@ def quiz(activity_id: str, request: Request):
         user = user_of(request, db)
         enrollment = active(db, user)
         session = quizzes.open_session(db, cat, enrollment, valid_activity(cat, activity_id), now())
-        return quizzes.session_view(cat, session, enrollment.language)
+        return quizzes.session_view(cat, session, enrollment.language, db)
 
 
 @router.post("/quiz/{activity_id}/answer")
@@ -534,7 +553,7 @@ def quiz_answer(activity_id: str, body: QuizAnswer, request: Request):
         enrollment = active(db, user)
         session = quizzes.open_session(db, cat, enrollment, valid_activity(cat, activity_id), now())
         quizzes.answer(db, cat, user, enrollment, session, body.item, body.choice, now())
-        return quizzes.session_view(cat, session, enrollment.language)
+        return quizzes.session_view(cat, session, enrollment.language, db)
 
 
 # ---------------------------------------------------------------- company practice
@@ -672,6 +691,8 @@ def queue(problem_id: str, body: RunInput, request: Request, mode: str):
         user = user_of(request, db, write=True)
         enrollment = learn.active_enrollment(db, user.id)
         language = body.language or (enrollment.language if enrollment else "python")
+        if enrollment is not None and enrollment.status == "active":
+            guard(db, cat, enrollment, f"problem:{problem_id}")
         if enrollment is not None and enrollment.status == "active" and mode == "submit":
             learn.start_activity(db, enrollment, f"problem:{problem_id}", now())
         job = judge.create(

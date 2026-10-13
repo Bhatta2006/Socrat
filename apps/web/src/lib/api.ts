@@ -92,6 +92,7 @@ const MESSAGES: Record<string, string> = {
   codeforces_invalid_handle: 'Handles are 3–24 letters, digits, dots, dashes or underscores.',
   codeforces_unavailable: "Codeforces isn't answering right now. Try again in a minute.",
   not_linked: 'Link a Codeforces handle first.',
+  concept_locked: 'This topic unlocks when you pass the checkpoint before it.',
 };
 
 export function explain(error: unknown): string {

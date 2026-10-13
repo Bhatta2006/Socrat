@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, Check, CircleDot, Gauge, History, Hourglass, Target } from 'lucide-react';
+import { CalendarClock, Check, CircleDot, Gauge, History, Hourglass, Lock, Target, Trophy } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
 import { KIND_LABEL, PACE_LABEL, activityHref, conceptHref, formatDate, formatStamp, hours } from '@/lib/routes';
+import { Button } from '@/components/ui/button';
 import type { PlanView, RoadmapItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ErrorNote, Loading, Page, PageHeader, Reveal, StatCard } from '@/components/common';
@@ -19,6 +20,7 @@ const STATUS: Record<RoadmapItem['status'], { label: string; tone: string }> = {
   practiced: { label: 'Practiced', tone: 'border-primary/50 bg-primary/15 text-primary' },
   in_progress: { label: 'In progress', tone: 'border-primary text-primary ring-4 ring-primary/15' },
   upcoming: { label: 'Upcoming', tone: 'border-border text-muted-foreground' },
+  locked: { label: 'Locked', tone: 'border-dashed border-border bg-muted text-muted-foreground' },
 };
 
 export default function PlanPage() {
@@ -77,6 +79,16 @@ export default function PlanPage() {
                       <CardAction><span className="text-xs font-medium text-muted-foreground tabular-nums">{done}/{module.concepts.length}</span></CardAction>
                     </CardHeader>
                     <CardContent>
+                      {module.locked_by ? (
+                        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed bg-muted/40 px-3 py-2.5">
+                          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Lock className="size-4" /> Unlocks when you pass the <span className="font-medium text-foreground">{module.locked_by.module}</span> checkpoint.
+                          </p>
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={activityHref(module.locked_by.gate)}><Trophy data-icon="inline-start" /> Go to checkpoint</Link>
+                          </Button>
+                        </div>
+                      ) : null}
                       <Progress value={module.concepts.length ? (100 * done) / module.concepts.length : 0} className="mb-3 h-1" aria-label={`${module.title} progress`} />
                       <ul className="-mx-2 grid">
                         {module.concepts.map(c => {
@@ -84,9 +96,9 @@ export default function PlanPage() {
                           const current = c.concept === plan.current_concept;
                           return (
                             <li key={c.concept}>
-                              <Link href={conceptHref(c.concept)} className={cn('flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted', current && 'bg-primary/5')}>
+                              <Link href={conceptHref(c.concept)} className={cn('flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted', current && 'bg-primary/5', c.status === 'locked' && 'opacity-60')}>
                                 <span className={cn('grid size-6 flex-none place-items-center rounded-full border text-xs', s.tone)} aria-hidden="true">
-                                  {['mastered', 'assumed'].includes(c.status) ? <Check className="size-3.5" /> : c.status === 'in_progress' ? <CircleDot className="size-3.5" /> : null}
+                                  {['mastered', 'assumed'].includes(c.status) ? <Check className="size-3.5" /> : c.status === 'in_progress' ? <CircleDot className="size-3.5" /> : c.status === 'locked' ? <Lock className="size-3" /> : null}
                                 </span>
                                 <span className="min-w-0 flex-1 text-sm">
                                   {c.title}
