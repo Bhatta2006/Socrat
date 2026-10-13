@@ -31,6 +31,10 @@ For Claude, set `SOCRAT_AI_PROVIDER=anthropic` and `SOCRAT_ANTHROPIC_API_KEY` (m
 
 `content/practice/` holds a metadata-and-links index of LeetCode, CSES and Codeforces problems mapped to Socrat concepts (no statements or solutions). Rebuild it with `python scripts/content/import_practice.py --fetch`. Learners browse it at `/library`, mark problems solved or save them, and can link a public Codeforces handle in Settings; recommendations combine mastery, a linked rating and Socrat's own judged problems.
 
+### Owner metrics
+
+`/admin` shows the activation funnel, retention, engagement, checkpoint pass rates and content that needs review, computed from learning data. Access is limited to accounts listed in `SOCRAT_ADMIN_SUBJECTS` (a JSON list of OIDC subjects, for example `SOCRAT_ADMIN_SUBJECTS='["your-subject"]'`; with the dev sign-in the subject is your lower-cased name with dashes).
+
 This is an explicitly insecure local development sandbox. The coding workspace displays **Local dev sandbox — not secure for untrusted code**. Production still requires the existing Linux gVisor execution host and private HTTPS broker. See the archived [native execution operations](docs/archive/m6-execution.md) and the [editor ADR](docs/architecture/adr/0007-code-editor.md).
 
 Socrat is a deterministic-first personalized learning platform. V1 delivers Data Structures and Algorithms preparation for complete beginners, interview learners, and competitive programmers in Python, C++, and Java. The core platform is designed to support additional skill packs after V1 without rewriting learner state, planning, assessment, or analytics.

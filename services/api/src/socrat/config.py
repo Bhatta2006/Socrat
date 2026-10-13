@@ -116,6 +116,8 @@ class Settings(DatabaseSettings):
     ai_daily_messages: int = Field(default=150, ge=1, le=5000)
     ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
     ai_tools: bool = True  # let the tutor look up the learner's data and the library
+    # Who may open /admin: OIDC subjects (or "issuer|subject"). Empty = nobody.
+    admin_subjects: list[str] = Field(default_factory=list, max_length=50)
     # Re-sync linked Codeforces profiles in the background (off in tests: no network).
     codeforces_autosync: bool = True
     ai_tool_rounds: int = Field(default=4, ge=1, le=8)

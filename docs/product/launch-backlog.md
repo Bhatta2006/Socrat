@@ -85,6 +85,13 @@ Priorities:
   - Thumbs up and down on tutor replies (`assistant_messages.rating`), included in the export.
   - Remaining, which spends money and needs owner approval: the eval suite, cost metering and a live Anthropic run.
 
+- **2026-10-13 — Items 14 and 16 (owner analytics and content QA), first version:** done.
+  - `/admin` is gated by `SOCRAT_ADMIN_SUBJECTS`.
+  - It shows the activation funnel, the activation rate (lesson plus check within 24 hours), D1/D7/D30 retention, weekly engagement and tutor ratings.
+  - It also shows checkpoint pass rates, flagged quiz items (at least 20 answers with ≥95% or ≤10% correct), and resources learners found unhelpful.
+  - All of it is computed from learning tables, with no third-party tracker.
+  - Remaining: a drafted-content review queue (with item 5) and dashboards over time.
+
 ## Summary
 
 | # | Item | Priority | Owner input needed |

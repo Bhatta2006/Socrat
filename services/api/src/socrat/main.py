@@ -16,6 +16,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
+from socrat.admin.routes import router as admin_router
 from socrat.assessments.routes import router as assessments_router
 from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
@@ -61,6 +62,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(learner_router)
     app.include_router(library_router)
     app.include_router(assessments_router)
+    app.include_router(admin_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
