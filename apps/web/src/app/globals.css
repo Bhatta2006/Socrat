@@ -221,7 +221,7 @@
   .heatmap > span[data-level="4"] { background: var(--primary); }
 
   /* Practice workspace */
-  .workspace { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: start; }
+  .workspace { display: grid; grid-template-columns: minmax(0, var(--split-a, 5fr)) minmax(0, var(--split-b, 7fr)); gap: 16px; align-items: start; }
   .code-editor-host { height: min(62vh, 580px); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 
   /* Tutor chat */

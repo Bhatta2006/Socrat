@@ -6,6 +6,8 @@ export interface CodeEditorProps {
   onBlur(): void;
   readOnly?: boolean;
   fontSize: number;
+  /** Spaces per indent level (default 4). */
+  tabSize?: number;
   theme: 'light' | 'dark' | 'high-contrast';
   diagnostics?: EditorDiagnostic[];
   ariaLabel: string;

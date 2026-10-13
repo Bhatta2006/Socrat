@@ -23,6 +23,7 @@ function options(props: CodeEditorProps) {
     EditorState.readOnly.of(Boolean(props.readOnly)), EditorView.editable.of(!props.readOnly),
     EditorView.contentAttributes.of({ 'aria-label': props.ariaLabel, 'aria-describedby': 'editor-keyboard-help' }),
     chrome(props.theme, props.fontSize),
+    indentUnit.of(' '.repeat(props.tabSize ?? 4)), EditorState.tabSize.of(props.tabSize ?? 4),
     syntaxHighlighting(HIGHLIGHT[props.theme]),
     props.assistMode === 'learning' ? autocompletion({ override: [completeFromList(keywords[props.language].split(' ').map(label => ({ label, type: 'keyword' })))] }) : [],
   ];
@@ -38,7 +39,7 @@ export default function CodeMirror(props: CodeEditorProps) {
     const instance = new EditorView({ parent: host.current, state: EditorState.create({ doc: current.current.value, extensions: [
       { python, cpp, java }[current.current.language](), lineNumbers(), highlightActiveLineGutter(),
       highlightActiveLine(), history(), search(), highlightSelectionMatches(), bracketMatching(), indentOnInput(), closeBrackets(),
-      indentUnit.of('    '), EditorState.tabSize.of(4), EditorView.lineWrapping,
+      EditorView.lineWrapping,
       lintGutter(),
       keymap.of([
         { key: 'Mod-Enter', run: () => { current.current.onRun?.(); return Boolean(current.current.onRun); } },
@@ -61,6 +62,6 @@ export default function CodeMirror(props: CodeEditorProps) {
       const from = Math.min(line.to, line.from + Math.max(0, (d.column ?? 1) - 1));
       return { from, to: Math.min(line.to, from + 1), severity: d.severity, message: d.message };
     })));
-  }, [props.value, props.readOnly, props.fontSize, props.theme, props.assistMode, props.language, props.ariaLabel, props.diagnostics]);
+  }, [props.value, props.readOnly, props.fontSize, props.tabSize, props.theme, props.assistMode, props.language, props.ariaLabel, props.diagnostics]);
   return <div ref={host} className="code-editor-host w-full min-w-0 overflow-hidden" data-testid="code-editor" data-editor-theme={props.theme} data-assist-mode={props.assistMode} />;
 }

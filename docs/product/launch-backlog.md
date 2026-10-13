@@ -138,6 +138,12 @@ Priorities:
   - Content that changes on its own is handled: dates, greetings and weekday rows are masked, and the daily-rotating recommendations get fixed titles so page heights stay the same. Baselines were stable over three consecutive runs.
   - Baselines are per platform. Windows baselines are committed. `visual.yml` creates the Linux baselines on a manual run with `update` ticked and commits them; nightly runs then compare and upload diffs on failure.
 
+- **2026-10-14 — Item 5 step 7 (editor parity):** done.
+  - The editor toolbar has a settings popover (font size 12–20 px, indent of 2 or 4 spaces) and "Reset to starter" with a confirmation. The reset saves at once, so a quick reload cannot bring the old code back.
+  - The statement and editor panes have a resizable split: drag, or use the arrow keys on the focusable divider.
+  - Preferences persist per browser (`lib/editor-prefs.ts`). Ctrl+Enter and Ctrl+Shift+Enter were already bound.
+  - `tests/e2e/editor.spec.ts` covers all of it.
+
 ## Status at handoff (2026-10-13)
 
 **Done on `redefined`:**

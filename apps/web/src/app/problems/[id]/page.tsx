@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { AlertTriangle, CheckCircle2, ChevronDown, Clock, Cloud, CloudOff, Lightbulb, Loader2, Lock, Play, Send, Trophy, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronDown, Clock, Cloud, CloudOff, Lightbulb, Loader2, Lock, Minus, Play, Plus, RotateCcw, Send, Settings2, Trophy, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, explain } from '@/lib/api';
 import { useGuard, useSession } from '@/lib/session';
 import { LANGUAGE_LABEL, activityHref, conceptHref, formatStamp } from '@/lib/routes';
 import type { Case, Language, ProblemView, Submission } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useEditorPrefs } from '@/lib/editor-prefs';
 import CodeEditor from '@/components/code-editor';
 import { parseDiagnostics } from '@/components/code-editor/diagnostics';
 import Markdown from '@/components/markdown';
@@ -18,11 +19,16 @@ import Assistant from '@/components/assistant';
 import { celebrate } from '@/components/celebrate';
 import { BackLink, Difficulty, ErrorNote, Loading } from '@/components/common';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -164,6 +170,30 @@ export default function Problem() {
     }
   }, [problemId, lang]);
 
+  const [prefs, setPrefs] = useEditorPrefs();
+  const workspace = useRef<HTMLDivElement>(null);
+
+  /** Drag (or arrow keys) on the divider resizes the statement and editor panes. */
+  function startResize(event: React.PointerEvent<HTMLDivElement>) {
+    const box = workspace.current?.getBoundingClientRect();
+    if (!box) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const move = (e: PointerEvent) => setPrefs({ split: (e.clientX - box.left) / box.width });
+    const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop);
+  }
+
+  function resetToStarter() {
+    if (!problem) return;
+    setSource(problem.starter);
+    // Save now, not after the typing debounce: the blur that opened this dialog may have
+    // just saved the old code, and a quick reload must not bring it back.
+    latest.current = { ...latest.current, source: problem.starter };
+    void saveDraft();
+    toast('Code reset to the starter template.');
+  }
+
   function onChange(next: string) {
     setSource(next);
     setSaved('unsaved');
@@ -226,7 +256,11 @@ export default function Problem() {
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 pt-6 pb-28 sm:px-6 md:pb-10">
       <BackLink href="/today">Today</BackLink>
-      <div className="workspace">
+      <div
+        ref={workspace}
+        className="workspace"
+        style={{ '--split-a': `${prefs.split}fr`, '--split-b': `${1 - prefs.split}fr` } as React.CSSProperties}
+      >
         <Card className="min-w-0 gap-0 py-0" aria-labelledby="problem-title">
           <Tabs defaultValue="description" className="gap-0">
             <div className="border-b px-4 pt-3">
@@ -285,7 +319,24 @@ export default function Problem() {
           </Tabs>
         </Card>
 
-        <section className="grid min-w-0 gap-3" aria-label="Code workspace">
+        <section className="relative grid min-w-0 gap-3" aria-label="Code workspace">
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize statement and editor"
+            aria-valuemin={25}
+            aria-valuemax={65}
+            aria-valuenow={Math.round(prefs.split * 100)}
+            tabIndex={0}
+            onPointerDown={startResize}
+            onKeyDown={e => {
+              if (e.key === 'ArrowLeft') { e.preventDefault(); setPrefs({ split: prefs.split - 0.02 }); }
+              if (e.key === 'ArrowRight') { e.preventDefault(); setPrefs({ split: prefs.split + 0.02 }); }
+            }}
+            className="group absolute inset-y-0 -left-3 z-10 hidden w-2 cursor-col-resize touch-none items-center justify-center rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:flex"
+          >
+            <span className="h-12 w-1 rounded-full bg-border transition-colors group-hover:bg-primary/60 group-focus-visible:bg-primary" />
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label className="flex items-center gap-2 text-sm">
               <span className="sr-only">Language</span>
@@ -299,10 +350,50 @@ export default function Problem() {
                 ))}
               </NativeSelect>
             </label>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground" aria-live="polite">
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground" aria-live="polite">
               {saved === 'saving' ? <Loader2 className="size-3.5 animate-spin" /> : saved === 'saved' ? <Cloud className="size-3.5" /> : <CloudOff className="size-3.5" />}
               {saved === 'saving' ? 'Saving…' : saved === 'saved' ? 'Draft saved' : 'Unsaved changes'}
             </span>
+            <div className="flex items-center gap-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" aria-label="Editor settings"><Settings2 /></Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="grid w-60 gap-4">
+                  <div className="grid gap-2">
+                    <p className="text-sm font-medium">Font size</p>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="icon-sm" aria-label="Smaller text" disabled={prefs.fontSize <= 12} onClick={() => setPrefs({ fontSize: prefs.fontSize - 1 })}><Minus /></Button>
+                      <span className="w-12 text-center text-sm tabular-nums" aria-live="polite">{prefs.fontSize} px</span>
+                      <Button variant="outline" size="icon-sm" aria-label="Larger text" disabled={prefs.fontSize >= 20} onClick={() => setPrefs({ fontSize: prefs.fontSize + 1 })}><Plus /></Button>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <p className="text-sm font-medium" id="indent-label">Indent</p>
+                    <div className="flex gap-2" role="radiogroup" aria-labelledby="indent-label">
+                      {([2, 4] as const).map(n => (
+                        <Button key={n} variant={prefs.tabSize === n ? 'default' : 'outline'} size="sm" role="radio" aria-checked={prefs.tabSize === n} onClick={() => setPrefs({ tabSize: n })}>{n} spaces</Button>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" aria-label="Reset to starter code"><RotateCcw /></Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset to the starter code?</AlertDialogTitle>
+                    <AlertDialogDescription>Your current {LANGUAGE_LABEL[lang]} code is replaced. Past submissions stay in your history.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep my code</AlertDialogCancel>
+                    <AlertDialogAction onClick={resetToStarter}>Reset</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
           <CodeEditor
             key={lang}
@@ -310,7 +401,8 @@ export default function Problem() {
             value={source}
             onChange={onChange}
             onBlur={() => { if (saved === 'unsaved') saveDraft(); }}
-            fontSize={14}
+            fontSize={prefs.fontSize}
+            tabSize={prefs.tabSize}
             theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
             diagnostics={diagnostics}
             ariaLabel={`${LANGUAGE_LABEL[lang]} solution editor`}
