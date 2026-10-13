@@ -165,3 +165,41 @@ def test_public_stats_and_light_summary(client):  # noqa: F811
     summary = client.get("/api/v1/me/summary").json()
     assert summary["minutes"] == {"done": 0, "goal": 45}
     assert summary["streak"]["current"] == 0 and summary["streak"]["studied_today"] is False
+
+
+def test_autosync_refreshes_stale_accounts(client, monkeypatch):  # noqa: F811
+    import asyncio
+
+    from sqlalchemy import update
+    from sqlalchemy.orm import Session
+
+    from socrat.library import autosync
+    from socrat.models import LinkedAccount
+
+    headers = login(client, subject="auto", name="Ana")
+    onboard(client, headers)
+    solved = ["cf:1000A"]
+
+    async def fake(handle):
+        return {
+            "handle": "ana",
+            "rating": 1300,
+            "max_rating": 1300,
+            "rank": "pupil",
+            "solved": list(solved),
+            "attempted": [],
+            "tag_stats": {},
+        }
+
+    monkeypatch.setattr(codeforces, "fetch_profile", fake)
+    client.post("/api/v1/library/codeforces", json={"handle": "ana"}, headers=headers)
+    engine = client.app.state.engine
+    assert asyncio.run(autosync.sync_stale(engine)) == 0  # fresh: nothing to do
+    with Session(engine) as db, db.begin():
+        db.execute(update(LinkedAccount).values(synced_at=1))
+    solved.append("cf:1873A")
+    assert asyncio.run(autosync.sync_stale(engine)) == 1
+    account = client.get("/api/v1/library/codeforces").json()["account"]
+    assert account["solved"] == 2
+    exported = client.get("/api/v1/me/export").json()
+    assert any(e["kind"] == "verified" for e in exported["evidence"])

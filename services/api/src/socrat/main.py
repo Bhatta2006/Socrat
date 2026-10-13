@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import secrets
@@ -20,6 +21,7 @@ from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
 from socrat.learn.routes import router as learner_router
+from socrat.library import autosync
 from socrat.library.routes import router as library_router
 from socrat.models import User
 from socrat.schema_revision import SCHEMA_REVISION
@@ -39,7 +41,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app):
+        background = None
+        if settings.codeforces_autosync:
+            background = asyncio.create_task(autosync.run_forever(engine))
         yield
+        if background is not None:
+            background.cancel()
         engine.dispose()
 
     app = FastAPI(

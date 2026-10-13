@@ -307,3 +307,18 @@ class WeeklyAssessment(Base):
     finished_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
     report: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class FocusSprint(Base):
+    """A timed set of judged problems matched to the learner's level."""
+
+    __tablename__ = "focus_sprints"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), index=True
+    )
+    problems: Mapped[list] = mapped_column(JSON)  # Socrat problem ids, easiest first
+    started_at: Mapped[int] = mapped_column(Integer, default=now)
+    deadline: Mapped[int] = mapped_column(Integer)
+    finished_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    results: Mapped[dict] = mapped_column(JSON, default=dict)  # problem id -> seconds to solve

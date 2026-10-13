@@ -224,7 +224,7 @@ export interface Level {
 }
 
 export interface RecommendedProblem extends ExternalProblem {
-  kind: 'review' | 'practice' | 'current' | 'stretch' | 'start';
+  kind: 'review' | 'practice' | 'current' | 'stretch' | 'start' | 'upsolve';
   reason: string;
   concept: { id: string; title: string; band: Band };
   status: PracticeStatus | null;
@@ -423,4 +423,22 @@ export interface AssessmentView {
   questions: QuizQuestion[];
   coding: { id: string; title: string; difficulty: string; concept: string; solved: boolean }[];
   report: AssessmentReport | null;
+}
+
+export interface SprintView {
+  id: string;
+  started_at: number;
+  deadline: number;
+  seconds_left: number | null;
+  finished: boolean;
+  solved: number;
+  problems: { id: string; title: string; difficulty: string; concept: string; solved_after: number | null }[];
+}
+
+export interface Contest {
+  id: number;
+  name: string;
+  start: number;
+  duration_minutes: number;
+  url: string;
 }

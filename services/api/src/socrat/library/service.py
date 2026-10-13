@@ -1,6 +1,6 @@
 """Library state for one learner: marks, linked accounts, listings and recommendations."""
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from socrat.catalog import practice
@@ -34,6 +34,37 @@ def native_solved(db: Session, user_id: str) -> set[str]:
     )
 
 
+def upsolve_queue(
+    db: Session, user_id: str, marks: dict[str, PracticeMark], solved: set[str], now: int
+) -> list[tuple[str, int]]:
+    """Problems tried but not solved, oldest first: external opened 2+ days ago, judged
+    problems with a failed submit 1+ day ago."""
+    day = 86400
+    queue = [
+        (pid, (now - (m.opened_at or m.updated_at)) // day)
+        for pid, m in marks.items()
+        if m.status == "attempted"
+        and pid not in solved
+        and now - (m.opened_at or m.updated_at) >= 2 * day
+    ]
+    accepted = native_solved(db, user_id)
+    failed = db.execute(
+        select(Submission.problem_id, func.max(Submission.created_at))
+        .where(
+            Submission.user_id == user_id,
+            Submission.mode == "submit",
+            Submission.verdict != "accepted",
+        )
+        .group_by(Submission.problem_id)
+    )
+    queue += [
+        (pid, (now - last) // day)
+        for pid, last in failed
+        if pid not in accepted and now - last >= day
+    ]
+    return sorted(queue, key=lambda x: -x[1])
+
+
 def learner_for(
     db: Session, catalog: Catalog, user: User, enrollment: Enrollment | None, now: int
 ) -> recommend.Learner:
@@ -56,6 +87,7 @@ def learner_for(
         seed=f"{user.id}:{learn.local_day(user, now).isoformat()}",
         course_concepts=set(catalog.closure(catalog.course_concepts(course))),
         native_solved=native_solved(db, user.id),
+        upsolve=upsolve_queue(db, user.id, marks, solved, now),
         locked=set(learn.locked_concepts(db, catalog, enrollment, now))
         if enrollment is not None and enrollment.status == "active"
         else set(),

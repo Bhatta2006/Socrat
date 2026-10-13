@@ -96,3 +96,40 @@ async def fetch_profile(handle: str, timeout: float = 20) -> dict:
         "rank": user.get("rank", "unrated"),
         **summarize(submissions),
     }
+
+
+_contests: tuple[float, list[dict]] = (0.0, [])
+CONTEST_TTL_SECONDS = 3600
+RATED_ROUNDS = ("Div. 2", "Div. 3", "Div. 4", "Educational")
+
+
+async def upcoming_contests(days: int = 14, timeout: float = 15) -> list[dict]:
+    """Upcoming rated rounds suitable for learners; cached, and empty when unavailable."""
+    global _contests
+    fetched, cached = _contests
+    if time.monotonic() - fetched < CONTEST_TTL_SECONDS and fetched:
+        return cached
+    try:
+        async with httpx.AsyncClient(
+            timeout=timeout, headers={"User-Agent": "Socrat learning app"}
+        ) as client:
+            contests = await _call(client, "contest.list", {"gym": "false"})
+    except CodeforcesError:
+        return cached
+    horizon = time.time() + days * 86400
+    picked = [
+        {
+            "id": c["id"],
+            "name": c["name"],
+            "start": c["startTimeSeconds"],
+            "duration_minutes": c["durationSeconds"] // 60,
+            "url": f"https://codeforces.com/contests/{c['id']}",
+        }
+        for c in contests
+        if c.get("phase") == "BEFORE"
+        and c.get("startTimeSeconds", 0) <= horizon
+        and any(tag in c.get("name", "") for tag in RATED_ROUNDS)
+    ]
+    picked.sort(key=lambda c: c["start"])
+    _contests = (time.monotonic(), picked)
+    return picked

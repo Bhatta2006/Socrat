@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Building2, ChevronLeft, ChevronRight, Filter, Search, Sparkles, Star, X } from 'lucide-react';
+import { ArrowRight, Building2, CalendarClock, ChevronLeft, ChevronRight, Filter, Search, Sparkles, Star, Timer, X } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
 import { conceptHref } from '@/lib/routes';
-import type { Level as PracticeLevel, LibraryProblem, Recommendations } from '@/lib/types';
+import type { Contest, Level as PracticeLevel, LibraryProblem, Recommendations } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { BandBadge, ErrorNote, Loading, Page, PageHeader, Reveal } from '@/components/common';
 import { Level, LevelCard, PlatformTag, ProblemName, StatusControl } from '@/components/practice';
@@ -96,6 +96,7 @@ export default function Library() {
   const allowed = useGuard('active');
   const [meta, setMeta] = useState<Meta | null>(null);
   const [recs, setRecs] = useState<Recommendations | null>(null);
+  const [contests, setContests] = useState<Contest[]>([]);
   const [filters, setFilters] = useState<Filters | null>(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState<PageData | null>(null);
@@ -111,7 +112,13 @@ export default function Library() {
   useEffect(() => {
     if (!allowed) return;
     api.get<Meta>('/library/meta').then(setMeta).catch(e => setError(explain(e)));
-    api.get<Recommendations>('/library/recommendations?limit=6').then(setRecs).catch(() => undefined);
+    api.get<Recommendations>('/library/recommendations?limit=6').then(r => {
+      setRecs(r);
+      // Rated rounds only once the learner is ready for them (or has linked Codeforces).
+      if (r.codeforces || r.level.rating >= 1100) {
+        api.get<{ items: Contest[] }>('/library/contests').then(c => setContests(c.items.slice(0, 3))).catch(() => undefined);
+      }
+    }).catch(() => undefined);
   }, [allowed]);
   useEffect(() => {
     const timer = setTimeout(() => setFilters(f => (f && f.q !== search.trim() ? { ...f, q: search.trim() } : f)), 250);
@@ -192,6 +199,41 @@ export default function Library() {
           </Card>
         </Reveal>
       ) : null}
+
+      <Reveal index={2} className={cn('mb-8 grid gap-4', contests.length ? 'md:grid-cols-2' : '')}>
+        <Card className="bg-gradient-to-br from-streak/10 via-card to-card">
+          <CardContent className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid size-10 flex-none place-items-center rounded-xl bg-streak/15 text-streak"><Timer className="size-5" /></span>
+              <div>
+                <h2 className="font-semibold">Focus sprint</h2>
+                <p className="text-sm text-muted-foreground">Three judged problems just above your level, 45 minutes on the clock.</p>
+              </div>
+            </div>
+            <Button asChild variant="outline"><Link href="/sprint">Start a sprint <ArrowRight data-icon="inline-end" /></Link></Button>
+          </CardContent>
+        </Card>
+        {contests.length ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Upcoming rated rounds</CardTitle>
+              <CardDescription>Live practice on Codeforces when you feel ready</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid gap-2 text-sm">
+                {contests.map(c => (
+                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <a href={c.url} target="_blank" rel="noopener noreferrer" className="font-medium hover:text-primary hover:underline">{c.name}</a>
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {new Date(c.start * 1000).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · {Math.round(c.duration_minutes / 60 * 10) / 10} h
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        ) : null}
+      </Reveal>
 
       <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside aria-label="Filters" className="lg:sticky lg:top-20 lg:self-start">

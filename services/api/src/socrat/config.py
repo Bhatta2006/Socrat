@@ -116,6 +116,8 @@ class Settings(DatabaseSettings):
     ai_daily_messages: int = Field(default=150, ge=1, le=5000)
     ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
     ai_tools: bool = True  # let the tutor look up the learner's data and the library
+    # Re-sync linked Codeforces profiles in the background (off in tests: no network).
+    codeforces_autosync: bool = True
     ai_tool_rounds: int = Field(default=4, ge=1, le=8)
 
     # Local demo conveniences (seeded sample learners). Rejected outside development/test.
@@ -164,6 +166,8 @@ class Settings(DatabaseSettings):
         self.metrics_token = _secret_from_file(
             "metrics_token", self.metrics_token, self.metrics_token_file
         )
+        if self.environment == "test":
+            self.codeforces_autosync = False
         if self.ai_provider == "openai" and not self.openai_model:
             raise ValueError("The OpenAI provider requires SOCRAT_OPENAI_MODEL")
         if self.ai_provider == "anthropic" and not self.ai_model.startswith("claude-"):

@@ -53,6 +53,7 @@ class Learner:
     course_concepts: set[str] = field(default_factory=set)
     native_solved: set[str] = field(default_factory=set)  # Socrat's own judged problems
     locked: set[str] = field(default_factory=set)  # concepts behind an unpassed gate
+    upsolve: list[tuple[str, int]] = field(default_factory=list)  # (problem id, days since tried)
 
     def band(self, concept: str) -> str:
         return band(self.states.get(concept, ConceptState()), self.now)
@@ -244,6 +245,24 @@ def next_problems(
     out: list[dict] = []
     taken: set[str] = set()
     per_focus = 1 if limit <= 4 else 2
+    for problem_id, days in learner.upsolve[:1]:  # finish what you started, first
+        problem = _upsolve_problem(index, catalog, learner, problem_id)
+        if problem is None:
+            continue
+        taken.add(problem["id"])
+        concept = problem["concepts"][0] if problem["concepts"] else ""
+        out.append(
+            dict(
+                problem,
+                kind="upsolve",
+                reason=f"You started this {days} day{'s' if days != 1 else ''} ago — finishing it "
+                "is the fastest way to make it stick.",
+                concept=dict(
+                    id=concept, title=_title(catalog, concept), band=learner.band(concept)
+                ),
+                status="attempted",
+            )
+        )
     stocked = {c for c, ids in index.by_concept.items() if ids}
     for concept, kind, reason in focus(catalog, learner, plan, stocked):
         ref = dict(id=concept, title=_title(catalog, concept), band=learner.band(concept))
@@ -266,6 +285,26 @@ def next_problems(
         if len(out) >= limit:
             break
     return out[:limit]
+
+
+def _upsolve_problem(
+    index: PracticeIndex, catalog: Catalog, learner: Learner, problem_id: str
+) -> dict | None:
+    if problem_id in index.problems:
+        problem = index.problems[problem_id]
+        return (
+            None
+            if problem["concepts"] and problem["concepts"][0] in learner.locked
+            else public(problem)
+        )
+    if problem_id in catalog.problems:
+        course_id, native = catalog.problems[problem_id]
+        concept = f"{course_id}:{native.concepts[0]}"
+        found = [
+            p for p in native_for(catalog, learner, concept) if p["id"] == f"socrat:{problem_id}"
+        ]
+        return found[0] if found else None
+    return None
 
 
 def next_topics(

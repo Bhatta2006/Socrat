@@ -177,3 +177,13 @@ test('a weekly assessment is built from what the learner studied', async ({ page
   await expect(page.getByRole('heading', { name: 'By topic' })).toBeVisible();
   await expect(page.getByText('Programs and output').first()).toBeVisible();
 });
+
+test('a focus sprint explains what it needs before it starts', async ({ page }, info) => {
+  await signIn(page, `sprint-${info.project.name}-${Date.now()}`);
+  await onboard(page, /Programming from Zero/, /never written code/);
+  await expect(page).toHaveURL(/\/today$/);
+  await page.goto('/sprint');
+  await expect(page.getByRole('heading', { name: 'Three problems. One clock.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Start sprint' }).click();
+  await expect(page.getByText(/sprints use topics you have studied/)).toBeVisible();
+});

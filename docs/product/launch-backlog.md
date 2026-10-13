@@ -60,6 +60,17 @@ Priorities:
   - The demo's SQLite uses WAL with a 15-second busy timeout.
   - Remaining: an idempotent revision insert for concurrent page loads, and precomputing `/library` scoring.
 
+- **2026-10-13 — Item 11 (retention), in-app parts:** done.
+  - Earned streak freezes: one per fully met week, at most 2 banked, each covering one missed study day.
+  - A no-guilt "welcome back" restart after 3 or more missed study days.
+  - Still needs owner input: email and push reminders, and the weekly report email (a sending domain).
+- **2026-10-13 — Item 8 (hidden CP trajectory):** done except continuation modules.
+  - Focus sprints (`/sprint`, migration `0004_sprints`): 3 judged problems near level+100 from studied, unlocked topics, 45 minutes, with time-to-solve results.
+  - An upsolve nudge in recommendations.
+  - Upcoming rated rounds, shown only with a linked handle or a level of about 1100+.
+  - Background Codeforces re-sync of stale handles, rate-limited and off in tests.
+  - None of these labels the long-term goal.
+
 ## Summary
 
 | # | Item | Priority | Owner input needed |

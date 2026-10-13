@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 
 from socrat.catalog import practice
 from socrat.database import record_event
-from socrat.learn.routes import catalog, engine, user_of
-from socrat.library import codeforces
+from socrat.learn.routes import active, catalog, engine, user_of
+from socrat.library import codeforces, sprints
 from socrat.library import service as library
-from socrat.models import LinkedAccount, now
+from socrat.models import FocusSprint, LinkedAccount, now
 
 router = APIRouter(prefix="/api/v1/library")
 SYNC_COOLDOWN_SECONDS = 600
@@ -169,3 +169,70 @@ def unlink_codeforces(request: Request):
         account = library.account_for(db, user.id)
         if account is not None:
             db.delete(account)
+
+
+# ---------------------------------------------------------------- focus sprints and rounds
+
+
+@router.get("/sprints")
+def sprint_overview(request: Request):
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db)
+        enrollment = active(db, user)
+        stamp = now()
+        running = sprints.active(db, enrollment, stamp)
+        return {
+            "current": sprints.view(db, cat, user, running, stamp) if running else None,
+            "history": sprints.history(db, enrollment),
+        }
+
+
+@router.post("/sprints")
+def start_sprint(request: Request):
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        enrollment = active(db, user)
+        stamp = now()
+        sprint = sprints.start(db, cat, user, enrollment, stamp)
+        return sprints.view(db, cat, user, sprint, stamp)
+
+
+def owned_sprint(db: Session, enrollment_id: str, sprint_id: str) -> FocusSprint:
+    sprint = db.get(FocusSprint, sprint_id)
+    if sprint is None or sprint.enrollment_id != enrollment_id:
+        raise HTTPException(404, "not_found")
+    return sprint
+
+
+@router.get("/sprints/{sprint_id}")
+def sprint_detail(sprint_id: str, request: Request):
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db)
+        enrollment = active(db, user)
+        sprint = owned_sprint(db, enrollment.id, sprint_id)
+        stamp = now()
+        if sprint.finished_at is None and stamp > sprint.deadline:
+            sprints.finish(db, user, sprint, stamp)
+        return sprints.view(db, cat, user, sprint, stamp)
+
+
+@router.post("/sprints/{sprint_id}/finish")
+def finish_sprint(sprint_id: str, request: Request):
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        enrollment = active(db, user)
+        sprint = owned_sprint(db, enrollment.id, sprint_id)
+        stamp = now()
+        sprints.finish(db, user, sprint, stamp)
+        return sprints.view(db, cat, user, sprint, stamp)
+
+
+@router.get("/contests")
+async def contests(request: Request):
+    with Session(engine(request)) as db:
+        user_of(request, db)
+    return {"items": await codeforces.upcoming_contests()}
