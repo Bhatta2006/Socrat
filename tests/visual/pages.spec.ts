@@ -33,10 +33,19 @@ async function newLearner(page: Page) {
   await expect(page).toHaveURL(/\/today$/);
 }
 
-test('public pages', async ({ page }) => {
+test('landing page', async ({ page }) => {
+  // Keep the marketing composition independent of live catalog counts and dev banners.
+  await page.route('**/api/v1/auth/status', route => route.fulfill({ json: { profile: null } }));
+  await page.route('**/api/v1/features', route => route.fulfill({ json: {} }));
+  await page.route('**/api/v1/courses', route => route.fulfill({ json: { items: [] } }));
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await shoot(page, 'landing');
+});
+
+test('public pages', async ({ page }) => {
+  await page.route('**/api/v1/auth/status', route => route.fulfill({ json: { profile: null } }));
+  await page.route('**/api/v1/features', route => route.fulfill({ json: { dev_login: true, oidc_login: true } }));
   await page.goto('/login');
   await expect(page.getByLabel('Your name')).toBeVisible();
   await shoot(page, 'login');

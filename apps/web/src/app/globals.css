@@ -2,6 +2,48 @@
 @import "tw-animate-css";
 @import "./shadcn.css";
 
+@plugin "daisyui" {
+  themes: false;
+  include: button, collapse;
+  prefix: daisy-;
+  logs: false;
+}
+
+@plugin "daisyui/theme" {
+  name: "socrat-landing";
+  default: false;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: #f7f8f2;
+  --color-base-200: #eeece7;
+  --color-base-300: #dedbe4;
+  --color-base-content: #111214;
+  --color-primary: #c7f464;
+  --color-primary-content: #111214;
+  --color-secondary: #7c3aed;
+  --color-secondary-content: #ffffff;
+  --color-accent: #b79aff;
+  --color-accent-content: #111214;
+  --color-neutral: #1b1926;
+  --color-neutral-content: #f7f8f2;
+  --color-info: #b79aff;
+  --color-info-content: #111214;
+  --color-success: #c7f464;
+  --color-success-content: #111214;
+  --color-warning: #f0c16b;
+  --color-warning-content: #111214;
+  --color-error: #bd3545;
+  --color-error-content: #ffffff;
+  --radius-selector: 0.25rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

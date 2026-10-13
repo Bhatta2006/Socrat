@@ -2,18 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, ArrowUpRight, Check, Code2, Lightbulb, Route } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { destination, useSession } from '@/lib/session';
 import type { Features } from '@/lib/types';
 import { ErrorNote } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
+import './login.css';
 
 const PROMISES = [
   'A plan that adapts to what you actually know',
@@ -64,25 +65,26 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
   }
 
   return (
-    <div className="mx-auto grid min-h-[calc(100dvh-3.5rem)] max-w-6xl items-center gap-12 px-4 py-10 sm:px-6 md:grid-cols-2">
-      <div className="hidden md:block">
-        <span className="mb-6 grid size-11 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-          <Sparkles className="size-5" />
-        </span>
-        <h1 className="text-4xl font-semibold tracking-tight text-balance">Pick up exactly where you left off.</h1>
-        <p className="mt-4 max-w-md text-lg text-muted-foreground">Your plan, progress and code drafts are saved to your account.</p>
-        <ul className="mt-8 grid gap-3">
-          {PROMISES.map(p => (
-            <li key={p} className="flex items-center gap-2.5 text-sm"><CheckCircle2 className="size-4 text-primary" /> {p}</li>
-          ))}
-        </ul>
-      </div>
-      <Card className="mx-auto w-full max-w-md shadow-xl shadow-foreground/5">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome to Socrat</CardTitle>
-          <CardDescription>Sign in or create your account in one step.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5">
+    <div className="login-page" data-theme="socrat-landing">
+      <header className="login-header"><Link href="/" className="login-brand" aria-label="Socrat home"><span className="login-mark" aria-hidden="true"><i /><i /><i /></span>socrat<span>.</span></Link><Link href="/" className="login-back"><ArrowLeft size={16} aria-hidden="true" /> Back to home</Link></header>
+      <div className="login-layout">
+        <section className="login-story" aria-labelledby="login-story-title">
+          <div className="login-banner">
+            <p className="login-kicker"><span /> A little curiosity goes a long way</p>
+            <h2 id="login-story-title">Learn today.<br />Think further<br />tomorrow.</h2>
+            <p>Your next breakthrough starts with a question. Let’s find the answer together.</p>
+            <div className="login-art" aria-hidden="true"><div className="login-torus" /><div className="login-coil"><span /><span /><span /><span /></div><div className="login-pebble" /></div>
+            <span className="login-banner-note">Made for the way you learn <ArrowUpRight size={17} aria-hidden="true" /></span>
+          </div>
+          <div className="login-feature-grid"><article><Route size={21} aria-hidden="true" /><h3>A path of your own</h3><p>Start where you are.<br />Know what comes next.</p></article><article><Lightbulb size={21} aria-hidden="true" /><h3>Room to figure it out</h3><p>A helpful question.<br />A hint when you need it.</p></article></div>
+          <div className="login-practice"><span className="login-practice-icon"><Code2 size={21} aria-hidden="true" /></span><div><h3>One idea. So many possibilities.</h3><p>Learn and practice in Python, C++ or Java.</p></div><span className="login-practice-shape" aria-hidden="true" /></div>
+        </section>
+        <section className="login-panel" aria-labelledby="login-title">
+          <div className="login-form-content">
+          <p className="login-kicker">Your next chapter</p>
+          <h1 id="login-title">Welcome to Socrat</h1>
+          <p className="login-description">Sign in or create your account in one step.<br />Your learning journey is waiting.</p>
+          <div className="login-options">
           {/* The page renders before the session check returns (fast first paint); the
               sign-in options appear once the server says which are enabled. */}
           {!features ? (
@@ -92,7 +94,7 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
             </div>
           ) : null}
           {features?.oidc_login ? (
-            <Button asChild variant="outline" size="lg" className="h-10 w-full">
+            <Button asChild variant="outline" size="lg" className="login-google daisy-btn">
               <a href="/api/v1/auth/login"><GoogleMark /> Continue with Google</a>
             </Button>
           ) : null}
@@ -103,11 +105,11 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
             <form onSubmit={devLogin} className="grid gap-4">
               <Field>
                 <FieldLabel htmlFor="login-name">Your name</FieldLabel>
-                <Input id="login-name" className="h-10" value={name} onChange={e => setName(e.target.value)} maxLength={80} autoComplete="given-name" required autoFocus />
-                <FieldDescription>Development sign-in: the same name returns you to the same account.</FieldDescription>
+                <Input id="login-name" className="login-input" placeholder="e.g. Ada" value={name} onChange={e => setName(e.target.value)} maxLength={80} autoComplete="given-name" aria-describedby="login-name-help" required autoFocus />
+                <FieldDescription id="login-name-help">Development sign-in: the same name returns you to the same account.</FieldDescription>
               </Field>
-              <Button size="lg" className="h-10 w-full" disabled={busy || !name.trim()}>
-                {busy ? <><Spinner /> Signing in…</> : 'Sign in'}
+              <Button size="lg" className="login-submit daisy-btn" disabled={busy || !name.trim()}>
+                {busy ? <><Spinner /> Signing in…</> : <>Sign in <ArrowUpRight size={18} aria-hidden="true" /></>}
               </Button>
             </form>
           ) : null}
@@ -115,9 +117,14 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
             <p className="text-center text-sm text-muted-foreground">Sign-in is not configured on this server.</p>
           ) : null}
           {error ? <ErrorNote message={error} /> : null}
-          <p className="text-center text-xs text-muted-foreground">By continuing you agree to learn by thinking, not copying.</p>
-        </CardContent>
-      </Card>
+          </div>
+          <div className="login-reassurance"><p>Everything you need to keep going.</p><ul>{PROMISES.map(p => <li key={p}><Check size={15} aria-hidden="true" />{p}</li>)}</ul></div>
+          <p className="login-footnote">A good question is always a good start.</p>
+          </div>
+          <footer className="login-panel-footer"><span>Learn to think. Then code.</span><span>Python / C++ / Java</span></footer>
+        </section>
+      </div>
+      <footer className="login-footer"><span>© {new Date().getFullYear()} Socrat</span><span>Made for the curious.</span></footer>
     </div>
   );
 }

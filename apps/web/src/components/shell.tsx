@@ -266,12 +266,10 @@ function MarketingShell({ children }: { children: ReactNode }) {
     <>
       <a href="#main" className="skip-link">Skip to content</a>
       <DevBanner />
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      {pathname !== '/' && pathname !== '/login' ? <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link href={profile ? '/today' : '/'} aria-label="Socrat home"><Wordmark /></Link>
           <nav className="flex items-center gap-1" aria-label="Site">
-            {pathname === '/' ? <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><a href="#how">How it works</a></Button> : null}
-            {pathname === '/' ? <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><a href="#courses">Courses</a></Button> : null}
             {profile ? (
               ['/start', '/placement'].includes(pathname) ? null : <Button asChild size="sm"><Link href="/today">Open app</Link></Button>
             ) : pathname !== '/login' ? (
@@ -282,7 +280,7 @@ function MarketingShell({ children }: { children: ReactNode }) {
             ) : null}
           </nav>
         </div>
-      </header>
+      </header> : null}
       <main id="main" tabIndex={-1} className="outline-none"><PageTransition>{children}</PageTransition></main>
     </>
   );
