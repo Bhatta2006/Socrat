@@ -16,9 +16,9 @@ code run on a content machine (never on the API host), with timeouts.
 
 import difflib
 import json
+import os
 import random
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -96,9 +96,13 @@ def run_many(code: str, inputs: list[str], timeout: float = 120) -> list[tuple[b
     return [(ok, text) for ok, text in json.loads(result.stdout)]
 
 
-def run_once(command: list[str], stdin: str, timeout: float) -> tuple[str, float]:
+def run_once(
+    command: list[str], stdin: str, timeout: float, env: dict | None = None
+) -> tuple[str, float]:
     start = time.perf_counter()
-    result = subprocess.run(command, input=stdin.encode(), capture_output=True, timeout=timeout)
+    result = subprocess.run(
+        command, input=stdin.encode(), capture_output=True, timeout=timeout, env=env
+    )
     elapsed = time.perf_counter() - start
     if result.returncode:
         raise RuntimeError(result.stderr.decode(errors="replace")[-600:])
@@ -209,10 +213,13 @@ def check_timing(problem: Problem) -> Gate:
 
 
 def _compile(language: str, source: str, folder: Path) -> list[str] | None:
+    from runner.toolchains import toolchains
+
+    tools = toolchains()
+    if language not in tools:
+        return None
     if language == "cpp":
-        compiler = shutil.which("g++")
-        if not compiler:
-            return None
+        compiler = tools["cpp"][0]
         (folder / "main.cpp").write_text(source, encoding="utf-8")
         binary = folder / ("main.exe" if sys.platform == "win32" else "main")
         subprocess.run(
@@ -220,17 +227,28 @@ def _compile(language: str, source: str, folder: Path) -> list[str] | None:
             check=True,
             capture_output=True,
             timeout=120,
+            env={
+                **os.environ,
+                "PATH": str(Path(compiler).parent) + os.pathsep + os.environ.get("PATH", ""),
+            },
         )
         return [str(binary)]
-    javac, java = shutil.which("javac"), shutil.which("java")
-    if not javac or not java:
-        return None
-    (folder / "Main.java").write_text(source, encoding="utf-8")
-    subprocess.run([javac, str(folder / "Main.java")], check=True, capture_output=True, timeout=120)
-    return [java, "-cp", str(folder), "Main"]
+    if language == "python":
+        (folder / "reference.py").write_text(source, encoding="utf-8")
+        return [tools["python"][0], "-I", str(folder / "reference.py")]
+    javac, java = tools["java"]
+    match = re.search(r"public\s+class\s+([A-Za-z_$][\w$]*)", source)
+    class_name = match.group(1) if match else "Main"
+    (folder / f"{class_name}.java").write_text(source, encoding="utf-8")
+    subprocess.run(
+        [javac, str(folder / f"{class_name}.java")], check=True, capture_output=True, timeout=120
+    )
+    return [java, "-cp", str(folder), class_name]
 
 
 def check_languages(problem: Problem) -> Gate:
+    from runner.toolchains import toolchains
+
     if not problem.references:
         return Gate("languages", "skip", "No C++/Java references yet (Python reference only).")
     inputs = [e.input if e.input.endswith("\n") else e.input + "\n" for e in problem.examples]
@@ -253,7 +271,12 @@ def check_languages(problem: Problem) -> Gate:
             limit = problem.time_limit_ms / 1000
             for text, (_, want) in zip(inputs, expected, strict=True):
                 try:
-                    got, elapsed = run_once(command, text, limit * 3)
+                    tool = toolchains()[language][0]
+                    env = {
+                        **os.environ,
+                        "PATH": str(Path(tool).parent) + os.pathsep + os.environ.get("PATH", ""),
+                    }
+                    got, elapsed = run_once(command, text, limit * 3, env)
                 except (RuntimeError, subprocess.TimeoutExpired) as exc:
                     return Gate("languages", "fail", f"{language} reference failed: {exc}")
                 if normalize(got) != normalize(want):

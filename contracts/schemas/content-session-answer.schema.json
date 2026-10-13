@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "block": {
+      "maximum": 40,
+      "minimum": 0,
+      "title": "Block",
+      "type": "integer"
+    },
+    "step": {
+      "maximum": 11,
+      "minimum": 0,
+      "title": "Step",
+      "type": "integer"
+    },
+    "choice": {
+      "maximum": 5,
+      "minimum": 0,
+      "title": "Choice",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "block",
+    "step",
+    "choice"
+  ],
+  "title": "Answer",
+  "type": "object"
+}

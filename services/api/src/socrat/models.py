@@ -92,6 +92,37 @@ class Evidence(Base):
     elapsed_seconds: Mapped[int] = mapped_column(Integer, default=0)
     expected_seconds: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
+    seq: Mapped[int] = mapped_column(BigInteger, default=time.time_ns)
+
+
+class LearningSession(Base):
+    """A local-day session with pinned blocks, server-owned answers and a truthful summary."""
+
+    __tablename__ = "learning_sessions"
+    __table_args__ = (UniqueConstraint("enrollment_id", "day"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), index=True
+    )
+    day: Mapped[str] = mapped_column(String(10))
+    payload: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    finished_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    __mapper_args__ = {"version_id_col": revision}
+
+
+class ContentIssue(Base):
+    __tablename__ = "content_issues"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    concept: Mapped[str] = mapped_column(String(160))
+    atom_id: Mapped[str] = mapped_column(String(64))
+    version: Mapped[str] = mapped_column(String(32))
+    reason: Mapped[str] = mapped_column(String(24))
+    note: Mapped[str] = mapped_column(String(1000), default="")
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
 
 
 class ActivityRecord(Base):

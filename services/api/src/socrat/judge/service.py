@@ -249,6 +249,8 @@ def finalize(db: Session, settings: Settings, worker_id: str, envelope: ResultEn
 
 
 def view(job: Submission) -> dict:
+    from socrat.learn.feedback import submission_copy
+
     return dict(
         id=job.id,
         problem_id=job.problem_id,
@@ -262,4 +264,5 @@ def view(job: Submission) -> dict:
         assistance=job.assistance,
         created_at=job.created_at,
         finished_at=job.finished_at,
+        learning_feedback=submission_copy(job),
     )

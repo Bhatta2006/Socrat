@@ -22,6 +22,7 @@ from socrat.models import (
     DailyActivity,
     Enrollment,
     Evidence,
+    LearningSession,
     PlanRevision,
     User,
 )
@@ -115,24 +116,48 @@ def record_evidence(
     assistance: int = 0,
     elapsed_seconds: int = 0,
     expected_seconds: int = 0,
+    details: dict | None = None,
 ) -> mastery.ConceptState:
     row = db.get(ConceptRow, (enrollment.id, concept))
     before = mastery.ConceptState.from_dict(row.state if row else None)
     after = mastery.apply(before, kind, score, now, assistance)
-    set_state(db, enrollment, concept, after, now)
-    db.add(
-        Evidence(
-            enrollment_id=enrollment.id,
-            concept=concept,
-            kind=kind,
-            score=score,
-            assistance=assistance,
-            activity_id=activity_id,
-            elapsed_seconds=elapsed_seconds,
-            expected_seconds=expected_seconds,
-            created_at=now,
+    user = db.get(User, enrollment.user_id)
+    learning_session = (
+        db.scalar(
+            select(LearningSession).where(
+                LearningSession.enrollment_id == enrollment.id,
+                LearningSession.day == local_day(user, now).isoformat(),
+                LearningSession.finished_at.is_(None),
+            )
         )
+        if user
+        else None
     )
+    set_state(db, enrollment, concept, after, now)
+    evidence = Evidence(
+        enrollment_id=enrollment.id,
+        concept=concept,
+        kind=kind,
+        score=score,
+        assistance=assistance,
+        activity_id=activity_id,
+        elapsed_seconds=elapsed_seconds,
+        expected_seconds=expected_seconds,
+        created_at=now,
+        details={
+            "session_id": learning_session.id if learning_session else None,
+            **(details or {}),
+            "before_band": mastery.band(before, now),
+            "after_band": mastery.band(after, now),
+        },
+    )
+    db.add(evidence)
+    db.flush()
+    if kind == "code" and score == 1 and assistance == 0:
+        user_id = enrollment.user_id
+        record_event(db, user_id, "learning.independent_solve", evidence.id)
+    if mastery.band(before, now) != mastery.band(after, now):
+        record_event(db, enrollment.user_id, "learning.band_changed", evidence.id)
     return after
 
 

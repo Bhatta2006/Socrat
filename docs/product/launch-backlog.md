@@ -19,6 +19,13 @@ Priorities:
 
 ## Progress log
 
+- **2026-10-13 — Content-placement playbook, backend/content first pass:**
+  - Owner-approved starter content: 30 packs / 279 atoms, covering the first ten concepts in each track, with 30 concept repairs and syntax support.
+  - Added two scaffolded beginner judge problems, taking the original problem count to 85; the broader eight-per-concept inventory target remains open.
+  - Added versioned, resumable sessions, prediction-before-reveal grading, independent-work restrictions, evidence-based summaries, content issue reports and learning-quality metrics.
+  - Frontend integration belongs to the co-founder and is intentionally untouched. Learner pilots, calibration and traffic-dependent experiments remain open.
+  - See [the implementation and UI handoff](content-placement-implementation.md).
+
 - **2026-10-13 — Item 1 (CI readiness), local parity:**
   - Coverage is 89%, with gateway tool-loop tests using fake SDK clients.
   - Next.js is 16.4.0, patching GHSA-4jqv-mc3x-m676 and GHSA-3w37-wq28-93x7.

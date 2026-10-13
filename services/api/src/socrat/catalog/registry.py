@@ -14,6 +14,7 @@ from pathlib import Path
 
 import yaml
 
+from socrat.catalog.atoms import AtomPack
 from socrat.catalog.schema import Concept, Course, Problem, TestCase
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
@@ -70,6 +71,7 @@ class Catalog:
     prerequisites: dict[str, list[str]] = field(default_factory=dict)
     problems: dict[str, tuple[str, Problem]] = field(default_factory=dict)
     order: list[str] = field(default_factory=list)  # global topological order
+    atom_packs: dict[str, AtomPack] = field(default_factory=dict)
 
     def course(self, course_id: str) -> Course:
         try:
@@ -164,7 +166,23 @@ def build(courses: list[Course]) -> Catalog:
 def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Catalog:
     """tests_root=None loads authoring data only (used while building tests)."""
     folders = sorted(p for p in root.iterdir() if (p / "course.yaml").exists())
-    return build([load_course(folder, tests_root) for folder in folders])
+    from socrat.catalog import atoms
+
+    catalog = build([load_course(folder, tests_root) for folder in folders])
+    try:
+        catalog.atom_packs = atoms.load(root.parent / "atoms", catalog.concepts, catalog.courses)
+    except (ValueError, OSError, yaml.YAMLError) as exc:
+        raise CatalogError(f"Invalid atom catalogue: {exc}") from exc
+    catalog.digest = hashlib.sha256(
+        json.dumps(
+            {
+                "catalog": catalog.digest,
+                "atoms": {q: p.model_dump(mode="json") for q, p in catalog.atom_packs.items()},
+            },
+            sort_keys=True,
+        ).encode()
+    ).hexdigest()
+    return catalog
 
 
 @cache

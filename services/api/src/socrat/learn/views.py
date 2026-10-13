@@ -15,10 +15,12 @@ from socrat.models import (
     ActivityRecord,
     AssistantMessage,
     AssistantThread,
+    ContentIssue,
     DailyActivity,
     Draft,
     Enrollment,
     Evidence,
+    LearningSession,
     LinkedAccount,
     PracticeMark,
     ResourceEvent,
@@ -419,12 +421,14 @@ def export(db: Session, user: User) -> dict:
         ],
         evidence=[
             dict(
+                id=x.id,
                 concept=x.concept,
                 kind=x.kind,
                 score=x.score,
                 assistance=x.assistance,
                 activity=x.activity_id,
                 at=x.created_at,
+                details=x.details,
             )
             for x in db.scalars(select(Evidence).where(Evidence.enrollment_id.in_(ids)))
         ],
@@ -436,6 +440,34 @@ def export(db: Session, user: User) -> dict:
                 outcome=x.outcome,
             )
             for x in db.scalars(select(ActivityRecord).where(ActivityRecord.enrollment_id.in_(ids)))
+        ],
+        learning_sessions=[
+            dict(
+                id=s.id,
+                day=s.day,
+                started_at=s.created_at,
+                finished_at=s.finished_at,
+                concept=s.payload["concept"],
+                minutes=s.payload["minutes"],
+                reflection=s.payload.get("reflection"),
+                checks=s.payload["answers"],
+                outcomes=s.payload["outcomes"],
+                summary=s.payload.get("summary"),
+            )
+            for s in db.scalars(
+                select(LearningSession).where(LearningSession.enrollment_id.in_(ids))
+            )
+        ],
+        content_issues=[
+            dict(
+                concept=i.concept,
+                atom=i.atom_id,
+                version=i.version,
+                reason=i.reason,
+                note=i.note,
+                at=i.created_at,
+            )
+            for i in db.scalars(select(ContentIssue).where(ContentIssue.user_id == user.id))
         ],
         submissions=[
             dict(

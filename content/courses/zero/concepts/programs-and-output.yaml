@@ -166,7 +166,7 @@ quiz:
     answer: 0
     explanation: Computers do exactly what you write. An unknown name is an error, not a guess.
     difficulty: 2
-problems: []
+problems: [echo-reading]
 practice_links:
   - title: Hello World (try printing different messages)
     url: https://pythontutor.com/

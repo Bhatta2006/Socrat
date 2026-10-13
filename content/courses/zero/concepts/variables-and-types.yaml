@@ -188,4 +188,4 @@ quiz:
     answer: 0
     explanation: The right side is evaluated using the old total, then the result replaces it.
     difficulty: 1
-problems: []
+problems: [next-counter]

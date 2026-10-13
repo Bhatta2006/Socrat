@@ -85,8 +85,8 @@ def test_gate_locks_the_next_module_until_passed(client, monkeypatch):  # noqa: 
     locked_concept = gates.module_concepts(catalog, second)[0]
     gate = gates.gate_id(first)
 
-    concept = client.get(f"/api/v1/concepts/{locked_concept}").json()
-    assert concept["locked"]["gate"] == gate and concept["lesson"]  # preview stays readable
+    concept = client.get(f"/api/v1/concepts/{locked_concept}")
+    assert concept.status_code == 423  # No new instruction behind a locked prerequisite.
     start = client.post(f"/api/v1/activities/lesson:{locked_concept}/start", headers=headers)
     assert start.status_code == 423 and start.json()["error"]["code"] == "concept_locked"
     assert client.get(f"/api/v1/quiz/quiz:{locked_concept}").status_code == 423

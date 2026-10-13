@@ -1,0 +1,313 @@
+{
+  "$defs": {
+    "Adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "stdin": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Stdin",
+          "type": "string"
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "Adapter",
+      "type": "object"
+    },
+    "Atom": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "hook",
+            "concept",
+            "worked",
+            "faded",
+            "visualizer",
+            "trace",
+            "predict",
+            "debug",
+            "micro",
+            "pattern",
+            "explanation",
+            "reflection"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Title",
+          "type": "string"
+        },
+        "objective": {
+          "maxLength": 300,
+          "minLength": 5,
+          "title": "Objective",
+          "type": "string"
+        },
+        "body": {
+          "default": "",
+          "maxLength": 2500,
+          "title": "Body",
+          "type": "string"
+        },
+        "why": {
+          "default": "",
+          "maxLength": 1200,
+          "title": "Why",
+          "type": "string"
+        },
+        "seconds": {
+          "maximum": 120,
+          "minimum": 10,
+          "title": "Seconds",
+          "type": "integer"
+        },
+        "adapters": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Adapter"
+          },
+          "propertyNames": {
+            "enum": [
+              "python",
+              "cpp",
+              "java"
+            ]
+          },
+          "title": "Adapters",
+          "type": "object"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "maxItems": 12,
+          "title": "Steps",
+          "type": "array"
+        },
+        "misconception": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Misconception"
+        },
+        "followup": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Followup"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "objective",
+        "seconds"
+      ],
+      "title": "Atom",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "description": "Human sign-off recorded when a drafted problem is approved (item 5 of the backlog).",
+      "properties": {
+        "by": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "By",
+          "type": "string"
+        },
+        "at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "At",
+          "type": "string"
+        },
+        "notes": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "by",
+        "at"
+      ],
+      "title": "Review",
+      "type": "object"
+    },
+    "Step": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "State",
+          "type": "string"
+        },
+        "prompt": {
+          "maxLength": 600,
+          "minLength": 5,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "options": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "answer": {
+          "minimum": 0,
+          "title": "Answer",
+          "type": "integer"
+        },
+        "explanation": {
+          "maxLength": 1000,
+          "minLength": 5,
+          "title": "Explanation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "prompt",
+        "options",
+        "answer",
+        "explanation"
+      ],
+      "title": "Step",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "concept": {
+      "pattern": "^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$",
+      "title": "Concept",
+      "type": "string"
+    },
+    "concept_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Concept Version",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    },
+    "owner": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Owner",
+      "type": "string"
+    },
+    "rights": {
+      "maxLength": 300,
+      "minLength": 5,
+      "title": "Rights",
+      "type": "string"
+    },
+    "changelog": {
+      "maxLength": 1000,
+      "minLength": 5,
+      "title": "Changelog",
+      "type": "string"
+    },
+    "rollback": {
+      "maxLength": 160,
+      "minLength": 3,
+      "title": "Rollback",
+      "type": "string"
+    },
+    "status": {
+      "default": "draft",
+      "enum": [
+        "draft",
+        "released",
+        "quarantined"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "review": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Review"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "atoms": {
+      "items": {
+        "$ref": "#/$defs/Atom"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Atoms",
+      "type": "array"
+    }
+  },
+  "required": [
+    "concept",
+    "concept_version",
+    "version",
+    "owner",
+    "rights",
+    "changelog",
+    "rollback",
+    "atoms"
+  ],
+  "title": "AtomPack",
+  "type": "object"
+}

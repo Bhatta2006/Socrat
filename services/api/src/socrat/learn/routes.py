@@ -461,6 +461,7 @@ def concept(qualified: str, request: Request):
         raise HTTPException(404, "not_found")
     with Session(engine(request)) as db:
         user = user_of(request, db)
+        guard_instruction(db, cat, user, qualified)
         return views.concept_view(
             db, cat, user, learn.active_enrollment(db, user.id), qualified, now()
         )
@@ -474,6 +475,7 @@ async def explain(qualified: str, body: ExplainInput, request: Request):
     settings = request.app.state.settings
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
+        guard_instruction(db, cat, user, qualified)
         enrollment = learn.active_enrollment(db, user.id)
         language = enrollment.language if enrollment else "python"
         text, provider = await assistant.lesson_variant(
@@ -483,6 +485,21 @@ async def explain(qualified: str, body: ExplainInput, request: Request):
 
 
 ACTIVITY = r"^(lesson|quiz|review|remedial|problem|checkpoint):[a-z0-9:-]{1,160}$"
+
+
+def guard_instruction(db: Session, cat: Catalog, user: User, qualified: str | None = None):
+    from socrat.assessments import service as assessments
+    from socrat.learn import sessions
+
+    enrollment = learn.active_enrollment(db, user.id)
+    if enrollment is None:
+        return
+    if sessions.instruction_blocked(db, enrollment, now()) or assessments.in_progress(
+        db, enrollment, now()
+    ):
+        raise HTTPException(423, "independent_work_in_progress")
+    if qualified is not None and enrollment.status == "active":
+        learn.require_unlocked(db, cat, enrollment, qualified, now())
 
 
 def activity_concept(cat: Catalog, activity_id: str) -> str | None:
@@ -556,6 +573,7 @@ def quiz(activity_id: str, request: Request):
     cat = catalog()
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db)
+        guard_instruction(db, cat, user)
         enrollment = active(db, user)
         session = quizzes.open_session(db, cat, enrollment, valid_activity(cat, activity_id), now())
         return quizzes.session_view(cat, session, enrollment.language, db)
@@ -709,6 +727,9 @@ def queue(problem_id: str, body: RunInput, request: Request, mode: str):
         language = body.language or (enrollment.language if enrollment else "python")
         if enrollment is not None and enrollment.status == "active":
             guard(db, cat, enrollment, f"problem:{problem_id}")
+            from socrat.learn import sessions
+
+            sessions.guard_problem_turn(db, user, enrollment, problem_id, now())
         if enrollment is not None and enrollment.status == "active" and mode == "submit":
             learn.start_activity(db, enrollment, f"problem:{problem_id}", now())
         job = judge.create(
@@ -893,6 +914,7 @@ def resource_event(qualified: str, body: ResourceAction, request: Request):
 def assistant_thread(scope: str, request: Request):
     with Session(engine(request)) as db:
         user = user_of(request, db)
+        guard_instruction(db, catalog(), user)
         return assistant.thread_view(db, user.id, scope)
 
 

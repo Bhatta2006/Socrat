@@ -14,6 +14,7 @@ from prometheus_client import CollectorRegistry, Counter, Histogram, generate_la
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import StaleDataError
 from starlette.middleware.sessions import SessionMiddleware
 
 from socrat.admin.routes import router as admin_router
@@ -22,6 +23,7 @@ from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
 from socrat.learn.routes import router as learner_router
+from socrat.learn.session_routes import router as session_router
 from socrat.library import autosync
 from socrat.library.routes import router as library_router
 from socrat.models import User
@@ -61,6 +63,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.settings = settings
     app.include_router(learner_router)
+    app.include_router(session_router)
     app.include_router(library_router)
     app.include_router(assessments_router)
     app.include_router(admin_router)
@@ -148,6 +151,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def validation_error(request, exc):
         # Never echo submitted values (code, messages, credentials) in errors.
         return error("validation_failed", 422, request.state.request_id)
+
+    @app.exception_handler(StaleDataError)
+    async def stale_write(request, exc):
+        return error("concurrent_update_retry", 409, request.state.request_id)
 
     @app.get("/api/health/live")
     def live():

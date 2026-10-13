@@ -5,7 +5,7 @@ description: >-
   A patient, practice-first path for complete beginners. You will learn how programs
   think, write and debug real code in Python, C++ or Java, and build the problem-solving
   habits every later skill depends on. No prior experience assumed.
-version: 1.0.0
+version: 1.0.1
 languages: [python, cpp, java]
 levels:
   - id: brand-new

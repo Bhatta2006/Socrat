@@ -1,0 +1,36 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "block": {
+      "maximum": 40,
+      "minimum": 0,
+      "title": "Block",
+      "type": "integer"
+    },
+    "reflection": {
+      "anyOf": [
+        {
+          "enum": [
+            "clear",
+            "syntax",
+            "strategy",
+            "boundaries",
+            "tired",
+            "need-example"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reflection"
+    }
+  },
+  "required": [
+    "block"
+  ],
+  "title": "Advance",
+  "type": "object"
+}

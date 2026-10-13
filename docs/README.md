@@ -9,6 +9,8 @@
 - [Metric contract](product/metric-contract.md) — outcome, funnel, quality, and guardrail definitions
 - [Content standard](product/content-standard.md) — concept/exercise/assessment authoring and release bar
 - [Launch backlog](product/launch-backlog.md) — remaining work before launch and how to build each item
+- [Content placement playbook](product/content-placement-playbook.md) — learning atoms, placement and ethical feedback
+- [Content implementation and UI handoff](product/content-placement-implementation.md) — authored packs, backend contracts and validation
 
 ## Research
 

@@ -330,6 +330,15 @@ def prepare(
             "it measures what *you* know right now. Finish it and I'll go through every "
             "question with you."
         )
+    if enrollment is not None:
+        from socrat.learn import sessions
+
+        if sessions.instruction_blocked(db, enrollment, now):
+            paused = "This is your independent challenge. Try your own approach and submit an attempt; we can review it together afterwards."
+        if scope.startswith("concept:") and scope.removeprefix("concept:") in learn.locked_concepts(
+            db, catalog, enrollment, now
+        ):
+            paused = "This concept follows a locked prerequisite. Complete the checkpoint first, then we can work through it together."
     return TurnPlan(thread.id, scope, allowed, problem, turns, fallback, reveal_blocked, paused)
 
 

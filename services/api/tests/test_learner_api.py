@@ -322,6 +322,21 @@ def test_export_and_delete_account(client):
 def test_concepts_link_curated_practice_and_company_lists(client):
     headers = login(client)
     onboard(client, headers, course="dsa", level="new-to-programming")
+    # This test exercises resources after the prerequisite checkpoint has been passed.
+    from sqlalchemy import select
+    from sqlalchemy.orm import Session
+
+    from socrat.models import ActivityRecord, Enrollment
+
+    with Session(client.app.state.engine) as db, db.begin():
+        enrollment = db.scalar(select(Enrollment).where(Enrollment.active.is_(True)))
+        db.add(
+            ActivityRecord(
+                enrollment_id=enrollment.id,
+                activity_id="checkpoint:dsa:foundations",
+                completed_at=1,
+            )
+        )
     concept = client.get("/api/v1/concepts/dsa:two-pointers").json()
     practice = concept["more_practice"]
     assert practice and all("dsa:two-pointers" in p["concepts"] for p in practice)

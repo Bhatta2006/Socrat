@@ -2,13 +2,14 @@
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from socrat.admin import drafts
 from socrat.admin import service as admin
 from socrat.database import record_event
 from socrat.learn.routes import catalog, engine, user_of
-from socrat.models import User, now
+from socrat.models import ContentIssue, Evidence, LearningSession, User, now
 
 router = APIRouter(prefix="/api/v1/admin")
 
@@ -28,6 +29,40 @@ def overview(request: Request):
     with Session(engine(request)) as db:
         require_admin(request, db)
         return admin.overview(db, cat, now())
+
+
+@router.get("/learning-quality")
+def learning_quality(request: Request):
+    """Learning guardrails and closure, without optimizing time spent or reward clicks."""
+    with Session(engine(request)) as db:
+        require_admin(request, db)
+        since = now() - 7 * 86400
+        rows = list(db.scalars(select(LearningSession).where(LearningSession.created_at >= since)))
+        evidence = list(db.scalars(select(Evidence).where(Evidence.created_at >= since)))
+        code = [e for e in evidence if e.kind == "code"]
+        completed = [s for s in rows if s.finished_at is not None]
+        return dict(
+            window_days=7,
+            sessions_started=len(rows),
+            sessions_completed=len(completed),
+            summaries_viewed=sum(bool(s.payload.get("summary_viewed")) for s in completed),
+            independent_code_successes=sum(e.score == 1 and e.assistance == 0 for e in code),
+            code_evidence_items=len(code),
+            high_hint_evidence_items=sum(e.assistance >= 3 for e in code),
+            retention_checks=sum(e.kind == "review" for e in evidence),
+            retention_successes=sum(e.kind == "review" and e.score >= 0.7 for e in evidence),
+            content_issues=[
+                dict(
+                    concept=i.concept,
+                    atom=i.atom_id,
+                    version=i.version,
+                    reason=i.reason,
+                    note=i.note,
+                    at=i.created_at,
+                )
+                for i in db.scalars(select(ContentIssue).where(ContentIssue.created_at >= since))
+            ],
+        )
 
 
 # ---------------------------------------------------------------- content review queue
