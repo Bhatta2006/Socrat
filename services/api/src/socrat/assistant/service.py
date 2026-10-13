@@ -479,6 +479,21 @@ def assistance_for(db: Session, user_id: str, problem_id: str) -> int:
     return int(thread.ladder.get("max_level", 0)) if thread else 0
 
 
+def rate(db: Session, user_id: str, message_id: str, rating: int) -> dict:
+    """A learner's thumbs up (+1), down (-1) or clear (0) on one of the tutor's replies."""
+    message = db.get(AssistantMessage, message_id)
+    thread = db.get(AssistantThread, message.thread_id) if message else None
+    if (
+        message is None
+        or thread is None
+        or thread.user_id != user_id
+        or message.role != "assistant"
+    ):
+        raise HTTPException(404, "not_found")
+    message.rating = rating or None
+    return {"id": message.id, "rating": message.rating}
+
+
 def thread_view(db: Session, user_id: str, scope: str) -> dict:
     scope = validate_scope(scope)
     thread = db.scalar(
@@ -498,7 +513,14 @@ def thread_view(db: Session, user_id: str, scope: str) -> dict:
         "scope": scope,
         "ladder": thread.ladder.get("state", {}),
         "messages": [
-            {"id": m.id, "role": m.role, "content": m.content, "level": m.level, "at": m.created_at}
+            {
+                "id": m.id,
+                "role": m.role,
+                "content": m.content,
+                "level": m.level,
+                "rating": m.rating,
+                "at": m.created_at,
+            }
             for m in rows
         ],
     }

@@ -20,7 +20,7 @@ from socrat.catalog.registry import Catalog, CatalogError, default_catalog
 from socrat.database import record_event
 from socrat.execution.protocol import ResultEnvelope
 from socrat.judge import service as judge
-from socrat.learn import placement, quizzes, views
+from socrat.learn import placement, quizzes, resources, views
 from socrat.learn import service as learn
 from socrat.mastery.model import ConceptState, band
 from socrat.models import (
@@ -859,6 +859,34 @@ def on_submission(db: Session, cat: Catalog, job: Submission, stamp: int):
 
 
 # ---------------------------------------------------------------- assistant
+
+
+class RatingInput(Strict):
+    rating: Literal[-1, 0, 1]
+
+
+class ResourceAction(Strict):
+    url: str = Field(min_length=8, max_length=512)
+    action: Literal["open", "helpful", "unhelpful"]
+
+
+@router.post("/assistant/messages/{message_id}/rating")
+def rate_reply(message_id: str, body: RatingInput, request: Request):
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        return assistant.rate(db, user.id, message_id, body.rating)
+
+
+@router.post("/concepts/{qualified}/resources")
+def resource_event(qualified: str, body: ResourceAction, request: Request):
+    cat = catalog()
+    if qualified not in cat.concepts:
+        raise HTTPException(404, "not_found")
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        return resources.record(
+            db, user.id, qualified, cat.concept(qualified), body.url, body.action, now()
+        )
 
 
 @router.get("/assistant/thread")

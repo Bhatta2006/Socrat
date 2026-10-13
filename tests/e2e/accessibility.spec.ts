@@ -9,6 +9,8 @@ const PAGES = [
 ];
 
 async function audit(page: Page, label: string, found: string[]) {
+  // Fades still run under reduced motion; measure contrast on the settled page.
+  await page.waitForFunction(() => document.getAnimations().every(a => a.playState !== 'running'), null, { timeout: 10_000 }).catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .exclude('.cm-editor') // CodeMirror manages its own ARIA; covered by its own tests

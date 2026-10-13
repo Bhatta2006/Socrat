@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, explain, stream } from '@/lib/api';
 import type { ChatMessage } from '@/lib/types';
-import { Check, Lightbulb, SendHorizontal, Sparkles, X } from 'lucide-react';
+import { Check, Lightbulb, SendHorizontal, Sparkles, ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import Markdown from './markdown';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -79,8 +79,8 @@ export default function Assistant({ scope, title, language, context, onSent, ope
     setDraft('');
     setActivity([]);
     let reply = '';
-    const update = (content: string, level?: number) =>
-      setMessages(m => [...m.slice(0, -1), { role: 'assistant', content, level }]);
+    const update = (content: string, level?: number, id?: string) =>
+      setMessages(m => [...m.slice(0, -1), { role: 'assistant', content, level, id }]);
     try {
       for await (const { event, data } of stream('/assistant/messages', {
         scope, message, intent, code: extra.code, new_attempt: extra.newAttempt,
@@ -90,7 +90,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
         else if (event === 'replace') { reply = String(data.text ?? ''); update(reply); }
         else if (event === 'done') {
           reply = String(data.text ?? reply);
-          update(reply, Number(data.level));
+          update(reply, Number(data.level), data.message_id ? String(data.message_id) : undefined);
           if (problem) {
             const level = Number(data.level);
             setLadder(l => ({ ...l, ceiling: Math.max(l.ceiling ?? 0, Math.min(level, 4)), revealed: l.revealed || level >= 5 }));
@@ -106,6 +106,11 @@ export default function Assistant({ scope, title, language, context, onSent, ope
       setBusy(false);
       setActivity([]);
     }
+  }
+
+  async function rate(id: string, rating: number) {
+    setMessages(list => list.map(m => (m.id === id ? { ...m, rating: rating || null } : m)));
+    await api.post(`/assistant/messages/${id}/rating`, { rating }).catch(() => undefined);
   }
 
   if (!open) {
@@ -177,7 +182,29 @@ export default function Assistant({ scope, title, language, context, onSent, ope
                 </ul>
               ) : null}
               {m.content ? (
+                <>
                 <Markdown source={m.content} language={language} className="prose-compact" />
+                {m.id && !(busy && i === messages.length - 1) ? (
+                  <div className="mt-1.5 flex justify-end gap-0.5">
+                    {([1, -1] as const).map(value => {
+                      const on = m.rating === value;
+                      const Icon = value === 1 ? ThumbsUp : ThumbsDown;
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          aria-pressed={on}
+                          aria-label={value === 1 ? 'Helpful reply' : 'Not helpful'}
+                          className={`grid size-6 place-items-center rounded-md transition-colors hover:bg-background ${on ? 'text-primary' : 'text-muted-foreground/70'}`}
+                          onClick={() => rate(m.id!, on ? 0 : value)}
+                        >
+                          <Icon className={`size-3.5 ${on ? 'fill-current' : ''}`} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+                </>
               ) : activity.length && busy && i === messages.length - 1 ? null : (
                 <span className="flex items-center gap-1 py-1" aria-label="Thinking">
                   {[0, 1, 2].map(n => <span key={n} className="size-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: `${n * 120}ms` }} />)}

@@ -191,6 +191,10 @@ export interface Resource {
   minutes: number;
   level: 'intro' | 'core' | 'deep';
   languages: Language[];
+  /** Among the few picked for this learner right now. */
+  picked?: boolean;
+  opened?: boolean;
+  helpful?: boolean | null;
 }
 
 export type Platform = 'Socrat' | 'LeetCode' | 'CSES' | 'Codeforces';
@@ -386,6 +390,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   level?: number | null;
+  rating?: number | null;
 }
 
 export interface AssessmentStatus {

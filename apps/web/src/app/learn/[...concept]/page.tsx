@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
-import { AlertTriangle, ArrowRight, BookMarked, CheckCircle2, Code2, ExternalLink, Lightbulb, ListChecks, Lock, Sparkles, Trophy, Wand2 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BookMarked, CheckCircle2, ChevronDown, Code2, ExternalLink, Lightbulb, ListChecks, Lock, Sparkles, ThumbsDown, ThumbsUp, Trophy, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, explain } from '@/lib/api';
 import { useGuard, useSession } from '@/lib/session';
 import { activityHref, conceptHref, joinSegments } from '@/lib/routes';
-import type { ConceptView } from '@/lib/types';
+import type { ConceptView, Resource } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Markdown from '@/components/markdown';
 import Assistant from '@/components/assistant';
 import { BackLink, BandBadge, Difficulty, ErrorNote, Loading } from '@/components/common';
@@ -31,6 +33,52 @@ function ReadingProgress() {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 30 });
   return <motion.div className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-primary" style={{ scaleX }} aria-hidden="true" />;
+}
+
+function ResourceList({ concept, resources, onChange }: { concept: string; resources: Resource[]; onChange: (url: string, patch: Partial<Resource>) => void }) {
+  function send(url: string, action: 'open' | 'helpful' | 'unhelpful') {
+    api.post(`/concepts/${concept}/resources`, { url, action }).catch(() => undefined);
+  }
+  return (
+    <ul className="grid gap-3 text-sm">
+      {resources.map(r => (
+        <li key={r.url} className="group/resource">
+          <a
+            href={r.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+            onClick={() => { send(r.url, 'open'); onChange(r.url, { opened: true }); }}
+          >
+            {r.title} <ExternalLink className="size-3" />
+          </a>
+          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{r.source} · {r.kind} · {r.minutes} min{r.opened ? ' · read' : ''}</span>
+            {r.opened ? (
+              <span className="flex gap-0.5">
+                {([true, false] as const).map(value => {
+                  const on = r.helpful === value;
+                  const Icon = value ? ThumbsUp : ThumbsDown;
+                  return (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      aria-pressed={on}
+                      aria-label={value ? `${r.title} was helpful` : `${r.title} was not helpful`}
+                      className={cn('grid size-6 place-items-center rounded-md hover:bg-muted', on ? 'text-primary' : 'text-muted-foreground/70')}
+                      onClick={() => { send(r.url, value ? 'helpful' : 'unhelpful'); onChange(r.url, { helpful: value }); }}
+                    >
+                      <Icon className={cn('size-3.5', on && 'fill-current')} />
+                    </button>
+                  );
+                })}
+              </span>
+            ) : null}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 export default function Lesson() {
@@ -65,6 +113,10 @@ export default function Lesson() {
     } finally {
       setExplaining('');
     }
+  }
+
+  function updateResource(url: string, patch: Partial<Resource>) {
+    setConcept(c => (c ? { ...c, resources: c.resources.map(r => (r.url === url ? { ...r, ...patch } : r)) } : c));
   }
 
   async function complete() {
@@ -265,14 +317,18 @@ export default function Lesson() {
           <Card size="sm">
             <CardHeader><CardTitle>Go further</CardTitle></CardHeader>
             <CardContent className="grid gap-4">
-              <ul className="grid gap-3 text-sm">
-                {concept.resources.map(r => (
-                  <li key={r.url}>
-                    <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">{r.title} <ExternalLink className="size-3" /></a>
-                    <div className="text-xs text-muted-foreground">{r.source} · {r.kind} · {r.minutes} min</div>
-                  </li>
-                ))}
-              </ul>
+              <ResourceList concept={concept.id} resources={concept.resources.filter(r => r.picked !== false)} onChange={updateResource} />
+              {concept.resources.some(r => r.picked === false) ? (
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
+                    More resources ({concept.resources.filter(r => r.picked === false).length})
+                    <ChevronDown className="size-3 transition-transform group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-3">
+                    <ResourceList concept={concept.id} resources={concept.resources.filter(r => r.picked === false)} onChange={updateResource} />
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : null}
               {concept.handbook.length ? (
                 <div className="border-t pt-3">
                   <h3 className="mb-2 text-xs font-medium text-muted-foreground">Competitive Programmer&apos;s Handbook</h3>

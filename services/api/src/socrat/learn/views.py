@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from socrat.catalog import practice
 from socrat.catalog.registry import Catalog
+from socrat.learn import resources
 from socrat.learn import service as learn
 from socrat.library import service as library
 from socrat.mastery.model import ConceptState, band
@@ -20,6 +21,7 @@ from socrat.models import (
     Evidence,
     LinkedAccount,
     PracticeMark,
+    ResourceEvent,
     Submission,
     User,
     WeeklyAssessment,
@@ -206,11 +208,7 @@ def concept_view(
         lesson=concept.lesson,
         key_points=concept.key_points,
         pitfalls=concept.pitfalls,
-        resources=[
-            r.model_dump(mode="json")
-            for r in concept.resources
-            if not r.languages or language in r.languages
-        ],
+        resources=resources.personalised(db, user.id, qualified, concept, language, current_band),
         # Authored links that are in the library become library rows (with status);
         # the rest stay plain links.
         practice_links=[
@@ -452,7 +450,7 @@ def export(db: Session, user: User) -> dict:
             dict(
                 scope=t.scope,
                 messages=[
-                    dict(role=m.role, content=m.content, at=m.created_at)
+                    dict(role=m.role, content=m.content, at=m.created_at, rating=m.rating)
                     for m in db.scalars(
                         select(AssistantMessage)
                         .where(AssistantMessage.thread_id == t.id)
@@ -461,6 +459,10 @@ def export(db: Session, user: User) -> dict:
                 ],
             )
             for t in threads
+        ],
+        resource_feedback=[
+            dict(concept=e.concept, url=e.url, opened_at=e.opened_at, helpful=e.helpful)
+            for e in db.scalars(select(ResourceEvent).where(ResourceEvent.user_id == user.id))
         ],
         daily=[
             dict(day=d.day, minutes=d.minutes, activities=d.activities, solved=d.solved)

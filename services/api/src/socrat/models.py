@@ -202,6 +202,7 @@ class AssistantMessage(Base):
     content: Mapped[str] = mapped_column(Text)
     level: Mapped[int | None] = mapped_column(Integer, nullable=True)
     provider: Mapped[str] = mapped_column(String(16), default="")
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)  # learner: +1 / -1
     created_at: Mapped[int] = mapped_column(Integer, default=now, index=True)
     # Strictly increasing order within a thread (several messages can share a second).
     seq: Mapped[int] = mapped_column(BigInteger, default=time.time_ns, index=True)
@@ -322,3 +323,17 @@ class FocusSprint(Base):
     deadline: Mapped[int] = mapped_column(Integer)
     finished_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
     results: Mapped[dict] = mapped_column(JSON, default=dict)  # problem id -> seconds to solve
+
+
+class ResourceEvent(Base):
+    """A learner opening or rating a curated resource; ranks what each learner is shown."""
+
+    __tablename__ = "resource_events"
+    __table_args__ = (UniqueConstraint("user_id", "concept", "url"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    concept: Mapped[str] = mapped_column(String(160), index=True)
+    url: Mapped[str] = mapped_column(String(512))
+    opened_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    helpful: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
