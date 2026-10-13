@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from socrat.catalog import practice
 from socrat.catalog.registry import Catalog
-from socrat.learn import resources
+from socrat.learn import achievements, resources
 from socrat.learn import service as learn
 from socrat.library import service as library
 from socrat.mastery.model import ConceptState, band
@@ -364,10 +364,12 @@ def progress_view(
         .order_by(Evidence.created_at.desc())
         .limit(15)
     )
+    streak = learn.streak(db, user, enrollment, now)
     return dict(
         modules=list(modules.values()),
         progress=progress_numbers(plan),
-        streak=learn.streak(db, user, enrollment, now),
+        streak=streak,
+        achievements=achievements.for_learner(db, catalog, user, enrollment, streak["longest"]),
         heatmap=heatmap,
         week=dict(minutes=week_minutes, goal=enrollment.minutes_per_day * len(enrollment.weekdays)),
         solves=learn.evidence_counts(db, enrollment),

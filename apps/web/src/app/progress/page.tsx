@@ -8,6 +8,7 @@ import { useGuard } from '@/lib/session';
 import { BAND_LABEL, PACE_LABEL, conceptHref, formatDate, formatStamp, hours } from '@/lib/routes';
 import type { Band, ProgressView } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Achievements } from '@/components/achievements';
 import { BandBadge, ErrorNote, Loading, NumberTicker, Page, PageHeader, Reveal, Ring, StatCard } from '@/components/common';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
@@ -94,6 +95,10 @@ export default function ProgressPage() {
             </div>
           </CardContent>
         </Card>
+      </Reveal>
+
+      <Reveal index={3}>
+        <Achievements items={data.achievements} />
       </Reveal>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">

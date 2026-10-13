@@ -157,6 +157,16 @@ export interface PlanView {
   progress: ProgressNumbers;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  goal: number;
+  value: number;
+  earned: boolean;
+  earned_at: number | null;
+}
+
 export interface ProgressView {
   modules: {
     id: string;
@@ -173,6 +183,7 @@ export interface ProgressView {
   }[];
   progress: ProgressNumbers;
   streak: Streak;
+  achievements: Achievement[];
   heatmap: { day: string; minutes: number; activities: number }[];
   week: { minutes: number; goal: number };
   solves: { independent_solves: number; assisted_solves: number };

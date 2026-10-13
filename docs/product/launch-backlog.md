@@ -94,6 +94,51 @@ Priorities:
   - All of it is computed from learning tables, with no third-party tracker.
   - Remaining: a drafted-content review queue (with item 5) and dashboards over time.
 
+- **2026-10-13 — Item 12 part 9 (achievements):** done.
+  - The Progress page shows 13 badges for real skill milestones:
+    - first lesson; first solve; a hard problem solved;
+    - 10, 50 and 100 problems solved; 10 solved without hints;
+    - first checkpoint passed; every checkpoint in the course passed;
+    - a weekly check finished; a clean focus sprint;
+    - 7-day and 30-day streaks.
+  - Badges are derived from learning data (`learn/achievements.py`); nothing new is stored.
+  - Unearned badges show progress toward the goal, and the closest ones are listed first.
+  - Newly earned badges are marked "New" with a small confetti burst. "Seen" state is kept per browser.
+  - No leaderboards.
+
+## Status at handoff (2026-10-13)
+
+**Done on `redefined`:**
+- Items 1 (in part), 3, 4, 7 (in-app part), 8, 11 (in-app part), 14, 15 (automated axe audit), 16 (first version), 17 (mostly).
+- Item 12, parts 1–6 and 9.
+
+**Pending, no owner input needed:**
+- Item 12:
+  - part 7: audit empty and loading states;
+  - part 8: View Transitions and roadmap unlock animation;
+  - part 10: Playwright visual-regression screenshots, light and dark, at 1400 px and 390 px.
+- Item 15: keyboard-only walkthrough; performance budgets (LCP and INP), including lazy-loading CodeMirror.
+- Item 16: review queue for drafted content (pairs with item 5).
+- Item 17:
+  - monthly Codeforces snapshot job;
+  - nightly `--repeat-each=5` e2e run;
+  - heading-hierarchy review.
+- Item 5: validation tooling for original problems.
+
+**Pending, needs owner input:**
+- Google OAuth (item 2) — client ID and secret.
+- Payments (item 10) — provider and pricing.
+- Email reminders (item 11) — email provider.
+- Tutor evals and cost limits (item 9) — budget.
+- Production deployment (item 13) — hosting choice.
+- Resource catalogue growth (item 7) — the owner's resource pool.
+- Licence review of the company data (item 17).
+
+**Known local caveats:**
+- 9 C++ tests fail on the local MinGW 6.3 compiler; this is an environment issue.
+- CI has not run on `redefined`, because it only triggers on PRs and `main`. Open a PR to run it.
+- The Postgres migration check was not run, because it needs Docker.
+
 ## Summary
 
 | # | Item | Priority | Owner input needed |
