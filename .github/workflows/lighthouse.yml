@@ -1,0 +1,56 @@
+name: lighthouse
+
+# Lab performance on a mid-range phone profile (simulated 4G, 4x CPU slowdown) against the
+# production build: LCP ≤ 2.5 s, TBT ≤ 300 ms (the lab stand-in for INP), CLS ≤ 0.1.
+# Field numbers from real visits are in /admin → Page speed. Assertions warn (not fail)
+# until the LCP render delay noted in docs/product/launch-backlog.md (item 15) is fixed.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: "0.12.20"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: npm run build
+      - name: Start the API and the production web server
+        env:
+          SOCRAT_ENVIRONMENT: test
+          SOCRAT_DATABASE_URL: sqlite:///lighthouse.db
+          SOCRAT_DEV_LOGIN_ENABLED: "true"
+          SOCRAT_AI_PROVIDER: offline
+        run: |
+          uv run alembic upgrade head
+          uv run python scripts/content/build.py
+          nohup uv run uvicorn socrat.main:create_app --factory --app-dir services/api/src --port 8000 > .cache/lh-api.log 2>&1 &
+          nohup npm run start --workspace @socrat/web > .cache/lh-web.log 2>&1 &
+          for n in $(seq 1 60); do curl -fsS http://localhost:3000/login >/dev/null 2>&1 && break; sleep 1; done
+          curl -fsS http://localhost:3000/login >/dev/null
+      - run: npx --yes @lhci/cli@0.14.0 autorun
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          include-hidden-files: true
+          path: |
+            .cache/lighthouse/
+            .cache/lh-*.log

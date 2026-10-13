@@ -88,3 +88,13 @@ def test_failing_gates_block_approval(client, tmp_path):  # noqa: F811
     blocked = client.post("/api/v1/admin/drafts/triangle-total/approve", json={}, headers=headers)
     assert blocked.status_code == 409 and blocked.json()["error"]["code"] == "gates_failing"
     assert client.get("/api/v1/admin/drafts/../secrets").status_code == 404
+
+
+def test_review_decisions_need_the_csrf_token(client, tmp_path):  # noqa: F811
+    headers, _, _ = setup(client, tmp_path)
+    no_token = {"Origin": headers["Origin"]}
+    for action in ("validate", "approve", "request-changes"):
+        response = client.post(
+            f"/api/v1/admin/drafts/triangle-total/{action}", json={"notes": "x"}, headers=no_token
+        )
+        assert response.status_code == 403 and response.json()["error"]["code"] == "csrf_rejected"

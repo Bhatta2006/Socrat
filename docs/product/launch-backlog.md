@@ -168,29 +168,60 @@ Priorities:
     - Every decision is an audit event.
   - **Remaining (needs you):** an AI budget to draft about 400 problems, reviewer time, brute forces for the 83 existing problems, and C++/Java references.
 
-## Status at handoff (2026-10-13)
+- **2026-10-14 — Item 15, page-speed measurement:** measurement done; the budget is not met yet.
+  - **Real-user metrics:** `components/web-vitals.tsx` sends anonymous LCP, INP, CLS, FCP and TTFB samples by `sendBeacon` to `POST /api/v1/vitals`. Each sample carries a route pattern, value and device class only, with no user, session or URL. The endpoint accepts same-origin requests only, bounds values and caps batches (migration `0006_web_vitals`). `/admin` → Page speed shows the 7-day p75 per page against the budgets.
+  - **Lab check:** `lighthouse.yml` and `lighthouserc.json` run Lighthouse on the production build with mobile simulated throttling. The assertions *warn* for now; switch them to `error` once LCP is fixed.
+  - **Fixes:**
+    - The landing and login pages now render their content into the first HTML instead of waiting for the session check.
+    - A Next proxy (`src/proxy.ts`) redirects signed-in visitors from `/` to `/today` on the server.
+    - The login form's sign-in options are fetched on the server.
+    - The hero copy no longer fades in.
+  - **Local Lighthouse, mobile:**
+
+    | Page | LCP | TBT | CLS | FCP |
+    |---|---|---|---|---|
+    | Landing | 4.4 s | 170–400 ms | 0.046 | 1.1 s |
+    | Login | 3.9 s | 90–150 ms | 0.046 | 1.1 s |
+
+    Before the fixes, the landing page was at LCP 4.9 s and TBT 580 ms.
+  - **Still open:** LCP render delay of about 3 s after first paint on both pages. The LCP element is server-rendered text, so the next suspects are:
+    - font swap (Geist via `next/font`; try `display: optional` or preloading);
+    - the shared 216–242 KB client bundle blocking the main thread before the text is considered painted;
+    - the CSS `reveal` animation on page sections.
+    Profile with a Lighthouse trace and fix before launch. The numbers come from this laptop; CI runners will differ.
+- **2026-10-14 — Security fix:** the review-queue POST routes did not check the CSRF token (`require_admin` now takes `write=True`), with a regression test. An audit of every other write route found no other gaps.
+
+## Status at handoff (2026-10-14)
 
 **Done on `redefined`:**
-- Items 1 (in part), 3, 4, 7 (in-app part), 8, 11 (in-app part), 14, 15 (automated axe audit), 16 (first version), 17 (mostly).
-- Item 12, all parts.
+- Items 3, 4, 8, 12 and 14.
+- Item 5: quality gates, the drafting pipeline and editor parity.
+- Item 16: the review queue.
+- Item 17, except the licence review.
+- Item 15: automated axe audit, keyboard walkthrough, JS budget, and field and lab measurement.
+- Items 1, 7 and 11 in part.
+- Item 2: the Google OIDC sign-in flow and the "Continue with Google" button already exist; they need credentials (below).
 
 **Pending, no owner input needed:**
-- Item 15: LCP and INP on a deployed build. (The JS budget and keyboard walkthrough are done.)
+- Item 15: LCP is still about 3.9–4.4 s on mobile against a 2.5 s budget (see the 2026-10-14 log entry).
+- Item 5: brute forces and C++/Java references for the 83 authored problems.
 
 **Pending, needs owner input:**
-- Google OAuth (item 2) — client ID and secret.
-- Payments (item 10) — provider and pricing.
-- Email reminders (item 11) — email provider.
-- Tutor evals and cost limits (item 9) — budget.
-- Production deployment (item 13) — hosting choice.
-- Resource catalogue growth (item 7) — the owner's resource pool.
-- Licence review of the company data (item 17).
+- **Google sign-in (item 2):** set `SOCRAT_OIDC_ISSUER=https://accounts.google.com`, `SOCRAT_OIDC_CLIENT_ID` and `SOCRAT_OIDC_CLIENT_SECRET`, plus the redirect URL, a verified domain, and privacy and terms URLs.
+- **Problem drafting (item 5):** `SOCRAT_ANTHROPIC_API_KEY`, a budget for about 400 problems, and reviewer time (about 10 minutes per problem).
+- **Payments (item 10):** provider and pricing.
+- **Email reminders (item 11):** sending domain and DNS.
+- **Tutor evals and cost limits (item 9):** budget and model choice.
+- **Production deployment (item 13):** hosting account, domain and DNS.
+- **Resource catalogue growth (item 7):** the owner's resource pool.
+- **Licence review of the company data (item 17).**
 
-**Known local caveats:**
+**Known caveats:**
 - 9 C++ tests fail on the local MinGW 6.3 compiler; this is an environment issue.
-- CI has not run on `redefined`, because it only triggers on PRs and `main`. Open a PR to run it.
+- CI has not run on `redefined`, because it only runs on PRs and `main`. Open a PR to run it.
 - `visual.yml` needs one manual run with `update` ticked to create the Linux baselines.
-- The Postgres migration check was not run, because it needs Docker.
+- The Postgres migration check was not run locally (no Docker).
+- In the final local run, the accessibility spec failed once right after a rebuild and passed on rerun; a cold-compile timing issue is the likely cause.
 
 ## Summary
 

@@ -337,3 +337,16 @@ class ResourceEvent(Base):
     opened_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
     helpful: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class WebVital(Base):
+    """One anonymous field measurement (no user, no session): powers performance budgets."""
+
+    __tablename__ = "web_vitals"
+    __table_args__ = (Index("ix_web_vitals_day_metric", "day", "metric"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    day: Mapped[str] = mapped_column(String(10))  # UTC date, enough for daily trends
+    route: Mapped[str] = mapped_column(String(80))  # route pattern, never a concrete URL
+    metric: Mapped[str] = mapped_column(String(8))  # LCP | INP | CLS | FCP | TTFB
+    value: Mapped[float] = mapped_column(Float)
+    device: Mapped[str] = mapped_column(String(8))  # mobile | desktop

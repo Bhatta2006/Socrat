@@ -25,6 +25,22 @@ interface Overview {
   gates: { module: string; learners: number; pass_rate: number; attempts_per_learner: number }[];
   flagged_items: { concept: string; item: string; answers: number; correct_rate: number; issue: string }[];
   unhelpful_resources: { concept: string; url: string; opens: number; helpful: number; unhelpful: number }[];
+  vitals: {
+    days: number;
+    budgets: { LCP: number; INP: number; CLS: number };
+    pages: ({ route: string; samples: number } & Partial<Record<'LCP' | 'INP' | 'CLS', { p75: number; ok: boolean }>>)[];
+  };
+}
+
+/** p75 against the budget, with a word as well as a colour. */
+function Vital({ value, unit }: { value?: { p75: number; ok: boolean }; unit: string }) {
+  if (!value) return <span className="text-muted-foreground">—</span>;
+  return (
+    <span className={value.ok ? 'text-success' : 'text-destructive'}>
+      <span className="tabular-nums">{value.p75.toLocaleString()}{unit}</span>{' '}
+      <span className="text-xs">{value.ok ? 'good' : 'over'}</span>
+    </span>
+  );
 }
 
 const pct = (v: number | null) => (v === null ? '—' : `${Math.round(v * 100)}%`);
@@ -159,6 +175,31 @@ export default function Admin() {
           ) : <CardContent className="pb-6 text-sm text-muted-foreground">Nothing flagged yet — items need 20+ answers to judge.</CardContent>}
         </Card>
       </div>
+
+      <Card className="mt-6 gap-0 overflow-hidden pb-0">
+        <CardHeader className="pb-3">
+          <CardTitle>Page speed</CardTitle>
+          <CardDescription>
+            Real visits, last {data.vitals.days} days, 75th percentile. Budgets: LCP ≤ {data.vitals.budgets.LCP / 1000} s, INP ≤ {data.vitals.budgets.INP} ms, CLS ≤ {data.vitals.budgets.CLS}.
+          </CardDescription>
+        </CardHeader>
+        {data.vitals.pages.length ? (
+          <Table>
+            <TableHeader><TableRow><TableHead className="pl-4">Page</TableHead><TableHead className="text-right">Samples</TableHead><TableHead className="text-right">LCP</TableHead><TableHead className="text-right">INP</TableHead><TableHead className="pr-4 text-right">CLS</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {data.vitals.pages.map(v => (
+                <TableRow key={v.route}>
+                  <TableCell className="pl-4 font-mono text-xs">{v.route}</TableCell>
+                  <TableCell className="text-right tabular-nums">{v.samples}</TableCell>
+                  <TableCell className="text-right"><Vital value={v.LCP} unit=" ms" /></TableCell>
+                  <TableCell className="text-right"><Vital value={v.INP} unit=" ms" /></TableCell>
+                  <TableCell className="pr-4 text-right"><Vital value={v.CLS} unit="" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : <CardContent className="pb-6 text-sm text-muted-foreground">No visits measured yet. Browsers report when a tab is hidden or closed.</CardContent>}
+      </Card>
 
       {data.unhelpful_resources.length ? (
         <Card className="mt-6 gap-0 overflow-hidden pb-0">

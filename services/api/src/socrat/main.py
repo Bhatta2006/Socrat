@@ -26,6 +26,7 @@ from socrat.library import autosync
 from socrat.library.routes import router as library_router
 from socrat.models import User
 from socrat.schema_revision import SCHEMA_REVISION
+from socrat.vitals import router as vitals_router
 
 logger = logging.getLogger("socrat.requests")
 
@@ -63,6 +64,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(library_router)
     app.include_router(assessments_router)
     app.include_router(admin_router)
+    app.include_router(vitals_router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),

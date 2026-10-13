@@ -23,7 +23,7 @@ import { api } from '@/lib/api';
 import { destination, useSession } from '@/lib/session';
 import type { Course } from '@/lib/types';
 import { LANGUAGE_LABEL } from '@/lib/routes';
-import { Loading, NumberTicker, Ring } from '@/components/common';
+import { NumberTicker, Ring } from '@/components/common';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -114,7 +114,6 @@ export default function Home() {
     api.get<{ library: number }>('/library/stats').then(r => setLibrary(r.library)).catch(() => undefined);
   }, []);
 
-  if (loading || profile) return <Loading variant="blank" />;
   const concepts = courses.reduce((n, c) => n + c.concept_count, 0);
   const problems = courses.reduce((n, c) => n + c.problem_count, 0);
 
@@ -124,7 +123,8 @@ export default function Home() {
         <section className="relative">
           <div className="bg-grid absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_70%)]" aria-hidden="true" />
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-14 pb-20 sm:px-6 md:grid-cols-[1.05fr_1fr] md:pt-24 md:pb-28">
-            <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            {/* No entrance fade: this copy is the page's largest paint and must show with the HTML. */}
+            <div>
               <Badge variant="outline" className="mb-6 gap-1.5 rounded-full bg-background/60 px-3 py-1 backdrop-blur">
                 <Sparkles className="size-3 text-primary" /> Your personal programming tutor
               </Badge>
@@ -148,7 +148,7 @@ export default function Home() {
                   <li key={x} className="flex items-center gap-1.5"><CheckCircle2 className="size-4 text-primary" /> {x}</li>
                 ))}
               </ul>
-            </m.div>
+            </div>
             <Preview />
           </div>
         </section>

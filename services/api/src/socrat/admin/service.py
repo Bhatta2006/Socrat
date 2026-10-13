@@ -14,6 +14,7 @@ from datetime import date, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from socrat import vitals
 from socrat.catalog.registry import Catalog
 from socrat.models import (
     ActivityRecord,
@@ -242,4 +243,5 @@ def overview(db: Session, catalog: Catalog, now: int) -> dict:
         gates=gates(db, catalog),
         flagged_items=item_quality(db, catalog),
         unhelpful_resources=resources(db),
+        vitals=vitals.summary(db, today),
     )

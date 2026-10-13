@@ -13,8 +13,9 @@ from socrat.models import User, now
 router = APIRouter(prefix="/api/v1/admin")
 
 
-def require_admin(request: Request, db: Session) -> User:
-    user = user_of(request, db)
+def require_admin(request: Request, db: Session, write: bool = False) -> User:
+    """Allow-listed accounts only; `write` also enforces the CSRF token."""
+    user = user_of(request, db, write=write)
     allowed = request.app.state.settings.admin_subjects
     if f"{user.issuer}|{user.subject}" not in allowed and user.subject not in allowed:
         raise HTTPException(403, "forbidden")
@@ -61,14 +62,14 @@ def draft_detail(draft_id: str, request: Request):
 @router.post("/drafts/{draft_id}/validate")
 def draft_validate(draft_id: str, request: Request):
     with Session(engine(request)) as db:
-        require_admin(request, db)
+        require_admin(request, db, write=True)
     return drafts.run_validation(_roots(request), catalog(), draft_id)
 
 
 @router.post("/drafts/{draft_id}/approve")
 def draft_approve(draft_id: str, body: Decision, request: Request):
     with Session(engine(request)) as db, db.begin():
-        user = require_admin(request, db)
+        user = require_admin(request, db, write=True)
         result = drafts.approve(_roots(request), draft_id, _reviewer(user), body.notes.strip())
         record_event(db, user.id, "content.draft_approved", draft_id)
     return result
@@ -77,7 +78,7 @@ def draft_approve(draft_id: str, body: Decision, request: Request):
 @router.post("/drafts/{draft_id}/request-changes")
 def draft_request_changes(draft_id: str, body: Decision, request: Request):
     with Session(engine(request)) as db, db.begin():
-        user = require_admin(request, db)
+        user = require_admin(request, db, write=True)
         result = drafts.request_changes(_roots(request), draft_id, _reviewer(user), body.notes)
         record_event(db, user.id, "content.draft_changes_requested", draft_id)
     return result
