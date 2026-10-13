@@ -144,6 +144,30 @@ Priorities:
   - Preferences persist per browser (`lib/editor-prefs.ts`). Ctrl+Enter and Ctrl+Shift+Enter were already bound.
   - `tests/e2e/editor.spec.ts` covers all of it.
 
+- **2026-10-14 — Items 5 and 16 (problem pipeline and review queue):** done, apart from the work that needs your budget and reviewers.
+  - **Quality gates** (`socrat/catalog/validate.py`, `scripts/content/validate_problems.py`):
+    - schema, and examples reproduced by the reference;
+    - the reference agrees with a brute force on ~300 small inputs, all run in one subprocess;
+    - the reference runs on the largest test in under half the time limit;
+    - C++/Java references compile and agree, when present and a toolchain exists;
+    - originality: library-title similarity and near-duplicate Socrat statements;
+    - difficulty versus the concept tier and the size bounds.
+    - Drafts run strict: a brute force is required, and duplicated statements fail.
+  - **Current content:** all 83 authored problems pass, with warnings. None has a brute force yet, and there are a few notes on titles, timing and difficulty. 61 of 61 concepts still have fewer than 8 problems.
+  - **Schema:** `Problem` gains optional `brute`, `small_generator`, `references` (cpp/java) and `review` (by, at, notes).
+  - **Drafting** (`scripts/content/draft_problem.py`):
+    - Claude drafts the problem as structured output from the concept brief and a human idea seed;
+    - the gates run, and failures go back to the model as feedback (up to 3 attempts);
+    - an independent call then solves it from the statement alone and must match the reference, which catches ambiguous statements;
+    - the draft is filed in `content/drafts/<course>/`.
+    - `--dry-run` prints the brief. Tests use a scripted model, so they make no API calls.
+  - **Review queue** (`/admin` → Review queue, `admin/drafts.py`):
+    - run the gates and read the statement, hints, approach and both solutions, plus the drafting record;
+    - approve (blocked while gates fail or the file changed since validation) or request changes, with notes;
+    - approval writes the `review:` block, moves the file into the course and links it from its concept. Then build and commit.
+    - Every decision is an audit event.
+  - **Remaining (needs you):** an AI budget to draft about 400 problems, reviewer time, brute forces for the 83 existing problems, and C++/Java references.
+
 ## Status at handoff (2026-10-13)
 
 **Done on `redefined`:**
@@ -152,8 +176,6 @@ Priorities:
 
 **Pending, no owner input needed:**
 - Item 15: LCP and INP on a deployed build. (The JS budget and keyboard walkthrough are done.)
-- Item 16: review queue for drafted content (pairs with item 5).
-- Item 5: validation tooling for original problems.
 
 **Pending, needs owner input:**
 - Google OAuth (item 2) — client ID and secret.

@@ -56,3 +56,8 @@ research-private/
 recordings/
 exports/
 backups/
+
+# Review-queue working state
+content/drafts/**/*.validation.json
+content/drafts/**/*.review.json
+content/drafts/**/*.draft.json

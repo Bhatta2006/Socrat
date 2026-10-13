@@ -8,6 +8,8 @@ import { ErrorNote, Loading, Page, PageHeader, StatCard } from '@/components/com
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ReviewQueue } from '@/components/review-queue';
 
 interface Overview {
   funnel: { step: string; learners: number; share: number }[];
@@ -84,6 +86,14 @@ export default function Admin() {
   return (
     <Page wide>
       <PageHeader eyebrow="Owner" title="How learners are doing" description="Computed from learning data. No third-party tracking." />
+
+      <Tabs defaultValue="metrics" className="gap-6">
+        <TabsList>
+          <TabsTrigger value="metrics">Metrics</TabsTrigger>
+          <TabsTrigger value="review">Review queue</TabsTrigger>
+        </TabsList>
+        <TabsContent value="review"><ReviewQueue /></TabsContent>
+        <TabsContent value="metrics">
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={<Gauge />} label="Activation (lesson + check within 24 h)" value={pct(data.activation.rate)} hint={`${data.activation.activated} of ${data.activation.signups} sign-ups`} />
@@ -168,6 +178,8 @@ export default function Admin() {
           </Table>
         </Card>
       ) : null}
+        </TabsContent>
+      </Tabs>
     </Page>
   );
 }

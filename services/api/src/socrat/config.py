@@ -118,6 +118,10 @@ class Settings(DatabaseSettings):
     ai_tools: bool = True  # let the tutor look up the learner's data and the library
     # Who may open /admin: OIDC subjects (or "issuer|subject"). Empty = nobody.
     admin_subjects: list[str] = Field(default_factory=list, max_length=50)
+    # Content review queue: drafts are YAML files on an authoring checkout; approval moves
+    # them into the course folder for a commit. Empty means the repository defaults.
+    content_drafts_dir: str = ""
+    content_courses_dir: str = ""
     # Re-sync linked Codeforces profiles in the background (off in tests: no network).
     codeforces_autosync: bool = True
     ai_tool_rounds: int = Field(default=4, ge=1, le=8)

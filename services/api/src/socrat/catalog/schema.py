@@ -108,6 +108,14 @@ class TestCase(Model):
     public: bool = False
 
 
+class Review(Model):
+    """Human sign-off recorded when a drafted problem is approved (item 5 of the backlog)."""
+
+    by: str = Field(min_length=2, max_length=120)
+    at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    notes: str = Field(default="", max_length=2000)
+
+
 class Problem(Model):
     id: Slug
     title: str = Field(min_length=2, max_length=100)
@@ -123,6 +131,12 @@ class Problem(Model):
     reference: str = Field(min_length=10)  # Python reference; generates expected output.
     generator: str = ""  # Python: def cases(rng): yield input strings.
     starter: dict[Language, str] = Field(default_factory=dict)
+    # Quality gates (scripts/content/validate_problems.py): a slow but obviously correct
+    # solution, small inputs it can handle, and references in the other judge languages.
+    brute: str = ""  # Python brute force; must agree with `reference` on small inputs.
+    small_generator: str = ""  # Python: def cases(rng): yield small input strings.
+    references: dict[Language, str] = Field(default_factory=dict)  # cpp / java
+    review: Review | None = None
     time_limit_ms: int = Field(default=2000, ge=500, le=10000)
     tests: list[TestCase] = Field(default_factory=list)
 
