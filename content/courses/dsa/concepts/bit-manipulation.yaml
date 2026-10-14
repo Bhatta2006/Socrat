@@ -80,6 +80,29 @@ lesson: |
   - In C++ and Java, shifting `1 << 40` overflows an `int`; write `1LL << 40` (C++) or
     `1L << 40` (Java).
   - Java's `>>>` shifts in zeros (unsigned); `>>` keeps the sign.
+
+  ## Worked walkthrough
+
+  Write 13 as 1101. AND with 0100 tests bit two. Clearing that bit gives 1001. Repeated x & (x−1) clears the lowest set bit: 1101→1100→1000→0000. Trace bits rather than only decimal results.
+
+  ### Why this works
+
+  A mask selects positions an operation may affect. XOR cancels equal values, but the surrounding frequency assumptions must still be established.
+
+  ### Boundary cases and cost
+
+  Use a sufficiently wide mask before shifting. Signed and out-of-range shifts differ by language; Python needs an explicit width to emulate bounded words.
+
+  Bit operations are O(1) for bounded words. Enumerating all subsets of k bits still costs O(2ᵏ).
+
+  ### Check your understanding
+
+  Which positive values satisfy x & (x−1) == 0?
+
+  Try it on paper before reading the reasoning below.
+
+  > Powers of two have exactly one set bit. Also check x>0, because zero satisfies the AND expression too.
+
 key_points:
   - AND, OR, XOR, NOT and shifts manipulate bits directly.
   - x & (x − 1) removes the lowest set bit; power of two ⇔ x > 0 and x & (x − 1) == 0.

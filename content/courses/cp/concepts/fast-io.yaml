@@ -86,6 +86,29 @@ lesson: |
 
   Most wrong answers come from misread constraints: inclusive vs exclusive bounds, 0- vs
   1-indexing, "print any" vs "print the smallest". Underline the exact output format.
+
+  ## Worked walkthrough
+
+  A test case starts with n followed by n integers. Token-based reading ignores line breaks, so the n values may span several lines. Trace the token cursor: consume n once, then exactly n values, then begin the next test case. Reading the wrong count shifts every later case.
+
+  ### Why this works
+
+  The parser must follow the input grammar, not assumptions from one sample's line wrapping. Output batching reduces repeated write overhead while preserving exact line order.
+
+  ### Boundary cases and cost
+
+  Test multiple cases, trailing whitespace and a large sum. Select wide integer types before multiplication; assigning an overflowed result to a wider variable is too late.
+
+  Parsing is linear in input size. Buffered output reduces constants but cannot avoid the cost of writing the required characters.
+
+  ### Check your understanding
+
+  Why can reading all input at once be unsuitable despite fast token access?
+
+  Try it on paper before reading the reasoning below.
+
+  > The input buffer and all split tokens consume memory. Streaming is preferable when that memory exceeds the limit.
+
 key_points:
   - Read input in bulk and write output once; avoid Scanner (Java) and endl (C++).
   - Use 64-bit integers for sums and products; cast before multiplying.

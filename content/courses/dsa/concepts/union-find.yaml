@@ -93,6 +93,29 @@ lesson: |
 
   DSU only **merges** — it cannot split groups. If edges are deleted, process offline in
   reverse, or use other techniques.
+
+  ## Worked walkthrough
+
+  Start with four singleton sets. Union 0 with 1, then 2 with 3. Union 1 with 3 joins their representatives. Later, connectivity of 0 and 2 depends on their roots, not their immediate parent values.
+
+  ### Why this works
+
+  Roots represent components. Union by size/rank limits growth; path compression shortens future searches without changing component membership. Root numeric identity is incidental.
+
+  ### Boundary cases and cost
+
+  Repeated union of already-connected vertices must not decrease the component count. Ordinary union-find cannot split a set after deleting an edge.
+
+  With both standard optimizations, operations cost amortized O(α(n)) and storage is O(n).
+
+  ### Check your understanding
+
+  Why is comparing immediate parent values insufficient?
+
+  Try it on paper before reading the reasoning below.
+
+  > Different immediate parents can lead to the same ultimate root. Find follows the complete chain.
+
 key_points:
   - DSU keeps groups as trees; the root identifies the group.
   - Path compression + union by size give near-constant amortised operations.

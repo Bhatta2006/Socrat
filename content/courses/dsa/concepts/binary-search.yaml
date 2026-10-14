@@ -89,6 +89,29 @@ lesson: |
 
   In a sorted array rotated at an unknown pivot, at least one half around `mid` is always
   sorted; check whether the target lies inside that sorted half to decide which way to go.
+
+  ## Worked walkthrough
+
+  Find the first value at least 5 in [1,3,5,5,8] using [0,5). Probe index 2: it qualifies, so hi becomes 2. Probe index 1: it fails, so lo becomes 2. The bounds meet at the first matching index.
+
+  ### Why this works
+
+  The predicate is false before a boundary and true from that boundary onward. Each update preserves the possible boundary and strictly shrinks the interval. An arbitrary matching index is insufficient when the first occurrence is required.
+
+  ### Boundary cases and cost
+
+  Test empty, all-true and all-false ranges, duplicates and targets beyond both ends. A result of n is not an index you may read.
+
+  There are O(log n) predicate evaluations. If each predicate scans n items, include that cost rather than calling the entire algorithm logarithmic.
+
+  ### Check your understanding
+
+  For [2,2,2], what are lower and upper bounds of 2?
+
+  Try it on paper before reading the reasoning below.
+
+  > Lower bound is 0 and upper bound is 3. Their difference is the count, three.
+
 key_points:
   - Binary search halves the range each step — O(log n).
   - Use one template - the first index where a monotonic condition becomes true.

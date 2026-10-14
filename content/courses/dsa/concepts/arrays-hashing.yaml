@@ -83,6 +83,29 @@ lesson: |
   2. Ask: *what am I repeatedly searching for?*
   3. Store exactly that in a map/set as you scan.
   4. Re-state the new complexity: usually O(n) time, O(n) space.
+
+  ## Worked walkthrough
+
+  Detect repeats in [6, 2, 6, 3]. Before each item, seen contains earlier values only. Insert the first 6 and then 2 after finding each absent. The next 6 is present, proving repetition. For two-sum, check the complement before inserting the current value to preserve the distinct-index rule.
+
+  ### Why this works
+
+  State exactly what the table contains and when an item becomes eligible for lookup. Use a frequency map when multiplicity matters; a set intentionally loses counts.
+
+  ### Boundary cases and cost
+
+  Test duplicates and a target equal to twice one value. Inserting before checking can reuse the same index.
+
+  Expected time is O(n), space O(n). Sorting plus two pointers is an O(n log n) alternative when hashing is unsuitable.
+
+  ### Check your understanding
+
+  For [3, 3] and target 6, how does checking before insertion find a pair?
+
+  Try it on paper before reading the reasoning below.
+
+  > The first 3 is inserted after finding no match. The second finds that earlier position, so the equal values still have distinct indices.
+
 key_points:
   - Hash maps/sets give O(1) average lookup, turning repeated searches into one pass.
   - Complement lookup — store what you've seen, look for target − x.

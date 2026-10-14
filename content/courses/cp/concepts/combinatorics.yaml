@@ -75,6 +75,29 @@ lesson: |
   - **Inclusion–exclusion**: |A ∪ B| = |A| + |B| − |A ∩ B|, and its generalisations.
   - **Pascal's rule**: `C(n, k) = C(n−1, k−1) + C(n−1, k)` — a DP table when the modulus is
     not prime or n is small.
+
+  ## Worked walkthrough
+
+  Choose two positions from four. List pairs 01,02,03,12,13,23: six choices. If order mattered there would be twelve. Before selecting a formula, decide whether items are distinct, repetition is allowed and order matters.
+
+  ### Why this works
+
+  A counting argument needs a bijection or disjoint exhaustive cases. The product rule combines sequential choices; the sum rule combines alternatives that must not overlap.
+
+  ### Boundary cases and cost
+
+  Factorial formulas under a modulus need valid inverses. For prime modulus p, factorials reaching p become zero modulo p and the usual inverse-factorial method no longer applies directly.
+
+  Precomputed factorials give O(1) binomial queries after O(n) work, subject to the modulus assumptions.
+
+  ### Check your understanding
+
+  Why does multiplying n choices by n−1 choices overcount unordered pairs?
+
+  Try it on paper before reading the reasoning below.
+
+  > Each pair appears in two orders. Divide by two over integers, or use a valid modular inverse when working modulo a suitable modulus.
+
 key_points:
   - Product rule for independent choices; sum rule for disjoint cases.
   - C(n, k) = n! / (k!(n − k)!); precompute factorials and inverse factorials for O(1) queries.

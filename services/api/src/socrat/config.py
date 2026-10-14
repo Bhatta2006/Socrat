@@ -116,6 +116,14 @@ class Settings(DatabaseSettings):
     ai_daily_messages: int = Field(default=150, ge=1, le=5000)
     ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
     ai_tools: bool = True  # let the tutor look up the learner's data and the library
+    explainer_enabled: bool = True
+    explainer_model: str = ""
+    explainer_chat_template_kwargs: dict = Field(default_factory=dict)
+    explainer_daily_messages: int = Field(default=20, ge=1, le=200)
+    explainer_concurrent_limit: int = Field(default=4, ge=1, le=16)
+    explainer_sandbox_origin: str = ""
+    explainer_checker_url: str = ""
+    explainer_checker_secret: SecretStr = SecretStr("")
     # Who may open /admin: OIDC subjects (or "issuer|subject"). Empty = nobody.
     admin_subjects: list[str] = Field(default_factory=list, max_length=50)
     # Content review queue: drafts are YAML files on an authoring checkout; approval moves

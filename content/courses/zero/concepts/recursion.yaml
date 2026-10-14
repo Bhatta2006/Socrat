@@ -99,6 +99,29 @@ lesson: |
   Recursion shines when the data or problem is itself recursive: trees, nested
   structures, "try every choice" searches (backtracking), and divide-and-conquer
   algorithms like merge sort. For simple counting, a loop is usually clearer.
+
+  ## Worked walkthrough
+
+  Trace factorial(3): the pending work is 3 × factorial(2), then 2 × factorial(1), then 1 × factorial(0). The base call returns 1. Unwinding gives 1, 2, then 6. Draw a separate frame for each call with its own n; the caller waits while the child computes its result.
+
+  ### Why this works
+
+  A recursive solution needs a base case and a smaller instance moving toward it. Assume the smaller call fulfils its contract, then explain how one local operation extends that result. This reasoning is more useful than trying to hold the entire call tree in your head.
+
+  ### Boundary cases and cost
+
+  A correct recurrence can still exceed the call-stack limit on deep inputs. Negative factorial arguments do not approach the chosen base case. Reject invalid input or specify a valid domain instead of allowing infinite recursion.
+
+  Factorial has O(n) time and O(n) stack depth. Naive Fibonacci branches twice and repeats work; memoization changes its time complexity.
+
+  ### Check your understanding
+
+  How many calls does factorial(3) make when the base case is n=0? What remains on the stack at the deepest point?
+
+  Try it on paper before reading the reasoning below.
+
+  > There are four calls, for 3, 2, 1 and 0. Each caller retains its local n and the multiplication waiting for the returned result.
+
 key_points:
   - Every recursive function needs a base case and a step toward it.
   - Each call gets its own frame on the call stack; frames finish in reverse order.

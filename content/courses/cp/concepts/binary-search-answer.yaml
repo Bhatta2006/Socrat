@@ -68,6 +68,29 @@ lesson: |
   ## Real-valued answers
 
   Run a fixed number of iterations (e.g. 100) on doubles instead of checking `lo < hi`.
+
+  ## Worked walkthrough
+
+  Split jobs [4,7,2] into at most two consecutive groups while minimizing the maximum group sum. Limit 7 works as [4] and [7,2]? No: the second sum is 9, requiring three groups. Limit 9 works as [4] and [7,2]. Trace the greedy feasibility check independently of the binary search.
+
+  ### Why this works
+
+  If a capacity works, every larger capacity works too. That monotonic predicate is the proof that the answer boundary can be searched. Derive safe lower and upper bounds first.
+
+  ### Boundary cases and cost
+
+  Impossible instances, overflowed sums and wrong predicate direction can invalidate the search. At a fixed limit, start a new group only when adding the next item would exceed it.
+
+  If feasibility is O(n), answer search takes O(n log range). State the integer range and how infeasibility is reported.
+
+  ### Check your understanding
+
+  For nonnegative jobs, what are safe capacity bounds?
+
+  Try it on paper before reading the reasoning below.
+
+  > At least the largest job, and at most the total sum. These bounds rely on every job belonging to one group and on the allowed group count.
+
 key_points:
   - Optimisation → feasibility check + binary search, when feasibility is monotonic.
   - Each check is usually a greedy O(n) scan; total O(n log range).

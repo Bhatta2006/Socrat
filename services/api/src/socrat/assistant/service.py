@@ -263,6 +263,12 @@ def prepare(
     check_quota(db, settings, user.id, now)
     enrollment = learn.active_enrollment(db, user.id)
     language = enrollment.language if enrollment else "python"
+    if scope.startswith("concept:") and scope.removeprefix("concept:") not in learn.curriculum(catalog, enrollment):
+        raise HTTPException(404, "not_found")
+    if scope.startswith("problem:"):
+        target = catalog.problems.get(scope.removeprefix("problem:"))
+        if target is None or f"{target[0]}:{target[1].concepts[0]}" not in learn.curriculum(catalog, enrollment):
+            raise HTTPException(404, "not_found")
     thread = thread_for(db, user.id, scope)
     problem: Problem | None = None
     allowed = 5

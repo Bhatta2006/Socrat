@@ -99,6 +99,29 @@ lesson: |
 
   When values are small integers (ages, letters, scores 0–100), count each value and
   rebuild: **O(n + range)**, beating O(n log n).
+
+  ## Worked walkthrough
+
+  Sort records (score, original_position): (4,0), (2,1), (4,2). The score-2 record comes first. A stable sort keeps the tied score-4 records in their original order. If another tie-break is required, include it explicitly.
+
+  ### Why this works
+
+  Sorting groups related values and creates order for later scans. The comparator must be consistent; using <= where a strict ordering is required can violate the library contract.
+
+  ### Boundary cases and cost
+
+  Test ties, reverse order and extreme keys. Subtracting integer keys in a comparator can overflow. Preserve positions when needed.
+
+  Comparison sorting is generally O(n log n). Counting sort is O(n+k) for a bounded key range k, at an O(k) memory cost.
+
+  ### Check your understanding
+
+  Why can one adjacent scan detect duplicates after sorting?
+
+  Try it on paper before reading the reasoning below.
+
+  > Equal values become contiguous. Every later occurrence in a run has an equal predecessor.
+
 key_points:
   - Comparison sorting is O(n log n) at best; library sorts already achieve it.
   - Merge sort - split, recurse, merge — stable, O(n log n), O(n) space; counts inversions.

@@ -95,6 +95,29 @@ lesson: |
 
   "Number of ways" answers grow fast; take everything modulo 1,000,000,007 at every
   addition.
+
+  ## Worked walkthrough
+
+  Count ways to climb four steps using jumps of one or two. Define dp[i] as ways to reach exactly i. Starting dp[0]=1 gives 1,2,3,5 for heights one through four. Every way ends with one of the two allowed jumps.
+
+  ### Why this works
+
+  Define state in a sentence and partition the final decisions. Counting partitions must be exhaustive and disjoint; optimization combines with min or max instead of addition.
+
+  ### Boundary cases and cost
+
+  Test zero-size input and unreachable states. Zero initialization can look like a free solution in a minimum-cost recurrence.
+
+  This recurrence costs O(n) time and O(n) table space, or O(1) after valid compression.
+
+  ### Check your understanding
+
+  When may the table be reduced to two variables?
+
+  Try it on paper before reading the reasoning below.
+
+  > When each new state needs only the preceding two and reconstruction does not need earlier values. Preserve old values before overwriting.
+
 key_points:
   - DP = state + transition + base cases + answer.
   - Each state is computed once, so exponential recursion becomes polynomial.

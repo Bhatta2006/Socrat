@@ -78,6 +78,29 @@ lesson: |
 
   Turn intervals into sorted events and walk through time keeping a running state. It
   solves overlap counting, union length, and skyline-style problems.
+
+  ## Worked walkthrough
+
+  Merge [1,4], [2,3], [6,8] after sorting starts. Hold [1,4]. The contained [2,3] overlaps without extending the end. Start 6 proves the current interval can be emitted, then begin [6,8]. Always take the maximum end.
+
+  ### Why this works
+
+  Sorted starts guarantee that no future interval can overlap an interval already separated from the next start. Decide between closed and half-open intervals before defining overlap.
+
+  ### Boundary cases and cost
+
+  Closed [1,2] and [2,3] share a point; their half-open versions do not. Test containment, duplicates and touching endpoints.
+
+  Sorting costs O(n log n), scanning O(n). Output may occupy O(n) even when working state is constant.
+
+  ### Check your understanding
+
+  Why choose earliest finish when maximizing non-overlapping selections?
+
+  Try it on paper before reading the reasoning below.
+
+  > Replacing an optimal solution's first interval with the earliest-finishing choice leaves at least as much room for later selections.
+
 key_points:
   - Sort by start; then overlaps involve only neighbours in the sweep.
   - Overlap of [a, b] and [c, d] ⇔ a ≤ d and c ≤ b — clarify whether touching counts.

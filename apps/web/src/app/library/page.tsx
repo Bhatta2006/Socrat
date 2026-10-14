@@ -158,7 +158,7 @@ export default function Library() {
         <PageHeader
           eyebrow="Practice"
           title="Practice library"
-          description={<>{total ? `${total.toLocaleString()} problems` : 'Problems'} from LeetCode, CSES and Codeforces, each tied to a concept and ranked for where you are now.</>}
+          description={<>{total ? `${total.toLocaleString()} unlocked problems` : 'Your practice pool'} from completed topics. Complete more lessons to unlock more questions.</>}
           actions={<Button asChild variant="outline"><Link href="/companies"><Building2 data-icon="inline-start" /> Company question bank</Link></Button>}
         />
       </Reveal>

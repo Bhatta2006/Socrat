@@ -10,6 +10,7 @@ import {
   ChartLine,
   ClipboardCheck,
   Flame,
+  FlaskConical,
   Home,
   Library,
   LogOut,
@@ -63,6 +64,7 @@ const NAV = [
   { href: '/progress', label: 'Progress', icon: ChartLine },
 ];
 const MORE = [
+  { href: '/playground', label: 'Playground', icon: FlaskConical },
   { href: '/companies', label: 'Company questions', icon: Building2 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];

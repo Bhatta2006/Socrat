@@ -74,6 +74,29 @@ lesson: |
 
   Fenwick trees handle **invertible** operations (sum, XOR). For min/max over arbitrary
   ranges, use a segment tree.
+
+  ## Worked walkthrough
+
+  A one-based Fenwick node at index six covers two values because lowbit(6)=2. A prefix query visits six then four, combining disjoint ranges. Updating position three visits three, four and eight, exactly the stored ranges containing that position.
+
+  ### Why this works
+
+  lowbit isolates the least significant set bit and identifies a node's range size. Query removes that bit; update moves to the next enclosing range.
+
+  ### Boundary cases and cost
+
+  Index zero cannot advance under i += i & −i. Convert external zero-based positions once. Queries can handle zero as the empty prefix, but updates must start positive.
+
+  Point updates and prefix queries are O(log n), storage O(n). Standard sum subtraction relies on an invertible operation.
+
+  ### Check your understanding
+
+  How do you get the sum on inclusive positions l through r?
+
+  Try it on paper before reading the reasoning below.
+
+  > Subtract prefix(l−1) from prefix(r), using the one-based convention consistently.
+
 key_points:
   - Index i covers a block of length i & −i ending at i (1-indexed).
   - add climbs with i += i & −i; prefix descends with i −= i & −i; both O(log n).

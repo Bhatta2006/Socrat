@@ -138,6 +138,8 @@ def progress_numbers(plan: Plan) -> dict:
 
 def plan_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int) -> dict:
     plan = learn.plan_for(db, catalog, user, enrollment, now)
+    completed = learn.completed_for(db, enrollment)
+    states = learn.states_for(db, enrollment)
     modules: list[dict] = []
     index: dict[str, dict] = {}
     for item in plan.roadmap:
@@ -155,7 +157,13 @@ def plan_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment,
                 locked_by=None,
             )
             modules.append(index[module_key])
-        index[module_key]["concepts"].append(item)
+        index[module_key]["concepts"].append(dict(
+            item,
+            lesson_done=f"lesson:{item['concept']}" in completed,
+            quiz_done=f"quiz:{item['concept']}" in completed,
+            review_due=states.get(item["concept"], ConceptState()).due(now),
+            roadmap_resources=resources.selected(item["concept"], enrollment.language, "roadmap"),
+        ))
         if item.get("locked_by"):
             gate_module = item["locked_by"].removeprefix("checkpoint:")
             gate_course, gate_id = gate_module.split(":", 1)
@@ -208,6 +216,7 @@ def concept_view(
         summary=concept.summary,
         module=catalog.module_of(qualified),
         lesson=concept.lesson,
+        exercises=resources.selected(qualified, language, "exercises"),
         key_points=concept.key_points,
         pitfalls=concept.pitfalls,
         resources=resources.personalised(db, user.id, qualified, concept, language, current_band),
@@ -217,6 +226,7 @@ def concept_view(
             p.model_dump(mode="json")
             for p in concept.practice_links
             if index.find_url(str(p.url)) is None
+            and qualified in learn.practice_topics(db, catalog, enrollment, now)
         ],
         more_practice=library.concept_practice(
             db,

@@ -96,6 +96,29 @@ lesson: |
 
   When you test a decision, test the **boundaries**: equal values, the smallest value, and
   values right at each threshold (exactly 30, exactly 15). Most bugs live at boundaries.
+
+  ## Worked walkthrough
+
+  Classify a score into high, medium or low. With thresholds 80 and 50, evaluate score 65: the first test fails, the second passes and the low branch is skipped. Compare this with three independent if statements: more than one may run. Trace scores 49, 50, 79 and 80 to settle whether each boundary belongs to the intended category.
+
+  ### Why this works
+
+  An if/else-if chain expresses mutually exclusive choices. Its order matters when predicates overlap: more specific or stricter cases must come first. Before implementation, describe what each branch guarantees and make sure the final else covers all remaining valid inputs.
+
+  ### Boundary cases and cost
+
+  A condition can be logically valid but ordered incorrectly. Checking score >= 50 before score >= 80 makes the high branch unreachable. Also distinguish missing cases from impossible cases.
+
+  A fixed chain is O(1). When the number of cases grows with input, reconsider a lookup table instead of an unbounded chain.
+
+  ### Check your understanding
+
+  A number divisible by both 3 and 5 needs a special message. Which branch belongs first?
+
+  Try it on paper before reading the reasoning below.
+
+  > The combined condition belongs first; otherwise one of the individual conditions consumes the input before the combined branch is reached.
+
 key_points:
   - "`if` runs a block only when its condition is true."
   - In an if / else-if / else chain, only the first true branch runs.

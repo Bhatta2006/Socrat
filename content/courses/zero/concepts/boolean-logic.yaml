@@ -80,6 +80,29 @@ lesson: |
   A year is a leap year if it is divisible by 4, **except** years divisible by 100 are not,
   **unless** they are also divisible by 400. As one condition:
   `(y % 4 == 0 and y % 100 != 0) or y % 400 == 0`. 2000 is a leap year; 1900 is not.
+
+  ## Worked walkthrough
+
+  A discount requires membership and a purchase of at least 100. Make four cases: member/small, member/large, non-member/small, non-member/large. Only member/large passes the AND rule. Compare a different rule, membership OR large purchase: now three cases pass. For each input, evaluate the comparisons first and then combine their true/false values.
+
+  ### Why this works
+
+  Translate the specification into a truth table before code. AND means every requirement holds; OR means at least one does. Negating a compound condition flips both the comparisons and the connective: not(A and B) equals not A or not B.
+
+  ### Boundary cases and cost
+
+  Test exact thresholds and values immediately below them. Short-circuiting can protect an operation, such as checking a list is nonempty before reading its first element. Put the guard first.
+
+  A fixed number of boolean tests costs O(1); avoid repeatedly computing an expensive predicate inside a loop.
+
+  ### Check your understanding
+
+  An age must be between 13 and 19 inclusive. Does age >= 13 OR age <= 19 express this?
+
+  Try it on paper before reading the reasoning below.
+
+  > No: every age satisfies at least one side. The bounded interval needs AND. Ages 12, 13, 19 and 20 distinguish the wrong rule from the correct one.
+
 key_points:
   - and/&& needs both sides true; or/|| needs at least one; not/! flips.
   - Express ranges as two comparisons joined by and.

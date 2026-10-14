@@ -69,6 +69,29 @@ lesson: |
   When you ask Socrat (or anyone), share what you tried, a small failing case, and where
   your understanding stops. Good questions get you unstuck faster — and often answer
   themselves.
+
+  ## Worked walkthrough
+
+  Take a task asking for the largest value. Restate input, output and valid sizes. Solve [−5, −2, −9] by hand: the answer is −2. Start from the first value, then compare each later value. A candidate solution initialized to zero disagrees with this tiny example before you write any code.
+
+  ### Why this works
+
+  Use a chain of decisions: clarify the contract, produce examples, choose state, describe how state changes, prove that change preserves meaning, then implement. A trace connects the informal idea to actual code and makes hidden assumptions visible.
+
+  ### Boundary cases and cost
+
+  List empty, smallest, largest, duplicate-heavy and negative cases when they belong to the contract. If no valid answer exists, agree on a sentinel or error rather than improvising one midway through implementation.
+
+  Estimate work from the maximum input size. A method suitable for ten items may be unusable for a hundred thousand; explain both time and additional memory.
+
+  ### Check your understanding
+
+  Before optimizing a pair-sum solution, what should the simple quadratic version establish?
+
+  Try it on paper before reading the reasoning below.
+
+  > It should establish the exact specification, especially whether indices must differ, duplicate values are allowed, and one or all pairs are wanted. A small brute-force version is also an oracle for checking a faster approach.
+
 key_points:
   - Understand the input, output, examples and constraints before coding.
   - Solve small examples by hand and turn your own steps into an algorithm.

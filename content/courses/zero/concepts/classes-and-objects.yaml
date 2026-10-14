@@ -99,6 +99,29 @@ lesson: |
   A good class has one clear responsibility. If you cannot describe it in a sentence, split
   it. Prefer methods that keep the object valid over code outside that edits fields
   directly.
+
+  ## Worked walkthrough
+
+  Create two counters, each starting at zero. Increment the first twice and the second once. Their states should be 2 and 1. Draw one object box per counter and put its fields inside that box. If both values change together, check whether you accidentally used shared class-level mutable state instead of instance state.
+
+  ### Why this works
+
+  A class defines a representation and the operations allowed on it; an object is one concrete instance. Keep representation invariants true after construction and every method. For a bounded counter, state what minimum and maximum values are legal and decide how invalid operations are reported.
+
+  ### Boundary cases and cost
+
+  Test independent instances, repeated method calls and invalid constructor inputs. A method should not expose a mutable internal collection if callers could use it to break the object's invariant.
+
+  Object syntax does not determine algorithmic cost. A method that scans a stored list remains O(n), even if the call looks short.
+
+  ### Check your understanding
+
+  A rectangle object stores width and height. Should its area be a permanently stored number or computed from the current dimensions?
+
+  Try it on paper before reading the reasoning below.
+
+  > Computing area from dimensions avoids stale derived state when dimensions change. Storing it is justified only with a clear update rule or immutable dimensions.
+
 key_points:
   - A class defines a type with data (attributes) and behaviour (methods).
   - An object is an instance with its own copy of the attributes.

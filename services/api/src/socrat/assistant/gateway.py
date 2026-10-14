@@ -231,10 +231,11 @@ class OpenAIProvider:
 
     name = "openai"
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, chat_template_kwargs: dict | None = None):
         import openai
 
         self.settings = settings
+        self.chat_template_kwargs = dict(chat_template_kwargs or {})
         self.client = openai.AsyncOpenAI(
             api_key=settings.openai_api_key.get_secret_value() or None,
             base_url=settings.openai_base_url or None,
@@ -250,6 +251,7 @@ class OpenAIProvider:
         tools: list[ToolSpec] | None = None,
         run_tool: ToolRunner | None = None,
         max_rounds: int = 4,
+        *, response_format: dict | None = None,
     ) -> AsyncIterator[Event]:
         import openai
 
@@ -280,6 +282,10 @@ class OpenAIProvider:
                     max_completion_tokens=max_tokens,
                     messages=messages,
                 )
+                if self.chat_template_kwargs:
+                    params["extra_body"] = {"chat_template_kwargs": self.chat_template_kwargs}
+                if response_format:
+                    params["response_format"] = response_format
                 if tool_params:
                     params["tools"] = tool_params
                     params["tool_choice"] = "none" if rounds >= max_rounds else "auto"
@@ -380,9 +386,9 @@ async def complete(provider: Provider, system: str, turns: list[Turn], max_token
     return text
 
 
-def make_provider(settings: Settings) -> Provider:
+def make_provider(settings: Settings, *, chat_template_kwargs: dict | None = None) -> Provider:
     if settings.ai_provider == "anthropic":
         return AnthropicProvider(settings)
     if settings.ai_provider == "openai":
-        return OpenAIProvider(settings)
+        return OpenAIProvider(settings, chat_template_kwargs)
     return OfflineProvider()

@@ -64,6 +64,29 @@ lesson: |
   - "q queries of sum on [l, r], no updates" → prefix sums.
   - "q operations add v to [l, r], then report the array" → difference array.
   - Updates and queries interleaved → Fenwick or segment tree (later in this course).
+
+  ## Worked walkthrough
+
+  Add 5 to half-open range [1,4) of five zeros. Put +5 at difference[1] and −5 at difference[4]. A prefix scan gives [0,5,5,5,0]. The second marker stops the update rather than undoing all earlier values.
+
+  ### Why this works
+
+  Differences record changes between neighbouring positions; prefix accumulation reconstructs levels. Multiple range updates superpose because addition is associative.
+
+  ### Boundary cases and cost
+
+  Test full-array updates and ranges ending at n. Allocate a sentinel slot for the stop marker. Be explicit about converting inclusive input endpoints to half-open internal ranges.
+
+  Offline updates and reconstruction cost O(updates+n). Online intermixed updates and queries need another structure, such as a Fenwick or segment tree.
+
+  ### Check your understanding
+
+  Where are markers placed for an inclusive update [l,r]?
+
+  Try it on paper before reading the reasoning below.
+
+  > At l and r+1. If r is the last index, the stop marker goes in the sentinel position.
+
 key_points:
   - Prefix sums - O(1) range-sum queries on a static array.
   - Difference arrays - O(1) range additions, one final prefix pass.

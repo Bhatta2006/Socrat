@@ -3,7 +3,12 @@
 import asyncio
 import json
 
-from test_learner_api import client, login, onboard  # noqa: F401  (client is a fixture)
+from test_learner_api import (  # noqa: F401  (client is a fixture)
+    client,
+    complete_curriculum,
+    login,
+    onboard,
+)
 
 from socrat.assistant import service as assistant
 from socrat.assistant.gateway import Event, ToolSpec, execute, valid_arguments
@@ -25,6 +30,7 @@ def call(box: Toolbox, name: str, **arguments):
 def test_every_tool_answers_for_an_enrolled_learner(client):  # noqa: F811
     headers = login(client)
     onboard(client, headers, course="dsa", level="new-to-programming")
+    complete_curriculum(client)
     box = toolbox_for(client)
     progress, failed = call(box, "get_progress")
     assert not failed and progress["concepts"] and progress["practice_level"]

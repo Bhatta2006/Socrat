@@ -20,7 +20,7 @@ from socrat.catalog.registry import Catalog, CatalogError, default_catalog
 from socrat.database import record_event
 from socrat.execution.protocol import ResultEnvelope
 from socrat.judge import service as judge
-from socrat.learn import placement, quizzes, resources, views
+from socrat.learn import placement, playground, quizzes, resources, views
 from socrat.learn import service as learn
 from socrat.mastery.model import ConceptState, band
 from socrat.models import (
@@ -454,6 +454,15 @@ def progress(request: Request):
 # ---------------------------------------------------------------- lessons & quizzes
 
 
+@router.get("/playground")
+def playground_overview(request: Request):
+    with Session(engine(request)) as db:
+        user = user_of(request, db)
+        enrollment = active(db, user)
+        guard_instruction(db, catalog(), user)
+        return playground.overview(db, catalog(), user, enrollment, now())
+
+
 @router.get("/concepts/{qualified}")
 def concept(qualified: str, request: Request):
     cat = catalog()
@@ -493,7 +502,9 @@ def guard_instruction(db: Session, cat: Catalog, user: User, qualified: str | No
 
     enrollment = learn.active_enrollment(db, user.id)
     if enrollment is None:
-        return
+        raise HTTPException(404, "no_active_enrollment")
+    if qualified is not None and qualified not in learn.curriculum(cat, enrollment):
+        raise HTTPException(404, "not_found")
     if sessions.instruction_blocked(db, enrollment, now()) or assessments.in_progress(
         db, enrollment, now()
     ):
@@ -517,6 +528,10 @@ def guard(db: Session, cat: Catalog, enrollment: Enrollment, activity_id: str) -
     concept = activity_concept(cat, activity_id)
     if concept is not None:
         learn.require_unlocked(db, cat, enrollment, concept, now())
+    elif activity_id.startswith("checkpoint:"):
+        from socrat.planner import gates
+        if not any(c in learn.curriculum(cat, enrollment) for c in gates.module_concepts(cat, activity_id.removeprefix("checkpoint:"))):
+            raise HTTPException(404, "not_found")
 
 
 def valid_activity(cat: Catalog, activity_id: str) -> str:
@@ -595,15 +610,22 @@ def quiz_answer(activity_id: str, body: QuizAnswer, request: Request):
 
 @router.get("/companies")
 def companies(request: Request, q: str = "", limit: int = 60):
+    from socrat.library import service as library
+
     index = practice.default_index()
     with Session(engine(request)) as db:
-        user_of(request, db)
+        user = user_of(request, db)
+        learner = library.learner_for(db, catalog(), user, learn.active_enrollment(db, user.id), now())
     needle = q.strip().lower()
     items = [
-        dict(slug=slug, name=c["name"], problems=len(c["problems"]))
+        dict(slug=slug, name=c["name"], problems=sum(
+            library_problem in index.problems and learner.can_practice(index.problems[library_problem])
+            for library_problem, _, _ in c["problems"]
+        ))
         for slug, c in index.companies.items()
         if not needle or needle in c["name"].lower()
     ]
+    items = [c for c in items if c["problems"]]
     items.sort(key=lambda c: (-c["problems"], c["name"]))
     return {"items": items[: max(1, min(limit, 700))], "total": len(items)}
 
@@ -617,6 +639,8 @@ def company(
     offset: int = 0,
     limit: int = 50,
 ):
+    from socrat.library import service as library
+
     index = practice.default_index()
     entry = index.companies.get(slug)
     if entry is None:
@@ -627,11 +651,12 @@ def company(
         enrollment = learn.active_enrollment(db, user.id)
         states = learn.states_for(db, enrollment) if enrollment else {}
         stamp = now()
+        learner = library.learner_for(db, cat, user, enrollment, stamp)
     cutoff = practice.WINDOW_RANK[window]
     rows = []
     for problem_id, frequency, seen in entry["problems"]:
         problem = index.problems.get(problem_id)
-        if problem is None or practice.WINDOW_RANK.get(seen, 4) > cutoff:
+        if problem is None or not learner.can_practice(problem) or practice.WINDOW_RANK.get(seen, 4) > cutoff:
             continue
         if difficulty != "all" and problem["difficulty"] != difficulty:
             continue
@@ -685,6 +710,8 @@ def problem(problem_id: str, request: Request, language: str | None = None):
     with Session(engine(request)) as db:
         user = user_of(request, db)
         enrollment = learn.active_enrollment(db, user.id)
+        if enrollment is None or f"{cat.problems[problem_id][0]}:{cat.problem(problem_id).concepts[0]}" not in learn.curriculum(cat, enrollment):
+            raise HTTPException(404, "not_found")
         lang = (
             language
             if language in {"python", "cpp", "java"}
@@ -699,7 +726,9 @@ def save_draft(problem_id: str, body: SourceInput, request: Request):
     problem_or_404(cat, problem_id)
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
-        enrollment = learn.active_enrollment(db, user.id)
+        enrollment = learn.require_enrollment(db, user.id)
+        if f"{cat.problems[problem_id][0]}:{cat.problem(problem_id).concepts[0]}" not in learn.curriculum(cat, enrollment):
+            raise HTTPException(404, "not_found")
         language = body.language or (enrollment.language if enrollment else "python")
         draft = db.get(Draft, (user.id, problem_id, language))
         if draft is None:
@@ -723,7 +752,9 @@ def queue(problem_id: str, body: RunInput, request: Request, mode: str):
     settings = request.app.state.settings
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
-        enrollment = learn.active_enrollment(db, user.id)
+        enrollment = learn.require_enrollment(db, user.id)
+        if f"{cat.problems[problem_id][0]}:{problem_obj.concepts[0]}" not in learn.curriculum(cat, enrollment):
+            raise HTTPException(404, "not_found")
         language = body.language or (enrollment.language if enrollment else "python")
         if enrollment is not None and enrollment.status == "active":
             guard(db, cat, enrollment, f"problem:{problem_id}")

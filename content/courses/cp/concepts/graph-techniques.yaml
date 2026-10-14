@@ -92,6 +92,29 @@ lesson: |
   ## Path reconstruction
 
   Store `parent[v]` when you relax an edge; walk back from the target and reverse.
+
+  ## Worked walkthrough
+
+  For edge weights zero or one, a zero-cost relaxation belongs at the front of a deque and a unit-cost relaxation at the back. On A→B:1, A→C:0, C→B:0, C is processed before the old cost-one route to B.
+
+  ### Why this works
+
+  The deque preserves the distance ordering needed by 0–1 BFS. Multi-source BFS instead starts all sources at distance zero, treating them as a simultaneous frontier.
+
+  ### Boundary cases and cost
+
+  Do not use 0–1 BFS for arbitrary positive weights. Repeated relaxation needs distance comparisons; an ordinary visited flag at first discovery can freeze a worse route.
+
+  Both multi-source unweighted BFS and 0–1 BFS run in O(V+E) with appropriate adjacency storage.
+
+  ### Check your understanding
+
+  Why does initializing several sources at distance zero find distance to the nearest source?
+
+  Try it on paper before reading the reasoning below.
+
+  > All sources enter the same distance-ordered traversal. The earliest reaching frontier gives the minimum over those source distances.
+
 key_points:
   - Multi-source BFS - enqueue every source at distance 0 first.
   - 0-1 BFS with a deque replaces Dijkstra for weights in {0, 1}.

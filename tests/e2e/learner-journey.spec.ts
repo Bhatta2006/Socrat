@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+test.describe.configure({ timeout: 90000 });
+
 /** One learner's first session through the v2 web app, on desktop and mobile. */
 
 async function signIn(page: Page, name: string) {
@@ -108,11 +110,15 @@ test('the practice library filters, saves and never shows raw links', async ({ p
 
   await page.goto('/today');
   await expect(page.getByRole('heading', { name: 'Practice picked for you' })).toBeVisible();
-  await page.goto('/library?platform=Codeforces&rating_min=1200&rating_max=1300&sort=easiest');
+  expect((await (await page.request.get('/api/v1/library?sort=easiest')).json()).total).toBe(0);
+  await page.goto('/learn/zero/input-and-arithmetic');
+  await page.getByRole('button', { name: 'Mark lesson complete' }).click();
+  await expect(page.getByRole('heading', { name: 'Lesson complete' })).toBeVisible();
+  await page.goto('/library?platform=Codeforces&rating_min=800&rating_max=900&sort=easiest');
   await expect(page.getByRole('heading', { name: 'Practice library' })).toBeVisible();
   const rows = page.locator('tbody tr');
   await expect(rows.first()).toContainText('Codeforces');
-  await expect(rows.first()).toContainText('1200');
+  await expect(rows.first()).toContainText('800');
   // Names link out to the official site; addresses are never printed.
   expect(await page.locator('main').innerText()).not.toMatch(/https?:\/\//);
   const title = (await rows.first().getByRole('link').first().innerText()).replace(/\s*↗.*$/s, '');

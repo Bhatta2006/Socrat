@@ -88,6 +88,29 @@ lesson: |
   - k-th ancestor queries ("Company Queries I").
   - Jumping along any functional graph `next[v]` k steps (successor graphs).
   - Path maxima/minima: store the aggregate alongside each jump.
+
+  ## Worked walkthrough
+
+  In a rooted tree, let u have depth five and v depth three. Lift u by two levels before comparing ancestors. If they differ, try powers of two from largest to smallest, lifting both only while their candidate ancestors differ; their final parents coincide.
+
+  ### Why this works
+
+  Binary lifting stores the 2ᵏ-th ancestor from two 2ᵏ⁻¹ jumps. Equalizing depth preserves the shared ancestor, and synchronized lifts avoid jumping above the lowest one.
+
+  ### Boundary cases and cost
+
+  Test u=v, one vertex being the other's ancestor, the root and a chain. Define the root's parent consistently and allocate enough jump levels for maximum depth.
+
+  Preprocessing takes O(n log n), each query O(log n), and storage O(n log n).
+
+  ### Check your understanding
+
+  What is LCA(u,v) if u is already an ancestor of v?
+
+  Try it on paper before reading the reasoning below.
+
+  > u. The depth-equalization phase can make the vertices identical, so handle that before synchronized lifting.
+
 key_points:
   - up[k][v] is the 2^k-th ancestor; up[k][v] = up[k−1][up[k−1][v]].
   - Equalise depths with binary jumps, then lift both while ancestors differ.

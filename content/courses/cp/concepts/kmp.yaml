@@ -74,6 +74,29 @@ lesson: |
   exact and linear but answers prefix/border questions. The related **Z-function** gives,
   for each position, the longest common prefix with the whole string — another exact
   linear-time tool.
+
+  ## Worked walkthrough
+
+  For pattern 'abab', prefix-function values are [0,0,1,2]. At a mismatch after matching a prefix, fall back to the longest proper prefix that is also a suffix, rather than moving the text cursor backwards. Try a repeated-prefix text to see why several fallback steps can occur.
+
+  ### Why this works
+
+  Previously matched characters already establish border information. The prefix function preserves the only shorter candidates that could still match, avoiding rechecking text positions from scratch.
+
+  ### Boundary cases and cost
+
+  Test overlapping matches, repeated characters and a pattern longer than the text. Define empty-pattern behaviour explicitly. After a match, fall back instead of resetting blindly if overlaps are allowed.
+
+  Prefix preprocessing and the scan cost O(pattern length + text length); fallback work is amortized across advances.
+
+  ### Check your understanding
+
+  For text 'aaaa' and pattern 'aa', how many overlapping matches exist?
+
+  Try it on paper before reading the reasoning below.
+
+  > Three, beginning at positions zero, one and two. Resetting all progress after each full match can miss overlaps.
+
 key_points:
   - π[i] = length of the longest proper border of s[0..i].
   - Computed in O(n) by falling back through borders.

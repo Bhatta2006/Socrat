@@ -81,6 +81,29 @@ lesson: |
 
   Start at the root: if both keys are smaller, go left; if both are larger, go right;
   otherwise the current node splits them and is the LCA.
+
+  ## Worked walkthrough
+
+  Search for 6 under root 8 with left child 3 and its right child 6. Compare with 8 and go left, then compare with 3 and go right. This excludes entire subtrees only because all descendants respect the ordering bounds.
+
+  ### Why this works
+
+  The invariant is global, not merely parent-child ordering. Validate descendants with inherited lower and upper bounds under an explicit duplicate policy.
+
+  ### Boundary cases and cost
+
+  A descendant can violate an ancestor's bound despite correct immediate comparisons. Avoid overflow-prone bound±1 arithmetic.
+
+  Search, insertion and deletion cost O(height). Quote O(log n) only when balance is maintained.
+
+  ### Check your understanding
+
+  Does any BST guarantee logarithmic search?
+
+  Try it on paper before reading the reasoning below.
+
+  > No. Sorted insertion into an unbalanced BST can produce a chain of height n.
+
 key_points:
   - BST rule - left subtree keys < node < right subtree keys.
   - Search, insert and delete walk one path, costing O(height).

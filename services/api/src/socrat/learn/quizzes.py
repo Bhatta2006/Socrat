@@ -132,6 +132,10 @@ def open_session(
     kind, _, target = activity_id.partition(":")
     if kind not in KINDS:
         raise HTTPException(404, "not_found")
+    scope = learn.curriculum(catalog, enrollment)
+    targets = gates.module_concepts(catalog, target) if kind == "checkpoint" else [target]
+    if not any(concept in scope for concept in targets):
+        raise HTTPException(404, "not_found")
     session = db.scalar(
         select(QuizSession)
         .where(

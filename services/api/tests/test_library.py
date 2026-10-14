@@ -1,7 +1,12 @@
 """Practice library: personalised browsing, marks, recommendations and Codeforces sync."""
 
 import pytest
-from test_learner_api import client, login, onboard  # noqa: F401  (client is a fixture)
+from test_learner_api import (  # noqa: F401  (client is a fixture)
+    client,
+    complete_curriculum,
+    login,
+    onboard,
+)
 
 from socrat.library import codeforces, ladder, recommend
 from socrat.mastery.model import ConceptState
@@ -63,6 +68,7 @@ def test_codeforces_summary_counts_verdicts_and_skips_gym():
 def test_library_browse_mark_and_recommend(client):  # noqa: F811
     headers = login(client)
     onboard(client, headers, course="dsa", level="new-to-programming")
+    complete_curriculum(client)
     meta = client.get("/api/v1/library/meta").json()
     assert set(meta["platforms"]) == {"LeetCode", "CSES", "Codeforces"}
     assert any(c["id"] == "dsa:two-pointers" for c in meta["concepts"])
@@ -112,6 +118,7 @@ def test_library_browse_mark_and_recommend(client):  # noqa: F811
 def test_codeforces_link_uses_synced_profile(client, monkeypatch):  # noqa: F811
     headers = login(client)
     onboard(client, headers, course="cp", level="new-to-programming")
+    complete_curriculum(client)
 
     async def fake(handle):
         if handle == "ghost":

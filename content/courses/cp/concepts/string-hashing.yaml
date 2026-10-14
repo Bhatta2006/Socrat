@@ -69,6 +69,29 @@ lesson: |
     all windows, look for duplicates.
   - Palindrome checks: compare a substring's hash with the reversed string's hash.
   - Counting distinct substrings of a given length.
+
+  ## Worked walkthrough
+
+  Build polynomial prefixes for a string and powers of its base. A substring hash subtracts the earlier prefix scaled to the substring length. Two equal-length substrings can then be compared quickly, provided the normalization convention is identical.
+
+  ### Why this works
+
+  Hashing compresses content, so equal hashes are evidence of equality rather than proof. The algebra needs consistent character encoding, base, modulus and index convention.
+
+  ### Boundary cases and cost
+
+  Test empty substrings, equal prefixes and negative modular subtraction. Double hashing lowers collision risk but does not eliminate it. Adversarial input may require deterministic verification.
+
+  Preprocessing is O(n), comparison O(1) per hash. Exact comparison after a collision may cost proportional to substring length.
+
+  ### Check your understanding
+
+  Why compare substring lengths as well as hashes?
+
+  Try it on paper before reading the reasoning below.
+
+  > Different-length strings can collide, and the polynomial comparison formula assumes a particular length normalization.
+
 key_points:
   - Prefix hashes make any substring hash O(1) - h[r] − h[l]·B^(r−l).
   - Equal strings ⇒ equal hashes; unequal strings collide only with tiny probability.

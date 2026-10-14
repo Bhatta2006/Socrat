@@ -85,6 +85,29 @@ lesson: |
   - Every n > 1 has at most one prime factor greater than √n.
   - The count of divisors of n ≤ 10^9 is at most 1344; enumerate divisors in pairs up to √n.
   - Primes up to 10^6: 78,498. Prime gaps are small, so "next prime" searches are fast.
+
+  ## Worked walkthrough
+
+  Euclid's algorithm on gcd(48,18) produces (18,12), (12,6), (6,0), returning 6. Each remainder is smaller than the previous divisor. For trial primality of 49, reaching divisor 7 discovers the factor pair 7×7.
+
+  ### Why this works
+
+  Common divisors of a and b are unchanged when replacing a by a mod b. For primality, a composite has at least one factor no greater than its square root.
+
+  ### Boundary cases and cost
+
+  One is not prime. Normalize signs for gcd. Avoid i*i overflow in loop conditions by using a wide type or an equivalent division comparison.
+
+  Euclid takes O(log min(a,b)) divisions. Trial division costs O(√n); sieving a shared range is better for many queries.
+
+  ### Check your understanding
+
+  Why need trial division only continue through the square root?
+
+  Try it on paper before reading the reasoning below.
+
+  > If both factors were larger than the square root, their product would exceed n. Therefore a composite must reveal a smaller factor.
+
 key_points:
   - gcd by Euclid in O(log); lcm = a / gcd · b.
   - Trial division up to √n tests primality and factorizes.

@@ -88,6 +88,29 @@ lesson: |
 
   To output the actual path or subsequence, walk back from the final cell, at each step
   choosing the transition that produced the stored value.
+
+  ## Worked walkthrough
+
+  For LCS of 'ab' and 'acb', dp[i][j] describes prefixes of lengths i and j. Matching final characters adds one to dp[i−1][j−1]; otherwise take max of discarding either final character. Empty prefixes define the zero row and column.
+
+  ### Why this works
+
+  Each axis tracks an independently changing quantity. Explain both axes and compute states only after their dependencies. A table index has meaning, not just a position.
+
+  ### Boundary cases and cost
+
+  For 0/1 knapsack compressed in place, increasing capacities can reuse the current item. Decreasing capacities preserves previous-row dependencies.
+
+  n×m constant-work states cost O(nm) time. Row compression saves space only when future dependencies and reconstruction permit it.
+
+  ### Check your understanding
+
+  Why does loop direction affect compressed DP correctness?
+
+  Try it on paper before reading the reasoning below.
+
+  > An update can read a value from the current conceptual row instead of the previous one. Direction controls which version is available.
+
 key_points:
   - 2D states describe grid positions, prefix pairs of two strings, or items × capacity.
   - LCS - match → diagonal + 1, otherwise max of top and left.

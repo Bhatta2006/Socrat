@@ -95,6 +95,29 @@ lesson: |
   Once you have a topological order, you can do **DP on a DAG**: longest path, number of
   paths, earliest finish times — processing nodes in order guarantees every predecessor is
   already computed.
+
+  ## Worked walkthrough
+
+  Tasks A and B must precede C. Indegrees begin A:0, B:0, C:2. Removing A reduces C to one; removing B reduces it to zero, making C eligible. If fewer than all tasks are removed, a dependency cycle remains.
+
+  ### Why this works
+
+  Zero indegree means no unfinished prerequisite. Removing such a vertex and decrementing its outgoing neighbours preserves that meaning.
+
+  ### Boundary cases and cost
+
+  Test isolated vertices, multiple initial choices and cycles. Duplicate edges must be counted and removed consistently.
+
+  Kahn's algorithm is O(V+E); a heap for lexicographically smallest choices adds logarithmic queue operations.
+
+  ### Check your understanding
+
+  Does one zero-indegree choice at the start prove uniqueness?
+
+  Try it on paper before reading the reasoning below.
+
+  > No. Later removals may create several choices. Uniqueness requires exactly one available vertex at every step.
+
 key_points:
   - A topological order puts every prerequisite before what depends on it.
   - It exists iff the directed graph has no cycle.

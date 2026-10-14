@@ -92,6 +92,29 @@ lesson: |
   - `break` leaves the loop immediately.
 
   Use them sparingly — a clear condition is usually easier to read.
+
+  ## Worked walkthrough
+
+  Sum [4, -1, 3]. Before iteration, total is 0. After reading 4 it is 4, after -1 it is 3, and after 3 it is 6. Add a row to a trace table for each iteration: index, current item, old total and new total. The table exposes whether the current item was processed exactly once and whether initialization happened before rather than inside the loop.
+
+  ### Why this works
+
+  The useful invariant is that total equals the sum of items already processed. It is true for the empty prefix, each iteration preserves it by adding one item, and termination makes the processed prefix the whole list. This is a small correctness proof, not merely an example.
+
+  ### Boundary cases and cost
+
+  Test an empty list, a one-item list and negative-only data. A maximum initialized to zero is wrong for negative-only input; summation's identity is zero but maximum's is not.
+
+  One constant-work visit per item is O(n) time and O(1) extra space for an accumulator.
+
+  ### Check your understanding
+
+  How many values does a zero-based loop with i < n visit? What changes if the comparison becomes i <= n?
+
+  Try it on paper before reading the reasoning below.
+
+  > The first visits n values, from 0 to n−1. The second visits n+1 and usually accesses one item past the end when used as an array index.
+
 key_points:
   - A for loop bundles start, condition and progress for counting loops.
   - "Python's range(a, b) stops before b; C++/Java conditions decide inclusion explicitly."

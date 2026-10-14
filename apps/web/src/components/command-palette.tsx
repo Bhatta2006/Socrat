@@ -19,6 +19,7 @@ import {
 
 const PAGES = [
   { href: '/today', label: 'Today', icon: Home },
+  { href: '/playground', label: 'Concept playground', icon: BookOpen },
   { href: '/plan', label: 'Plan', icon: CalendarDays },
   { href: '/library', label: 'Practice library', icon: Library },
   { href: '/assessments', label: 'Weekly assessment', icon: CalendarCheck },
@@ -38,17 +39,22 @@ export default function CommandPalette({ open, setOpen }: { open: boolean; setOp
   const [problems, setProblems] = useState<LibraryProblem[]>([]);
 
   useEffect(() => {
-    if (!open || concepts.length) return;
-    api.get<{ concepts: Concept[] }>('/library/meta').then(m => setConcepts(m.concepts)).catch(() => undefined);
-  }, [open, concepts.length]);
+    if (!open) return;
+    let active = true;
+    setConcepts([]);
+    api.get<{ concepts: Concept[] }>('/library/meta').then(m => { if (active) setConcepts(m.concepts); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [open]);
   useEffect(() => {
     if (!open || query.trim().length < 2) { setProblems([]); return; }
+    setProblems([]);
+    let active = true;
     const timer = setTimeout(() => {
       api.get<{ items: LibraryProblem[] }>(`/library?q=${encodeURIComponent(query.trim())}&sort=popular&limit=6`)
-        .then(r => setProblems(r.items))
+        .then(r => { if (active) setProblems(r.items); })
         .catch(() => undefined);
     }, 200);
-    return () => clearTimeout(timer);
+    return () => { active = false; clearTimeout(timer); };
   }, [open, query]);
 
   function go(href: string) {

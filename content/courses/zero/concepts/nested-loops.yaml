@@ -97,6 +97,29 @@ lesson: |
   - Name your counters meaningfully (`row`, `col`) instead of `i`, `j`, `k` everywhere.
   - Know which loop "owns" each statement: the newline belongs after the inner loop.
   - `break` only exits the innermost loop.
+
+  ## Worked walkthrough
+
+  List every pair of indices with i < j for three items. For i=0, visit j=1 and j=2; for i=1, visit j=2; for i=2, visit none. There are three pairs, not nine. Draw the iteration grid and cross out the diagonal and lower triangle. This shows both the no-self-pair rule and the no-duplicate-pair rule.
+
+  ### Why this works
+
+  Inner-loop bounds determine what combinations mean. A full rectangular product visits ordered pairs, while starting j at i+1 visits each unordered pair once. Explain which one the problem requires before writing the loops.
+
+  ### Boundary cases and cost
+
+  Check n=0, n=1 and n=2. Reset a row accumulator at the start of each row, but keep a whole-grid accumulator outside both loops. Resetting at the wrong nesting level silently changes the result.
+
+  The triangular loop is still O(n²); halving the work does not change the growth rate. A rows×columns traversal costs O(rows × columns).
+
+  ### Check your understanding
+
+  How many unordered pairs of distinct positions are there among n items? Count n=4 by hand.
+
+  Try it on paper before reading the reasoning below.
+
+  > There are n(n−1)/2 pairs. For four items the row counts are 3, 2, 1 and 0, totalling six. This counts positions, even when some item values are equal.
+
 key_points:
   - For every outer round, the inner loop runs completely.
   - Total work is the product of the loop sizes.

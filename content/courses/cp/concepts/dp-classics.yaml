@@ -96,6 +96,29 @@ lesson: |
   - **Edit distance / LCS** (2D over prefixes).
   - **Interval DP**: `dp[l][r]` over subarrays, filled by increasing length (O(n³)).
   - **DP on digits** for "count numbers ≤ N with property P".
+
+  ## Worked walkthrough
+
+  For 0/1 knapsack with capacity 5 and items (weight,value) (2,3), (3,4), the best value is 7 using both. A state must specify whether it means exact used weight or best value within a capacity; base cases and unreachable states depend on that choice.
+
+  ### Why this works
+
+  Write state, transition, base cases, evaluation order and requested result before coding. For LIS, replacing a tails entry maintains best possible future extension but does not directly preserve one complete subsequence.
+
+  ### Boundary cases and cost
+
+  Test zero capacity, oversized items, equal values and empty input. An ascending in-place capacity loop can accidentally turn 0/1 knapsack into unbounded knapsack.
+
+  Knapsack costs O(items×capacity), which is pseudopolynomial. LIS length can be O(n log n), but reconstruction needs predecessor information.
+
+  ### Check your understanding
+
+  Why does descending capacity prevent reusing the current item?
+
+  Try it on paper before reading the reasoning below.
+
+  > Every dependency at lower capacity still belongs to the previous item set when read.
+
 key_points:
   - 0/1 knapsack - capacity loop downwards; unbounded - upwards.
   - Counting coin sums - sum-outer loop counts orderings, coin-outer counts combinations.

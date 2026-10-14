@@ -22,6 +22,7 @@ from socrat.assessments.routes import router as assessments_router
 from socrat.auth import COOKIE, establish_session, require_csrf, require_session
 from socrat.config import Settings
 from socrat.database import make_engine, record_event
+from socrat.explainer.routes import router as explainer_router
 from socrat.learn.routes import router as learner_router
 from socrat.learn.session_routes import router as session_router
 from socrat.library import autosync
@@ -63,6 +64,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.settings = settings
     app.include_router(learner_router)
+    app.include_router(explainer_router)
     app.include_router(session_router)
     app.include_router(library_router)
     app.include_router(assessments_router)
@@ -122,9 +124,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "X-Request-ID": request_id,
                 "Cache-Control": "no-store",
                 "X-Content-Type-Options": "nosniff",
-                "Referrer-Policy": "same-origin",
             }
         )
+        response.headers.setdefault("Referrer-Policy", "same-origin")
         if settings.secure:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
         route = getattr(request.scope.get("route"), "path", "unmatched")

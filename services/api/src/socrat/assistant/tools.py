@@ -252,6 +252,8 @@ class Toolbox:
             resolved = resolve_concept(self.catalog, concept)
             if resolved is None:
                 return f"Error: no concept matches {concept!r}."
+            if resolved not in learn.curriculum(self.catalog, enrollment):
+                return "Error: that topic is outside your current course."
             targets = [resolved]
         else:
             targets = self.catalog.closure(self.catalog.course_concepts(enrollment.course_id))
@@ -432,6 +434,7 @@ class Toolbox:
             rating_min,
             rating_max,
         )
+        items = [p for p in items if learner.can_practice(p)]
         if unsolved_only:
             items = [p for p in items if p["id"] not in learner.solved]
         items.sort(key=lambda p: (-p.get("companies", 0), -p.get("solvers", 0), p["id"]))
@@ -465,6 +468,9 @@ class Toolbox:
         resolved = resolve_concept(self.catalog, concept)
         if resolved is None:
             return f"Error: no concept matches {concept!r}."
+        if resolved not in learn.curriculum(self.catalog, enrollment):
+            return "Error: that topic is outside your current course."
+        learn.require_unlocked(db, self.catalog, enrollment, resolved, now)
         c = self.catalog.concept(resolved)
         index = practice.default_index()
         states = learn.states_for(db, enrollment) if enrollment else {}

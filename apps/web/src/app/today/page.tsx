@@ -151,6 +151,11 @@ export default function TodayPage() {
         </Reveal>
       ) : null}
 
+      <section className="mb-6 grid gap-4 sm:grid-cols-2" aria-label="Explore your learning">
+        <Card size="sm"><CardHeader><CardTitle>Concept playground</CardTitle><CardDescription>Revisit weak concepts with interactive explanations, simulations and predictions.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link href="/playground">Explore your weak topics <ArrowRight data-icon="inline-end" /></Link></Button></CardContent></Card>
+        <Card size="sm"><CardHeader><CardTitle>Your learning roadmap</CardTitle><CardDescription>{today.progress.finished} of {today.progress.total} concepts achieved. See your current topic, review needs and what unlocks next.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link href="/plan#roadmap-heading">View your roadmap <ArrowRight data-icon="inline-end" /></Link></Button></CardContent></Card>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="grid min-w-0 content-start gap-6">
           <Reveal index={1}>

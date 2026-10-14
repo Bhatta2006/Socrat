@@ -78,6 +78,29 @@ lesson: |
   To answer something "for every possible root" (e.g. sum of distances from each node),
   compute the answer for root 1, then move the root across each edge in O(1) using the
   subtree sizes: `ans[child] = ans[parent] − size[child] + (n − size[child])`.
+
+  ## Worked walkthrough
+
+  Root a tree with edges 0-1, 0-2, 1-3 at zero. Subtree sizes are size[3]=1, size[1]=2, size[2]=1, size[0]=4. Postorder combines completed child results; the parent edge must be excluded in an undirected adjacency list.
+
+  ### Why this works
+
+  A rooted tree gives each nonroot vertex one parent. Subtree intervals, sizes and dynamic programs all rely on that orientation. Rerooting separates information from children and from the parent side.
+
+  ### Boundary cases and cost
+
+  Test a chain, a star and a single vertex. Recursive DFS can overflow on a long chain; an explicit stack with enter/exit phases preserves postorder.
+
+  Typical tree traversals take O(n). Rerooting is linear only when combining or excluding each child's contribution is efficient.
+
+  ### Check your understanding
+
+  Why does a DFS entry-time interval represent a whole subtree?
+
+  Try it on paper before reading the reasoning below.
+
+  > DFS finishes all descendants before moving to the next sibling, so those entry times are contiguous.
+
 key_points:
   - Root the tree, then compute subtree values bottom-up in reverse BFS order.
   - Iterative traversal avoids recursion limits on deep trees.

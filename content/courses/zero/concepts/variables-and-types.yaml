@@ -82,6 +82,29 @@ lesson: |
   The best way to understand code is to **trace** it: keep a little table of each
   variable's current value and update it line by line. Programmers do this in their heads
   constantly — practise it now and every later topic gets easier.
+
+  ## Worked walkthrough
+
+  Start with x = 4 and y = x. Your state table is x:4, y:4. Assign x = x + 3: first evaluate the old x plus 3, then store 7 in x. The table becomes x:7, y:4. Now exchange two values using a temporary variable and record the table after each assignment. Without the temporary, overwriting the first variable can destroy a value still needed by the second assignment.
+
+  ### Why this works
+
+  Assignment updates a name's value; it does not establish a permanent mathematical equation between names. Type determines which operations are meaningful. The text '4' concatenated with text '3' is different from the number 4 added to 3.
+
+  ### Boundary cases and cost
+
+  Test zero, negative values and values near the integer limit. Python integers grow; C++ and Java fixed-width integers need a sufficiently wide type before the arithmetic occurs.
+
+  A scalar assignment normally takes constant time; copying a collection can take time proportional to its size.
+
+  ### Check your understanding
+
+  If x is 5, y is x, and x becomes 9, what is y? Explain before running.
+
+  Try it on paper before reading the reasoning below.
+
+  > y remains 5 because it received the earlier integer value. This example concerns immutable numbers; shared mutable containers need the separate aliasing model in scope and mutation.
+
 key_points:
   - A variable is a named place that stores one value at a time.
   - "`=` evaluates the right side, then stores the result on the left."

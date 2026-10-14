@@ -99,6 +99,29 @@ lesson: |
   Decide deliberately: should this function **modify** its input or **return** a new
   value? Make the name say which (`sort_in_place` vs `sorted_copy`), and never mutate
   by accident.
+
+  ## Worked walkthrough
+
+  Let a be a list containing [1, 2], then let b refer to a. Appending 3 through b changes the same list, so a also observes [1, 2, 3]. Rebinding b to a new empty list changes only b's reference; a still sees the original list. Draw names as arrows to objects instead of drawing a separate list beside every name.
+
+  ### Why this works
+
+  Scope answers which binding a name refers to; aliasing answers whether different bindings refer to the same object. These are separate questions. A function can have a local parameter that still points to a caller-owned mutable object.
+
+  ### Boundary cases and cost
+
+  A shallow copy duplicates the outer collection but not nested mutable elements. Test independent rows in a grid by modifying one cell and checking that another row does not change. Java passes reference values by value; it does not pass variables by reference.
+
+  Sharing a reference is normally O(1). A shallow copy of n elements is O(n); recursively copying nested objects has a larger cost.
+
+  ### Check your understanding
+
+  If a helper reassigns its list parameter, does the caller's variable necessarily change? What if it modifies an element instead?
+
+  Try it on paper before reading the reasoning below.
+
+  > Reassigning a local parameter changes that local binding. Mutating a shared object is visible through other references. C++ reference parameters add a distinct rule and must be explicit in the signature.
+
 key_points:
   - Local variables exist only inside their function or block.
   - Pass data in as parameters and send results out with return.

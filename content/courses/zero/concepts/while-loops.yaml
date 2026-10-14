@@ -102,6 +102,29 @@ lesson: |
   `total += x` is shorthand for `total = total + x`. Notice the **accumulator** pattern:
   a variable that starts at 0 and absorbs one piece of work per round. You will use it in
   almost every loop you write.
+
+  ## Worked walkthrough
+
+  Extract digits from 472. Record n and digit each time: 472 gives 2 then n becomes 47; 47 gives 7 then n becomes 4; 4 gives 4 then n becomes 0. The loop stops because n > 0 is now false. The digits arrive in reverse order, so choose storage or arithmetic deliberately if the original order matters.
+
+  ### Why this works
+
+  A while loop needs an initialization, a condition and a state change that makes progress toward termination. Identify a nonnegative quantity that strictly decreases, such as remaining digits. If a branch uses continue before updating that quantity, the same state may repeat forever.
+
+  ### Boundary cases and cost
+
+  Zero has one digit but a while n > 0 loop executes zero times. Handle that specification separately. For negative inputs, define whether to process the sign and use an absolute magnitude when appropriate.
+
+  Repeated division or multiplication by a constant greater than one typically takes O(log n) iterations.
+
+  ### Check your understanding
+
+  A loop starts at x = 1 and doubles x while x < 20. Which values are visited and where does it stop?
+
+  Try it on paper before reading the reasoning below.
+
+  > The body sees 1, 2, 4, 8 and 16; after the final update x is 32 and the condition fails. The termination value need not equal the threshold.
+
 key_points:
   - while repeats its body as long as the condition is true, checking before each round.
   - Every loop needs a start, a condition, and progress toward stopping.

@@ -61,8 +61,10 @@ def test_sprint_journey_and_deadline(client, monkeypatch):  # noqa: F811
 
 
 def test_upsolve_nudge_returns_unfinished_problems(client, monkeypatch):  # noqa: F811
+    from test_learner_api import complete_curriculum
     headers = login(client, subject="ups", name="Uma")
     onboard(client, headers, course="dsa", level="new-to-programming")
+    complete_curriculum(client)
     listing = client.get("/api/v1/library?platform=LeetCode&concept=dsa:arrays-hashing&limit=1")
     target = listing.json()["items"][0]["id"]
     client.post(f"/api/v1/library/problems/{target}/opened", headers=headers)

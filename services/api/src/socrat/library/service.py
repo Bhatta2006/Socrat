@@ -3,6 +3,7 @@
 import threading
 from collections import OrderedDict
 
+from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -88,12 +89,14 @@ def learner_for(
         solved=solved,
         attempted=attempted - solved,
         seed=f"{user.id}:{learn.local_day(user, now).isoformat()}",
-        course_concepts=set(catalog.closure(catalog.course_concepts(course))),
+        course_concepts=learn.curriculum(catalog, enrollment),
+        ready_concepts=learn.practice_topics(db, catalog, enrollment, now),
         native_solved=native_solved(db, user.id),
         upsolve=upsolve_queue(db, user.id, marks, solved, now),
-        locked=set(learn.locked_concepts(db, catalog, enrollment, now))
-        if enrollment is not None and enrollment.status == "active"
-        else set(),
+        locked=(set(catalog.concepts) - learn.curriculum(catalog, enrollment)) | (
+            set(learn.locked_concepts(db, catalog, enrollment, now))
+            if enrollment is not None and enrollment.status == "active" else set()
+        ),
     )
 
 
@@ -188,6 +191,7 @@ def listing(
     elif status == "todo":
         ids = {pid for pid, m in marks.items() if m.status == "todo"}
     items = index.search(q, platforms, concept, difficulty, rating_min, rating_max, sheet, ids)
+    items = [p for p in items if learner.can_practice(p)]
     if status == "unsolved":
         items = [p for p in items if p["id"] not in learner.solved]
     if sort == "recommended":
@@ -210,24 +214,29 @@ def listing(
     }
 
 
-def meta(catalog: Catalog) -> dict:
+def meta(db: Session, catalog: Catalog, user: User, now: int) -> dict:
     index = practice.default_index()
+    enrollment = learn.active_enrollment(db, user.id)
+    scope = learn.curriculum(catalog, enrollment)
+    learner = learner_for(db, catalog, user, enrollment, now)
     platforms: dict[str, int] = {}
     sheets: dict[str, int] = {}
     for p in index.problems.values():
+        if not learner.can_practice(p):
+            continue
         platforms[p["platform"]] = platforms.get(p["platform"], 0) + 1
         for sheet in p["sheets"]:
             sheets[sheet] = sheets.get(sheet, 0) + 1
     concepts = []
     for course_id in catalog.courses:
         for concept in catalog.course_concepts(course_id):
-            if concept.startswith(f"{course_id}:") and index.by_concept.get(concept):
+            if concept in scope:
                 concepts.append(
                     dict(
                         id=concept,
                         title=catalog.concept(concept).title,
                         course=catalog.course(course_id).title,
-                        problems=len(index.by_concept[concept]),
+                        problems=sum(learner.can_practice(index.problems[i]) for i in index.by_concept.get(concept, [])),
                     )
                 )
     return {"platforms": platforms, "sheets": sheets, "concepts": concepts}
@@ -260,6 +269,10 @@ def mark(
 ) -> dict:
     index = practice.default_index()
     problem = index.problems[problem_id]
+    enrollment = learn.active_enrollment(db, user.id)
+    learner = learner_for(db, catalog, user, enrollment, now)
+    if not learner.can_practice(problem):
+        raise HTTPException(403, "topic_not_completed")
     row_ = db.get(PracticeMark, (user.id, problem_id))
     if row_ is None:
         row_ = PracticeMark(user_id=user.id, problem_id=problem_id, status="todo", bookmarked=False)
@@ -355,6 +368,8 @@ def concept_practice(
     """Personalised "practice more" list for a lesson page; authored picks come first."""
     index = practice.default_index()
     learner = learner_for(db, catalog, user, enrollment, now)
+    if concept not in (learner.ready_concepts or set()):
+        return []
     marks = marks_for(db, user.id)
     authored = [p for p in (index.find_url(u) for u in curated or []) if p is not None]
     taken = {p["id"] for p in authored}
@@ -370,4 +385,4 @@ def concept_practice(
             key=lambda p: abs(practice.rating_of(p) - recommend.window(learner, concept)[0]),
         )
         picks += extra[: 8 - len(picks)]
-    return [row(catalog, learner, p, marks) for p in picks]
+    return [row(catalog, learner, p, marks) for p in picks if learner.can_practice(p)]

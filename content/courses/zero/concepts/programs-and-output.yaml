@@ -79,6 +79,29 @@ lesson: |
 
   Lines starting with `#` (Python) or `//` (C++ and Java) are **comments**. The computer
   ignores them; they are notes for humans, including future you.
+
+  ## Worked walkthrough
+
+  Trace a program that prints a greeting, then a total. Before running, draw two numbered output lines. The computer executes the first print, writes its newline, then executes the second. It does not combine both statements into one sentence unless you explicitly choose that formatting. Change only the separator and predict how the output changes; the values being printed are the same, but their representation changes.
+
+  ### Why this works
+
+  A program is a sequence of precise instructions. Output is observable behaviour, so a correct calculation with the wrong spaces or an extra debug message can still fail a judge. Separate the value you intend to compute from the text you intend to emit.
+
+  ### Boundary cases and cost
+
+  Test a blank line, a quoted number and a number computed by addition. Quoted digits are text; arithmetic needs numeric values. Keep debugging output separate from required output.
+
+  Writing k characters costs O(k); printing a huge result is work even when the calculation was constant time.
+
+  ### Check your understanding
+
+  Print two values on one line, then on separate lines. How many newline characters does each version emit?
+
+  Try it on paper before reading the reasoning below.
+
+  > The usual print operation ends with one newline. Two ordinary print calls emit two; one call with two values emits one. An explicit empty separator changes spacing, not the number of values.
+
 key_points:
   - A program runs its instructions in order, top to bottom.
   - Printing shows output; the order of print statements is the order of output.

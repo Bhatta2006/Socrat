@@ -20,7 +20,7 @@ if ($PrepareOnly) { exit 0 }
 $children = @()
 try {
   foreach ($port in 8000, 3000) { if (Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue) { throw "Port $port is in use. Stop that project's server before starting the demo." } }
-  $children += Start-Process -FilePath '.venv/Scripts/python.exe' -ArgumentList '-m uvicorn socrat.main:create_app --factory --host 127.0.0.1 --port 8000' -WindowStyle Hidden -PassThru -RedirectStandardOutput .cache/native-api.log -RedirectStandardError .cache/native-api-error.log
+  $children += Start-Process -FilePath '.venv/Scripts/python.exe' -ArgumentList '-m uvicorn socrat.main:create_app --factory --host 127.0.0.1 --port 8000 --no-access-log' -WindowStyle Hidden -PassThru -RedirectStandardOutput .cache/native-api.log -RedirectStandardError .cache/native-api-error.log
   $deadline = (Get-Date).AddSeconds(90)
   do {
     try { $ready = Invoke-RestMethod 'http://127.0.0.1:8000/api/health/ready' -TimeoutSec 2 } catch { $ready = $null }

@@ -83,6 +83,29 @@ lesson: |
 
   Python integers grow as large as needed. In C++ and Java, `int` overflows past about
   2.1 billion — use `long long` (C++) or `long` (Java) when values can be large.
+
+  ## Worked walkthrough
+
+  Suppose input contains 17 and 5 and asks for full groups and leftovers. Parse both tokens as integers. Integer quotient is 3 and remainder is 2, verified by 17 = 5 × 3 + 2. If the answer needs an average, choose division that preserves fractions instead. Write down units alongside each value: converting 125 seconds gives 2 minutes and 5 seconds, not 2.5 minutes.
+
+  ### Why this works
+
+  Parsing is the boundary between text and computation. Decide the type before calculating, and derive the formula on paper before translating it into operators. Operator precedence should implement your formula; use parentheses whenever the intended grouping could be misread.
+
+  ### Boundary cases and cost
+
+  Dividing by zero is invalid. Negative integer division differs across languages: Python floors while C++ and Java truncate toward zero. Do not assume a positive-input identity proves behaviour for negatives.
+
+  A constant number of operations is O(1) under the usual bounded-integer model; parsing n tokens is O(n).
+
+  ### Check your understanding
+
+  For 125 seconds, which expression yields complete minutes and which yields remaining seconds?
+
+  Try it on paper before reading the reasoning below.
+
+  > Use integer division by 60 for complete minutes and remainder by 60 for seconds. Reconstructing 60 × minutes + seconds should recover 125.
+
 key_points:
   - Input arrives as text; convert it before doing arithmetic.
   - "Whole-number division: `//` in Python, `/` between ints in C++ and Java."

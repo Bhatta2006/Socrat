@@ -75,6 +75,29 @@ lesson: |
 
   - n ≤ 20 and "order", "assign", "visit all", "partition into groups".
   - The state needs "which items are used", not just "how many".
+
+  ## Worked walkthrough
+
+  For a three-city route, define dp[mask][last] as minimum cost visiting exactly mask and ending at last. From a reachable state, extend to a city whose bit is absent. A state for mask 011 cannot end at city two because that city is not in the visited set.
+
+  ### Why this works
+
+  The subset records completed choices and last records the boundary information required for extension. Two different routes with the same state can be merged by retaining only the better cost.
+
+  ### Boundary cases and cost
+
+  Initialize only valid starting states, not every table cell to zero. Define whether a tour must return to its start and include that final edge explicitly.
+
+  A standard route DP costs O(2ⁿn²) time and O(2ⁿn) space. Check both bounds before allocating.
+
+  ### Check your understanding
+
+  Why is dp[mask] alone insufficient for a shortest visiting route?
+
+  Try it on paper before reading the reasoning below.
+
+  > The next edge cost depends on the endpoint. Routes with identical visited sets but different endpoints have different futures.
+
 key_points:
   - dp[mask] (optionally × last element) over subsets replaces n! orderings with 2^n states.
   - Increasing mask order is a valid DP order.

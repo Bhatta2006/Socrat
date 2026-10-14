@@ -67,6 +67,29 @@ lesson: |
   Explain your code, line by line, out loud (to a rubber duck, a friend, or Socrat). Saying
   "and here total holds the sum of the first i elements..." is often the moment you hear
   the bug. This is exactly why Socrat asks *you* to explain before it hints.
+
+  ## Worked walkthrough
+
+  A loop intended to sum three numbers returns only the last number. Trace an input [2, 4, 1]. If total is reset inside the loop, the table shows 0→2, then 0→4, then 0→1. Move initialization outside and the trace becomes 0→2→6→7. The trace pinpoints a violated invariant instead of guessing at syntax changes.
+
+  ### Why this works
+
+  Reduce a failure to the smallest input that still reproduces it. Compare expected and actual state at the first point where they diverge. Change one cause, rerun that failing case, and then run the cases that already worked.
+
+  ### Boundary cases and cost
+
+  Distinguish syntax errors, runtime failures and wrong answers. A program that does not crash is not necessarily correct. Boundary tests often reveal bugs that ordinary random-looking inputs miss.
+
+  Debugging output inside a large loop can dominate runtime and alter required output. Remove it or direct it to the appropriate diagnostic stream after diagnosis.
+
+  ### Check your understanding
+
+  An average calculation returns 2 for inputs 2 and 3. Which two hypotheses should you inspect first?
+
+  Try it on paper before reading the reasoning below.
+
+  > Check integer truncation and whether the divisor is correct. The mathematical result is 2.5, so inspect operand types before blaming the input-reading code.
+
 key_points:
   - Compile, runtime and logic errors need different responses.
   - Read the first error message carefully — it gives the line and the kind of problem.

@@ -115,6 +115,29 @@ lesson: |
   In competitive settings, nodes are often stored in arrays: `nxt[i]` and `prv[i]` hold
   the neighbours of element `i`. Same ideas, no objects — and you will practise exactly that
   in the problem here.
+
+  ## Worked walkthrough
+
+  Reverse A→B→C. Set prev=null and curr=A. Save next=B before replacing A.next with null; advance prev=A and curr=B. Repeating transfers B and C to the reversed prefix. Finally prev is the new head.
+
+  ### Why this works
+
+  Maintain a reversed prefix headed by prev and an untouched suffix headed by curr. Saving the forward edge prevents losing access to the suffix during mutation.
+
+  ### Boundary cases and cost
+
+  Test null, one-node and two-node lists. Dummy heads simplify removing the first real node. Compare object identity for intersection.
+
+  Iterative reversal is O(n) time and O(1) extra space. Recursive reversal uses O(n) stack space.
+
+  ### Check your understanding
+
+  Do two lists intersect merely because they contain equal values?
+
+  Try it on paper before reading the reasoning below.
+
+  > No. Intersection means sharing the same node object, not different nodes storing the same value.
+
 key_points:
   - Nodes hold a value and a pointer to the next node; no random access.
   - Insert/delete next to a known node in O(1); finding a node is O(n).

@@ -124,7 +124,7 @@ export default function Markdown({ source, language, className = '' }: { source:
           case 'paragraph':
             return <p key={index}>{inline(b.text)}</p>;
           case 'code':
-            return <pre key={index} data-lang={b.lang || undefined}><code>{b.text}</code></pre>;
+            return <pre key={index} data-lang={b.lang || undefined} tabIndex={0} aria-label={`${b.lang || 'Code'} example`}><code>{b.text}</code></pre>;
           case 'list': {
             const Tag = b.ordered ? 'ol' : 'ul';
             return <Tag key={index}>{b.items.map((item, n) => <li key={n}>{inline(item)}</li>)}</Tag>;

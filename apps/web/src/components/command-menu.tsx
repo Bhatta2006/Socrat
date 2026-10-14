@@ -30,7 +30,7 @@ export function CommandMenu() {
     <>
       <Button
         variant="outline"
-        className="h-8 w-full justify-start gap-2 bg-muted/40 px-2.5 text-muted-foreground shadow-none sm:w-56 lg:w-64"
+        className="h-8 w-full justify-start gap-2 bg-muted px-2.5 text-muted-foreground shadow-none sm:w-56 lg:w-64"
         onClick={() => { setUsed(true); setOpen(true); }}
         onPointerEnter={() => void load()}
         onFocus={() => void load()}

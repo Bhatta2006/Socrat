@@ -119,6 +119,29 @@ lesson: |
   - Shortest path with unit weights → **BFS**.
   - Reachability, components, cycles, exhaustive exploration → **DFS** (or BFS).
   - Weighted shortest paths → **Dijkstra** (coming up).
+
+  ## Worked walkthrough
+
+  BFS from A with A-B, A-C, B-D starts with [A]. Discover B and C at distance one; processing B discovers D at distance two. Mark visited when enqueueing so another neighbour cannot schedule the same node again.
+
+  ### Why this works
+
+  The queue processes vertices in nondecreasing edge distance, proving shortest paths for equal-cost edges. DFS completes branches and does not generally minimize edge count.
+
+  ### Boundary cases and cost
+
+  Test disconnected vertices, self-loops and parallel edges. One-source traversal does not cover every component. In undirected DFS, handle the parent edge separately.
+
+  Adjacency-list traversal costs O(V+E) time and O(V) auxiliary space. Matrix neighbour scanning can cost O(V²).
+
+  ### Check your understanding
+
+  Why does marking visited only at dequeue permit duplicate entries?
+
+  Try it on paper before reading the reasoning below.
+
+  > Several neighbours can enqueue a vertex before its first dequeue. Discovery-time marking prevents this.
+
 key_points:
   - Store graphs as adjacency lists — O(V + E) memory.
   - BFS (queue) gives shortest paths in unweighted graphs.

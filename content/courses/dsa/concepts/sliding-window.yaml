@@ -123,6 +123,29 @@ lesson: |
   - Say what the window state is ("counts of letters inside") and the invalid condition.
   - "Longest valid" → record after shrinking. "Shortest valid" → record while shrinking.
   - "Exactly k" is often `atMost(k) − atMost(k − 1)`.
+
+  ## Worked walkthrough
+
+  Find the longest substring without repeats in 'abca'. Extending through a, b and c gives length three. Adding the last a violates uniqueness. Move left past the earlier a while updating counts; 'bca' is valid again. Measure the answer after restoring validity.
+
+  ### Why this works
+
+  A window is a contiguous interval plus an incremental summary. Shrinking needs a monotonic justification. Each item enters once and leaves once in a standard linear scan.
+
+  ### Boundary cases and cost
+
+  Negative numbers break the usual shrink-while-sum-too-large rule. Fixed-length and variable-length windows require different updates. Use counts when repeated occurrences matter.
+
+  Constant-time updates give O(n) total time. Space depends on the number of distinct items tracked.
+
+  ### Check your understanding
+
+  Why can shrinking only once after a duplicate be insufficient?
+
+  Try it on paper before reading the reasoning below.
+
+  > The earlier duplicate can lie several places after left. Keep removing until the offending count becomes valid.
+
 key_points:
   - A window [left, right] plus a running summary avoids recomputing every subarray.
   - Fixed-size windows add the entering element and remove the leaving one.

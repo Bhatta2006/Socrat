@@ -94,6 +94,29 @@ lesson: |
   `x in list` is O(n) (it scans); `x in set` is O(1) average. Slicing or copying a list is
   O(k). String `+` in a loop can be O(n²) in Python and Java. Know the cost of the
   operations you call.
+
+  ## Worked walkthrough
+
+  Compare scanning 100,000 items with comparing every pair. The scan needs roughly 100,000 visits; unordered pairs need about five billion comparisons. Doubling n doubles the scan but roughly quadruples pair work. A loop that doubles its index visits 1, 2, 4, 8 and so on, reaching n after about log₂(n) steps.
+
+  ### Why this works
+
+  Count how often the expensive operation runs. Sequential phases add their costs; nested repeated phases multiply them. Constants still affect real runtime even when growth classes match.
+
+  ### Boundary cases and cost
+
+  Include sorting, copying and helper calls. List membership inside a loop can make a single visible loop quadratic.
+
+  Explain whether space includes output and recursion stacks. O(1) extra space does not mean the input itself takes no memory.
+
+  ### Check your understanding
+
+  What is the cost of sorting n items, then scanning once?
+
+  Try it on paper before reading the reasoning below.
+
+  > O(n log n + n), simplifying to O(n log n). The phases are sequential rather than nested.
+
 key_points:
   - Big-O describes growth with input size, ignoring constants and lower terms.
   - Sequential code adds, nested loops multiply, halving gives log n.

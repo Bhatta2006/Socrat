@@ -103,6 +103,29 @@ lesson: |
 
   Insert and query are O(L) for a word of length L. Memory is O(total characters), which
   can be large — a hash set is simpler if you only need exact-match lookups.
+
+  ## Worked walkthrough
+
+  Insert 'car' and 'cat'. Both traverse c then a before branching to r or t. Mark complete words at terminal nodes. Searching 'ca' reaches a prefix node but does not find a complete word unless that node is terminal.
+
+  ### Why this works
+
+  Each root-to-node path spells a prefix. Shared prefixes reuse structure; terminal markers preserve word boundaries. Prefix and exact-match queries answer different questions.
+
+  ### Boundary cases and cost
+
+  Test prefix words, repeated insertion and the empty-word policy. Deletion must preserve shared nodes used by another word.
+
+  Lookup is O(word length). Dense child arrays spend alphabet×nodes memory; sparse maps reduce empty storage.
+
+  ### Check your understanding
+
+  After inserting 'a' and 'at', may deleting 'at' remove the node for 'a'?
+
+  Try it on paper before reading the reasoning below.
+
+  > No. That node is itself terminal and remains required. Only unused nonterminal nodes can be removed.
+
 key_points:
   - Each trie edge is a character; a root-to-node path spells a prefix.
   - Insert and prefix queries take O(length), independent of the number of words.

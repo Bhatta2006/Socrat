@@ -31,6 +31,37 @@ For Claude, set `SOCRAT_AI_PROVIDER=anthropic` and `SOCRAT_ANTHROPIC_API_KEY` (m
 
 `content/practice/` holds a metadata-and-links index of LeetCode, CSES and Codeforces problems mapped to Socrat concepts (no statements or solutions). Rebuild it with `python scripts/content/import_practice.py --fetch`. Learners browse it at `/library`, mark problems solved or save them, and can link a public Codeforces handle in Settings; recommendations combine mastery, a linked rating and Socrat's own judged problems.
 
+The external library and company bank show only questions whose mapped topics are all
+completed or demonstrated as known in the active course and its prerequisite bridges.
+Sorting, searching, bookmarks, recommendations and tutor tools use the same rule; unmapped
+questions stay hidden. Ctrl+K and direct lesson/quiz access respect the active curriculum.
+
+Lessons include worked traces, correctness reasoning, edge cases and self-checks. The plan
+roadmap distinguishes lesson/check completion from mastery and links to selected programming
+and DSA guides from `nilbuild/developer-roadmap`. `content/learning-resources.json` records the
+explicit source selection, including 28 topic-mapped Python exercise links; source statements
+and solutions are not copied.
+
+### Concept playground
+
+Open `/playground` from Today and ask for any concept, comparison or confusing step. The AI
+creates a complete interactive HTML/CSS/JavaScript visual inside the playground. No preset
+lesson, numeric snapshots, deterministic sample inputs or algorithm templates are fed to it.
+The model designs the visualization, controls and initial example from the learner's request.
+
+The generated document passes markup/script validation, an isolated browser interaction check,
+and an AI review of its relevance and conceptual consistency before being embedded in an
+opaque-origin, network-blocked iframe. Dashboard colors
+and light/dark themes carry into the canvas. Learners can change inputs, step, scrub, play,
+reset, expand, read the explanation, reopen saved visuals and report an issue. Generated
+material is labelled as not verified for factual accuracy. Failed generation preserves the
+request; no substitute lesson is returned. Viewing never changes mastery, and independent
+assessments block the feature. Existing provider credentials are reused, with an optional
+playground-only code-generation model override.
+
+Production requires a separate sandbox domain and browser checker service. See the
+[visual playground implementation and deployment notes](docs/implementation/visual-playground.md).
+
 ### Owner metrics
 
 `/admin` shows the activation funnel, retention, engagement, checkpoint pass rates and content that needs review, computed from learning data. Access is limited to accounts listed in `SOCRAT_ADMIN_SUBJECTS` (a JSON list of OIDC subjects, for example `SOCRAT_ADMIN_SUBJECTS='["your-subject"]'`; with the dev sign-in the subject is your lower-cased name with dashes).

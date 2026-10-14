@@ -61,6 +61,29 @@ lesson: |
   When a greedy or DP solution fails mysteriously, write a brute force for tiny inputs,
   generate random small tests, and compare outputs automatically. Finding the smallest
   counterexample usually reveals the bug in minutes. Strong competitors do this routinely.
+
+  ## Worked walkthrough
+
+  Enumerate subsets of three objects using masks 000 through 111. Each mask chooses exactly the positions whose bits are one, giving eight distinct subsets. Evaluate a candidate only after the choice is complete; keep the best feasible one rather than accepting the first feasible candidate.
+
+  ### Why this works
+
+  Exhaustive search is correct when the representation covers every candidate and the evaluation matches the objective. Small constraints are a reason to prefer this clear baseline.
+
+  ### Boundary cases and cost
+
+  Test no feasible candidate, duplicate values and the empty subset. Permutations and subsets have different counts and should not share an accidental enumeration.
+
+  Subsets cost O(2ⁿ), permutations O(n!), before evaluation. Estimate the full candidate count against the maximum n.
+
+  ### Check your understanding
+
+  How does complete search help validate a faster algorithm?
+
+  Try it on paper before reading the reasoning below.
+
+  > On small random inputs it provides an independent oracle. Compare results and minimize a disagreement into a counterexample.
+
 key_points:
   - Small constraints signal complete search - n ≤ 8 permutations, n ≤ 20 subsets.
   - Count the work (n! · n, 2^n · n) against the time limit before writing.

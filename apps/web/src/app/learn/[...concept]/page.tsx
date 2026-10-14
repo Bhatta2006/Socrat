@@ -207,6 +207,7 @@ export default function Lesson() {
 
           <section className="mt-6" aria-labelledby="reexplain-heading">
             <h2 id="reexplain-heading" className="mb-3 flex items-center gap-2 text-sm font-medium"><Wand2 className="size-4 text-primary" /> Not clicking yet?</h2>
+            <Button asChild variant="secondary" className="mb-3"><Link href={`/playground?concept=${encodeURIComponent(concept.id)}`}>Explore this concept interactively <ArrowRight data-icon="inline-end" /></Link></Button>
             <div className="flex flex-wrap gap-2">
               {STYLES.map(([style, label]) => (
                 <Button key={style} type="button" variant={variant?.style === style ? 'secondary' : 'outline'} size="sm" aria-pressed={variant?.style === style} disabled={Boolean(explaining)} onClick={() => reexplain(style)}>
@@ -258,6 +259,12 @@ export default function Lesson() {
             </CardContent>
           </Card>
 
+          {concept.exercises?.length ? (
+            <Card className="mt-8">
+              <CardHeader><CardTitle>Python skill builders</CardTitle><CardDescription>Selected programming exercises for this topic. Practice the idea before opening the upstream solution; some examples there use older Python syntax.</CardDescription></CardHeader>
+              <CardContent><ul className="grid divide-y">{concept.exercises.map(exercise => <li key={exercise.number} className="py-3"><a href={exercise.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline">{exercise.title} · exercise {exercise.number}</a><p className="mt-1 text-sm text-muted-foreground">{exercise.guidance}</p></li>)}</ul><p className="mt-3 text-xs text-muted-foreground">Source: zhiwehu/Python-programming-exercises. These optional exercises are ungraded.</p></CardContent>
+            </Card>
+          ) : null}
           {practice.length ? (
             <Card className="mt-8" aria-labelledby="more-practice-heading">
               <CardHeader>

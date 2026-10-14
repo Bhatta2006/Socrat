@@ -67,7 +67,7 @@ export default function Companies() {
       <PageHeader
         eyebrow="Interview prep"
         title="Company question bank"
-        description="Problems reported in recent interviews, ordered by how often they come up. Each shows the concept it practises and where you stand on it — learn the concept first, then come back."
+        description="Interview questions for topics you have completed, ordered by frequency. More companies and questions unlock as you learn."
       />
 
       <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -92,7 +92,7 @@ export default function Companies() {
                     </button>
                   </li>
                 ))}
-                {!companies.length ? <li className="px-3 py-2 text-sm text-muted-foreground">No companies match.</li> : null}
+                {!companies.length ? <li className="px-3 py-2 text-sm text-muted-foreground">No unlocked questions match. Complete lessons in your plan to unlock company questions.</li> : null}
               </ul>
             </ScrollArea>
           </CardContent>
@@ -101,7 +101,7 @@ export default function Companies() {
         <section className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold tracking-tight">
-              {view?.name ?? 'Loading…'} {view ? <span className="text-sm font-normal text-muted-foreground">· {view.total} problems</span> : null}
+              {view?.name ?? (companies.length ? 'Loading…' : 'Questions unlock as you learn')} {view ? <span className="text-sm font-normal text-muted-foreground">· {view.total} problems</span> : null}
             </h2>
             <div className="flex flex-wrap gap-2">
               <NativeSelect value={range} onChange={e => { setRange(e.target.value as typeof range); setOffset(0); }} aria-label="Time window">
@@ -153,9 +153,10 @@ export default function Companies() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!view ? Array.from({ length: 8 }, (_, i) => (
+                {!view && companies.length ? Array.from({ length: 8 }, (_, i) => (
                   <TableRow key={`s${i}`}><TableCell colSpan={4} className="px-4"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
                 )) : null}
+                {!companies.length ? <TableRow><TableCell colSpan={4} className="py-10 text-center text-muted-foreground">Complete topic lessons to unlock matching questions. <Link href="/plan" className="text-primary underline">Continue your plan</Link></TableCell></TableRow> : null}
                 {view && !view.items.length ? (
                   <TableRow><TableCell colSpan={4} className="py-10 text-center text-muted-foreground">No problems in this window. Try a longer time range.</TableCell></TableRow>
                 ) : null}

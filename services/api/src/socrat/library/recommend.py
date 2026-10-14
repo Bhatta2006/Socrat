@@ -53,11 +53,17 @@ class Learner:
     course_concepts: set[str] = field(default_factory=set)
     native_solved: set[str] = field(default_factory=set)  # Socrat's own judged problems
     locked: set[str] = field(default_factory=set)  # concepts behind an unpassed gate
+    ready_concepts: set[str] | None = None
     upsolve: list[tuple[str, int]] = field(default_factory=list)  # (problem id, days since tried)
     _windows: dict = field(default_factory=dict, repr=False, compare=False)
 
     def band(self, concept: str) -> str:
         return band(self.states.get(concept, ConceptState()), self.now)
+
+    def can_practice(self, problem: dict) -> bool:
+        return self.ready_concepts is None or (
+            bool(problem["concepts"]) and set(problem["concepts"]) <= self.ready_concepts
+        )
 
 
 def level_view(rating: int) -> dict:
@@ -108,7 +114,7 @@ def _jitter(seed: str, problem_id: str) -> float:
 
 def score(learner: Learner, problem: dict, concept: str, stretch: bool = False) -> float | None:
     """Higher is better; None means "not a good pick for this learner now"."""
-    if problem["id"] in learner.solved:
+    if problem["id"] in learner.solved or not learner.can_practice(problem):
         return None
     low, high = window(learner, concept, stretch)
     rating = rating_of(problem)
@@ -139,6 +145,8 @@ def fingerprint(learner: Learner) -> str:
         sorted(learner.solved),
         sorted(learner.attempted),
         states,
+        sorted(learner.ready_concepts) if learner.ready_concepts is not None else None,
+        sorted(learner.locked),
     ]
     return hashlib.sha256(repr(parts).encode()).hexdigest()
 
@@ -179,7 +187,7 @@ def focus(
     seen: set[str] = set()
 
     def add(concept: str, kind: str, reason: str):
-        if concept not in seen and concept not in learner.locked:
+        if concept not in seen and concept not in learner.locked and (not learner.course_concepts or concept in learner.course_concepts):
             seen.add(concept)
             picks.append((concept, kind, reason))
 
@@ -241,7 +249,7 @@ def focus(
 
 def native_for(catalog: Catalog, learner: Learner, concept: str) -> list[dict]:
     """Socrat's own problems for a concept (run and judged in the app), unsolved first."""
-    if concept not in catalog.concepts or concept in learner.locked:
+    if concept not in catalog.concepts or concept in learner.locked or (learner.course_concepts and concept not in learner.course_concepts):
         return []
     order = {"easy": 0, "medium": 1, "hard": 2}
     problems = sorted(
@@ -320,7 +328,7 @@ def _upsolve_problem(
         problem = index.problems[problem_id]
         return (
             None
-            if problem["concepts"] and problem["concepts"][0] in learner.locked
+            if not learner.can_practice(problem) or (problem["concepts"] and problem["concepts"][0] in learner.locked)
             else public(problem)
         )
     if problem_id in catalog.problems:
@@ -344,6 +352,7 @@ def next_topics(
             concept in seen
             or concept not in catalog.concepts
             or concept in learner.locked
+            or (learner.course_concepts and concept not in learner.course_concepts)
             or len(topics) >= limit
         ):
             return

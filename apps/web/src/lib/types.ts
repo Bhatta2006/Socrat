@@ -124,6 +124,10 @@ export interface Today {
 }
 
 export interface RoadmapItem {
+  lesson_done: boolean;
+  quiz_done: boolean;
+  review_due: boolean;
+  roadmap_resources: { title: string; url: string; source: string; language: string | null }[];
   concept: string;
   title: string;
   module: string;
@@ -272,6 +276,7 @@ export interface CompanyProblem extends ExternalProblem {
 }
 
 export interface ConceptView {
+  exercises: { number: number; title: string; url: string; language: string; guidance: string }[];
   id: string;
   course: string;
   title: string;

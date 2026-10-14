@@ -76,6 +76,29 @@ lesson: |
   - "Already built" roads: union them first at cost 0.
   - **Maximum** spanning tree: sort descending.
   - "Minimise the maximum edge on the path" (minimax paths) is answered by the MST.
+
+  ## Worked walkthrough
+
+  Process edges AB:1, BC:2, AC:4 in increasing weight. Accept AB then BC; AC would connect vertices already in one component and is skipped. The tree spans all three vertices with total weight three.
+
+  ### Why this works
+
+  The cut property makes a lightest edge across a component boundary safe for some minimum spanning tree. Union-find detects whether an edge merges components or creates a cycle.
+
+  ### Boundary cases and cost
+
+  A disconnected graph yields a minimum spanning forest, not a spanning tree. Negative weights are fine. Equal weights can permit several optimal trees.
+
+  Kruskal costs O(E log E) for sorting plus near-constant amortized union-find operations.
+
+  ### Check your understanding
+
+  Is an MST also a shortest-path tree from an arbitrary root?
+
+  Try it on paper before reading the reasoning below.
+
+  > No. Minimizing total tree weight differs from minimizing every root-to-vertex path. Use shortest-path algorithms for the latter.
+
 key_points:
   - An MST connects all nodes with minimum total weight and has n − 1 edges.
   - Kruskal - sort edges, add an edge when DSU says it joins different components.

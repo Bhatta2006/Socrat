@@ -73,6 +73,29 @@ lesson: |
   - Watch Java's `Arrays.sort` on `int[]`: it uses dual-pivot quicksort, which can be
     attacked with anti-quicksort tests; shuffle first or sort an `Integer[]`/`long[]` via
     objects.
+
+  ## Worked walkthrough
+
+  To assign resources to increasing requirements, sort both lists. Match the smallest requirement with the smallest resource that satisfies it; skip too-small resources. Trace requirements [2,4] and resources [1,3,5]: skip 1, match 3 to 2, match 5 to 4.
+
+  ### Why this works
+
+  Giving a feasible smaller resource to an easier requirement preserves larger resources for harder requirements. Prove that exchanging this match into an optimal solution cannot reduce the number of matches.
+
+  ### Boundary cases and cost
+
+  Test equal values, exhausted resources and a resource that can satisfy several tasks. Greedy rules change when costs or weights enter the objective.
+
+  Sorting usually costs O(n log n), matching O(n). Validate proposed rules with a small exhaustive oracle before trusting them.
+
+  ### Check your understanding
+
+  Why may maximum-count scheduling and maximum-weight scheduling need different algorithms?
+
+  Try it on paper before reading the reasoning below.
+
+  > An early-finishing interval may discard a highly valuable later interval. The exchange preserving count need not preserve total weight.
+
 key_points:
   - Greedy = right sort order + safe local choice + exchange-argument proof.
   - Pair extremes with two pointers; best-available matches with a sorted multiset.

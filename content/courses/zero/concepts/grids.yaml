@@ -89,6 +89,29 @@ lesson: |
   cell, loop over the eight directions, check bounds, and count `*` characters. That is a
   nested loop over cells with a small fixed loop over directions inside — about
   `rows × cols × 8` steps.
+
+  ## Worked walkthrough
+
+  For a 2×3 grid, enumerate positions (0,0), (0,1), (0,2), then (1,0), (1,1), (1,2). At (0,1), four-direction neighbours are (−1,1), (1,1), (0,0), (0,2); discard the negative row before indexing. Keep the row bound and column bound separate: a square-only test can hide swapped dimensions.
+
+  ### Why this works
+
+  A grid is two-dimensional state. Define whether a move uses four or eight directions, and check bounds before reading the destination. In a traversal, mark a cell visited at discovery so several neighbours do not schedule it repeatedly.
+
+  ### Boundary cases and cost
+
+  Test one row, one column, a corner and a non-square grid. Construct independent rows: duplicated references can make editing one row change every row. Do not confuse (row, column) with (x, y).
+
+  Visiting every cell once costs O(rows × columns). A visited grid or a worst-case traversal queue can use the same order of space.
+
+  ### Check your understanding
+
+  How many valid four-direction neighbours does a corner have in a grid with at least two rows and columns?
+
+  Try it on paper before reading the reasoning below.
+
+  > Two. An interior cell has four and a non-corner edge cell has three. Degenerate one-row or one-column grids have different counts, which is why they deserve separate tests.
+
 key_points:
   - A grid is a list of rows; access cells as grid[row][col].
   - In Python, build rows in a loop — never multiply a list of lists.

@@ -106,6 +106,29 @@ lesson: |
   - Do **one** job and name it with a verb or question (`count_vowels`, `is_valid`).
   - Take what you need as parameters rather than reading global variables.
   - Keep them short enough to understand at a glance.
+
+  ## Worked walkthrough
+
+  Design a function that returns the larger of two numbers. Its contract names two numeric inputs and one numeric result. Call it on (4, 9), (9, 4) and (4, 4). Store the returned result in another calculation. A function that only prints 9 cannot be composed in the same way because printing is a side effect rather than a returned value.
+
+  ### Why this works
+
+  Separate what the function computes from how the caller obtains input or displays output. A precise contract makes the function reusable and testable. Trace argument values entering a call, local names inside it, and the return value flowing back.
+
+  ### Boundary cases and cost
+
+  Cover every return path. A branch that forgets to return can yield an unintended value or fail compilation. State whether a function may mutate a collection argument; callers must not discover that by accident.
+
+  Calling a helper does not remove its cost. A loop that calls an O(n) helper n times is generally O(n²).
+
+  ### Check your understanding
+
+  A helper computes a total but prints it instead of returning it. Why does assigning its call to a variable not capture the printed number?
+
+  Try it on paper before reading the reasoning below.
+
+  > Output goes to the output stream. The caller receives only the return value. Return the total, then let the caller decide whether to print or use it in another expression.
+
 key_points:
   - Functions take parameters, run their body, and return a value.
   - return ends the function immediately and hands back a value.

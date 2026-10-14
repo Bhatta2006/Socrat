@@ -94,6 +94,29 @@ lesson: |
   node's parent. Build arrays `left[i]`, `right[i]` — no node objects needed. For very deep
   trees (a chain of 10^5 nodes), recursion may overflow the stack: use an explicit stack,
   or a BFS order processed in reverse for bottom-up values.
+
+  ## Worked walkthrough
+
+  Compute height for root 5 with leaf children 2 and 8. If an empty subtree has height zero, each leaf returns one and the root returns two. Trace results upward separately from the downward visit sequence.
+
+  ### Why this works
+
+  Give each recursive call one contract, such as returning subtree height. Combine child results to prove the parent's result. Keep global accumulators separate from return-value meaning.
+
+  ### Boundary cases and cost
+
+  Test empty trees and chains. Height in edges differs from height in nodes. Deep chains can overflow recursion stacks.
+
+  One traversal is O(n). DFS needs O(height) stack; BFS may need O(width) queue space.
+
+  ### Check your understanding
+
+  Why is postorder natural when the parent depends on both children?
+
+  Try it on paper before reading the reasoning below.
+
+  > Both child results must exist before the parent combines them, so parent computation belongs after those calls.
+
 key_points:
   - A tree is a root plus left and right subtrees — solve recursively.
   - Pre-, in- and post-order are depth-first; level order uses a queue.

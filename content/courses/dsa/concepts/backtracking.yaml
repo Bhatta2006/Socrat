@@ -87,6 +87,29 @@ lesson: |
     result.
   - Forgetting to undo state, so choices leak into sibling branches.
   - Not handling duplicates in input (sort, then skip equal values at the same level).
+
+  ## Worked walkthrough
+
+  Enumerate subsets of [a,b]. Exclude/include a, then exclude/include b, obtaining [], [b], [a], [a,b]. With a shared path, append before descending and remove after returning. Copy accepted paths so later mutations cannot overwrite previous answers.
+
+  ### Why this works
+
+  State identifies remaining choices and the partial candidate. Restoring state makes sibling branches start from the same parent. Prune only when no continuation can become valid.
+
+  ### Boundary cases and cost
+
+  Define whether duplicate-valued outputs count separately. Skipping equal sibling choices differs from banning repeated values everywhere.
+
+  All subsets require Ω(2ⁿ) outputs; copying paths may cost O(n2ⁿ) time. Working recursion depth is O(n).
+
+  ### Check your understanding
+
+  Why skip equal choices at the same depth rather than globally?
+
+  Try it on paper before reading the reasoning below.
+
+  > Sibling branches may be equivalent, but choosing equal values from different positions can still be a valid combination.
+
 key_points:
   - Backtracking explores a decision tree - choose, explore, un-choose.
   - Record copies of the current state, never the shared object.

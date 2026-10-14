@@ -57,6 +57,29 @@ lesson: |
   Gray code `i ^ (i >> 1)` changes exactly one bit between consecutive values. The parity
   of popcount appears in many invariant arguments ("each move flips two bits, so parity is
   preserved").
+
+  ## Worked walkthrough
+
+  For chosen positions {0,2}, the mask is binary 101. Test membership of position two with mask AND (1<<2). Add position one with OR to get 111; remove position two with AND of the inverted bit to get 011.
+
+  ### Why this works
+
+  Masks encode subsets of a small fixed universe. The mapping from bit position to object must stay consistent throughout parsing, transitions and output.
+
+  ### Boundary cases and cost
+
+  Use a wide literal before shifting and keep shift counts below the type width. Enumerating submasks must handle zero separately to avoid repeating forever.
+
+  Membership and updates are O(1) for bounded masks, but there are 2ᵏ subsets of k positions.
+
+  ### Check your understanding
+
+  How can you test whether all bits in need are present in have?
+
+  Try it on paper before reading the reasoning below.
+
+  > Check (have AND need) == need. Merely checking a nonzero intersection proves at least one required bit, not all.
+
 key_points:
   - Masks are sets - |, &, & ~ and shifts are O(1) set operations.
   - sub = (sub − 1) & mask enumerates all submasks; all-masks-all-submasks is O(3^n).

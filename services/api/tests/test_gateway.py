@@ -85,7 +85,19 @@ def test_openai_streams_text_without_tools():
     text = asyncio.run(complete(provider, "sys", [Turn("user", "hi")], 100))
     assert text == "Hello"
     assert "tools" not in fake.requests[0]
+    assert "extra_body" not in fake.requests[0]
     assert fake.requests[0]["messages"][0] == {"role": "system", "content": "sys"}
+
+
+def test_chat_template_options_are_explicit_and_do_not_change_other_provider_instances():
+    config = settings(ai_provider='openai', openai_model='m', openai_api_key='k')
+    provider = make_provider(config, chat_template_kwargs={'enable_thinking':False})
+    fake = FakeCompletions([[chunk('{"issues":[]}', finish='stop')]])
+    provider.client = NS(chat=NS(completions=fake))
+    assert collect(provider.converse('sys', [Turn('user','review')], 100, response_format={'type':'json_object'}))[-1].text == '{"issues":[]}'
+    assert fake.requests[0]['extra_body'] == {'chat_template_kwargs':{'enable_thinking':False}}
+    assert fake.requests[0]['response_format'] == {'type':'json_object'}
+    assert make_provider(config).chat_template_kwargs == {}
 
 
 def test_openai_runs_a_tool_then_answers():

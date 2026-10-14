@@ -69,6 +69,25 @@ def onboard(client, headers, course="zero", level="brand-new", **extra):
     return response.json()
 
 
+def complete_curriculum(client):
+    """An already-taught learner for tests that browse the unlocked practice pool."""
+    from sqlalchemy import select
+    from sqlalchemy.orm import Session
+
+    from socrat.learn import service as learn
+    from socrat.models import ActivityRecord, Enrollment
+
+    cat = default_catalog()
+    with Session(client.app.state.engine) as db, db.begin():
+        enrollment = db.scalar(select(Enrollment).where(Enrollment.active.is_(True)))
+        scope = learn.curriculum(cat, enrollment)
+        ids = {f"lesson:{c}" for c in scope} | {
+            f"checkpoint:{cat.owner[c]}:{cat.module_of(c)}" for c in scope
+        }
+        for activity in ids - learn.completed_for(db, enrollment):
+            db.add(ActivityRecord(enrollment_id=enrollment.id, activity_id=activity, completed_at=1))
+
+
 def test_age_gate_blocks_under_thirteen(client):
     headers = login(client)
     response = client.patch("/api/v1/me", json={"birth_year": 2020}, headers=headers)
@@ -322,21 +341,7 @@ def test_export_and_delete_account(client):
 def test_concepts_link_curated_practice_and_company_lists(client):
     headers = login(client)
     onboard(client, headers, course="dsa", level="new-to-programming")
-    # This test exercises resources after the prerequisite checkpoint has been passed.
-    from sqlalchemy import select
-    from sqlalchemy.orm import Session
-
-    from socrat.models import ActivityRecord, Enrollment
-
-    with Session(client.app.state.engine) as db, db.begin():
-        enrollment = db.scalar(select(Enrollment).where(Enrollment.active.is_(True)))
-        db.add(
-            ActivityRecord(
-                enrollment_id=enrollment.id,
-                activity_id="checkpoint:dsa:foundations",
-                completed_at=1,
-            )
-        )
+    complete_curriculum(client)
     concept = client.get("/api/v1/concepts/dsa:two-pointers").json()
     practice = concept["more_practice"]
     assert practice and all("dsa:two-pointers" in p["concepts"] for p in practice)

@@ -86,8 +86,8 @@ def stats():
 @router.get("/meta")
 def library_meta(request: Request):
     with Session(engine(request)) as db:
-        user_of(request, db)
-    return library.meta(catalog())
+        user = user_of(request, db)
+        return library.meta(db, catalog(), user, now())
 
 
 @router.get("/recommendations")

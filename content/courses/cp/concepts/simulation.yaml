@@ -61,6 +61,29 @@ lesson: |
   Use meaningful names, avoid copy-pasted branches (use direction arrays), and keep the
   update for one step in one place. In contests, a messy simulation is where 20 minutes of
   debugging hides.
+
+  ## Worked walkthrough
+
+  Simulate a robot starting at (0,0): right 3, up 2, left 1 yields (2,2). Write state after every command. If a task asks for squared distance, compute 2²+2²=8 rather than performing a square root and introducing rounding.
+
+  ### Why this works
+
+  Choose the smallest state sufficient to determine the next transition. Apply commands in the specified order and define whether simultaneous events read old state or already-updated state.
+
+  ### Boundary cases and cost
+
+  Test commands that cancel, repeated events and staying at the origin. Updating a grid in place can incorrectly let later cells observe the current step instead of the previous step.
+
+  Time is events×work per transition. Recognize repeated cycles if the event count is far larger than the state space.
+
+  ### Check your understanding
+
+  When should a simulation use a second state buffer?
+
+  Try it on paper before reading the reasoning below.
+
+  > When every transition in a time step must read the same old configuration. Compute the new state separately, then swap.
+
 key_points:
   - Model the full state, implement one step, then loop.
   - Direction arrays turn four branches into one formula.

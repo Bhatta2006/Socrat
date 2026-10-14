@@ -79,6 +79,29 @@ lesson: |
   - **Scheduling**: always run the task with the earliest deadline / highest priority.
   - **Median of a stream**: a max-heap for the lower half and a min-heap for the upper half.
   - **Dijkstra's shortest paths**: always expand the closest unvisited node.
+
+  ## Worked walkthrough
+
+  A min-heap holding 2,5,8 pops 2 and repairs the root. Its backing array need not be globally sorted. To retain the largest three values seen, use a size-three min-heap and replace its root only with a larger candidate.
+
+  ### Why this works
+
+  The parent-child invariant guarantees an extreme at the root. For top-k, that root is the smallest retained candidate, exactly the item to evict.
+
+  ### Boundary cases and cost
+
+  Test empty pop, ties, k=0 and k greater than input size. Records may need a deterministic tie-break.
+
+  Peek is O(1), push/pop O(log n), heap construction O(n). Streaming top-k costs O(n log k).
+
+  ### Check your understanding
+
+  Why use a min-heap when retaining the largest k values?
+
+  Try it on paper before reading the reasoning below.
+
+  > The smallest retained value is the replacement boundary. Cheap access to it makes each admission decision efficient.
+
 key_points:
   - Heaps give O(1) peek and O(log n) push/pop of the min (or max).
   - Python and Java default to min-heaps; C++ priority_queue defaults to max.

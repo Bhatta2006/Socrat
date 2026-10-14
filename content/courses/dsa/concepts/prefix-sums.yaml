@@ -93,6 +93,29 @@ lesson: |
   - Prefix **counts**, prefix **XOR**, prefix **min/max** (from the left and right).
 
   Use 64-bit integers: prefix sums of 2·10^5 values up to 10^9 overflow 32 bits.
+
+  ## Worked walkthrough
+
+  For [3, −2, 5, 1], prefixes are [0, 3, 1, 6, 7]. P[i] is the sum of the first i values. Query [1,3) using P[3]−P[1]=3, matching −2+5. Draw the two prefixes: subtraction cancels everything before the requested range.
+
+  ### Why this works
+
+  The leading zero makes the half-open formula work uniformly, including ranges starting at zero. Define the indexing convention before code. Prefix frequencies can count how many earlier prefixes cancel to a target.
+
+  ### Boundary cases and cost
+
+  Test empty ranges, the whole array and negatives. Static prefixes become stale after updates; frequent updates require another structure.
+
+  Preprocessing is O(n), each static query O(1), storage O(n). Choose a wide enough type for accumulated sums.
+
+  ### Check your understanding
+
+  How many occurrences of prefix zero should exist before counting target-sum subarrays?
+
+  Try it on paper before reading the reasoning below.
+
+  > One represents the empty prefix. Without it, qualifying subarrays beginning at index zero are missed.
+
 key_points:
   - p[i] holds the sum of the first i elements; sum(l..r) = p[r+1] − p[l].
   - One O(n) precomputation makes every range query O(1).

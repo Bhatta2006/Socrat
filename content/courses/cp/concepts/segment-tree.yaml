@@ -112,6 +112,29 @@ lesson: |
 
   Static range sums → prefix sums. Sum with updates → Fenwick (simpler, faster). Min/max,
   custom merges, or lazy range updates → segment tree.
+
+  ## Worked walkthrough
+
+  For [2,5,1,4], store leaf values, then sums 7 and 5, then root 12. Query half-open [1,3) combines leaves 5 and 1, giving 6. Updating index two to 8 repairs its ancestors, changing the root to 19.
+
+  ### Why this works
+
+  Each node summarizes exactly its interval. Associativity permits combining disjoint interval pieces; an identity element handles no overlap. Noncommutative operations also require preserving left-to-right order.
+
+  ### Boundary cases and cost
+
+  Test single-element ranges and endpoints at n. Lazy tags need correct composition order; assigning then adding is different from adding then assigning.
+
+  Point updates and interval queries cost O(log n), storage O(n). Lazy propagation supports suitable range updates with additional tag invariants.
+
+  ### Check your understanding
+
+  Why is zero a valid identity for sum but not always for maximum?
+
+  Try it on paper before reading the reasoning below.
+
+  > Adding zero changes nothing. A maximum query over negative values would be corrupted by a zero no-overlap result; use negative infinity instead.
+
 key_points:
   - Each node stores the answer for its range; queries touch O(log n) nodes.
   - Works for any associative operation with an identity element.

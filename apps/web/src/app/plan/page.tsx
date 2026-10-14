@@ -88,6 +88,7 @@ export default function PlanPage() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section aria-labelledby="roadmap-heading" className="min-w-0">
           <h2 id="roadmap-heading" className="mb-4 text-lg font-semibold">Roadmap</h2>
+          <p className="mb-4 text-sm text-muted-foreground">Your course and its foundation topics, updated from your learning evidence. Topic guides are selected from <a className="underline" href="https://github.com/nilbuild/developer-roadmap/tree/master/roadmaps" target="_blank" rel="noopener noreferrer">Developer Roadmap</a>; unrelated career paths are excluded.</p>
           <div className="grid gap-4">
             {plan.modules.map((module, mi) => {
               const done = module.concepts.filter(c => ['mastered', 'assumed', 'practiced'].includes(c.status)).length;
@@ -133,6 +134,12 @@ export default function PlanPage() {
                                 </span>
                                 <span className="text-xs text-muted-foreground">{s.label}</span>
                               </Link>
+                              <div className="mb-2 ml-11 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                {c.lesson_done ? <Badge variant="outline">Lesson completed</Badge> : null}
+                                {c.quiz_done ? <Badge variant="outline">Concept check completed</Badge> : null}
+                                {c.review_due ? <Badge variant="secondary">Review due</Badge> : null}
+                                {c.status !== 'locked' && c.roadmap_resources?.length ? <details className="w-full py-1"><summary className="cursor-pointer">Selected topic guides</summary><ul className="mt-2 grid gap-1">{c.roadmap_resources.map(r => <li key={r.url}><a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary underline">{r.title}</a> · {r.source}</li>)}</ul></details> : null}
+                              </div>
                             </li>
                           );
                         })}

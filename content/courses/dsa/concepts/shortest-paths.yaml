@@ -87,6 +87,29 @@ lesson: |
   ## Use 64-bit distances
 
   Path lengths can be up to (number of edges) × (max weight) — easily beyond 2^31.
+
+  ## Worked walkthrough
+
+  Edges A→B:5, A→C:1 and C→B:1 first discover B at five, then improve it to two through C. A heap can retain the stale (5,B) entry; skip it when it no longer matches the recorded best distance.
+
+  ### Why this works
+
+  Nonnegative edges make the smallest unsettled distance safe to finalize. BFS has a simpler ordering that applies only to equal-cost edges.
+
+  ### Boundary cases and cost
+
+  Negative edges invalidate Dijkstra's argument. Test unreachable vertices, parallel edges and zero-cost cycles. Infinity plus a weight must not overflow.
+
+  Heap Dijkstra costs O((V+E) log V). Bellman–Ford handles negative edges in O(VE) and detects reachable negative cycles.
+
+  ### Check your understanding
+
+  Why can BFS choose a path with fewer edges but a worse total cost?
+
+  Try it on paper before reading the reasoning below.
+
+  > It orders by edge count rather than weight sum. The frontier ordering must match the cost model.
+
 key_points:
   - Dijkstra = BFS with a min-heap on distance; works only with non-negative weights.
   - The first time a node is popped, its distance is final.

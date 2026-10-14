@@ -78,6 +78,29 @@ lesson: |
   - Forgetting `+ m` after subtraction.
   - Dividing directly (`a / b % m`) instead of multiplying by the inverse.
   - Using 32-bit types for products.
+
+  ## Worked walkthrough
+
+  Compute 7³ mod 10 by squaring: begin result=1, base=7, exponent=3. The low bit is one, so result becomes 7. Square base to 9 and halve exponent to 1. Multiply result by 9 modulo 10 to get 3.
+
+  ### Why this works
+
+  Reduce after operations because modular equivalence is preserved by addition and multiplication. Division needs a modular inverse and is not ordinary integer division followed by remainder.
+
+  ### Boundary cases and cost
+
+  Normalize negative remainders across languages. An inverse exists only when the divisor is coprime to the modulus. Fermat's exponent formula additionally requires a prime modulus.
+
+  Binary exponentiation uses O(log exponent) multiplications. Multiplying two residues may overflow before reduction in bounded integer types.
+
+  ### Check your understanding
+
+  Can you divide by 2 modulo 6 by multiplying a modular inverse?
+
+  Try it on paper before reading the reasoning below.
+
+  > No. gcd(2,6) is two, so 2 has no inverse modulo 6.
+
 key_points:
   - Reduce after every addition, subtraction and multiplication.
   - Subtraction - add m before taking mod to stay non-negative.

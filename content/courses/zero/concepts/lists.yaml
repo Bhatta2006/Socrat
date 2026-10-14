@@ -98,6 +98,29 @@ lesson: |
   - **Best so far**: track the maximum, minimum, or its index.
   - **Neighbours**: compare `a[i]` with `a[i − 1]` (start at i = 1!).
   - **Build a new list**: append transformed or filtered elements.
+
+  ## Worked walkthrough
+
+  Begin with [8, 3, 5]. Reading index 1 gives 3. Appending 9 produces [8, 3, 5, 9]; removing the first item shifts all later positions. Write a value row and an index row after every mutation. If you remove index 0 while a loop advances to index 1, the old index 1 has shifted to 0 and may be skipped.
+
+  ### Why this works
+
+  An index identifies a current position, not a permanent item identity. Separate building a new filtered list from modifying the list you are iterating. A new list makes the invariant simple: it contains exactly the accepted items from the processed prefix, in order.
+
+  ### Boundary cases and cost
+
+  Check empty lists and one-item lists before reading endpoints. A copied outer list can still share inner lists. Python negative indices are convenient but can hide an unintended −1 result from a failed search.
+
+  Indexing is O(1), a full scan is O(n), and insertion or deletion near the front of an array-backed list is O(n).
+
+  ### Check your understanding
+
+  Filter [2, 5, 2, 7] to retain odd values without changing the original. What should remain?
+
+  Try it on paper before reading the reasoning below.
+
+  > The result is [5, 7], in the original relative order. Build the result separately, or use the language's safe filtering idiom; deleting while advancing a forward index requires special care.
+
 key_points:
   - Lists keep values in order; indexes run from 0 to n − 1.
   - Loop over values for items, over indexes when position matters.

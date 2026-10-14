@@ -38,6 +38,8 @@ services:
       SOCRAT_TUTOR_ENABLED: "true"
       SOCRAT_TUTOR_MODEL_ENABLED: "false"
       SOCRAT_CONTENT_ADMIN_IDENTITIES: "${SOCRAT_CONTENT_ADMIN_IDENTITIES:-[]}"
+      SOCRAT_EXPLAINER_CHECKER_URL: http://explainer-checker:8010/check
+      SOCRAT_EXPLAINER_CHECKER_SECRET: "${SOCRAT_EXPLAINER_CHECKER_SECRET:-local-development-only-visual-checker-secret}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -81,6 +83,20 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:3000:3000"
+
+  explainer-checker:
+    build:
+      context: .
+      dockerfile: services/explainer/Dockerfile
+    environment:
+      SOCRAT_EXPLAINER_CHECKER_SECRET: "${SOCRAT_EXPLAINER_CHECKER_SECRET:-local-development-only-visual-checker-secret}"
+    init: true
+    shm_size: 256mb
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1G }
 
 volumes:
   postgres-data:

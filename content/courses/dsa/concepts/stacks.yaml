@@ -116,6 +116,29 @@ lesson: |
 
   Queues process things **in arrival order**: simulations, task scheduling, and above all
   **breadth-first search**, which you will meet in graphs.
+
+  ## Worked walkthrough
+
+  Validate '([])' by pushing expected closers. Push ')' then ']'. On ']', compare and pop the top; on ')', repeat. The stack ends empty. For '([)]', the first closer mismatches the top, so reject instead of searching deeper.
+
+  ### Why this works
+
+  The most recently opened obligation must finish first. In a monotonic stack, each item instead waits for a future value that resolves a condition such as next-greater.
+
+  ### Boundary cases and cost
+
+  Test a leading closer and leftover openers. Strict versus non-strict comparisons change duplicate handling. Store indices when the task needs distances.
+
+  A stack scan uses O(n) time and O(n) worst-case auxiliary space. Recursive calls also consume stack space.
+
+  ### Check your understanding
+
+  A monotonic-stack iteration can pop many items. Why is the whole run linear?
+
+  Try it on paper before reading the reasoning below.
+
+  > Every index is pushed once and popped at most once. Charge each pop to its earlier push.
+
 key_points:
   - Stack = LIFO, queue = FIFO; both O(1) per operation with the right container.
   - A stack holds the most recent unfinished item — perfect for matching brackets.

@@ -102,6 +102,29 @@ lesson: |
 
   Two indexes walking toward each other — remember this shape. It returns as the
   **two pointers** technique in data structures and algorithms.
+
+  ## Worked walkthrough
+
+  Scan 'aba c'. Maintain a frequency map and record a:1, then b:1, then a:2, then space:1, then c:1. Decide whether spaces count before implementation. To reverse text, build the intended character sequence first and compare it with merely reversing the order of words; these solve different specifications.
+
+  ### Why this works
+
+  Text is a sequence with a representation. Decide whether the task concerns characters, words or raw bytes. Most beginner judge tasks use ASCII, but user text may have Unicode characters that occupy several bytes or code units.
+
+  ### Boundary cases and cost
+
+  Test empty text, a single character, repeated characters and leading/trailing spaces. Trimming input changes its meaning if spaces are significant. Python and Java strings are immutable; C++ strings permit indexed mutation.
+
+  Scanning n characters is O(n). Rebuilding an immutable string on every iteration can copy an ever-growing prefix; collect pieces and join when appropriate.
+
+  ### Check your understanding
+
+  For 'aab', which counts change when another 'a' is appended? Does the number of distinct characters increase?
+
+  Try it on paper before reading the reasoning below.
+
+  > The count of a rises from two to three. The distinct count stays at two because the key already existed. Frequency and membership answer different questions.
+
 key_points:
   - Strings behave like lists of characters with indexes from 0.
   - Python and Java strings are immutable; build text with join or StringBuilder.
