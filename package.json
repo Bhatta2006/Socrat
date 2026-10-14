@@ -9,5 +9,5 @@
     "test:m0": "node --test prototypes/concierge/model.test.mjs",
     "test:e2e": "playwright test"
   },
-  "devDependencies": {"@playwright/test": "^1.55.0"}
+  "devDependencies": {"@playwright/test": "^1.64.0"}
 }
