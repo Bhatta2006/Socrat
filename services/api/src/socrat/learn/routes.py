@@ -185,6 +185,7 @@ def profile_view(db: Session, user: User, csrf: str) -> dict:
         timezone=user.timezone,
         csrf_token=csrf,
         onboarded=enrollment is not None,
+        tour_seen=user.tour_seen_at is not None,
         enrollment=None
         if enrollment is None
         else dict(
@@ -257,6 +258,15 @@ def update_me(body: ProfileUpdate, request: Request):
             user.timezone = body.timezone
         record_event(db, user.id, "profile.updated")
         return profile_view(db, user, session.csrf_token)
+
+
+@router.post("/me/tour", status_code=204)
+def finish_tour(request: Request):
+    """Records that the learner finished or skipped the first-run tour, so it shows once."""
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        if user.tour_seen_at is None:
+            user.tour_seen_at = now()
 
 
 @router.get("/me/export")

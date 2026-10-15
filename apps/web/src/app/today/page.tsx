@@ -195,7 +195,7 @@ export default function TodayPage() {
                 <p className="mt-3 text-base text-muted-foreground">Get unstuck, ask questions, or request a hint.</p>
               </div>
               <Soc size={96} className="pointer-events-none absolute top-0 right-(--card-spacing)" />
-              <button type="button" onClick={() => setAskSoc(n => n + 1)} className="group/ask mt-auto flex h-14 items-center justify-between gap-3 rounded-full border border-border-strong pr-2 pl-6 text-[17px] font-semibold transition-colors hover:bg-raised" aria-haspopup="dialog">
+              <button type="button" data-tour="tutor" onClick={() => setAskSoc(n => n + 1)} className="group/ask mt-auto flex h-14 items-center justify-between gap-3 rounded-full border border-border-strong pr-2 pl-6 text-[17px] font-semibold transition-colors hover:bg-raised" aria-haspopup="dialog">
                 Ask Soc
                 <span className="grid size-10 place-items-center rounded-full bg-foreground text-background transition-transform group-hover/ask:translate-x-0.5"><ArrowRight className="size-5" aria-hidden="true" /></span>
               </button>

@@ -38,6 +38,8 @@ class User(Base):
     birth_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     timezone: Mapped[str] = mapped_column(String(64), default="UTC")
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+    # When the learner finished or skipped the first-run tour of the app; null until then.
+    tour_seen_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class LoginSession(Base):

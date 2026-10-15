@@ -143,6 +143,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
           onClick={() => setOpen(true)}
           aria-haspopup="dialog"
           aria-label="Ask Soc, your tutor"
+          data-tour="tutor"
           className="group/soc flex h-14 items-center gap-3 rounded-full bg-card p-1 shadow-floating ring-1 ring-border transition-transform duration-200 ease-[var(--ease-soft)] active:scale-[0.98] lg:pr-5"
         >
           <Soc size={48} />

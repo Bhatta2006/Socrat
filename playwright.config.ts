@@ -13,7 +13,12 @@ export default defineConfig({
   reporter: 'list',
   // The dev server compiles each route on first visit; give cold navigations room.
   expect: { timeout: 15_000 },
-  use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure' },
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'retain-on-failure',
+    // Fresh learners get the first-run tour; tests skip it unless they clear this (see tour.spec.ts).
+    storageState: { cookies: [], origins: [{ origin: 'http://localhost:3000', localStorage: [{ name: 'socrat:tour-seen', value: '1' }] }] },
+  },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], channel } },
     { name: 'mobile', use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium', channel } },

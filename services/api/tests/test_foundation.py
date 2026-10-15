@@ -275,3 +275,23 @@ def test_migration_and_backup_restore(tmp_path):
     command.downgrade(config, "base")
     command.upgrade(config, "head")
     assert Path(source).exists()
+
+
+def test_first_run_tour_is_recorded_once(platform):
+    from sqlalchemy.orm import Session
+
+    from socrat.models import User
+
+    app, client = platform
+    login(client)
+    me = client.get("/api/v1/me").json()
+    assert me["tour_seen"] is False
+    assert client.post("/api/v1/me/tour").status_code == 403
+    headers = {"Origin": "http://localhost:3000", "X-CSRF-Token": me["csrf_token"]}
+    assert client.post("/api/v1/me/tour", headers=headers).status_code == 204
+    assert client.get("/api/v1/me").json()["tour_seen"] is True
+    with Session(app.state.engine) as db:
+        first = db.get(User, me["id"]).tour_seen_at
+    assert client.post("/api/v1/me/tour", headers=headers).status_code == 204
+    with Session(app.state.engine) as db:
+        assert db.get(User, me["id"]).tour_seen_at == first
