@@ -7,7 +7,11 @@ This module is imported only on Windows.
 """
 
 import ctypes as ct
+import sys
 from ctypes import wintypes as wt
+
+# Lets mypy skip the Win32-only ctypes APIs below when type-checking on Linux (CI).
+assert sys.platform == "win32"
 
 SIZE = ct.c_size_t
 
