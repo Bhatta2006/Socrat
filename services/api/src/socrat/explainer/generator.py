@@ -188,6 +188,8 @@ async def render_check(document, settings: Settings) -> dict:
             if key.upper()
             in {
                 "PATH",
+                "HOME",
+                "TMPDIR",
                 "SYSTEMROOT",
                 "SYSTEMDRIVE",
                 "WINDIR",
@@ -243,8 +245,11 @@ async def render_check(document, settings: Settings) -> dict:
             raise ProviderError("playground_checker_unavailable") from exc
     if not isinstance(result, dict) or result.get("ok") is not True:
         if isinstance(result, dict) and result.get("infrastructure"):
+            # The launch error (a missing browser, an unusable sandbox) is operator-facing detail;
+            # learners only see playground_checker_unavailable.
             logging.getLogger("socrat.explainer").warning(
-                "browser checker infrastructure failure: %s", str(result.get("reason", ""))[:300]
+                "browser checker infrastructure failure: %s",
+                str(result.get("detail") or result.get("reason", ""))[:600],
             )
             raise ProviderError("playground_checker_unavailable")
         # Browser errors are bounded feedback to the generator, never shown as executable content.

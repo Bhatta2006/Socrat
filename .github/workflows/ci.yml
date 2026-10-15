@@ -55,6 +55,14 @@ jobs:
         run: uv run python scripts/content/validate_atoms.py
       # Judge tests are generated from each problem's reference solution into the untracked
       # .cache/content-tests; the catalog refuses to load without them.
+      # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor, which Chromium's
+      # sandbox needs. The playground checker keeps its sandbox on, so allow them here rather
+      # than launching Chromium without it.
+      - name: Allow Chromium's sandbox for the playground browser check
+        run: |
+          if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
       - name: Build course content and judge tests
         run: uv run python scripts/content/build.py
       - run: uv run pytest --cov=socrat --cov-report=term-missing --cov-fail-under=85

@@ -145,6 +145,6 @@ const CLOSE_GRACE_MS = 500;
 
 if (process.argv[1]?.endsWith('check-artifact.mjs')) {
   main()
-    .catch(error => { const infrastructure = String(error.message).includes('browserType.launch'); return { ok: false, infrastructure, reason: infrastructure ? 'Browser checker unavailable' : String(error.message).slice(0,300) }; })
+    .catch(error => { const infrastructure = String(error.message).includes('browserType.launch'); return { ok: false, infrastructure, reason: infrastructure ? 'Browser checker unavailable' : String(error.message).slice(0,300), ...(infrastructure ? { detail: String(error.message).slice(0,600) } : {}) }; })
     .then(result => process.stdout.write(JSON.stringify(result), () => process.exit(result.ok ? 0 : 1)));
 }

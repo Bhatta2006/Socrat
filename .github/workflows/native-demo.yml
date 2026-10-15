@@ -76,7 +76,9 @@ jobs:
             $api = Invoke-RestMethod http://127.0.0.1:8000/api/health/ready -TimeoutSec 10
             if ($api.status -ne 'ready') { Get-Content .cache/ci-stack-error.log; throw 'Native API is not ready' }
           } finally {
-            if (-not $process.HasExited) { taskkill.exe /PID $process.Id /T /F }
+            # Cleanup is best effort: taskkill can fail on one already-exiting child, and its exit
+            # code must not become this step's result after the checks above passed.
+            if (-not $process.HasExited) { taskkill.exe /PID $process.Id /T /F; $global:LASTEXITCODE = 0 }
           }
       - name: Start native Linux stack
         if: runner.os == 'Linux'
