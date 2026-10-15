@@ -90,13 +90,20 @@ def test_openai_streams_text_without_tools():
 
 
 def test_chat_template_options_are_explicit_and_do_not_change_other_provider_instances():
-    config = settings(ai_provider='openai', openai_model='m', openai_api_key='k')
-    provider = make_provider(config, chat_template_kwargs={'enable_thinking':False})
-    fake = FakeCompletions([[chunk('{"issues":[]}', finish='stop')]])
+    config = settings(ai_provider="openai", openai_model="m", openai_api_key="k")
+    provider = make_provider(config, chat_template_kwargs={"enable_thinking": False})
+    fake = FakeCompletions([[chunk('{"issues":[]}', finish="stop")]])
     provider.client = NS(chat=NS(completions=fake))
-    assert collect(provider.converse('sys', [Turn('user','review')], 100, response_format={'type':'json_object'}))[-1].text == '{"issues":[]}'
-    assert fake.requests[0]['extra_body'] == {'chat_template_kwargs':{'enable_thinking':False}}
-    assert fake.requests[0]['response_format'] == {'type':'json_object'}
+    assert (
+        collect(
+            provider.converse(
+                "sys", [Turn("user", "review")], 100, response_format={"type": "json_object"}
+            )
+        )[-1].text
+        == '{"issues":[]}'
+    )
+    assert fake.requests[0]["extra_body"] == {"chat_template_kwargs": {"enable_thinking": False}}
+    assert fake.requests[0]["response_format"] == {"type": "json_object"}
     assert make_provider(config).chat_template_kwargs == {}
 
 

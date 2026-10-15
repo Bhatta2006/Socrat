@@ -157,13 +157,17 @@ def plan_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment,
                 locked_by=None,
             )
             modules.append(index[module_key])
-        index[module_key]["concepts"].append(dict(
-            item,
-            lesson_done=f"lesson:{item['concept']}" in completed,
-            quiz_done=f"quiz:{item['concept']}" in completed,
-            review_due=states.get(item["concept"], ConceptState()).due(now),
-            roadmap_resources=resources.selected(item["concept"], enrollment.language, "roadmap"),
-        ))
+        index[module_key]["concepts"].append(
+            dict(
+                item,
+                lesson_done=f"lesson:{item['concept']}" in completed,
+                quiz_done=f"quiz:{item['concept']}" in completed,
+                review_due=states.get(item["concept"], ConceptState()).due(now),
+                roadmap_resources=resources.selected(
+                    item["concept"], enrollment.language, "roadmap"
+                ),
+            )
+        )
         if item.get("locked_by"):
             gate_module = item["locked_by"].removeprefix("checkpoint:")
             gate_course, gate_id = gate_module.split(":", 1)

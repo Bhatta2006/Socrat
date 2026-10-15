@@ -187,7 +187,11 @@ def focus(
     seen: set[str] = set()
 
     def add(concept: str, kind: str, reason: str):
-        if concept not in seen and concept not in learner.locked and (not learner.course_concepts or concept in learner.course_concepts):
+        if (
+            concept not in seen
+            and concept not in learner.locked
+            and (not learner.course_concepts or concept in learner.course_concepts)
+        ):
             seen.add(concept)
             picks.append((concept, kind, reason))
 
@@ -249,7 +253,11 @@ def focus(
 
 def native_for(catalog: Catalog, learner: Learner, concept: str) -> list[dict]:
     """Socrat's own problems for a concept (run and judged in the app), unsolved first."""
-    if concept not in catalog.concepts or concept in learner.locked or (learner.course_concepts and concept not in learner.course_concepts):
+    if (
+        concept not in catalog.concepts
+        or concept in learner.locked
+        or (learner.course_concepts and concept not in learner.course_concepts)
+    ):
         return []
     order = {"easy": 0, "medium": 1, "hard": 2}
     problems = sorted(
@@ -328,7 +336,8 @@ def _upsolve_problem(
         problem = index.problems[problem_id]
         return (
             None
-            if not learner.can_practice(problem) or (problem["concepts"] and problem["concepts"][0] in learner.locked)
+            if not learner.can_practice(problem)
+            or (problem["concepts"] and problem["concepts"][0] in learner.locked)
             else public(problem)
         )
     if problem_id in catalog.problems:

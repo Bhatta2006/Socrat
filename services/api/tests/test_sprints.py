@@ -62,6 +62,7 @@ def test_sprint_journey_and_deadline(client, monkeypatch):  # noqa: F811
 
 def test_upsolve_nudge_returns_unfinished_problems(client, monkeypatch):  # noqa: F811
     from test_learner_api import complete_curriculum
+
     headers = login(client, subject="ups", name="Uma")
     onboard(client, headers, course="dsa", level="new-to-programming")
     complete_curriculum(client)

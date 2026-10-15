@@ -17,7 +17,13 @@ def test_production_services_and_networks_are_locked_down():
     spec = compose()
     services = spec["services"]
     assert set(services) == {
-        "postgres", "migrate", "api", "worker", "web", "explainer-checker", "caddy",
+        "postgres",
+        "migrate",
+        "api",
+        "worker",
+        "web",
+        "explainer-checker",
+        "caddy",
     }
     assert spec["networks"]["backend"]["internal"] is True
     # Only the API may reach the internet (OIDC and the AI provider); the checker and database may not.
@@ -48,8 +54,12 @@ def test_production_secrets_are_files_and_never_inline():
     for key in env:
         assert not re.search(r"(SECRET|TOKEN|API_KEY|PASSWORD)$", key), f"{key} must be a *_FILE"
     assert set(spec["secrets"]) == {
-        "postgres_password", "session_secret", "oidc_client_secret",
-        "metrics_token", "ai_api_key", "explainer_checker_secret",
+        "postgres_password",
+        "session_secret",
+        "oidc_client_secret",
+        "metrics_token",
+        "ai_api_key",
+        "explainer_checker_secret",
     }
     sandbox = env["SOCRAT_EXPLAINER_SANDBOX_ORIGIN"]
     assert sandbox.startswith("https://${SANDBOX_HOST")

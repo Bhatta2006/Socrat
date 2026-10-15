@@ -251,7 +251,8 @@ class OpenAIProvider:
         tools: list[ToolSpec] | None = None,
         run_tool: ToolRunner | None = None,
         max_rounds: int = 4,
-        *, response_format: dict | None = None,
+        *,
+        response_format: dict | None = None,
     ) -> AsyncIterator[Event]:
         import openai
 

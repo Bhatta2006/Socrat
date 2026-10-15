@@ -29,12 +29,15 @@ LEVEL_ORDER = ["intro", "core", "deep"]
 
 @cache
 def course_links() -> dict:
-    return json.loads((REPO_ROOT / "content" / "learning-resources.json").read_text(encoding="utf-8"))["concepts"]
+    return json.loads(
+        (REPO_ROOT / "content" / "learning-resources.json").read_text(encoding="utf-8")
+    )["concepts"]
 
 
 def selected(concept: str, language: str, kind: str) -> list[dict]:
     return [
-        item for item in course_links().get(concept, {}).get(kind, [])
+        item
+        for item in course_links().get(concept, {}).get(kind, [])
         if item.get("language") in {None, language}
     ]
 

@@ -23,15 +23,28 @@ def overview(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, 
         item = dict(id=qualified, title=concept.title, band=label)
         concepts.append(item)
         studied = state.evidence_count or f"lesson:{qualified}" in completed
-        if studied and (state.failures or label in {"needs_practice", "developing"} or state.due(stamp)):
-            reason = "Recent mistakes: slow down and trace each step." if state.failures else (
-                "Due for review: test what you remember." if state.due(stamp) else
-                "Build confidence with a worked explanation and predictions."
+        if studied and (
+            state.failures or label in {"needs_practice", "developing"} or state.due(stamp)
+        ):
+            reason = (
+                "Recent mistakes: slow down and trace each step."
+                if state.failures
+                else (
+                    "Due for review: test what you remember."
+                    if state.due(stamp)
+                    else "Build confidence with a worked explanation and predictions."
+                )
             )
             suggestions.append((state.effective(stamp), dict(item, reason=reason)))
     if not suggestions:
         plan = learn.plan_for(db, catalog, user, enrollment, stamp, record=False)
-        current = next((r["concept"] for r in plan.roadmap if r["status"] in {"in_progress", "upcoming"}), None)
-        suggestions = [(0, dict(c, reason="Explore the next topic in your plan.")) for c in concepts if c["id"] == current]
+        current = next(
+            (r["concept"] for r in plan.roadmap if r["status"] in {"in_progress", "upcoming"}), None
+        )
+        suggestions = [
+            (0, dict(c, reason="Explore the next topic in your plan."))
+            for c in concepts
+            if c["id"] == current
+        ]
     suggestions.sort(key=lambda pair: pair[0])
     return dict(concepts=concepts, suggestions=[item for _, item in suggestions[:4]])

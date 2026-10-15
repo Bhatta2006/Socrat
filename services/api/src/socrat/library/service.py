@@ -93,9 +93,11 @@ def learner_for(
         ready_concepts=learn.practice_topics(db, catalog, enrollment, now),
         native_solved=native_solved(db, user.id),
         upsolve=upsolve_queue(db, user.id, marks, solved, now),
-        locked=(set(catalog.concepts) - learn.curriculum(catalog, enrollment)) | (
+        locked=(set(catalog.concepts) - learn.curriculum(catalog, enrollment))
+        | (
             set(learn.locked_concepts(db, catalog, enrollment, now))
-            if enrollment is not None and enrollment.status == "active" else set()
+            if enrollment is not None and enrollment.status == "active"
+            else set()
         ),
     )
 
@@ -236,7 +238,10 @@ def meta(db: Session, catalog: Catalog, user: User, now: int) -> dict:
                         id=concept,
                         title=catalog.concept(concept).title,
                         course=catalog.course(course_id).title,
-                        problems=sum(learner.can_practice(index.problems[i]) for i in index.by_concept.get(concept, [])),
+                        problems=sum(
+                            learner.can_practice(index.problems[i])
+                            for i in index.by_concept.get(concept, [])
+                        ),
                     )
                 )
     return {"platforms": platforms, "sheets": sheets, "concepts": concepts}

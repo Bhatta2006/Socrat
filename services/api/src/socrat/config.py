@@ -186,7 +186,9 @@ class Settings(DatabaseSettings):
             "openai_api_key", self.openai_api_key, self.openai_api_key_file
         )
         self.explainer_checker_secret = _secret_from_file(
-            "explainer_checker_secret", self.explainer_checker_secret, self.explainer_checker_secret_file
+            "explainer_checker_secret",
+            self.explainer_checker_secret,
+            self.explainer_checker_secret_file,
         )
         if self.environment == "test":
             self.codeforces_autosync = False

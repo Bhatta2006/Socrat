@@ -301,7 +301,9 @@ def curriculum(catalog: Catalog, enrollment: Enrollment | None) -> set[str]:
     )
 
 
-def practice_topics(db: Session, catalog: Catalog, enrollment: Enrollment | None, now: int) -> set[str]:
+def practice_topics(
+    db: Session, catalog: Catalog, enrollment: Enrollment | None, now: int
+) -> set[str]:
     """Completed lessons and demonstrated knowledge, within the active course and its bridges."""
     if enrollment is None or enrollment.status != "active":
         return set()
@@ -309,10 +311,13 @@ def practice_topics(db: Session, catalog: Catalog, enrollment: Enrollment | None
     states = states_for(db, enrollment)
     locked = locked_concepts(db, catalog, enrollment, now)
     return {
-        c for c in curriculum(catalog, enrollment)
-        if c not in locked and (
+        c
+        for c in curriculum(catalog, enrollment)
+        if c not in locked
+        and (
             f"lesson:{c}" in completed
-            or mastery.band(states.get(c, mastery.ConceptState()), now) in {"likely_known", "strong"}
+            or mastery.band(states.get(c, mastery.ConceptState()), now)
+            in {"likely_known", "strong"}
         )
     }
 
