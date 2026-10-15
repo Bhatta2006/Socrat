@@ -20,6 +20,14 @@ dependencies = [
   "pyyaml>=6.0.3,<7",
 ]
 
+[project.optional-dependencies]
+foundry = [
+    "boto3==1.43.114",
+    "httpcore==1.0.9",
+    "protego==0.7.0",
+]
+foundry-markdown = ["crawl4ai==0.9.5"]
+
 [dependency-groups]
 dev = [
     "pytest>=8,<10",

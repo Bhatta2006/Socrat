@@ -113,6 +113,56 @@ class DomainPolicy(Base):
     tos_notes: Mapped[str] = mapped_column(Text, default="")
     min_delay_ms: Mapped[int] = mapped_column(Integer, default=2000)
     max_concurrency: Mapped[int] = mapped_column(Integer, default=2)
+    next_allowed_at: Mapped[float] = mapped_column(Float, default=0)
+    blocked_until: Mapped[float] = mapped_column(Float, default=0)
+    failures: Mapped[int] = mapped_column(Integer, default=0)
+    leases: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class RobotsSnapshot(Base):
+    __tablename__ = "foundry_robots_snapshots"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    origin: Mapped[str] = mapped_column(String(300), index=True)
+    user_agent: Mapped[str] = mapped_column(String(512))
+    fetched_at: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[int] = mapped_column(Integer)
+    status: Mapped[int] = mapped_column(Integer)
+    body: Mapped[str] = mapped_column(Text)
+    content_hash: Mapped[str] = mapped_column(String(64))
+    pipeline_version: Mapped[str] = mapped_column(String(64))
+
+
+class FetchRecord(Base):
+    __tablename__ = "foundry_fetch_records"
+    __table_args__ = (
+        CheckConstraint("policy_decision IN ('store','link_only','blocked')"),
+        CheckConstraint("policy_decision = 'store' OR raw_object_key IS NULL"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    job_id: Mapped[str] = mapped_column(ForeignKey("foundry_jobs.id"), index=True)
+    source_id: Mapped[str | None] = mapped_column(ForeignKey("foundry_sources.id"), index=True)
+    url: Mapped[str] = mapped_column(String(2048))
+    fetched_at: Mapped[int] = mapped_column(Integer)
+    status: Mapped[int] = mapped_column(Integer)
+    headers: Mapped[dict] = mapped_column(JSON)
+    content_hash: Mapped[str | None] = mapped_column(String(64))
+    robots_snapshot_id: Mapped[str | None] = mapped_column(
+        ForeignKey("foundry_robots_snapshots.id")
+    )
+    policy_decision: Mapped[str] = mapped_column(String(16), default="link_only")
+    license_evidence: Mapped[dict] = mapped_column(JSON, default=dict)
+    pipeline_version: Mapped[str] = mapped_column(String(64))
+    raw_object_key: Mapped[str | None] = mapped_column(String(512))
+    reason: Mapped[str] = mapped_column(String(64))
+
+
+class ApiCache(Base):
+    __tablename__ = "foundry_api_cache"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    etag: Mapped[str] = mapped_column(String(256))
+    # Only selected repository metadata; never README, snippets, code or API error bodies.
+    payload: Mapped[dict] = mapped_column(JSON)
+    updated_at: Mapped[int] = mapped_column(Integer)
 
 
 class Source(Base):

@@ -69,6 +69,12 @@ def test_config_uses_prefixed_environment(monkeypatch):
     assert settings.max_docs_per_job == 8 and not settings.enabled and not settings.live_enabled
 
 
+def test_invalid_config_error_does_not_expose_token():
+    with pytest.raises(ValidationError) as error:
+        FoundrySettings(_env_file=None, live_enabled=True, github_token="synthetic-secret")
+    assert "synthetic-secret" not in str(error.value)
+
+
 def test_migration_reverses_without_losing_existing_data(tmp_path):
     url = f"sqlite:///{tmp_path / 'migration.db'}"
     config = migrate(url, "0007_learning_sessions")
@@ -78,7 +84,7 @@ def test_migration_reverses_without_losing_existing_data(tmp_path):
     with Session(engine) as db, db.begin():
         db.add(User(id="preserved", issuer="test", subject="existing"))
     command.upgrade(config, "head")
-    assert len([t for t in inspect(engine).get_table_names() if t.startswith("foundry_")]) == 12
+    assert len([t for t in inspect(engine).get_table_names() if t.startswith("foundry_")]) == 15
     with engine.connect() as db:
         context = MigrationContext.configure(
             db,

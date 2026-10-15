@@ -248,6 +248,15 @@ class StageContext:
     skill_id: str
     input: dict
 
+    def remaining_seconds(self) -> int:
+        with Session(self.lease.connection) as db:
+            stamp = self.clock()
+            job = owned(db, self.lease, stamp)
+            return min(
+                (job.started_at or stamp) + job.budget_seconds - stamp,
+                (job.lease_until or stamp) - stamp,
+            )
+
     def reserve(self, *, documents: int = 0, tokens: int = 0, live: bool = False):
         """Call immediately before EACH external attempt; failed attempts remain charged."""
         if type(documents) is not int or type(tokens) is not int or documents < 0 or tokens < 0:

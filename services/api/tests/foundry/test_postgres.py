@@ -3,6 +3,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier, Event
 
+import pytest
 from alembic import command
 from sqlalchemy import func, inspect, select
 from sqlalchemy.orm import Session
@@ -100,5 +101,50 @@ def test_postgres_migration_roundtrip_preserves_users(postgres_engine):
                 if name.startswith("foundry_")
             ]
         )
-        == 12
+        == 15
     )
+
+
+def test_domain_slots_are_shared_between_workers(postgres_engine, settings, clock):
+    from contextlib import ExitStack
+
+    from socrat.foundry.acquisition.rate import Limiter
+    from socrat.foundry.jobs import RetryableError, StageContext, claim
+    from socrat.foundry.models import DomainPolicy
+
+    for slug in ("git", "sql", "python"):
+        enqueue(postgres_engine, settings, JobRequest(slug=slug, title=slug.title()))
+    with Session(postgres_engine) as db, db.begin():
+        db.add(DomainPolicy(domain="docs.example.org", mode="allow", tos_reviewed_at=clock.stamp))
+    tick = [float(clock.stamp)]
+
+    def no_wait(seconds):
+        raise RetryableError("slots_full")
+
+    limiter = Limiter(postgres_engine, clock=lambda: tick[0], sleep=no_wait)
+    with ExitStack() as stack:
+        leases = [stack.enter_context(claim(postgres_engine, settings, clock)) for _ in range(3)]
+        contexts = [StageContext(lease, settings, clock, "S3", "unused", {}) for lease in leases]
+        first = limiter.slot("docs.example.org", contexts[0])
+        first.__enter__()
+        try:
+            tick[0] += 2
+            with limiter.slot("docs.example.org", contexts[1]):
+                tick[0] += 2
+                with pytest.raises(RetryableError):
+                    with Limiter(postgres_engine, clock=lambda: tick[0], sleep=no_wait).slot(
+                        "docs.example.org", contexts[2]
+                    ):
+                        pytest.fail("third concurrent request was admitted")
+                with Session(postgres_engine) as db:
+                    assert len(db.get(DomainPolicy, "docs.example.org").leases) == 2
+                first.__exit__(None, None, None)
+                first = None
+                with limiter.slot("docs.example.org", contexts[2]):
+                    with Session(postgres_engine) as db:
+                        assert len(db.get(DomainPolicy, "docs.example.org").leases) == 2
+        finally:
+            if first:
+                first.__exit__(None, None, None)
+    with Session(postgres_engine) as db:
+        assert db.get(DomainPolicy, "docs.example.org").leases == {}

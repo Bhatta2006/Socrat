@@ -1,18 +1,27 @@
 from datetime import date
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class FoundrySettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="SOCRAT_FOUNDRY_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="SOCRAT_FOUNDRY_", env_file=".env", extra="ignore", hide_input_in_errors=True
+    )
 
     enabled: bool = False
     kill_switch: bool = False
-    # M1 has no acquisition or model adapters; configuration cannot enable live work.
-    live_enabled: Literal[False] = False
-    pipeline_version: str = Field(default="foundry-m1", min_length=1, max_length=64)
+    live_enabled: bool = False
+    bot_info_url: str = Field(default="", max_length=2048)
+    bot_contact: str = Field(default="", max_length=160)
+    request_timeout_seconds: float = Field(default=20, ge=1, le=30, allow_inf_nan=False)
+    snapshot_directory: str = ".cache/foundry-snapshots"
+    s3_bucket: str = ""
+    s3_endpoint_url: str = ""
+    github_token: SecretStr = SecretStr("")
+    github_token_file: str = ""
+    pipeline_version: str = Field(default="foundry-m2", min_length=1, max_length=64)
     max_docs_per_job: int = Field(default=60, ge=1, le=10000)
     max_tokens_per_job: int = Field(default=2_500_000, ge=1, le=100_000_000)
     max_wall_seconds: int = Field(default=5400, ge=1, le=86400)
@@ -40,3 +49,36 @@ class FoundrySettings(BaseSettings):
     tier: Literal["explorer"] = "explorer"
     min_concept_resource_coverage: float = Field(default=0.8, ge=0.8, le=1, allow_inf_nan=False)
     min_link_health: float = Field(default=0.95, ge=0.95, le=1, allow_inf_nan=False)
+
+    @property
+    def user_agent(self) -> str:
+        return f"SocratBot/1.0 (+{self.bot_info_url}; {self.bot_contact})"
+
+    @model_validator(mode="after")
+    def acquisition_settings(self):
+        from urllib.parse import urlsplit
+
+        from socrat.config import _secret_from_file
+
+        self.github_token = _secret_from_file(
+            "foundry_github_token", self.github_token, self.github_token_file
+        )
+        if len(self.user_agent) > 512 or any(c in self.user_agent for c in "\r\n"):
+            raise ValueError("Bot identity must fit a safe User-Agent header")
+        if self.live_enabled:
+            info = urlsplit(self.bot_info_url)
+            if (
+                not self.enabled
+                or info.scheme != "https"
+                or not info.hostname
+                or info.username
+                or info.password
+                or not self.bot_contact
+                or any(c in self.user_agent for c in "\r\n")
+            ):
+                raise ValueError(
+                    "Live acquisition requires enabled Foundry and a real bot URL/contact"
+                )
+        if self.s3_endpoint_url and urlsplit(self.s3_endpoint_url).scheme != "https":
+            raise ValueError("Snapshot object storage requires HTTPS")
+        return self
