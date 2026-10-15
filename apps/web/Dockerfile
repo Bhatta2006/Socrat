@@ -6,6 +6,8 @@ ARG NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN=http://127.0.0.1:8000
 ENV NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN=$NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN
 COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/package.json
+# A dropped registry connection (ECONNRESET) is retried instead of failing the build.
+ENV npm_config_fetch_retries=5     npm_config_fetch_retry_mintimeout=10000     npm_config_fetch_retry_maxtimeout=120000
 RUN npm ci
 COPY apps/web apps/web
 RUN npm run build --workspace @socrat/web
