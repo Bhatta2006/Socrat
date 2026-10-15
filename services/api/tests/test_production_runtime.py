@@ -80,6 +80,6 @@ def test_deploy_workflow_is_gated_on_ci_and_uses_digest_pinned_images():
 def test_deploy_script_enforces_secret_files_and_rolls_back():
     script = (ROOT / "scripts" / "operations" / "deploy-production.sh").read_text(encoding="utf-8")
     assert "set -euo pipefail" in script
-    assert "must be mode 0600" in script
+    assert "unsafe mode" in script and "must be mode 0700" in script
     assert "rolling back" in script
     assert "--wait" in script

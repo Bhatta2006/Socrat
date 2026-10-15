@@ -10,6 +10,11 @@ RUNTIME_DIR="${SOCRAT_RUNTIME_DIR:-/opt/socrat/runtime}"
 STATE_DIR="${SOCRAT_STATE_DIR:-/var/lib/socrat/releases}"
 export SOCRAT_SECRETS_DIR="${SOCRAT_SECRETS_DIR:-/opt/socrat/secrets}"
 PROJECT="socrat"
+DOCKER="${SOCRAT_DOCKER:-docker}"          # set to "sudo docker" when the deploy user is not in the docker group
+files=(--file "$RUNTIME_DIR/compose.yaml")
+# A host that already runs nginx/certbot on 80/443 uses the loopback overlay instead of Caddy.
+if [[ "${SOCRAT_HOST_PROXY:-}" == "1" ]]; then files+=(--file "$RUNTIME_DIR/compose.host-proxy.yaml"); fi
+HEALTH_URL="${SOCRAT_HEALTH_URL:-}"
 
 fail() { echo "deploy: $*" >&2; exit 1; }
 
@@ -28,8 +33,10 @@ done
 for secret in postgres_password session_secret oidc_client_secret metrics_token ai_api_key explainer_checker_secret; do
   file="$SOCRAT_SECRETS_DIR/$secret"
   [[ -s "$file" ]] || fail "missing secret file $file"
-  [[ "$(stat -c '%a' "$file")" == "600" ]] || fail "$file must be mode 0600"
+  # Containers run as non-root users, so the files are world-readable; the directory (0700) is the boundary.
+  case "$(stat -c '%a' "$file")" in 400|440|444|600|640|644) ;; *) fail "$file has an unsafe mode" ;; esac
 done
+[[ "$(stat -c '%a' "$SOCRAT_SECRETS_DIR")" == "700" ]] || fail "$SOCRAT_SECRETS_DIR must be mode 0700"
 
 mkdir -p "$STATE_DIR"
 env_file="$STATE_DIR/$RELEASE_SHA.env"
@@ -48,10 +55,10 @@ umask 077
   done
 } > "$env_file"
 
-compose() { docker compose --project-name "$PROJECT" --env-file "$1" --file "$RUNTIME_DIR/compose.yaml" "${@:2}"; }
+compose() { $DOCKER compose --project-name "$PROJECT" --env-file "$1" "${files[@]}" "${@:2}"; }
 health() {
   for _ in $(seq 1 24); do
-    if curl -fsS --max-time 10 "https://$APP_HOST/api/health/ready" | grep -q '"ready"'; then return 0; fi
+    if curl -fsS --max-time 10 "${HEALTH_URL:-https://$APP_HOST/api/health/ready}" | grep -q '"ready"'; then return 0; fi
     sleep 5
   done
   return 1
@@ -61,11 +68,11 @@ previous=""
 [[ -L "$STATE_DIR/current.env" ]] && previous="$(readlink -f "$STATE_DIR/current.env")"
 
 compose "$env_file" config --quiet
-compose "$env_file" pull
+if [[ "${SOCRAT_SKIP_PULL:-}" != "1" ]]; then compose "$env_file" pull; fi
 if compose "$env_file" up --detach --remove-orphans --wait --wait-timeout 300 && health; then
   ln -sfn "$env_file" "$STATE_DIR/current.env"
   [[ -n "$previous" ]] && ln -sfn "$previous" "$STATE_DIR/previous.env"
-  docker image prune --force --filter "until=168h" >/dev/null || true
+  $DOCKER image prune --force --filter "until=168h" >/dev/null || true
   echo "deploy: release $RELEASE_SHA promoted"
   exit 0
 fi

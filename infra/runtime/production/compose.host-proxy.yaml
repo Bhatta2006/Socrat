@@ -1,0 +1,14 @@
+# Overlay for hosts where another reverse proxy (for example nginx with certbot) already owns
+# ports 80/443. Caddy is not started; the web and API listen on loopback only and the host proxy
+# forwards the two public host names to them (see docs/operations/oracle-deploy.md).
+#
+#   docker compose -f compose.yaml -f compose.host-proxy.yaml up -d
+services:
+  caddy:
+    profiles: ["caddy"]
+  api:
+    ports:
+      - "127.0.0.1:18000:8000"
+  web:
+    ports:
+      - "127.0.0.1:13000:3000"
