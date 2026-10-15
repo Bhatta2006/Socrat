@@ -142,7 +142,7 @@ export function Loading({ label = 'Loading', variant = 'page' }: { label?: strin
   }[variant];
   return (
     <Page>
-      <div role="status" aria-label={label} className="grid gap-8">
+      <div role="status" aria-label={label} className="grid animate-reveal gap-8" style={{ '--reveal-delay': '150ms' } as CSSProperties}>
         <span className="sr-only">{label}</span>
         <HeaderSkeleton />
         {body}

@@ -11,8 +11,10 @@ const buttonVariants = cva(
       variant: {
         // Primary on neutral surfaces.
         default: "bg-primary text-primary-foreground hover:bg-[color-mix(in_srgb,var(--primary),white_10%)]",
-        // Primary on a violet or lilac card.
-        ink: "bg-ink text-ink-foreground hover:bg-[color-mix(in_srgb,var(--ink),white_10%)]",
+        // Primary on a violet card: ink pill, white arrow disc.
+        ink: "bg-ink text-ink-foreground hover:bg-[color-mix(in_srgb,var(--ink),white_14%)]",
+        // Primary on lilac or sand surfaces: ink fill.
+        solid: "bg-ink text-ink-foreground hover:bg-[color-mix(in_srgb,var(--ink),white_14%)]",
         // Supporting action.
         outline:
           "border-border-strong bg-transparent text-foreground hover:bg-raised aria-expanded:bg-raised",
@@ -20,7 +22,7 @@ const buttonVariants = cva(
           "bg-raised text-foreground hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_6%)] aria-expanded:bg-raised",
         ghost:
           "text-foreground hover:bg-raised aria-expanded:bg-raised",
-        // Run code: outlined violet.
+        // Run code: outlined brand colour.
         run: "border-primary bg-transparent text-brand hover:bg-[color-mix(in_srgb,var(--primary),transparent_88%)]",
         // Delete or remove: outlined coral.
         destructive:
@@ -71,10 +73,10 @@ function Button({
   )
 }
 
-/** The circular arrow at the end of a primary pill: cream circle, violet arrow. */
+/** The circular arrow at the end of a primary pill: inverse circle, brand arrow. */
 function ArrowCircle({ className, loading = false }: { className?: string; loading?: boolean }) {
   return (
-    <span data-slot="arrow" aria-hidden="true" className={cn("grid size-7 flex-none place-items-center rounded-full bg-cream text-primary transition-transform duration-200 ease-[var(--ease-soft)] group-hover/button:translate-x-0.5 [&_svg]:size-4!", className)}>
+    <span data-slot="arrow" aria-hidden="true" className={cn("grid size-7 flex-none place-items-center rounded-full bg-white text-black transition-transform duration-200 ease-[var(--ease-soft)] group-hover/button:translate-x-0.5 [&_svg]:size-4!", className)}>
       {loading ? (
         <svg viewBox="0 0 24 24" fill="none" className="animate-spin"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="2.5" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" /></svg>
       ) : (

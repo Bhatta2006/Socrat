@@ -11,13 +11,13 @@ type Palette = {
 
 const LIGHT: Palette = {
   bg: '#ffffff', fg: '#17151F', gutter: '#ffffff', gutterFg: '#8A849C', border: '#DDD9E8',
-  selection: '#E1D5F7', activeLine: '#F6F4FA', cursor: '#6A2BD6', focus: '#6A2BD6',
-  keyword: '#6A2BD6', string: '#2F7D57', number: '#A8461F', comment: '#6F6A85', fn: '#1F6F80',
+  selection: '#E1D5F7', activeLine: '#F6F4FA', cursor: '#7034F4', focus: '#7034F4',
+  keyword: '#7034F4', string: '#2F7D57', number: '#A8461F', comment: '#6F6A85', fn: '#1F6F80',
   type: '#1F6F80', constant: '#A8461F', operator: '#3A3649', punctuation: '#55616B',
 };
 const DARK: Palette = {
-  bg: '#17151F', fg: '#E9E6F2', gutter: '#17151F', gutterFg: '#6B6580', border: '#2A2735',
-  selection: '#3A2766', activeLine: '#1C1A26', cursor: '#B9A6F5', focus: '#B9A6F5',
+  bg: '#121118', fg: '#ECEAF3', gutter: '#121118', gutterFg: '#6B6580', border: '#24222D',
+  selection: '#3A2766', activeLine: '#15141B', cursor: '#B9A6F5', focus: '#B9A6F5',
   keyword: '#B79BE0', string: '#7CCBA0', number: '#D9B380', comment: '#8A849C', fn: '#5BB8C6',
   type: '#5BB8C6', constant: '#D9B380', operator: '#CFCADC', punctuation: '#9A94AD',
 };

@@ -42,16 +42,16 @@ function Section({ id, title, description, children, className }: { id: string; 
   );
 }
 
-/** A small flat preview of each theme: canvas, card, a violet bar. */
+/** A small flat preview of each theme: canvas, card, a brand bar. */
 function ThemePreview({ id }: { id: 'light' | 'dark' | 'system' }) {
   const swatch = (bg: string, card: string, text: string) => (
     <span className="flex h-16 flex-1 flex-col gap-1.5 p-2" style={{ background: bg }}>
       <span className="h-2 w-10 rounded-full" style={{ background: text }} />
-      <span className="flex-1 rounded-md p-1.5" style={{ background: card }}><span className="block h-2 w-8 rounded-full bg-[#7D39EB]" /></span>
+      <span className="flex-1 rounded-md p-1.5" style={{ background: card }}><span className="block h-2 w-8 rounded-full bg-[#7034F4]" /></span>
     </span>
   );
   const light = swatch('#F6F4FA', '#FFFFFF', '#17151F');
-  const dark = swatch('#0E0D14', '#17151F', '#E9E6F2');
+  const dark = swatch('#0F0E14', '#17161E', '#ECEAF3');
   return <span className="flex w-full overflow-hidden rounded-[14px] border" aria-hidden="true">{id === 'light' ? light : id === 'dark' ? dark : <>{light}{dark}</>}</span>;
 }
 

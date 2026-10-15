@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 /**
- * Seven days ending today; today sits in a violet pill with a bold number. A dot marks study
+ * Seven days ending today; today sits in a brand pill with a bold number. A dot marks study
  * activity only where the data says so (today, from `studied_today`).
  */
 export function WeekStrip({ studiedToday, className }: { studiedToday: boolean; className?: string }) {

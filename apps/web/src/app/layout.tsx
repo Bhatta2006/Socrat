@@ -7,6 +7,7 @@ import { REDUCE_MOTION_SCRIPT } from '@/lib/motion';
 import Shell from '@/components/shell';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { MotionProvider } from '@/components/motion-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { WebVitals } from '@/components/web-vitals';
 
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#F6F4FA' },
-    { media: '(prefers-color-scheme: dark)', color: '#0E0D14' },
+    { media: '(prefers-color-scheme: dark)', color: '#0F0E14' },
   ],
 };
 
@@ -48,9 +49,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <WebVitals />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={200}>
-            <SessionProvider>
-              <Shell>{children}</Shell>
-            </SessionProvider>
+            <MotionProvider>
+              <SessionProvider>
+                <Shell>{children}</Shell>
+              </SessionProvider>
+            </MotionProvider>
             <Toaster closeButton position="bottom-right" />
           </TooltipProvider>
         </ThemeProvider>

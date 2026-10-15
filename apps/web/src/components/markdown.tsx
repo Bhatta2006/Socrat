@@ -143,8 +143,17 @@ export default function Markdown({ source, language, className = '' }: { source:
             const Tag = b.ordered ? 'ol' : 'ul';
             return <Tag key={index}>{b.items.map((item, n) => <li key={n}>{inline(item)}</li>)}</Tag>;
           }
-          case 'quote':
-            return <blockquote key={index}>{inline(b.text)}</blockquote>;
+          case 'quote': {
+            // A quote right after "try it before reading the reasoning" is an answer: hidden until asked for.
+            const before = blocks[index - 1];
+            const answer = before?.type === 'paragraph' && /before reading|reasoning below|try it|think first/i.test(before.text);
+            return answer ? (
+              <details key={index} className="answer-reveal">
+                <summary>Show the reasoning</summary>
+                <blockquote>{inline(b.text)}</blockquote>
+              </details>
+            ) : <blockquote key={index}>{inline(b.text)}</blockquote>;
+          }
           case 'table':
             return (
               <div key={index} className="table-scroll" tabIndex={0} role="region" aria-label="Table">

@@ -63,7 +63,7 @@ function Locked({ status }: { status: AssessmentStatus }) {
 
 function Available({ status, onStart, busy }: { status: AssessmentStatus; onStart: (timed: boolean) => void; busy: boolean }) {
   return (
-    <section className="flex flex-col gap-5 rounded-card bg-primary p-6 text-primary-foreground lg:p-8" data-tone="hero" aria-labelledby="available-heading">
+    <section className="flex flex-col gap-5 rounded-card bg-forest p-6 text-forest-foreground [--card-muted:color-mix(in_srgb,var(--forest-foreground),transparent_18%)] lg:p-8" data-tone="hero" aria-labelledby="available-heading">
       <div className="flex flex-wrap gap-2"><Badge>Available</Badge><Badge>Week {status.week.split('-W')[1]}</Badge></div>
       <h2 id="available-heading" className="type-display-l">{NAME.assessment}</h2>
       <p className="max-w-2xl text-base">

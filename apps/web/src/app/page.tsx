@@ -11,11 +11,14 @@ import { Illustration } from '@/components/socrat/illustration';
 import { StatusIcon, StatusLabel } from '@/components/socrat/status';
 import { Wordmark } from '@/components/socrat/wordmark';
 import { ArrowCircle, Button } from '@/components/ui/button';
+import { DrawLine, InView, Parallax, ScrollMeter, ScrubText, Underline } from '@/components/motion';
+import { Reveal } from '@/components/common';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const PATHS = [
-  { id: 'zero', name: 'Programming from Zero', title: 'Start from the beginning', description: 'Write your first programs in Python, C++ or Java and understand what each line does.', tone: 'bg-primary text-primary-foreground', pill: 'ink' as const },
-  { id: 'interview', name: 'DSA for Interviews', title: 'Data structures and algorithms for interviews', description: 'Learn the patterns behind the questions and explain your choices and trade-offs.', tone: 'bg-secondary text-secondary-foreground', pill: 'ink' as const },
-  { id: 'competitive', name: 'Competitive Programming', title: 'Competitive programming', description: 'Contest techniques, timed practice and upsolving, on a foundation of understanding.', tone: 'bg-cream text-cream-foreground [html:not(.dark)_&]:bg-raised', pill: 'default' as const },
+  { id: 'zero', name: 'Programming from Zero', title: 'Start from the beginning', description: 'Write your first programs in Python, C++ or Java and understand what each line does.', tone: 'grain bg-forest text-forest-foreground', pill: 'ink' as const },
+  { id: 'interview', name: 'DSA for Interviews', title: 'Data structures and algorithms for interviews', description: 'Learn the patterns behind the questions and explain your choices and trade-offs.', tone: 'bg-foreground text-background', pill: 'ink' as const },
+  { id: 'competitive', name: 'Competitive Programming', title: 'Competitive programming', description: 'Contest techniques, timed practice and upsolving, on a foundation of understanding.', tone: 'bg-cream text-cream-foreground', pill: 'solid' as const },
 ];
 
 const FAQ = [
@@ -41,7 +44,7 @@ function Frame({ title, children, className }: { title: string; children: React.
 
 function TodaySample() {
   return (
-    <div className="relative overflow-hidden rounded-[24px] bg-primary p-5 text-primary-foreground" data-tone="hero">
+    <div className="relative overflow-hidden rounded-[24px] bg-forest p-5 text-forest-foreground" data-tone="hero">
       <Illustration name="orbit" className="absolute -top-4 -right-6 size-28 opacity-90" />
       <p className="type-label">Next for you</p>
       <p className="mt-3 max-w-[11ch] font-display text-3xl leading-none font-bold tracking-[-0.035em]">Two-pointer problems</p>
@@ -126,16 +129,17 @@ export default function Home() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header
-        className="landing-nav fixed inset-x-0 top-0 z-50 border-b bg-background"
+        className="landing-nav fixed inset-x-0 top-3 z-50 px-3 sm:px-6"
         onKeyDown={event => { if (event.key === 'Escape' && menu) { setMenu(false); event.currentTarget.querySelector<HTMLButtonElement>('[data-menu-button]')?.focus(); } }}
       >
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+        <div className="glass-nav mx-auto flex h-14 max-w-[1100px] items-center justify-between gap-4 rounded-full border px-4 shadow-floating sm:px-5">
           <Link href="/" aria-label="Socrat home" className="rounded-full"><Wordmark /></Link>
           <nav aria-label="Site" className="hidden items-center gap-8 text-[15px] font-medium md:flex">
             {links.map(([href, label]) => <a key={href} href={href} className="text-muted-foreground transition-colors hover:text-foreground">{label}</a>)}
           </nav>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login" className="hidden min-h-11 items-center text-[15px] font-semibold underline-offset-4 hover:underline sm:inline-flex">Log in</Link>
+            <ThemeToggle />
             <Button asChild size="sm"><Link href="/login">Get started</Link></Button>
             <Button data-menu-button variant="ghost" size="icon" className="md:hidden" aria-label={menu ? 'Close navigation' : 'Open navigation'} aria-expanded={menu} aria-controls={menu ? 'landing-mobile-nav' : undefined} onClick={() => setMenu(!menu)}>
               {menu ? <X /> : <Menu />}
@@ -143,7 +147,7 @@ export default function Home() {
           </div>
         </div>
         {menu ? (
-          <nav id="landing-mobile-nav" aria-label="Mobile site" className="grid border-t bg-background px-4 py-2 md:hidden">
+          <nav id="landing-mobile-nav" aria-label="Mobile site" className="mx-auto mt-2 grid max-w-[1100px] rounded-card border bg-background px-4 py-2 shadow-floating md:hidden">
             {links.map(([href, label]) => <a key={href} href={href} onClick={() => setMenu(false)} className="flex min-h-12 items-center text-[17px] font-semibold">{label}</a>)}
             <Link href="/login" className="flex min-h-12 items-center text-[17px] font-semibold">Log in</Link>
           </nav>
@@ -154,34 +158,50 @@ export default function Home() {
         {/* Hero */}
         <section aria-labelledby="hero-title" className="mx-auto grid max-w-[1440px] items-center gap-10 px-4 pt-28 pb-16 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:px-10 lg:pt-36 lg:pb-24">
           <div>
-            <h1 id="hero-title" className="type-display-xl">Learn it.<br />Then prove it.</h1>
-            <p className="type-body-l mt-6 max-w-xl text-muted-foreground">A tutor that asks before it tells, a plan built around your goal, and checks that show what you can do on your own.</p>
-            <div className="mt-8 flex flex-wrap items-center gap-5">
-              <Button asChild size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
-              <Link href="/login" className="inline-flex min-h-11 items-center text-[17px] font-semibold underline underline-offset-4">Log in</Link>
-            </div>
+            <Reveal><h1 id="hero-title" className="type-display-xl">Learn it.<br /><Underline>Then prove it.</Underline></h1></Reveal>
+            <Reveal index={1}><p className="type-body-l mt-6 max-w-xl text-muted-foreground">A tutor that asks before it tells, a plan built around your goal, and checks that show what you can do on your own.</p></Reveal>
+            <Reveal index={2}>
+              <div className="mt-8 flex flex-wrap items-center gap-5">
+                <Button asChild size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
+                <Link href="/login" className="inline-flex min-h-11 items-center text-[17px] font-semibold underline underline-offset-4">Log in</Link>
+              </div>
+            </Reveal>
           </div>
-          <Illustration name="welcome" proof className="mx-auto max-h-[260px] w-full max-w-[260px] lg:max-h-none lg:max-w-[520px]" />
+          <Parallax className="mx-auto w-full max-w-xl"><Reveal index={2} className="grid w-full gap-3 rounded-card border bg-card p-4 text-card-foreground shadow-floating sm:p-6">
+            <TodaySample />
+            <div className="rounded-[20px] border bg-card p-4 text-card-foreground" aria-hidden="true">
+              <p className="font-display text-lg font-bold tracking-[-0.02em]">3 of 4 tests passed</p>
+              <p className="mt-1 text-sm text-muted-foreground">Edge case: empty array. Tutor hints are recorded.</p>
+            </div>
+            <ScrollMeter className="rounded-[20px] border bg-card p-4 text-card-foreground" />
+          </Reveal></Parallax>
         </section>
 
         {/* How it works: introduces the status system. */}
         <section id="how" aria-labelledby="how-title" className="mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <h2 id="how-title" className="type-display-m max-w-2xl">Read. Check. Prove.</h2>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">Every skill shows the difference between reading about it, practising it with help and showing it in a check.</p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-3 sm:gap-4 lg:gap-6">
+          <ol className="mt-10 lg:mt-14">
             {([
               ['Read', 'read', 'Read', 'Lessons with worked traces, edge cases and self-checks. Reading alone never counts as mastery.'],
               ['Check', 'practised', 'Practised with help', 'Concept checks and judged problems. The tutor helps, and help is recorded.'],
               ['Prove', 'mastered', 'Mastered', 'Checkpoints and reviews confirm what holds up over time, as the questions get harder.'],
-            ] as const).map(([title, status, label, text]) => (
-              <article key={title} className="flex flex-col gap-4 rounded-card border bg-card p-6 lg:p-8">
-                <StatusIcon status={status} size={40} />
-                <h3 className="font-display text-3xl font-bold tracking-[-0.035em]">{title}</h3>
-                <p className="text-[15px] text-muted-foreground">{text}</p>
-                <StatusLabel status={status} detail={label} muted className="mt-auto text-[13px]" />
-              </article>
+            ] as const).map(([title, status, label, text], i) => (
+              <li key={title}>
+                <DrawLine />
+                <ScrubText className="scroll-row grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-3 py-7 md:grid-cols-[4rem_minmax(0,1.1fr)_minmax(0,1.3fr)_auto] lg:py-10">
+                  <span className="font-mono text-sm text-muted-foreground">0{i + 1}</span>
+                  <h3 className="type-display-l">{title}</h3>
+                  <p className="col-start-2 text-base text-muted-foreground md:col-start-auto">{text}</p>
+                  <div className="col-start-2 flex items-center gap-3 md:col-start-auto">
+                    <StatusIcon status={status} size={28} />
+                    <StatusLabel status={status} detail={label} muted className="text-[13px]" />
+                  </div>
+                </ScrubText>
+              </li>
             ))}
-          </div>
+            <li><DrawLine /></li>
+          </ol>
         </section>
 
         {/* Product proof: real components with sample data. */}
@@ -189,9 +209,9 @@ export default function Home() {
           <h2 id="inside-title" className="type-display-m max-w-2xl">Inside Socrat</h2>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">One next step each day, a real editor with judged tests, and visuals you can explore.</p>
           <div className="mt-8 grid gap-4 lg:grid-cols-3 lg:gap-6">
-            <Frame title="Today"><TodaySample /></Frame>
-            <Frame title="Problem workspace"><ProblemSample /></Frame>
-            <Frame title="Playground"><PlaygroundSample /></Frame>
+            <InView index={0} className="flex"><Frame title="Today" className="w-full"><TodaySample /></Frame></InView>
+            <InView index={1} className="flex"><Frame title="Problem workspace" className="w-full"><ProblemSample /></Frame></InView>
+            <InView index={2} className="flex"><Frame title="Playground" className="w-full"><PlaygroundSample /></Frame></InView>
           </div>
         </section>
 
@@ -199,18 +219,18 @@ export default function Home() {
         <section id="paths" aria-labelledby="paths-title" className="mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <h2 id="paths-title" className="type-display-m">Three ways in</h2>
           <div className="mt-8 grid gap-3 md:grid-cols-3 md:gap-4 lg:gap-6">
-            {PATHS.map(path => {
+            {PATHS.map((path, i) => {
               const course = courses.find(c => c.id === path.id || c.title === path.name);
               return (
-                <article key={path.id} className={`flex min-h-80 flex-col gap-4 rounded-card p-6 lg:p-8 ${path.tone}`}>
+                <InView key={path.id} index={i} className={`flex min-h-80 flex-col gap-4 rounded-card p-6 lg:p-8 ${path.tone}`}>
                   <p className="type-label">{course?.title ?? path.name}</p>
                   <h3 className="font-display text-3xl leading-[1.05] font-bold tracking-[-0.035em]">{path.title}</h3>
-                  <p className="text-[15px]">{path.description}</p>
+                  <p className="text-base">{path.description}</p>
                   {course ? <p className="path-count text-[13px] font-semibold">{course.concept_count} skills, {course.problem_count} judged problems</p> : null}
                   <div className="mt-auto">
                     <Button asChild variant={path.pill}><Link href="/login" aria-label={`Get started with ${path.name}`}>Get started<ArrowCircle /></Link></Button>
                   </div>
-                </article>
+                </InView>
               );
             })}
           </div>
@@ -234,10 +254,10 @@ export default function Home() {
 
         {/* Final call to action */}
         <section aria-labelledby="cta-title" className="mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10 lg:pb-24">
-          <div className="flex flex-col items-start gap-6 rounded-card bg-secondary p-8 text-secondary-foreground lg:flex-row lg:items-end lg:justify-between lg:p-12">
-            <h2 id="cta-title" className="type-display-l max-w-[14ch]">Start where you are.</h2>
+          <InView data-tone="hero" className="flex flex-col items-start gap-6 rounded-card bg-forest p-8 text-forest-foreground lg:flex-row lg:items-end lg:justify-between lg:p-12">
+            <ScrubText from={0.35}><h2 id="cta-title" className="type-display-l max-w-[14ch]">Start where you are.</h2></ScrubText>
             <Button asChild variant="ink" size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
-          </div>
+          </InView>
         </section>
       </div>
 

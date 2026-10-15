@@ -48,6 +48,7 @@ async function main() {
     const context = await browser.newContext({ viewport: { width: 1000, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
     const page = await context.newPage();
     page.setDefaultTimeout(4000);
+    page.setDefaultNavigationTimeout(20000); // a cold browser start is not the visual's fault
     const errors = [], blocked = [];
     page.on('pageerror', error => errors.push(String(error.message).slice(0,180)));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text().slice(0,180)); });
@@ -58,7 +59,10 @@ async function main() {
       if (url === visual) return route.fulfill({ contentType: 'text/html', headers: { 'Content-Security-Policy': input.csp.replace(/frame-ancestors [^;]+/, 'frame-ancestors ' + host.slice(0,-1)), 'Origin-Agent-Cluster': '?1' }, body: input.html });
       blocked.push('external request'); return route.abort();
     });
-    const frameReady = page.waitForEvent('framenavigated', { predicate: f => f.url() === visual });
+    // Created before goto(), so it must not reject unhandled while goto is still running (a cold
+    // browser start made it time out and crash the checker with no output).
+    const frameReady = page.waitForEvent('framenavigated', { predicate: f => f.url() === visual, timeout: 12000 });
+    frameReady.catch(() => undefined);
     await page.goto(host);
     const frame = await frameReady;
     if (!frame) throw Error('Visual did not load');

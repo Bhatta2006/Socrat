@@ -177,7 +177,7 @@ export default function Sprint() {
           </div>
         </div>
       ) : (
-        <section className="flex flex-col gap-5 rounded-card bg-primary p-6 text-primary-foreground lg:p-8" data-tone="hero" aria-labelledby="sprint-heading">
+        <section className="flex flex-col gap-5 rounded-card bg-forest p-6 text-forest-foreground [--card-muted:color-mix(in_srgb,var(--forest-foreground),transparent_18%)] lg:p-8" data-tone="hero" aria-labelledby="sprint-heading">
           <p className="type-label">{NAME.sprint}</p>
           <h2 id="sprint-heading" className="type-display-l">3 problems, 45 minutes</h2>
           <p className="max-w-xl text-base">Problems come from skills you have studied, easiest first. Soc stays available, and the clock keeps running.</p>

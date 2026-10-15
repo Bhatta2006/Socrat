@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ViewTransition, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { m } from 'motion/react';
+import { PageTransition, ScrollBar } from '@/components/motion';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme } from 'next-themes';
 import {
   ChartNoAxesColumn,
@@ -120,7 +123,7 @@ function Momentum() {
   const c = 2 * Math.PI * r;
   return (
     <div className="flex items-center gap-1.5">
-      <Tooltip>
+      {today.streak.current > 0 || today.streak.studied_today ? <Tooltip>
         <TooltipTrigger asChild>
           <Link
             href="/progress"
@@ -135,7 +138,7 @@ function Momentum() {
           {today.streak.studied_today ? 'Studied today' : 'Study today to keep your streak'}
           {today.streak.freezes ? `. ${today.streak.freezes} freeze${today.streak.freezes > 1 ? 's' : ''} banked` : ''}
         </TooltipContent>
-      </Tooltip>
+      </Tooltip> : null}
       <Tooltip>
         <TooltipTrigger asChild>
           <Link href="/today" className="hidden h-9 items-center gap-2 rounded-full border border-border-strong py-1 pr-3 pl-1 text-[13px] font-semibold tabular-nums transition-colors hover:bg-raised sm:inline-flex" aria-label={`${today.minutes.done} of ${today.minutes.goal} minutes studied today`}>
@@ -196,11 +199,12 @@ function Sidebar({ active, collapsed, onToggle, ready }: { active: NavKey | null
                 href={item.href}
                 aria-current={current ? 'page' : undefined}
                 className={cn(
-                  'relative flex h-12 items-center gap-3 rounded-full px-3 text-[15px] font-medium transition-colors',
-                  current ? 'bg-primary font-bold text-primary-foreground' : 'text-muted-foreground hover:bg-raised hover:text-foreground',
+                  'relative isolate flex h-12 items-center gap-3 rounded-[18px] px-3 text-[15px] font-medium transition-colors',
+                  current ? 'font-bold text-primary-foreground' : 'text-muted-foreground hover:bg-raised hover:text-foreground',
                 )}
               >
-                <Icon className="size-6 flex-none" strokeWidth={1.5} aria-hidden="true" />
+                {current ? <m.span layoutId="side-pill" className="absolute inset-0 -z-10 rounded-[18px] bg-primary" transition={{ type: 'spring', stiffness: 520, damping: 40 }} /> : null}
+                <Icon className={cn('size-6 flex-none')} strokeWidth={1.5} aria-hidden="true" />
                 <span className={cn('sr-only', !collapsed && 'lg:not-sr-only')}>{item.label}</span>
                 {flagged ? (
                   <span className={cn('absolute top-2.5 left-8 size-2 rounded-full bg-secondary ring-2 ring-card', !collapsed && 'lg:static lg:ml-auto')}>
@@ -246,7 +250,7 @@ function Sidebar({ active, collapsed, onToggle, ready }: { active: NavKey | null
   );
 }
 
-/** Phone: five destinations. 64 px plus the safe area; active item has a violet pill behind its icon. */
+/** Phone: five destinations. 64 px plus the safe area; active item has a brand pill behind its icon. */
 function MobileNav({ active, ready }: { active: NavKey | null; ready: boolean }) {
   return (
     <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
@@ -261,7 +265,8 @@ function MobileNav({ active, ready }: { active: NavKey | null; ready: boolean })
                 aria-current={current ? 'page' : undefined}
                 className={cn('relative grid h-full content-center justify-items-center gap-1 text-xs font-medium text-muted-foreground', current && 'font-bold text-foreground')}
               >
-                <span className={cn('grid h-8 w-14 place-items-center rounded-full transition-colors', current && 'bg-primary text-primary-foreground')}>
+                <span className={cn('relative isolate grid h-8 w-14 place-items-center rounded-full transition-colors', current && 'text-primary-foreground')}>
+                  {current ? <m.span layoutId="mobile-pill" className="absolute inset-0 -z-10 rounded-full bg-primary" transition={{ type: 'spring', stiffness: 520, damping: 40 }} /> : null}
                   <Icon className="size-6" strokeWidth={1.5} aria-hidden="true" />
                 </span>
                 {item.label}
@@ -288,6 +293,7 @@ function MarketingShell({ children }: { children: ReactNode }) {
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
             <Link href={profile ? '/today' : '/'} aria-label="Socrat home" className="rounded-full"><Wordmark /></Link>
             <nav className="flex items-center gap-2" aria-label="Site">
+              <ThemeToggle />
               {profile ? (
                 ['/start', '/placement'].includes(pathname) ? null : <Button asChild size="sm"><Link href="/today">Open app</Link></Button>
               ) : (
@@ -302,18 +308,6 @@ function MarketingShell({ children }: { children: ReactNode }) {
       )}
       <main id="main" tabIndex={-1} className="outline-none"><PageTransition>{children}</PageTransition></main>
     </>
-  );
-}
-
-// Route changes fade the content area only; the header stays.
-const PAGE_MOTION = { 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'page-fade' };
-
-function PageTransition({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  return (
-    <ViewTransition key={pathname} name="page" share={PAGE_MOTION} enter={PAGE_MOTION} exit={PAGE_MOTION} default="none">
-      <div>{children}</div>
-    </ViewTransition>
   );
 }
 
@@ -337,6 +331,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh">
       <a href="#main" className="skip-link">Skip to content</a>
+      {pathname.startsWith('/learn') ? null : <ScrollBar />}
       <Sidebar active={active} collapsed={collapsed} onToggle={toggle} ready={ready} />
       <div className="flex min-w-0 flex-1 flex-col">
         <DevBanner />
@@ -345,6 +340,7 @@ export default function Shell({ children }: { children: ReactNode }) {
           <div className="min-w-0 flex-1"><CommandMenu /></div>
           <div className="ml-auto flex items-center gap-1.5">
             <Momentum />
+            <ThemeToggle />
             <UserMenu />
           </div>
         </header>

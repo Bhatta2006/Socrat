@@ -9,7 +9,8 @@ const cardVariants = cva(
     variants: {
       tone: {
         surface: "border bg-card text-card-foreground",
-        hero: "bg-primary text-primary-foreground [--card-muted:var(--primary-foreground)] [--card-line:color-mix(in_srgb,var(--primary-foreground),transparent_55%)] lg:[--card-spacing:32px] [--card-spacing:24px]",
+        hero: "bg-forest text-forest-foreground [--card-muted:color-mix(in_srgb,var(--forest-foreground),transparent_18%)] [--card-line:color-mix(in_srgb,var(--forest-foreground),transparent_55%)] lg:[--card-spacing:32px] [--card-spacing:24px]",
+        violet: "bg-violet text-violet-foreground [--card-muted:color-mix(in_srgb,var(--violet-foreground),transparent_18%)] [--card-line:color-mix(in_srgb,var(--violet-foreground),transparent_55%)]",
         lilac: "bg-secondary text-secondary-foreground [--card-muted:color-mix(in_srgb,var(--secondary-foreground),transparent_22%)] [--card-line:color-mix(in_srgb,var(--secondary-foreground),transparent_50%)]",
         cream: "bg-cream text-cream-foreground [--card-muted:color-mix(in_srgb,var(--cream-foreground),transparent_22%)] [--card-line:color-mix(in_srgb,var(--cream-foreground),transparent_50%)]",
         raised: "bg-raised text-foreground",
@@ -73,7 +74,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-sm text-muted-foreground group-data-[tone=hero]/card:text-(--card-muted) group-data-[tone=lilac]/card:text-(--card-muted) group-data-[tone=cream]/card:text-(--card-muted)", className)}
+      className={cn("text-sm text-muted-foreground group-data-[tone=hero]/card:text-(--card-muted) group-data-[tone=lilac]/card:text-(--card-muted) group-data-[tone=violet]/card:text-(--card-muted) group-data-[tone=cream]/card:text-(--card-muted)", className)}
       {...props}
     />
   )

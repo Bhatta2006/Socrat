@@ -68,7 +68,7 @@ export default function ProgressPage() {
         ) : null}
 
         {/* Hero: course completion. */}
-        <section className="flex flex-wrap items-center gap-6 rounded-card bg-primary p-6 text-primary-foreground lg:gap-10 lg:p-8" data-tone="hero" aria-labelledby="course-heading">
+        <section className="flex flex-wrap items-center gap-6 rounded-card bg-forest p-6 text-forest-foreground [--card-muted:color-mix(in_srgb,var(--forest-foreground),transparent_18%)] lg:gap-10 lg:p-8" data-tone="hero" aria-labelledby="course-heading">
           <Ring value={data.progress.percent} size={128} stroke={6} label={<span className="font-display text-3xl">{data.progress.percent}%</span>} ariaLabel={`Course ${data.progress.percent} percent complete`} />
           <div className="min-w-0 flex-1">
             <p className="type-label">Course completion</p>

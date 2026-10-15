@@ -44,6 +44,10 @@
   --color-raised: var(--raised);
   --color-cream: var(--cream);
   --color-cream-foreground: var(--cream-foreground);
+  --color-violet: var(--violet);
+  --color-violet-foreground: var(--violet-foreground);
+  --color-forest: var(--forest);
+  --color-forest-foreground: var(--forest-foreground);
   --color-ink: var(--ink);
   --color-ink-foreground: var(--ink-foreground);
   --color-attention: var(--attention);
@@ -57,6 +61,11 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  /* Slightly larger small text: secondary copy stays readable on phones. */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.4rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: var(--radius);
@@ -69,8 +78,8 @@
   --radius-control: 1rem;
   --ease-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
   --animate-shake: shake 0.32s var(--ease-soft);
-  --animate-pop: pop 0.2s var(--ease-soft);
-  --animate-reveal: reveal 0.32s var(--ease-soft) var(--reveal-delay, 0ms) both;
+  --animate-pop: pop 0.4s var(--ease-soft) both;
+  --animate-reveal: reveal 0.5s var(--ease-soft) var(--reveal-delay, 0ms) both;
   --animate-pulse-slow: pulse-slow 2s ease-in-out infinite;
 }
 
@@ -80,10 +89,11 @@
   75% { transform: translateX(4px); }
 }
 @keyframes reveal {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(14px); }
 }
 @keyframes pop {
-  0% { transform: scale(0.98); }
+  0% { transform: scale(0.94); opacity: 0; }
+  60% { transform: scale(1.02); opacity: 1; }
   100% { transform: scale(1); }
 }
 @keyframes pulse-slow {
@@ -91,7 +101,7 @@
 }
 
 /*
- * "Learn it. Then prove it." Matte violet on ink, lilac and cream accents, coral for attention.
+ * "Learn it. Then prove it." Violet and ink on lilac paper and true black, lime for energy and proof, white and coral as supports. (--forest is the brand surface token: violet.)
  * The :root and .dark blocks are also read by the playground compiler
  * (services/api/src/socrat/explainer/artifact.py) and injected into generated visuals, so they
  * keep the token names it expects and never contain the host-only proof colour.
@@ -104,10 +114,12 @@
   --popover: #FFFFFF;
   --popover-foreground: #17151F;
   --raised: #EFECF6;
-  --primary: #6A2BD6;
+  --primary: #7034F4;
   --primary-foreground: #FFFFFF;
   --secondary: #B9A6F5;
   --secondary-foreground: #17151F;
+  --violet: #7034F4;
+  --violet-foreground: #FFFFFF;
   --muted: #EFECF6;
   --muted-foreground: #55616B;
   --accent: #EFECF6;
@@ -116,6 +128,8 @@
   --cream-foreground: #17151F;
   --ink: #17151F;
   --ink-foreground: #F6F4FA;
+  --forest: #7034F4;
+  --forest-foreground: #FFFFFF;
   --attention: #C4453F;
   --attention-foreground: #FFFFFF;
   --destructive: #C4453F;
@@ -123,12 +137,12 @@
   --success-foreground: #FFFFFF;
   --warning: #C4453F;
   --warning-foreground: #FFFFFF;
-  --brand-text: #6A2BD6;
+  --brand-text: #7034F4;
   --border: #DDD9E8;
   --border-strong: #C4BFD4;
   --input: #C4BFD4;
-  --ring: #6A2BD6;
-  --chart-1: #6A2BD6;
+  --ring: #7034F4;
+  --chart-1: #7034F4;
   --chart-2: #8A55E6;
   --chart-3: #17151F;
   --chart-4: #55616B;
@@ -136,15 +150,15 @@
   --radius: 1rem;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #17151F;
-  --sidebar-primary: #6A2BD6;
+  --sidebar-primary: #7034F4;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #EFECF6;
   --sidebar-accent-foreground: #17151F;
   --sidebar-border: #DDD9E8;
-  --sidebar-ring: #6A2BD6;
+  --sidebar-ring: #7034F4;
   --code-bg: #FFFFFF;
   --code-fg: #17151F;
-  --syntax-keyword: #6A2BD6;
+  --syntax-keyword: #7034F4;
   --syntax-function: #1F6F80;
   --syntax-string: #2F7D57;
   --syntax-number: #A8461F;
@@ -154,70 +168,74 @@
   --heat-1: #D9CCF5;
   --heat-2: #B9A6F5;
   --heat-3: #8A55E6;
-  --heat-4: #6A2BD6;
+  --heat-4: #7034F4;
   --floating-shadow: 0 8px 24px rgb(23 21 31 / 0.10);
 }
 
 .dark {
-  --background: #0E0D14;
-  --foreground: #E9E6F2;
-  --card: #17151F;
-  --card-foreground: #E9E6F2;
-  --popover: #211E2B;
-  --popover-foreground: #E9E6F2;
-  --raised: #211E2B;
-  --primary: #7D39EB;
-  --primary-foreground: #F4F2FA;
+  --background: #0F0E14;
+  --foreground: #ECEAF3;
+  --card: #17161E;
+  --card-foreground: #ECEAF3;
+  --popover: #1E1C26;
+  --popover-foreground: #ECEAF3;
+  --raised: #201E29;
+  --primary: #7034F4;
+  --primary-foreground: #FFFFFF;
   --secondary: #B9A6F5;
   --secondary-foreground: #17151F;
-  --muted: #211E2B;
-  --muted-foreground: #9A94AD;
-  --accent: #211E2B;
-  --accent-foreground: #E9E6F2;
+  --violet: #8A55E6;
+  --violet-foreground: #FFFFFF;
+  --muted: #201E29;
+  --muted-foreground: #A7A2B8;
+  --accent: #201E29;
+  --accent-foreground: #ECEAF3;
   --cream: #F4F2FA;
   --cream-foreground: #17151F;
-  --ink: #0E0D14;
-  --ink-foreground: #E9E6F2;
+  --ink: #07060B;
+  --ink-foreground: #ECEAF3;
+  --forest: #7034F4;
+  --forest-foreground: #FFFFFF;
   --attention: #F08A86;
-  --attention-foreground: #0E0D14;
+  --attention-foreground: #0F1B17;
   --destructive: #F08A86;
-  --success: #E9E6F2;
-  --success-foreground: #0E0D14;
+  --success: #ECEAF3;
+  --success-foreground: #0F1B17;
   --warning: #F08A86;
-  --warning-foreground: #0E0D14;
+  --warning-foreground: #0F1B17;
   --brand-text: #B9A6F5;
-  --border: #2A2735;
+  --border: #2A2733;
   --border-strong: #3A3649;
   --input: #3A3649;
   --ring: #B9A6F5;
-  --chart-1: #7D39EB;
+  --chart-1: #7034F4;
   --chart-2: #B9A6F5;
-  --chart-3: #F4F2FA;
-  --chart-4: #9A94AD;
+  --chart-3: #ECEAF3;
+  --chart-4: #A19BB4;
   --chart-5: #F08A86;
   --radius: 1rem;
-  --sidebar: #17151F;
-  --sidebar-foreground: #E9E6F2;
-  --sidebar-primary: #7D39EB;
-  --sidebar-primary-foreground: #F4F2FA;
-  --sidebar-accent: #211E2B;
-  --sidebar-accent-foreground: #E9E6F2;
-  --sidebar-border: #2A2735;
+  --sidebar: #0E0D13;
+  --sidebar-foreground: #ECEAF3;
+  --sidebar-primary: #7034F4;
+  --sidebar-primary-foreground: #0F1B17;
+  --sidebar-accent: #201E29;
+  --sidebar-accent-foreground: #ECEAF3;
+  --sidebar-border: #2A2733;
   --sidebar-ring: #B9A6F5;
-  --code-bg: #17151F;
-  --code-fg: #E9E6F2;
+  --code-bg: #121118;
+  --code-fg: #ECEAF3;
   --syntax-keyword: #B79BE0;
   --syntax-function: #5BB8C6;
   --syntax-string: #7CCBA0;
   --syntax-number: #D9B380;
   --syntax-comment: #8A849C;
   --syntax-gutter: #6B6580;
-  --heat-0: #211E2B;
+  --heat-0: #201E29;
   --heat-1: #3B2A6B;
   --heat-2: #5A30A8;
-  --heat-3: #7D39EB;
+  --heat-3: #7034F4;
   --heat-4: #B9A6F5;
-  --floating-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+  --floating-shadow: 0 8px 24px rgb(0 0 0 / 0.6);
 }
 
 /* Proof is a host concept: kept out of the blocks above so generated visuals never receive it. */
@@ -225,27 +243,33 @@ html:root {
   --proof: #C6FF33;
   --proof-foreground: #17151F;
   --proof-stroke: #17151F;
-  /* Illustration and mark: cream reads as lilac on the light canvas; lines are ink. */
-  --mark-cream: #B9A6F5;
+  /* Illustration and mark: lime reads against forest; lines are ink. */
+  --mark-cream: #C6FF33;
   --illo-line: #17151F;
   --soc-bg: #E9E4F6;
   --soc-line: #17151F;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 html.dark {
-  --proof-foreground: #0E0D14;
-  --proof-stroke: #0E0D14;
-  /* #7D39EB is 2.9:1 on the raised surface; status rings need 3:1. */
+  --proof-foreground: #0F0E14;
+  --proof-stroke: #0F0E14;
+  /* #7034F4 is 2.9:1 on black surfaces; status rings need 3:1. */
   --status-practised: #9A63F2;
-  --mark-cream: #F4F2FA;
-  --illo-line: #F4F2FA;
-  --soc-bg: #0E0D14;
-  --soc-line: #E9E6F2;
+  --mark-cream: #C6FF33;
+  --illo-line: #ECEAF3;
+  --soc-bg: #0F0E14;
+  --soc-line: #ECEAF3;
 }
-/* On colour cards status shapes take the card's text colours. */
-[data-tone="hero"] { --status-practised: var(--primary-foreground); --status-muted: var(--card-muted); --ring-track: var(--card-line); --ring-value: var(--primary-foreground); }
-/* Cream cards read as lilac on the light canvas. */
-html:not(.dark) [data-tone="cream"] { background: var(--secondary); color: var(--secondary-foreground); }
-[data-tone="lilac"], [data-tone="cream"] { --status-practised: var(--primary); --status-muted: var(--card-muted); }
+/* Forest hero cards: the status shapes take the card's text colours. */
+[data-tone="hero"] { --status-practised: var(--forest-foreground); --status-muted: var(--card-muted); --ring-track: var(--card-line); --ring-value: var(--proof); }
+[data-tone="violet"] { --status-practised: var(--violet-foreground); --status-muted: var(--card-muted); --ring-track: var(--card-line); --ring-value: var(--violet-foreground); }
+[data-tone="lilac"], [data-tone="cream"] { --status-practised: var(--forest); --status-muted: var(--card-muted); }
+/* Forest surfaces carry a fine grain, as on the brand canvas. */
+[data-tone="hero"], .grain { position: relative; isolation: isolate; }
+[data-tone="hero"]::before, .grain::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+  background-image: var(--grain); background-size: 160px; opacity: 0.09; mix-blend-mode: overlay;
+}
 
 @utility type-display-xl {
   font-family: var(--font-display);
@@ -288,8 +312,8 @@ html:not(.dark) [data-tone="cream"] { background: var(--secondary); color: var(-
   @media (width >= 64rem) { font-size: 18px; line-height: 30px; }
 }
 @utility type-label {
-  font-size: 11px;
-  line-height: 14px;
+  font-size: 12px;
+  line-height: 16px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -306,10 +330,14 @@ html:not(.dark) [data-tone="cream"] { background: var(--secondary); color: var(-
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(900px 520px at 8% -8%, color-mix(in srgb, var(--forest) 20%, transparent), transparent 70%);
+    background-attachment: fixed;
     font-size: 16px;
     line-height: 24px;
     font-weight: 500;
   }
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: var(--grain); background-size: 160px; opacity: 0.05; mix-blend-mode: multiply; }
+  .dark body::before { opacity: 0.07; mix-blend-mode: overlay; }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
   p, li, label, td { overflow-wrap: anywhere; }
   button:not(:disabled), [role="button"]:not(:disabled), summary, a { cursor: pointer; }
@@ -407,3 +435,39 @@ html:not(.dark) [data-tone="cream"] { background: var(--secondary); color: var(-
 /* The in-app reduce-motion setting does the same as the system preference. */
 html[data-reduce-motion="true"] *, html[data-reduce-motion="true"] *::before, html[data-reduce-motion="true"] *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 html[data-reduce-motion="true"]::view-transition-old(*), html[data-reduce-motion="true"]::view-transition-new(*) { animation: none !important; }
+
+/* Loading skeletons: a soft sweep over the raised surface instead of a pulse. */
+.skeleton {
+  background-color: var(--raised);
+  background-image: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--foreground) 7%, transparent) 50%, transparent 80%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-sweep 1.4s var(--ease-soft) infinite;
+}
+@keyframes skeleton-sweep { from { background-position: 160% 0; } to { background-position: -60% 0; } }
+
+/* Lesson answers stay folded until asked for. */
+.answer-reveal { border: 1px solid var(--border-strong); border-radius: 16px; padding: 4px 16px; background: var(--card); }
+.answer-reveal summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 650; list-style: none; }
+.answer-reveal summary::-webkit-details-marker { display: none; }
+.answer-reveal summary::after { content: "+"; margin-left: auto; font-size: 1.25em; transition: transform 0.2s var(--ease-soft); }
+.answer-reveal[open] summary::after { transform: rotate(45deg); }
+.answer-reveal blockquote { margin: 0 0 12px; }
+.prose-socrat h2 { border-top: 1px solid var(--border); padding-top: 1.1em; }
+.prose-socrat > h2:first-child { border-top: 0; padding-top: 0; }
+
+/* Controls on coloured surfaces always keep contrast, in both themes. */
+[data-tone="hero"] [data-slot="button"][data-variant="default"],
+[data-tone="violet"] [data-slot="button"][data-variant="default"] { background: var(--ink); color: var(--ink-foreground); }
+[data-tone="hero"] [data-slot="button"]:is([data-variant="outline"], [data-variant="ghost"], [data-variant="secondary"], [data-variant="run"]),
+[data-tone="violet"] [data-slot="button"]:is([data-variant="outline"], [data-variant="ghost"], [data-variant="secondary"], [data-variant="run"]) { color: inherit; border-color: color-mix(in srgb, currentColor 50%, transparent); background: transparent; }
+[data-tone="hero"] [data-slot="button"]:is([data-variant="outline"], [data-variant="ghost"], [data-variant="secondary"], [data-variant="run"]):hover,
+[data-tone="violet"] [data-slot="button"]:is([data-variant="outline"], [data-variant="ghost"], [data-variant="secondary"], [data-variant="run"]):hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+[data-tone="lilac"] [data-slot="button"][data-variant="default"],
+[data-tone="cream"] [data-slot="button"][data-variant="default"] { background: var(--ink); color: var(--ink-foreground); }
+[data-tone="hero"] a:not([data-slot="button"]):not(.keep-color), [data-tone="violet"] a:not([data-slot="button"]):not(.keep-color) { color: inherit; }
+
+/* Scroll-driven rows: hairlines and display type, in the manner of a table of contents. */
+.scroll-row { transition: transform 0.35s var(--ease-soft); }
+.scroll-row:hover { transform: translateX(8px); }
+.glass-nav { background: color-mix(in srgb, var(--background) 78%, transparent); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }

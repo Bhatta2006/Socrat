@@ -266,7 +266,7 @@ export default function Library() {
       {recs ? (
         <Reveal index={1} className="mb-8 grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-12 lg:gap-6">
           {top ? (
-            <section className="relative flex min-h-64 flex-col gap-4 rounded-card bg-primary p-6 text-primary-foreground lg:col-span-6 lg:p-8" data-tone="hero" aria-labelledby="for-you-heading">
+            <section className="relative flex min-h-64 flex-col gap-4 rounded-card bg-forest p-6 text-forest-foreground [--card-muted:color-mix(in_srgb,var(--forest-foreground),transparent_18%)] lg:col-span-6 lg:p-8" data-tone="hero" aria-labelledby="for-you-heading">
               <p id="for-you-heading" className="type-label">Recommended for you</p>
               <h2 className="type-display-m max-w-[18ch]">{top.title}</h2>
               <p className="max-w-md text-[15px]">{top.reason}</p>

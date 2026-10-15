@@ -105,15 +105,15 @@ function GateResult({ gate }: { gate: Gate }) {
   const percent = Math.round((gate.score ?? 0) * 100);
   if (gate.passed) {
     return (
-      <section className="mb-8 rounded-card border bg-card p-6 lg:p-8">
-        <p className="text-[15px] text-muted-foreground">Checkpoint passed. Weighted score {percent}%.</p>
+      <section data-tone="hero" className="mb-8 rounded-card bg-forest p-6 text-forest-foreground animate-pop lg:p-8">
+        <p className="text-[15px] text-(--card-muted)">Checkpoint passed. Weighted score {percent}%.</p>
         <h1 className="type-display-l mt-2">{gate.unlocks ? `${gate.unlocks} unlocked` : 'Course checkpoint passed'}</h1>
-        <p className="mt-3 text-base text-muted-foreground">{gate.hard_correct} correct at the hardest level. Your plan now opens the next module.</p>
+        <p className="mt-3 text-base text-(--card-muted)">{gate.hard_correct} correct at the hardest level. Your plan now opens the next module.</p>
         {gate.unlocks ? (
-          <Link href="/plan" className="mt-5 flex min-h-14 items-center gap-3 rounded-[16px] bg-raised px-4 py-3 font-semibold transition-colors hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_5%)]">
+          <Link href="/plan" className="mt-5 flex min-h-14 items-center gap-3 rounded-[16px] bg-proof px-4 py-3 font-semibold text-proof-foreground transition-opacity hover:opacity-90">
             <StatusIcon status="not_seen" size={22} />
             <span className="flex-1">{gate.unlocks}</span>
-            <span className="text-[13px] font-medium text-muted-foreground">Now open in {NAME.skills}</span>
+            <span className="text-[13px] font-medium">Now open in {NAME.skills}</span>
           </Link>
         ) : null}
       </section>
@@ -191,10 +191,11 @@ export default function Quiz() {
       <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-32 sm:px-6 md:pt-8">
         <QuizHeader title={title} topic={topic} value={100} />
         {session.gate ? <GateResult gate={session.gate} /> : (
-          <section className="mb-8">
-            <p className="text-[15px] text-muted-foreground">{title} complete</p>
+          <section data-tone={percent >= 80 ? 'hero' : undefined} className={cn('mb-8', percent >= 80 && 'rounded-card bg-forest p-6 text-forest-foreground lg:p-8 animate-pop')}>
+            {percent >= 80 ? <span className="mb-4 grid size-12 place-items-center rounded-full bg-proof text-proof-foreground" aria-hidden="true"><svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span> : null}
+            <p className={cn('text-[15px]', percent >= 80 ? 'text-(--card-muted)' : 'text-muted-foreground')}>{title} complete</p>
             <h1 className="type-display-l mt-2">{right} of {total} correct</h1>
-            <p className="mt-3 text-base text-muted-foreground">{percent >= 80 ? 'Your plan moves you forward.' : 'Your plan adds a refresher and more practice where it helps.'}</p>
+            <p className={cn('mt-3 text-base', percent >= 80 ? 'text-(--card-muted)' : 'text-muted-foreground')}>{percent >= 80 ? 'Your plan moves you forward.' : 'Your plan adds a refresher and more practice where it helps.'}</p>
           </section>
         )}
         {topics.length ? (
@@ -256,7 +257,7 @@ export default function Quiz() {
         {graded && q.answered ? (
           <div role="status" className={cn('flex items-start gap-3 rounded-[20px] border bg-card p-4 animate-in fade-in slide-in-from-bottom-2 duration-200', q.correct ? 'border-foreground' : 'border-attention')}>
             {q.correct ? (
-              <span className="grid size-7 flex-none place-items-center rounded-full bg-cream text-cream-foreground" aria-hidden="true">
+              <span className="grid size-7 flex-none place-items-center rounded-full bg-proof text-proof-foreground animate-pop" aria-hidden="true">
                 <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
               </span>
             ) : <AttentionIcon size={28} />}

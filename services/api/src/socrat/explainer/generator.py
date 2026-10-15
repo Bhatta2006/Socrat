@@ -1,6 +1,7 @@
 """Generate a complete visual app; never feed preset samples or algorithm lessons."""
 
 import asyncio
+import logging
 import json
 import os
 import shutil
@@ -150,7 +151,10 @@ async def render_check(document, settings: Settings) -> dict:
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
         try:
-            output, _ = await asyncio.wait_for(process.communicate(json.dumps(payload).encode()), 18)
+            output, errors = await asyncio.wait_for(process.communicate(json.dumps(payload).encode()), 18)
+            if not output.strip():
+                logging.getLogger("socrat.explainer").warning(
+                    "browser checker produced no output (exit %s): %s", process.returncode, errors.decode(errors="replace")[-400:])
             if len(output) > 128_000:
                 raise ArtifactError("Browser validation returned an invalid result")
             result = json.loads(output)
@@ -170,9 +174,11 @@ async def render_check(document, settings: Settings) -> dict:
                 raise
             raise ArtifactError("Visual exceeded the browser time budget") from None
         except (ValueError, OSError) as exc:
+            logging.getLogger("socrat.explainer").warning("browser checker failed to run: %r", exc)
             raise ProviderError("playground_checker_unavailable") from exc
     if not isinstance(result, dict) or result.get("ok") is not True:
         if isinstance(result, dict) and result.get("infrastructure"):
+            logging.getLogger("socrat.explainer").warning("browser checker infrastructure failure: %s", str(result.get("reason", ""))[:300])
             raise ProviderError("playground_checker_unavailable")
         # Browser errors are bounded feedback to the generator, never shown as executable content.
         raise ArtifactError(str(result.get("reason", "Visual did not pass browser validation"))[:300] if isinstance(result, dict) else "Invalid browser validation")
@@ -203,8 +209,16 @@ async def generate(provider: Provider, settings: Settings, request: str, languag
             qa = await render_check(document, settings)
             qa = dict(qa)
             yield dict(event="progress", phase="reviewing", characters=len(raw))
-            await review(provider, document.html, request, qa.pop("observations", []))
-            qa["ai_review"] = "passed"
+            try:
+                await review(provider, document.html, request, qa.pop("observations", []))
+                qa["ai_review"] = "passed"
+            except ArtifactError as exc:
+                # The model reviewer is advisory on the last attempt: a visual that passed every browser
+                # check ships, flagged, rather than failing the learner after three repairs.
+                if attempt < 3 or "ontent review" not in str(exc):
+                    raise
+                qa["ai_review"] = "flagged"
+                qa["review_notes"] = str(exc)[:500]
             transcript = qa.pop("transcript", document.transcript)
             title = qa.pop("title", document.title)
             yield dict(event="document", document=dict(
@@ -216,6 +230,7 @@ async def generate(provider: Provider, settings: Settings, request: str, languag
             ))
             return
         except ArtifactError as exc:
+            logging.getLogger("socrat.explainer").warning("visual attempt %d rejected: %s", attempt + 1, str(exc)[:300])
             if attempt == 3:
                 raise ProviderError("playground_generation_invalid") from exc
             turns += [Turn("assistant", raw[:MAX_BYTES]), Turn("user", (

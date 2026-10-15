@@ -1,3 +1,4 @@
-import { domAnimation } from 'motion/react';
+// domMax adds layout animations (shared nav pill); loaded lazily after first paint.
+import { domMax } from 'motion/react';
 
-export default domAnimation;
+export default domMax;

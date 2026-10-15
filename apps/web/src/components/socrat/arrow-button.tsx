@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Round floating arrow on hero cards: ink on violet, violet on neutral. 56 px, 44 px compact.
+ * Round floating arrow on hero cards: lime on forest, brand on neutral. 56 px, 44 px compact.
  * Always has an accessible name; the visible title of its card says where it goes.
  */
 export function ArrowButton({ href, label, onColor = true, compact = false, className, transitionTypes }: {
@@ -17,7 +17,7 @@ export function ArrowButton({ href, label, onColor = true, compact = false, clas
       className={cn(
         'group/arrow grid flex-none place-items-center rounded-full shadow-floating transition-transform duration-200 ease-[var(--ease-soft)] active:scale-[0.98]',
         compact ? 'size-11' : 'size-14',
-        onColor ? 'bg-ink text-ink-foreground' : 'bg-primary text-primary-foreground',
+        onColor ? 'bg-white text-black' : 'bg-primary text-primary-foreground',
         className,
       )}
     >
