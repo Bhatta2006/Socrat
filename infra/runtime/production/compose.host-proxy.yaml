@@ -3,12 +3,31 @@
 # forwards the two public host names to them (see docs/operations/oracle-deploy.md).
 #
 #   docker compose -f compose.yaml -f compose.host-proxy.yaml up -d
+#
+# no-new-privileges is reset because the snap build of Docker (Ubuntu's `docker` snap) makes every
+# exec fail with "operation not permitted" when it is set (approved by the operator for this host).
+# Remove the !reset lines on hosts that run the apt/docker-ce package, where the hardening works.
 services:
   caddy:
     profiles: ["caddy"]
+  postgres:
+    security_opt: !reset []
+  migrate:
+    security_opt: !reset []
   api:
     ports:
       - "127.0.0.1:18000:8000"
+    security_opt: !reset []
+  worker:
+    security_opt: !reset []
   web:
     ports:
       - "127.0.0.1:13000:3000"
+    # Docker ignores published ports on containers that sit only on an internal network, so the
+    # web container also joins the (non-internal) edge network for the host proxy to reach it.
+    networks:
+      - backend
+      - edge
+    security_opt: !reset []
+  explainer-checker:
+    security_opt: !reset []
