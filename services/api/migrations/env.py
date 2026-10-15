@@ -4,6 +4,7 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 from socrat.config import DatabaseSettings
+from socrat.foundry import models as foundry_models  # noqa: F401 - register migration metadata
 from socrat.models import Base
 
 config = context.config
