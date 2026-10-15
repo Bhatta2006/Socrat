@@ -1,47 +1,114 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronRight, Code2, Menu, Plus, X } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { destination, useSession } from '@/lib/session';
-import type { Course, Language } from '@/lib/types';
-import { LANGUAGE_LABEL } from '@/lib/routes';
-import { RibbonScene } from '@/components/landing/ribbon-scene';
-import './landing.css';
+import type { Course } from '@/lib/types';
+import { Illustration } from '@/components/socrat/illustration';
+import { StatusIcon, StatusLabel } from '@/components/socrat/status';
+import { Wordmark } from '@/components/socrat/wordmark';
+import { ArrowCircle, Button } from '@/components/ui/button';
 
 const PATHS = [
-  { id: 'zero', title: 'Your first line of code.', name: 'Programming from Zero', audience: 'For the curious beginner', description: 'Start with the fundamentals. Build small programs, understand what each line does, and find your feet in Python, C++ or Java.', topics: ['Programming basics', 'Loops & functions', 'Your first problems'] },
-  { id: 'interview', title: 'Think past the interview.', name: 'DSA for Interviews', audience: 'For the next career move', description: 'Understand the patterns behind the questions. Learn to explain your choices, reason about trade-offs, and solve unfamiliar problems.', topics: ['Data structures', 'Problem patterns', 'Complexity & trade-offs'] },
-  { id: 'competitive', title: 'Your contest edge.', name: 'Competitive Programming', audience: 'For the problem solver', description: 'Build speed on a foundation of understanding. Practice contest techniques, timed problems, and the upsolving that makes the next attempt better.', topics: ['Contest techniques', 'Timed practice', 'Upsolving & review'] },
+  { id: 'zero', name: 'Programming from Zero', title: 'Start from the beginning', description: 'Write your first programs in Python, C++ or Java and understand what each line does.', tone: 'bg-primary text-primary-foreground', pill: 'ink' as const },
+  { id: 'interview', name: 'DSA for Interviews', title: 'Data structures and algorithms for interviews', description: 'Learn the patterns behind the questions and explain your choices and trade-offs.', tone: 'bg-secondary text-secondary-foreground', pill: 'ink' as const },
+  { id: 'competitive', name: 'Competitive Programming', title: 'Competitive programming', description: 'Contest techniques, timed practice and upsolving, on a foundation of understanding.', tone: 'bg-cream text-cream-foreground [html:not(.dark)_&]:bg-raised', pill: 'default' as const },
 ];
 
 const FAQ = [
-  ['Can I start without knowing how to code?', 'Yes. Programming from Zero starts with your first program. You choose Python, C++ or Java, and a short placement check helps Socrat find the right starting point.'],
-  ['What makes Socrat different from a problem list?', 'A problem list gives you options. Socrat connects concepts, lessons and practice into a plan based on your goal, available time and demonstrated understanding.'],
-  ['Will the tutor give me the answer?', 'The tutor starts with a question or a small hint. Help gets more specific as you make real attempts, with a walkthrough available after you have worked through the problem.'],
-  ['What happens if I miss a day?', 'Your plan adjusts to your schedule. Reviews bring back concepts that need another look, and you can continue without squeezing missed work into one session.'],
-  ['Where do the practice problems come from?', 'Socrat includes its own judged problems and a curated practice index linking to LeetCode, CSES and Codeforces. External problem statements and submissions stay on those platforms.'],
+  ['Can I start without knowing how to code?', 'Yes. Programming from Zero starts with your first program. You choose Python, C++ or Java, and a short placement check finds the right starting point.'],
+  ['How is this different from a problem list?', 'A problem list gives you options. Socrat connects lessons, checks and practice into a plan built from your goal, your time and what you have shown you can do.'],
+  ['Will the tutor give me the answer?', 'The tutor starts with a question or a small hint. Help gets more specific as you make real attempts. A full walkthrough is available after you have worked through the problem.'],
+  ['What counts as proof?', 'Reading a lesson does not. Concept checks, judged code and reviews do, and help you received lowers how much a success counts.'],
+  ['Where do the practice problems come from?', 'Socrat has its own judged problems and a curated index of LeetCode, CSES and Codeforces problems. External statements and submissions stay on those platforms.'],
 ];
 
-const CODE: Record<Language, string[]> = {
-  python: ['def find_pair(numbers, target):', '    left, right = 0, len(numbers) - 1', '', '    while left < right:', '        total = numbers[left] + numbers[right]', '        if total == target:', '            return left, right', '        # Which pointer should move next?'],
-  cpp: ['pair<int, int> findPair(vector<int>& a, int target) {', '    int left = 0, right = int(a.size()) - 1;', '', '    while (left < right) {', '        int total = a[left] + a[right];', '        if (total == target) return {left, right};', '        // Which pointer should move next?', '    }', '    return {-1, -1};', '}'],
-  java: ['int[] findPair(int[] a, int target) {', '    int left = 0, right = a.length - 1;', '', '    while (left < right) {', '        int total = a[left] + a[right];', '        if (total == target) return new int[]{left, right};', '        // Which pointer should move next?', '    }', '    return new int[]{-1, -1};', '}'],
-};
+/** A minimal frame around a real component rendering with sample data. */
+function Frame({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <figure className={`flex flex-col overflow-hidden rounded-card border bg-background ${className ?? ''}`}>
+      <figcaption className="flex items-center justify-between gap-3 border-b px-5 py-3 text-[13px]">
+        <span className="font-semibold">{title}</span>
+        <span className="rounded-full border border-border-strong px-2.5 py-0.5 font-semibold text-muted-foreground">Sample data</span>
+      </figcaption>
+      <div className="flex-1 p-4 sm:p-5" aria-hidden="true">{children}</div>
+    </figure>
+  );
+}
 
-function Mark() {
-  return <span className="socrat-mark" aria-hidden="true"><span /><span /><span /></span>;
+function TodaySample() {
+  return (
+    <div className="relative overflow-hidden rounded-[24px] bg-primary p-5 text-primary-foreground" data-tone="hero">
+      <Illustration name="orbit" className="absolute -top-4 -right-6 size-28 opacity-90" />
+      <p className="type-label">Next for you</p>
+      <p className="mt-3 max-w-[11ch] font-display text-3xl leading-none font-bold tracking-[-0.035em]">Two-pointer problems</p>
+      <p className="mt-2 text-sm">Next in your plan.</p>
+      <div className="mt-4 flex gap-2">
+        <span className="rounded-full border border-current px-3 py-1 text-[13px] font-semibold">practice</span>
+        <span className="rounded-full border border-current px-3 py-1 text-[13px] font-semibold">45 min</span>
+      </div>
+      <span className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-ink pr-2 pl-5 text-[15px] font-semibold text-ink-foreground">Open problem <ArrowCircle /></span>
+    </div>
+  );
+}
+
+function ProblemSample() {
+  const rows: [boolean, string][] = [[true, 'Example 1'], [true, 'Example 2'], [true, 'Duplicates'], [false, 'Edge case: empty array']];
+  return (
+    <div className="grid gap-3">
+      <pre className="code-block text-[13px]!"><code>
+        <span style={{ color: 'var(--syntax-keyword)' }}>def</span> <span style={{ color: 'var(--syntax-function)' }}>find_pair</span>(numbers, target):{'\n'}
+        {'    '}left, right = <span style={{ color: 'var(--syntax-number)' }}>0</span>, len(numbers) - <span style={{ color: 'var(--syntax-number)' }}>1</span>{'\n'}
+        {'    '}<span style={{ color: 'var(--syntax-keyword)' }}>while</span> left &lt; right:{'\n'}
+        {'        '}total = numbers[left] + numbers[right]{'\n'}
+        {'        '}<span style={{ color: 'var(--syntax-comment)' }}># which pointer moves next?</span>
+      </code></pre>
+      <div className="rounded-[20px] border bg-card p-4">
+        <p className="font-display text-lg font-bold tracking-[-0.02em]">3 of 4 tests passed</p>
+        <ul className="mt-2 grid gap-1.5 text-sm">
+          {rows.map(([ok, name]) => (
+            <li key={name} className="flex items-center gap-2">
+              {ok ? <span className="grid size-5 place-items-center rounded-full bg-cream text-cream-foreground"><svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span> : <StatusIcon status="needs_practice" size={20} />}
+              <span className={ok ? '' : 'font-semibold'}>{ok ? 'Passed' : name}</span>
+              {ok ? <span className="text-muted-foreground">{name}</span> : null}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function PlaygroundSample() {
+  const values = [1, 3, 5, 7, 9];
+  return (
+    <div className="overflow-hidden rounded-[20px] border bg-card">
+      <div className="grid gap-4 p-5">
+        <p className="text-sm text-muted-foreground">Find two numbers that add up to 8.</p>
+        <div className="flex justify-center gap-2">
+          {values.map((v, i) => (
+            <span key={v} className={`grid size-11 place-items-center rounded-[12px] font-display text-lg font-bold ${i === 0 || i === 3 ? 'bg-primary text-primary-foreground' : 'bg-raised'}`}>{v}</span>
+          ))}
+        </div>
+        <p className="text-center text-sm font-semibold">1 + 7 = 8. Found.</p>
+      </div>
+      <div className="flex items-center gap-2 border-t px-4 py-3 text-[13px] font-semibold">
+        <span className="rounded-full border border-border-strong px-3 py-1.5">Previous</span>
+        <span className="rounded-full bg-primary px-3 py-1.5 text-primary-foreground">Play</span>
+        <span className="rounded-full border border-border-strong px-3 py-1.5">Next</span>
+        <span className="ml-auto text-muted-foreground tabular-nums">Step 3 of 3</span>
+      </div>
+    </div>
+  );
 }
 
 export default function Home() {
   const { profile, loading } = useSession();
   const router = useRouter();
-  const root = useRef<HTMLDivElement>(null);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [language, setLanguage] = useState<Language>('python');
-  const [hint, setHint] = useState(false);
   const [menu, setMenu] = useState(false);
 
   useEffect(() => {
@@ -54,136 +121,138 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
-  useEffect(() => {
-    let disposed = false;
-    let cleanup: (() => void) | undefined;
-    Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([{ gsap }, { ScrollTrigger }]) => {
-      if (disposed || !root.current) return;
-      gsap.registerPlugin(ScrollTrigger);
-      const media = gsap.matchMedia();
-      media.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.from('.landing-nav', { y: -14, duration: 0.7, ease: 'power3.out' });
-        gsap.from('[data-hero-enter]', { y: 26, duration: 1, stagger: 0.09, ease: 'power3.out' });
-        gsap.to('.ribbon-stage', { scale: 1.55, y: 140, rotationX: 8, transformPerspective: 900, ease: 'none', scrollTrigger: { trigger: '.landing-opening', start: 'top top', end: 'bottom top', scrub: 0.8 } });
-        gsap.to('.map-center', { y: -24, scale: 1.08, ease: 'none', scrollTrigger: { trigger: '.learning-map', start: 'top bottom', end: 'bottom top', scrub: 1 } });
-        gsap.to('.map-orbit', { rotation: '+=35', ease: 'none', scrollTrigger: { trigger: '.learning-map', start: 'top bottom', end: 'bottom top', scrub: 1 } });
-        root.current?.querySelectorAll<HTMLElement>('.path-sculpture').forEach(sculpture => {
-          gsap.to(sculpture.children, { y: index => (index - 2) * 7, z: index => index * 8, ease: 'none', scrollTrigger: { trigger: sculpture.closest('.path-row'), start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
-        });
-        gsap.to('.cta-ribbons span', { y: index => `-=${60 + index * 45}`, ease: 'none', scrollTrigger: { trigger: '.landing-cta', start: 'top bottom', end: 'bottom top', scrub: 1 } });
-        root.current?.querySelectorAll<HTMLElement>('[data-reveal]').forEach((section, index) => {
-          gsap.from(section, { y: index % 2 ? 20 : 32, duration: 0.85, ease: 'power3.out', scrollTrigger: { trigger: section, start: 'top 92%', once: true } });
-        });
-      }, root);
-      cleanup = () => media.revert();
-    }).catch(() => undefined);
-    return () => { disposed = true; cleanup?.(); };
-  }, []);
+  const links = [['#how', 'How it works'], ['#paths', 'Paths'], ['#faq', 'FAQ']] as const;
 
   return (
-    <div ref={root} className="socrat-landing" data-theme="socrat-landing">
-      <div className="landing-opening">
-        <header className="landing-nav landing-width" onKeyDown={event => { if (event.key === 'Escape' && menu) { setMenu(false); event.currentTarget.querySelector<HTMLButtonElement>('.landing-menu')?.focus(); } }}>
-          <Link href="/" className="landing-brand" aria-label="Socrat home"><Mark />socrat<span className="brand-period">.</span></Link>
-          <nav aria-label="Site" className="landing-desktop-links">
-            <a href="#how">Approach</a><a href="#experience">Experience</a><a href="#courses">Paths</a>
+    <div className="min-h-dvh bg-background text-foreground">
+      <header
+        className="landing-nav fixed inset-x-0 top-0 z-50 border-b bg-background"
+        onKeyDown={event => { if (event.key === 'Escape' && menu) { setMenu(false); event.currentTarget.querySelector<HTMLButtonElement>('[data-menu-button]')?.focus(); } }}
+      >
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+          <Link href="/" aria-label="Socrat home" className="rounded-full"><Wordmark /></Link>
+          <nav aria-label="Site" className="hidden items-center gap-8 text-[15px] font-medium md:flex">
+            {links.map(([href, label]) => <a key={href} href={href} className="text-muted-foreground transition-colors hover:text-foreground">{label}</a>)}
           </nav>
-          <div className="landing-nav-actions">
-            <Link href="/login" className="landing-signin">Sign in <ArrowUpRight size={16} aria-hidden="true" /></Link>
-            <Link href="/login" className="landing-btn landing-btn-dark daisy-btn">Get started <ArrowUpRight size={16} aria-hidden="true" /></Link>
-            <button className="landing-menu daisy-btn daisy-btn-ghost" aria-label={menu ? 'Close navigation' : 'Open navigation'} aria-expanded={menu} aria-controls={menu ? 'landing-mobile-nav' : undefined} onClick={() => setMenu(!menu)}>{menu ? <X /> : <Menu />}</button>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link href="/login" className="hidden min-h-11 items-center text-[15px] font-semibold underline-offset-4 hover:underline sm:inline-flex">Log in</Link>
+            <Button asChild size="sm"><Link href="/login">Get started</Link></Button>
+            <Button data-menu-button variant="ghost" size="icon" className="md:hidden" aria-label={menu ? 'Close navigation' : 'Open navigation'} aria-expanded={menu} aria-controls={menu ? 'landing-mobile-nav' : undefined} onClick={() => setMenu(!menu)}>
+              {menu ? <X /> : <Menu />}
+            </Button>
           </div>
-          {menu ? <nav id="landing-mobile-nav" className="landing-mobile-links" aria-label="Mobile site">
-            <a href="#how" onClick={() => setMenu(false)}>The approach <ArrowRight size={18} /></a>
-            <a href="#experience" onClick={() => setMenu(false)}>Inside Socrat <ArrowRight size={18} /></a>
-            <a href="#courses" onClick={() => setMenu(false)}>Learning paths <ArrowRight size={18} /></a>
-            <Link href="/login">Sign in <ArrowUpRight size={18} /></Link>
-          </nav> : null}
-        </header>
+        </div>
+        {menu ? (
+          <nav id="landing-mobile-nav" aria-label="Mobile site" className="grid border-t bg-background px-4 py-2 md:hidden">
+            {links.map(([href, label]) => <a key={href} href={href} onClick={() => setMenu(false)} className="flex min-h-12 items-center text-[17px] font-semibold">{label}</a>)}
+            <Link href="/login" className="flex min-h-12 items-center text-[17px] font-semibold">Log in</Link>
+          </nav>
+        ) : null}
+      </header>
 
-        <section className="landing-hero" aria-labelledby="hero-title">
-          <RibbonScene />
-          <div className="hero-copy landing-width">
-            <p className="landing-eyebrow" data-hero-enter><span className="live-dot" /> A better way to learn programming</p>
-            <h1 id="hero-title" data-hero-enter>Think deeper.<br />Code better.</h1>
-            <p className="hero-description" data-hero-enter>A plan that meets you where you are. A tutor that asks the right questions.<br className="desktop-break" /> Build the understanding to solve what comes next.</p>
-            <div className="hero-actions" data-hero-enter>
-              <Link href="/login" className="landing-btn landing-btn-lime daisy-btn">Start learning <ArrowUpRight size={19} aria-hidden="true" /></Link>
-              <a href="#experience" className="landing-btn landing-btn-outline daisy-btn">Explore the experience <ArrowDown size={17} aria-hidden="true" /></a>
+      <div>
+        {/* Hero */}
+        <section aria-labelledby="hero-title" className="mx-auto grid max-w-[1440px] items-center gap-10 px-4 pt-28 pb-16 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:px-10 lg:pt-36 lg:pb-24">
+          <div>
+            <h1 id="hero-title" className="type-display-xl">Learn it.<br />Then prove it.</h1>
+            <p className="type-body-l mt-6 max-w-xl text-muted-foreground">A tutor that asks before it tells, a plan built around your goal, and checks that show what you can do on your own.</p>
+            <div className="mt-8 flex flex-wrap items-center gap-5">
+              <Button asChild size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
+              <Link href="/login" className="inline-flex min-h-11 items-center text-[17px] font-semibold underline underline-offset-4">Log in</Link>
             </div>
-            <p className="hero-note" data-hero-enter>From your first program to your next interview.</p>
           </div>
-          <div className="hero-baseline landing-width"><span>Less memorizing. More understanding.</span><a href="#how" aria-label="Discover the Socrat approach"><ArrowDown size={18} aria-hidden="true" /></a><span>Python / C++ / Java</span></div>
+          <Illustration name="welcome" proof className="mx-auto max-h-[260px] w-full max-w-[260px] lg:max-h-none lg:max-w-[520px]" />
+        </section>
+
+        {/* How it works: introduces the status system. */}
+        <section id="how" aria-labelledby="how-title" className="mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+          <h2 id="how-title" className="type-display-m max-w-2xl">Read. Check. Prove.</h2>
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">Every skill shows the difference between reading about it, practising it with help and showing it in a check.</p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-3 sm:gap-4 lg:gap-6">
+            {([
+              ['Read', 'read', 'Read', 'Lessons with worked traces, edge cases and self-checks. Reading alone never counts as mastery.'],
+              ['Check', 'practised', 'Practised with help', 'Concept checks and judged problems. The tutor helps, and help is recorded.'],
+              ['Prove', 'mastered', 'Mastered', 'Checkpoints and reviews confirm what holds up over time, as the questions get harder.'],
+            ] as const).map(([title, status, label, text]) => (
+              <article key={title} className="flex flex-col gap-4 rounded-card border bg-card p-6 lg:p-8">
+                <StatusIcon status={status} size={40} />
+                <h3 className="font-display text-3xl font-bold tracking-[-0.035em]">{title}</h3>
+                <p className="text-[15px] text-muted-foreground">{text}</p>
+                <StatusLabel status={status} detail={label} muted className="mt-auto text-[13px]" />
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Product proof: real components with sample data. */}
+        <section aria-labelledby="inside-title" className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+          <h2 id="inside-title" className="type-display-m max-w-2xl">Inside Socrat</h2>
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">One next step each day, a real editor with judged tests, and visuals you can explore.</p>
+          <div className="mt-8 grid gap-4 lg:grid-cols-3 lg:gap-6">
+            <Frame title="Today"><TodaySample /></Frame>
+            <Frame title="Problem workspace"><ProblemSample /></Frame>
+            <Frame title="Playground"><PlaygroundSample /></Frame>
+          </div>
+        </section>
+
+        {/* Learning paths */}
+        <section id="paths" aria-labelledby="paths-title" className="mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+          <h2 id="paths-title" className="type-display-m">Three ways in</h2>
+          <div className="mt-8 grid gap-3 md:grid-cols-3 md:gap-4 lg:gap-6">
+            {PATHS.map(path => {
+              const course = courses.find(c => c.id === path.id || c.title === path.name);
+              return (
+                <article key={path.id} className={`flex min-h-80 flex-col gap-4 rounded-card p-6 lg:p-8 ${path.tone}`}>
+                  <p className="type-label">{course?.title ?? path.name}</p>
+                  <h3 className="font-display text-3xl leading-[1.05] font-bold tracking-[-0.035em]">{path.title}</h3>
+                  <p className="text-[15px]">{path.description}</p>
+                  {course ? <p className="path-count text-[13px] font-semibold">{course.concept_count} skills, {course.problem_count} judged problems</p> : null}
+                  <div className="mt-auto">
+                    <Button asChild variant={path.pill}><Link href="/login" aria-label={`Get started with ${path.name}`}>Get started<ArrowCircle /></Link></Button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" aria-labelledby="faq-title" className="mx-auto grid max-w-[1440px] scroll-mt-20 gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:px-10 lg:py-24">
+          <h2 id="faq-title" className="type-display-m">Questions</h2>
+          <div className="grid gap-3">
+            {FAQ.map(([question, answer]) => (
+              <details key={question} className="landing-question group rounded-[20px] border bg-card">
+                <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-[17px] font-semibold [&::-webkit-details-marker]:hidden">
+                  {question}
+                  <ChevronDown className="size-5 flex-none transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <p className="px-5 pb-5 text-[15px] text-muted-foreground">{answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* Final call to action */}
+        <section aria-labelledby="cta-title" className="mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10 lg:pb-24">
+          <div className="flex flex-col items-start gap-6 rounded-card bg-secondary p-8 text-secondary-foreground lg:flex-row lg:items-end lg:justify-between lg:p-12">
+            <h2 id="cta-title" className="type-display-l max-w-[14ch]">Start where you are.</h2>
+            <Button asChild variant="ink" size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
+          </div>
         </section>
       </div>
 
-      <section id="how" className="landing-approach landing-section" aria-labelledby="approach-title">
-        <div className="landing-width">
-          <div className="section-heading" data-reveal>
-            <p className="landing-eyebrow">Built around the way you learn</p>
-            <h2 id="approach-title">A little direction.<br />A lot of possibility.</h2>
-            <p>You bring the curiosity. Socrat turns it into a clear next step, with lessons, practice and questions that move you forward.</p>
-          </div>
-          <div className="approach-layout">
-            <div className="learning-map" data-reveal aria-label="Learning journey: your starting point, a personal plan, guided practice and independent understanding">
-              <div className="map-orbit orbit-outer" /><div className="map-orbit orbit-inner" />
-              <div className="map-center"><Mark /><span>Your next<br />breakthrough</span></div>
-              <span className="map-node node-start"><span /><span>Your starting point</span></span>
-              <span className="map-node node-plan"><span /><span>Your own plan</span></span>
-              <span className="map-node node-practice"><span /><span>Guided practice</span></span>
-              <span className="map-node node-understand"><Check size={17} aria-hidden="true" /><span>Real understanding</span></span>
-              <span className="map-caption">Progress has a path. Yours.</span>
-            </div>
-            <div className="approach-steps">
-              <article data-reveal><span className="step-symbol"><Code2 size={22} aria-hidden="true" /></span><div><h3>Start where you are.</h3><p>A short adaptive check finds what you know, so you spend time on what you need.</p></div></article>
-              <article data-reveal><span className="step-symbol"><ArrowRight size={22} aria-hidden="true" /></span><div><h3>Know what comes next.</h3><p>A daily plan connects the right concepts and problems to your goal and the time you have.</p></div></article>
-              <article data-reveal><span className="step-symbol question-symbol">?</span><div><h3>Find your own answer.</h3><p>Hints help you reason through the problem. Reviews help the understanding stay with you.</p></div></article>
-            </div>
-          </div>
+      <footer className="border-t">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6 lg:px-10">
+          <Wordmark size={24} />
+          <nav aria-label="Footer" className="flex flex-wrap gap-6 text-[15px] text-muted-foreground">
+            <a href="#how" className="hover:text-foreground">How it works</a>
+            <a href="#paths" className="hover:text-foreground">Paths</a>
+            <a href="#faq" className="hover:text-foreground">FAQ</a>
+            <Link href="/login" className="hover:text-foreground">Log in</Link>
+          </nav>
+          <p className="text-[13px] text-muted-foreground">© {new Date().getFullYear()} Socrat</p>
         </div>
-      </section>
-
-      <section id="experience" className="landing-experience landing-section" aria-labelledby="experience-title">
-        <div className="landing-width">
-          <div className="experience-heading" data-reveal><div><p className="landing-eyebrow">Small steps. Real understanding.</p><h2 id="experience-title">Meet your thinking space.</h2></div><p>Read the idea. Try it in code. Ask a better question.<br />Everything you need to get from “I’m stuck” to “I get it.”</p></div>
-          <div className="experience-workspace" data-ui data-reveal>
-            <aside className="workspace-lesson">
-              <div className="workspace-wordmark"><Mark />socrat<span> / Example session</span></div>
-              <p className="workspace-label">The idea</p><h3>Two pointers.<br />One insight.</h3>
-              <p>The numbers are sorted. Instead of checking every pair, start at opposite ends.</p>
-              <div className="number-line" aria-label="Sorted numbers 1, 3, 5, 7, 9"><span className="pointer">1</span><span>3</span><span>5</span><span>7</span><span className="pointer">9</span></div>
-              <div className="pointer-labels"><span>left</span><span>right</span></div>
-              <p className="lesson-question">Looking for a total of 8.<br />The first pair gives you 10.<br /><strong>What would you change?</strong></p>
-              <div className="lesson-next"><span>Concept → Practice → Review</span><ArrowRight size={17} aria-hidden="true" /></div>
-            </aside>
-            <div className="workspace-code">
-              <div className="code-toolbar"><span>Practice / Find a pair</span><div className="language-options" role="group" aria-label="Example code language">{(['python', 'cpp', 'java'] as const).map(l => <button key={l} type="button" aria-pressed={language === l} onClick={() => setLanguage(l)}>{LANGUAGE_LABEL[l]}</button>)}</div></div>
-              <pre tabIndex={0} aria-label={`${LANGUAGE_LABEL[language]} incomplete example for you to reason about`}><code>{CODE[language].map((line, i) => <span className={line.trim().startsWith('#') || line.trim().startsWith('//') ? 'code-line code-comment' : 'code-line'} key={`${language}-${i}`}><span className="line-number" aria-hidden="true">{i + 1}</span>{line || ' '}</span>)}</code></pre>
-              <div className="code-example-note"><span className="live-dot" /> An unfinished example. The next step is yours.</div>
-              <div className="workspace-tutor"><div className="tutor-heading"><span className="tutor-symbol">?</span><span>Your Socratic tutor</span><span>Guidance, one step at a time</span></div><p>“The total is too large. Since the numbers are sorted, which pointer could you move to make it smaller?”</p><button className="daisy-btn daisy-btn-ghost tutor-hint" aria-expanded={hint} aria-controls="example-hint" onClick={() => setHint(!hint)}>{hint ? 'Hide the hint' : 'Show me a hint'} {hint ? <X size={16} /> : <Plus size={16} />}</button><div id="example-hint" hidden={!hint} className="hint-answer">Try moving the right pointer one place to the left. You replace 9 with 7, and the new total is 1 + 7 = 8.</div></div>
-            </div>
-          </div>
-          <div className="experience-footnote"><span>Learn in Python, C++ or Java.</span><span>Practice with a real editor, guided hints and concept checks.</span></div>
-        </div>
-      </section>
-
-      <section id="courses" className="landing-paths landing-section" aria-labelledby="paths-title">
-        <div className="landing-width">
-          <div className="paths-heading" data-reveal><div><p className="landing-eyebrow">Different goals. The same curiosity.</p><h2 id="paths-title">Find your way in.</h2></div><p>Begin from zero, prepare for interviews, or train for contests.<br />Your starting point is just that: a start.</p></div>
-          <div className="path-list">{PATHS.map((path, index) => {
-            const course = courses.find(c => c.id === path.id || c.title === path.name);
-            return <article className={`path-row path-${index}`} key={path.id} data-reveal><div className="path-art" aria-hidden="true"><div className="path-sculpture"><span /><span /><span /><span /><span /></div></div><div className="path-title"><p>{path.audience}</p><h3>{path.title}</h3><span>{course?.title ?? path.name}</span></div><div className="path-details"><p>{path.description}</p><div className="path-topics">{path.topics.map(t => <span key={t}>{t}</span>)}</div>{course ? <p className="path-count">{course.concept_count} concepts · {course.problem_count} judged problems</p> : null}</div><Link href="/login" className="path-link" aria-label={`Get started with ${path.name}`}><ArrowUpRight size={25} aria-hidden="true" /></Link></article>;
-          })}</div>
-          <div className="practice-sources" data-reveal><p>More room to practice.<br /><span>A curated index of problems from</span></p><div><span>LeetCode</span><span>CSES</span><span>Codeforces</span></div><a href="#experience">A concept before a problem <ChevronRight size={16} aria-hidden="true" /></a></div>
-        </div>
-      </section>
-
-      <section className="landing-faq landing-section" aria-labelledby="faq-title">
-        <div className="landing-width faq-layout"><div data-reveal><p className="landing-eyebrow">Good questions are a start.</p><h2 id="faq-title">A little more clarity.</h2><p>Curious about how it all works?<br />Start here.</p></div><div className="faq-list" data-reveal>{FAQ.map(([question, answer]) => <details className="daisy-collapse daisy-collapse-plus landing-question" key={question}><summary className="daisy-collapse-title">{question}</summary><div className="daisy-collapse-content"><p>{answer}</p></div></details>)}</div></div>
-      </section>
-
-      <section className="landing-cta" aria-labelledby="cta-title"><div className="landing-width" data-reveal><p className="landing-eyebrow">Your next chapter starts with a question.</p><h2 id="cta-title">What will you<br />solve next?</h2><div><p>Set your goal. Find your starting point.<br />Take the next step with Socrat.</p><Link href="/login" className="landing-btn landing-btn-lime daisy-btn">Let’s find out <ArrowUpRight size={21} aria-hidden="true" /></Link></div></div><div className="cta-ribbons" aria-hidden="true"><span /><span /><span /><span /></div></section>
-      <footer className="landing-footer"><div className="landing-width"><div className="footer-top"><Link href="/" className="landing-brand" aria-label="Socrat home"><Mark />socrat.</Link><p>Learn to think.<br />Then let your code do the talking.</p><nav aria-label="Footer"><a href="#how">The approach</a><a href="#courses">Learning paths</a><a href="#faq-title">Questions</a></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Socrat</span><span>Made for the curious.</span><a href="#hero-title">Back to top ↑</a></div></div></footer>
+      </footer>
     </div>
   );
 }

@@ -3,28 +3,28 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowRight, BookMarked, CheckCircle2, ChevronDown, Code2, ExternalLink, Lightbulb, ListChecks, Lock, Sparkles, ThumbsDown, ThumbsUp, Trophy, Wand2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronDown, ExternalLink, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, explain } from '@/lib/api';
 import { useGuard, useSession } from '@/lib/session';
-import { activityHref, conceptHref, joinSegments } from '@/lib/routes';
+import { LANGUAGE_LABEL, NAME, activityHref, conceptHref, joinSegments } from '@/lib/routes';
 import type { ConceptView, Resource } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import Markdown from '@/components/markdown';
+import Markdown, { outline } from '@/components/markdown';
 import Assistant from '@/components/assistant';
-import { BackLink, BandBadge, Difficulty, ErrorNote, Loading } from '@/components/common';
+import { Difficulty, ErrorNote, Loading } from '@/components/common';
 import { Level, PlatformTag, ProblemName, StatusControl } from '@/components/practice';
-import { celebrate } from '@/components/celebrate';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Illustration, Soc } from '@/components/socrat/illustration';
+import { StatusIcon, StatusLabel, statusFromBand, type Status } from '@/components/socrat/status';
+import { LockedState } from '@/components/socrat/states';
+import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 
 const STYLES = [
-  ['simpler', 'Explain it more simply'],
-  ['example', 'Show another example'],
+  ['simpler', 'More simply'],
+  ['example', 'Another example'],
   ['deeper', 'Go deeper'],
 ] as const;
 
@@ -43,7 +43,32 @@ function ReadingProgress() {
     window.addEventListener('resize', onScroll);
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); cancelAnimationFrame(frame); };
   }, []);
-  return <div ref={bar} className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-primary transition-transform duration-150 ease-out" aria-hidden="true" />;
+  return <div ref={bar} className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-primary" aria-hidden="true" />;
+}
+
+/** Read → Check → Practice: reading is separate from proving. */
+function Stepper({ concept, className }: { concept: ConceptView; className?: string }) {
+  const locked = Boolean(concept.locked);
+  const solved = concept.problems.some(p => p.solved);
+  const steps: { label: string; status: Status; detail: string }[] = [
+    { label: 'Read', status: concept.lesson_done ? 'read' : 'not_seen', detail: concept.lesson_done ? 'Lesson read' : 'Not read yet' },
+    { label: 'Check', status: locked ? 'locked' : concept.quiz_done ? 'practised' : 'not_seen', detail: locked ? 'Locked' : concept.quiz_done ? 'Concept check done' : 'Not taken yet' },
+    { label: 'Practice', status: locked ? 'locked' : concept.band === 'strong' ? 'mastered' : solved ? 'practised' : 'not_seen', detail: locked ? 'Locked' : concept.band === 'strong' ? 'Mastered' : solved ? 'Practised' : 'Not started' },
+  ];
+  return (
+    <ol className={cn('flex items-start gap-2', className)} aria-label="Lesson steps">
+      {steps.map((step, i) => (
+        <li key={step.label} className="flex min-w-0 flex-1 items-start gap-2">
+          <StatusIcon status={step.status} size={24} />
+          <span className="min-w-0">
+            <span className="block text-[15px] font-bold">{step.label}</span>
+            <span className="block text-[13px] text-muted-foreground">{step.detail}</span>
+          </span>
+          {i < steps.length - 1 ? <span aria-hidden="true" className="mt-3 hidden h-px flex-1 bg-border-strong sm:block" /> : null}
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 function ResourceList({ concept, resources, onChange }: { concept: string; resources: Resource[]; onChange: (url: string, patch: Partial<Resource>) => void }) {
@@ -51,20 +76,20 @@ function ResourceList({ concept, resources, onChange }: { concept: string; resou
     api.post(`/concepts/${concept}/resources`, { url, action }).catch(() => undefined);
   }
   return (
-    <ul className="grid gap-3 text-sm">
+    <ul className="grid gap-4 text-[15px]">
       {resources.map(r => (
-        <li key={r.url} className="group/resource">
+        <li key={r.url}>
           <a
             href={r.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+            className="inline-flex items-center gap-1.5 font-semibold underline underline-offset-4"
             onClick={() => { send(r.url, 'open'); onChange(r.url, { opened: true }); }}
           >
-            {r.title} <ExternalLink className="size-3" />
+            {r.title}<span className="sr-only">, opens in a new tab</span> <ExternalLink className="size-3.5" aria-hidden="true" />
           </a>
-          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>{r.source} · {r.kind} · {r.minutes} min{r.opened ? ' · read' : ''}</span>
+          <div className="flex items-center justify-between gap-2 text-[13px] text-muted-foreground">
+            <span>{r.source}, {r.kind}, {r.minutes} min{r.opened ? ', opened' : ''}</span>
             {r.opened ? (
               <span className="flex gap-0.5">
                 {([true, false] as const).map(value => {
@@ -76,10 +101,10 @@ function ResourceList({ concept, resources, onChange }: { concept: string; resou
                       type="button"
                       aria-pressed={on}
                       aria-label={value ? `${r.title} was helpful` : `${r.title} was not helpful`}
-                      className={cn('grid size-6 place-items-center rounded-md hover:bg-muted', on ? 'text-primary' : 'text-muted-foreground/70')}
+                      className={cn('grid size-9 place-items-center rounded-full hover:bg-raised', on ? 'text-foreground' : 'text-muted-foreground')}
                       onClick={() => { send(r.url, value ? 'helpful' : 'unhelpful'); onChange(r.url, { helpful: value }); }}
                     >
-                      <Icon className={cn('size-3.5', on && 'fill-current')} />
+                      <Icon className={cn('size-4', on && 'fill-current')} />
                     </button>
                   );
                 })}
@@ -89,6 +114,26 @@ function ResourceList({ concept, resources, onChange }: { concept: string; resou
         </li>
       ))}
     </ul>
+  );
+}
+
+function Section({ id, title, children, collapsible = false }: { id: string; title: string; children: React.ReactNode; collapsible?: boolean }) {
+  if (!collapsible) {
+    return (
+      <section aria-labelledby={id} className="rounded-card border bg-card p-5 lg:p-6">
+        <h2 id={id} className="mb-4 font-display text-xl font-bold tracking-[-0.03em]">{title}</h2>
+        {children}
+      </section>
+    );
+  }
+  return (
+    <details className="group rounded-card border bg-card">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 lg:px-6 [&::-webkit-details-marker]:hidden">
+        <h2 id={id} className="font-display text-xl font-bold tracking-[-0.03em]">{title}</h2>
+        <ChevronDown className="size-5 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      <div className="px-5 pb-5 lg:px-6 lg:pb-6">{children}</div>
+    </details>
   );
 }
 
@@ -102,6 +147,7 @@ export default function Lesson() {
   const [variant, setVariant] = useState<{ style: string; content: string } | null>(null);
   const [explaining, setExplaining] = useState('');
   const [completing, setCompleting] = useState(false);
+  const [askSoc, setAskSoc] = useState(0);
   const active = profile?.enrollment?.status === 'active';
 
   const load = useCallback(() => {
@@ -135,8 +181,7 @@ export default function Lesson() {
     try {
       await api.post(`/activities/lesson:${qualified}/complete`);
       setConcept(c => (c ? { ...c, lesson_done: true } : c));
-      celebrate('small');
-      toast.success('Lesson complete', { description: 'Lock it in with the concept check.' });
+      toast.success('Lesson marked as read.');
     } catch (e) {
       setError(explain(e));
     } finally {
@@ -144,10 +189,11 @@ export default function Lesson() {
     }
   }
 
-  if (!allowed || (!concept && !error)) return <Loading variant="article" />;
+  if (!allowed || (!concept && !error)) return <Loading variant="article" label="Loading the lesson" />;
   if (!concept) return <div className="mx-auto max-w-3xl p-6"><ErrorNote message={error} retry={load} /></div>;
 
   const weakPrereqs = concept.prerequisites.filter(p => p.band === 'needs_practice' || p.band === 'not_started');
+  const sections = outline(concept.lesson);
   const practice = [
     ...concept.practice_links.map(p => ({
       id: p.url, title: p.title, url: p.url, platform: p.platform, difficulty: p.difficulty, rating: null,
@@ -157,125 +203,143 @@ export default function Lesson() {
   ]
     .filter((p, i, all) => all.findIndex(q => q.url.replace(/\/$/, '') === p.url.replace(/\/$/, '')) === i)
     .slice(0, 10);
+  const canCheck = active && !concept.locked;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pt-6 pb-28 sm:px-6 md:pt-8">
+    <div className="mx-auto w-full max-w-6xl px-4 pt-6 pb-32 sm:px-6 md:pt-8 lg:px-10 lg:pb-16">
       <ReadingProgress />
-      <BackLink href="/today">Today</BackLink>
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+
+      {/* Header card: the one violet element on this reading screen. */}
+      <header className="relative mb-6 overflow-hidden rounded-card bg-primary p-6 text-primary-foreground lg:p-8" data-tone="hero">
+        <Illustration name="stack" className="pointer-events-none absolute -right-8 -bottom-10 size-40 opacity-90 lg:right-6 lg:size-52" />
+        <div className="relative max-w-[70%] lg:max-w-[75%]">
+          <Link href="/plan" transitionTypes={['nav-back']} aria-label={`Back to ${NAME.skills}`} className="mb-5 grid size-11 place-items-center rounded-full bg-ink text-ink-foreground">
+            <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
+          </Link>
+          <h1 className="type-display-l">{concept.title}</h1>
+          <p className="mt-3 text-[15px] font-semibold text-(--card-muted)">Lesson, {LANGUAGE_LABEL[concept.language]}</p>
+        </div>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
         <article className="min-w-0">
-          <header className="mb-8">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="gap-1"><BookMarked className="size-3" /> Lesson</Badge>
-              <BandBadge band={concept.band} />
-              {concept.lesson_done ? <Badge variant="outline" className="gap-1 border-success/30 bg-success/10 text-success"><CheckCircle2 className="size-3" /> Completed</Badge> : null}
-            </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-balance md:text-5xl">{concept.title}</h1>
-            <p className="mt-3 text-lg text-muted-foreground text-pretty">{concept.summary}</p>
-          </header>
+          <Stepper concept={concept} className="mb-8 lg:hidden" />
+          <p className="type-body-l mb-6 max-w-[68ch] text-muted-foreground text-pretty">{concept.summary}</p>
 
           {concept.locked ? (
-            <Alert className="mb-6 border-primary/30 bg-primary/5">
-              <Lock className="text-primary" />
-              <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                <span>Preview: this topic unlocks when you pass the <strong className="text-foreground">{concept.locked.module}</strong> checkpoint. Read ahead freely — practice opens after the checkpoint.</span>
-                <Button asChild size="sm" className="no-underline!"><Link href={activityHref(concept.locked.gate)}><Trophy data-icon="inline-start" /> Go to checkpoint</Link></Button>
-              </AlertDescription>
-            </Alert>
+            <LockedState title={`Preview only. Practice and checks unlock after ${concept.locked.module}.`} href={activityHref(concept.locked.gate)} className="mb-6">
+              Read ahead freely. The checkpoint unlocks the rest.
+            </LockedState>
           ) : null}
 
           {weakPrereqs.length ? (
-            <Alert className="mb-6 border-warning/40 bg-warning/10">
-              <AlertTriangle className="text-warning" />
-              <AlertDescription>
-                <span>
-                  This builds on{' '}
-                  {weakPrereqs.map((p, i, all) => (
-                    <span key={p.id}><Link className="font-medium underline underline-offset-2" href={conceptHref(p.id)}>{p.title}</Link>{i < all.length - 1 ? ', ' : ''}</span>
-                  ))}
-                  . A quick look there first may help.
-                </span>
-              </AlertDescription>
-            </Alert>
+            <div className="mb-6 rounded-[20px] border px-4 py-3.5 text-[15px]">
+              This builds on{' '}
+              {weakPrereqs.map((p, i, all) => (
+                <span key={p.id}><Link className="font-semibold underline underline-offset-4" href={conceptHref(p.id)}>{p.title}</Link>{i < all.length - 1 ? ', ' : ''}</span>
+              ))}
+              . A quick look there first may help.
+            </div>
           ) : null}
 
-          <Card>
-            <CardContent className="py-2 md:px-8 md:py-4">
-              <Markdown source={concept.lesson} language={concept.language} />
-            </CardContent>
-          </Card>
+          <Markdown source={concept.lesson} language={concept.language} />
 
-          <section className="mt-6" aria-labelledby="reexplain-heading">
-            <h2 id="reexplain-heading" className="mb-3 flex items-center gap-2 text-sm font-medium"><Wand2 className="size-4 text-primary" /> Not clicking yet?</h2>
-            <Button asChild variant="secondary" className="mb-3"><Link href={`/playground?concept=${encodeURIComponent(concept.id)}`}>Explore this concept interactively <ArrowRight data-icon="inline-end" /></Link></Button>
-            <div className="flex flex-wrap gap-2">
+          {/* Explain it differently. */}
+          <section className="mt-10 max-w-[68ch]" aria-labelledby="reexplain-heading">
+            <h2 id="reexplain-heading" className="mb-3 font-display text-xl font-bold tracking-[-0.03em]">Explain it differently</h2>
+            <div className="inline-flex max-w-full flex-wrap gap-1 rounded-[24px] bg-raised p-1" role="group" aria-label="Explanation style">
               {STYLES.map(([style, label]) => (
-                <Button key={style} type="button" variant={variant?.style === style ? 'secondary' : 'outline'} size="sm" aria-pressed={variant?.style === style} disabled={Boolean(explaining)} onClick={() => reexplain(style)}>
-                  {explaining === style ? <Spinner /> : null}
+                <button
+                  key={style}
+                  type="button"
+                  aria-pressed={variant?.style === style}
+                  disabled={Boolean(explaining)}
+                  onClick={() => reexplain(style)}
+                  className={cn('inline-flex min-h-10 items-center gap-2 rounded-full border border-transparent px-4 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50', variant?.style === style && 'border-border bg-card font-bold text-foreground')}
+                >
+                  {explaining === style ? <Spinner className="size-4" /> : null}
                   {label}
-                </Button>
+                </button>
               ))}
             </div>
             {variant ? (
-              <Card className="mt-4 border-l-4 border-l-primary animate-in fade-in slide-in-from-bottom-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-sm"><Sparkles className="size-4 text-primary" /> {STYLES.find(s => s[0] === variant.style)?.[1]}</CardTitle>
-                  <CardAction><Button variant="ghost" size="xs" onClick={() => setVariant(null)}>Hide</Button></CardAction>
-                </CardHeader>
-                <CardContent><Markdown source={variant.content} language={concept.language} /></CardContent>
-              </Card>
+              <div className="mt-4 rounded-card border bg-card p-5 lg:p-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="font-display text-lg font-bold tracking-[-0.02em]">{STYLES.find(s => s[0] === variant.style)?.[1]}</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setVariant(null)}>Hide</Button>
+                </div>
+                <Markdown source={variant.content} language={concept.language} />
+              </div>
             ) : null}
           </section>
 
-          <Card className="mt-8 overflow-hidden" aria-labelledby="finish-heading">
-            <CardContent className="flex flex-wrap items-center justify-between gap-4">
-              {concept.lesson_done ? (
-                <>
-                  <div className="flex items-center gap-3">
-                    <span className="grid size-10 place-items-center rounded-full bg-success/15 text-success"><CheckCircle2 className="size-5" /></span>
-                    <div>
-                      <h2 id="finish-heading" className="font-semibold">Lesson complete</h2>
-                      <p className="text-sm text-muted-foreground">Check your understanding — a short quiz updates your mastery and your plan.</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {active ? (
-                      <Button asChild><Link href={activityHref(`quiz:${concept.id}`)}><ListChecks data-icon="inline-start" /> {concept.quiz_done ? 'Retake the concept check' : 'Take the concept check'}</Link></Button>
-                    ) : null}
-                    <Button asChild variant="ghost"><Link href="/today">Back to today</Link></Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <h2 id="finish-heading" className="font-semibold">Finished reading?</h2>
-                    <p className="text-sm text-muted-foreground">Mark it done, then take the concept check.</p>
-                  </div>
-                  <Button size="lg" className="h-10 px-5" disabled={!active || completing || Boolean(concept.locked)} onClick={complete}>
-                    {completing ? <><Spinner /> Saving…</> : <><CheckCircle2 data-icon="inline-start" /> Mark lesson complete</>}
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          {/* Playground: the skill is passed as a request topic only. */}
+          <Link href={`/playground?concept=${encodeURIComponent(concept.id)}`} className="group mt-6 flex max-w-[68ch] items-center justify-between gap-4 rounded-card bg-secondary p-5 text-secondary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--secondary),white_8%)] lg:p-6">
+            <span>
+              <span className="type-label block">{NAME.playground}</span>
+              <span className="mt-1 block font-display text-xl font-bold tracking-[-0.02em]">Explore {concept.title} visually</span>
+            </span>
+            <ArrowRight className="size-5 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+          </Link>
 
-          {concept.exercises?.length ? (
-            <Card className="mt-8">
-              <CardHeader><CardTitle>Python skill builders</CardTitle><CardDescription>Selected programming exercises for this topic. Practice the idea before opening the upstream solution; some examples there use older Python syntax.</CardDescription></CardHeader>
-              <CardContent><ul className="grid divide-y">{concept.exercises.map(exercise => <li key={exercise.number} className="py-3"><a href={exercise.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline">{exercise.title} · exercise {exercise.number}</a><p className="mt-1 text-sm text-muted-foreground">{exercise.guidance}</p></li>)}</ul><p className="mt-3 text-xs text-muted-foreground">Source: zhiwehu/Python-programming-exercises. These optional exercises are ungraded.</p></CardContent>
-            </Card>
-          ) : null}
-          {practice.length ? (
-            <Card className="mt-8" aria-labelledby="more-practice-heading">
-              <CardHeader>
-                <CardTitle id="more-practice-heading" className="text-base font-semibold">Practice more</CardTitle>
-                <CardDescription>Picked for your current level. External problems open on the original site.</CardDescription>
-                <CardAction><Button asChild variant="ghost" size="sm"><Link href={`/library?concept=${concept.id}`}>All problems <ArrowRight data-icon="inline-end" /></Link></Button></CardAction>
-              </CardHeader>
-              <CardContent>
+          {/* End of lesson: reading is not proof. */}
+          <section className="mt-10 max-w-[68ch] border-t pt-8" aria-labelledby="finish-heading">
+            <h2 id="finish-heading" className="font-display text-2xl font-bold tracking-[-0.03em]">{concept.lesson_done ? 'Lesson read' : 'Finished reading?'}</h2>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {!concept.lesson_done ? (
+                <Button variant="outline" size="lg" disabled={!active || completing || Boolean(concept.locked)} aria-busy={completing} onClick={complete}>
+                  {completing ? <><Spinner /> Saving</> : 'Mark lesson as read'}
+                </Button>
+              ) : null}
+              {canCheck ? (
+                <Button asChild size="lg">
+                  <Link href={activityHref(`quiz:${concept.id}`)} transitionTypes={['nav-forward']}>
+                    {concept.quiz_done ? 'Retake concept check' : 'Take concept check'}
+                    <ArrowCircle />
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+            {!active ? <p className="mt-3 text-sm text-muted-foreground">Choose a course to track lessons and checks.</p> : null}
+            <p className="mt-3 text-[15px] text-muted-foreground">Reading does not count as mastery. Take the concept check to show it.</p>
+          </section>
+
+          <div className="mt-10 grid gap-4 lg:hidden">
+            <KeyReminders concept={concept} />
+            <Pitfalls concept={concept} />
+          </div>
+
+          <div className="mt-10 grid gap-4">
+            {concept.problems.length ? (
+              <Section id="judged-heading" title="Practice problems">
+                <ul className="grid gap-2">
+                  {concept.problems.map(p => (
+                    <li key={p.id}>
+                      <Link href={`/problems/${p.id}`} className="flex min-h-14 items-center gap-3 rounded-[16px] bg-raised px-4 py-2 transition-colors hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_5%)]">
+                        <StatusIcon status={p.solved ? 'practised' : 'not_seen'} size={22} title={p.solved ? 'Solved' : 'Not solved yet'} />
+                        <span className="min-w-0 flex-1 font-semibold">{p.title}</span>
+                        <Difficulty level={p.difficulty} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            ) : null}
+
+            {concept.exercises?.length ? (
+              <Section id="builders-heading" title="Python skill builders" collapsible>
+                <p className="mb-3 text-sm text-muted-foreground">Selected exercises for this skill. Practise the idea before opening the upstream solution; some examples there use older Python syntax.</p>
+                <ul className="grid divide-y">{concept.exercises.map(exercise => <li key={exercise.number} className="py-3"><a href={exercise.url} target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-4">{exercise.title}, exercise {exercise.number}<span className="sr-only">, opens in a new tab</span></a><p className="mt-1 text-sm text-muted-foreground">{exercise.guidance}</p></li>)}</ul>
+                <p className="mt-3 text-[13px] text-muted-foreground">Source: zhiwehu/Python-programming-exercises. These optional exercises are ungraded.</p>
+              </Section>
+            ) : null}
+
+            {practice.length ? (
+              <Section id="more-practice-heading" title="External practice" collapsible>
+                <p className="mb-3 text-sm text-muted-foreground">Picked for your current level. External problems open on the original site. <Link href={`/library?concept=${concept.id}`} className="font-semibold underline underline-offset-4">All problems</Link></p>
                 <ul className="grid divide-y">
                   {practice.map(p => (
-                    <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
+                    <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-[15px]">
                       <span className="flex min-w-0 flex-wrap items-center gap-2">
                         <ProblemName problem={p} />
                         <PlatformTag platform={p.platform} />
@@ -290,92 +354,98 @@ export default function Lesson() {
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
-          ) : null}
+              </Section>
+            ) : null}
+
+            {concept.resources.length || concept.handbook.length || concept.implementations.length ? (
+              <Section id="resources-heading" title="Resources" collapsible>
+                <div className="grid gap-5">
+                  <ResourceList concept={concept.id} resources={concept.resources} onChange={updateResource} />
+                  {concept.handbook.length ? (
+                    <div className="border-t pt-4">
+                      <h3 className="type-label mb-2 text-muted-foreground">Competitive Programmer&apos;s Handbook</h3>
+                      <ul className="grid gap-2 text-[15px]">
+                        {concept.handbook.map(h => (
+                          <li key={h.url}>
+                            <a href={h.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">Section {h.chapter}, {h.title}<span className="sr-only">, opens in a new tab</span></a>
+                            <span className="text-[13px] text-muted-foreground">, page {h.page}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {concept.implementations.length ? (
+                    <div className="border-t pt-4">
+                      <h3 className="type-label mb-2 text-muted-foreground">Reference implementations</h3>
+                      <ul className="grid gap-2 text-[15px]">
+                        {concept.implementations.map(i => (
+                          <li key={i.url}><a href={i.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">{i.title}<span className="sr-only">, opens in a new tab</span></a> <span className="text-[13px] text-muted-foreground">TheAlgorithms</span></li>
+                        ))}
+                      </ul>
+                      <p className="mt-2 text-[13px] text-muted-foreground">Read these after you have solved a problem yourself.</p>
+                    </div>
+                  ) : null}
+                </div>
+              </Section>
+            ) : null}
+          </div>
           {error ? <ErrorNote message={error} /> : null}
         </article>
 
-        <aside className="grid content-start gap-5 lg:sticky lg:top-20 lg:self-start">
-          <Card size="sm">
-            <CardHeader><CardTitle className="flex items-center gap-2"><Lightbulb className="size-4 text-primary" /> Remember</CardTitle></CardHeader>
-            <CardContent>
-              <ul className="grid gap-2.5 text-sm">
-                {concept.key_points.map(p => <li key={p} className="flex gap-2"><CheckCircle2 className="mt-0.5 size-4 flex-none text-primary" /><span>{p}</span></li>)}
+        {/* Desktop support column: stepper, on this page, Ask Soc, reminders. */}
+        <aside className="hidden content-start gap-5 lg:sticky lg:top-24 lg:grid lg:self-start" aria-label="Lesson tools">
+          <div className="rounded-card border bg-card p-5">
+            <StatusLabel status={statusFromBand(concept.band)} className="mb-4" />
+            <Stepper concept={concept} className="flex-col gap-4" />
+          </div>
+          {sections.length > 1 ? (
+            <nav aria-label="On this page" className="rounded-card border bg-card p-5">
+              <h2 className="type-label mb-3 text-muted-foreground">On this page</h2>
+              <ul className="grid gap-1 text-[15px]">
+                {sections.map(s => <li key={s.id}><a href={`#${s.id}`} className="block rounded-lg py-1 text-muted-foreground hover:text-foreground">{s.text}</a></li>)}
               </ul>
-            </CardContent>
-          </Card>
-          {concept.pitfalls.length ? (
-            <Card size="sm">
-              <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="size-4 text-warning" /> Common pitfalls</CardTitle></CardHeader>
-              <CardContent>
-                <ul className="grid gap-2.5 text-sm">
-                  {concept.pitfalls.map(p => <li key={p} className="flex gap-2"><span className="mt-2 size-1.5 flex-none rounded-full bg-warning" /><span>{p}</span></li>)}
-                </ul>
-              </CardContent>
-            </Card>
+            </nav>
           ) : null}
-          {concept.problems.length ? (
-            <Card size="sm">
-              <CardHeader><CardTitle className="flex items-center gap-2"><Code2 className="size-4 text-primary" /> Practice problems</CardTitle></CardHeader>
-              <CardContent>
-                <ul className="-mx-2 grid">
-                  {concept.problems.map(p => (
-                    <li key={p.id}>
-                      <Link href={`/problems/${p.id}`} className="flex items-center justify-between gap-2 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted">
-                        <span className="flex items-center gap-2">{p.solved ? <CheckCircle2 className="size-4 text-success" /> : null}{p.title}</span>
-                        <Difficulty level={p.difficulty} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ) : null}
-          <Card size="sm">
-            <CardHeader><CardTitle>Go further</CardTitle></CardHeader>
-            <CardContent className="grid gap-4">
-              <ResourceList concept={concept.id} resources={concept.resources.filter(r => r.picked !== false)} onChange={updateResource} />
-              {concept.resources.some(r => r.picked === false) ? (
-                <Collapsible>
-                  <CollapsibleTrigger className="group flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
-                    More resources ({concept.resources.filter(r => r.picked === false).length})
-                    <ChevronDown className="size-3 transition-transform group-data-[state=open]:rotate-180" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pt-3">
-                    <ResourceList concept={concept.id} resources={concept.resources.filter(r => r.picked === false)} onChange={updateResource} />
-                  </CollapsibleContent>
-                </Collapsible>
-              ) : null}
-              {concept.handbook.length ? (
-                <div className="border-t pt-3">
-                  <h3 className="mb-2 text-xs font-medium text-muted-foreground">Competitive Programmer&apos;s Handbook</h3>
-                  <ul className="grid gap-2 text-sm">
-                    {concept.handbook.map(h => (
-                      <li key={h.url}>
-                        <a href={h.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">§{h.chapter} {h.title}</a>
-                        <span className="text-xs text-muted-foreground"> · p. {h.page}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {concept.implementations.length ? (
-                <div className="border-t pt-3">
-                  <h3 className="mb-2 text-xs font-medium text-muted-foreground">Reference implementations</h3>
-                  <ul className="grid gap-2 text-sm">
-                    {concept.implementations.map(i => (
-                      <li key={i.url}><a href={i.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{i.title}</a> <span className="text-xs text-muted-foreground">· TheAlgorithms</span></li>
-                    ))}
-                  </ul>
-                  <p className="mt-2 text-xs text-muted-foreground">Read these after you&apos;ve solved a problem yourself.</p>
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
+          <button type="button" onClick={() => setAskSoc(n => n + 1)} className="flex items-center gap-4 rounded-card border bg-card p-5 text-left transition-colors hover:bg-raised" aria-haspopup="dialog">
+            <Soc size={48} />
+            <span>
+              <span className="block font-display text-lg font-bold tracking-[-0.02em]">Ask Soc</span>
+              <span className="block text-sm text-muted-foreground">About this lesson</span>
+            </span>
+          </button>
+          <KeyReminders concept={concept} />
+          <Pitfalls concept={concept} />
         </aside>
       </div>
-      <Assistant scope={`concept:${concept.id}`} title="Ask about this lesson" language={concept.language} />
+      <Assistant scope={`concept:${concept.id}`} title="Ask Soc" language={concept.language} openSignal={askSoc} launcher="phone" />
     </div>
+  );
+}
+
+function KeyReminders({ concept }: { concept: ConceptView }) {
+  if (!concept.key_points.length) return null;
+  return (
+    <Card tone="cream" size="sm" aria-label="Key reminders">
+      <div className="px-(--card-spacing)">
+        <h2 className="mb-3 font-display text-lg font-bold tracking-[-0.02em]">Key reminders</h2>
+        <ul className="grid gap-2.5 text-[15px]">
+          {concept.key_points.map(p => <li key={p} className="flex gap-2.5"><span aria-hidden="true" className="mt-2.5 size-1.5 flex-none rounded-full bg-current" /><span>{p}</span></li>)}
+        </ul>
+      </div>
+    </Card>
+  );
+}
+
+function Pitfalls({ concept }: { concept: ConceptView }) {
+  if (!concept.pitfalls.length) return null;
+  return (
+    <Card tone="raised" size="sm" aria-label="Common pitfalls">
+      <div className="px-(--card-spacing)">
+        <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-bold tracking-[-0.02em]"><TriangleAlert className="size-5" strokeWidth={1.5} aria-hidden="true" /> Common pitfalls</h2>
+        <ul className="grid gap-2.5 text-[15px]">
+          {concept.pitfalls.map(p => <li key={p} className="flex gap-2.5"><span aria-hidden="true" className="mt-2.5 size-1.5 flex-none rounded-full bg-muted-foreground" /><span>{p}</span></li>)}
+        </ul>
+      </div>
+    </Card>
   );
 }

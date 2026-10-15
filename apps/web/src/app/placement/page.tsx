@@ -2,16 +2,14 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, CheckCircle2, Compass, Sparkles } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard, useSession } from '@/lib/session';
 import type { PlacementQuestion, PlacementSummary } from '@/lib/types';
-import { ErrorNote, Loading, Ring } from '@/components/common';
+import { ErrorNote, Loading } from '@/components/common';
 import { Choice } from '@/components/choice';
-import { celebrate } from '@/components/celebrate';
+import { StatusLabel } from '@/components/socrat/status';
+import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 export default function Placement() {
@@ -26,7 +24,6 @@ export default function Placement() {
   const finish = useCallback(async () => {
     setSummary(await api.get<PlacementSummary>('/placement/summary'));
     await refresh();
-    celebrate('small');
   }, [refresh]);
 
   useEffect(() => {
@@ -56,71 +53,64 @@ export default function Placement() {
     }
   }
 
-  if (!allowed || (!state && !error)) return <Loading variant="quiz" />;
+  if (!allowed || (!state && !error)) return <Loading variant="quiz" label="Loading the placement check" />;
 
   if (summary) {
-    const percent = summary.asked ? Math.round((100 * summary.correct) / summary.asked) : 0;
     return (
-      <div className="mx-auto w-full max-w-2xl px-4 pt-10 pb-24 sm:px-6 md:pt-16">
-        <div className="animate-in fade-in zoom-in-95 duration-500">
-          <div className="mb-8 flex flex-wrap items-center gap-6">
-            <Ring value={percent} size={96} stroke={8} label={<span className="text-lg">{summary.correct}/{summary.asked}</span>} />
-            <div className="min-w-0 flex-1">
-              <Badge variant="secondary" className="mb-2 gap-1.5"><Sparkles className="size-3" /> Placement complete</Badge>
-              <h1 className="text-3xl font-semibold tracking-tight">Your plan is ready</h1>
-              <p className="mt-2 text-muted-foreground">
-                {summary.starting_concept ? <>You&apos;ll start with <strong className="text-foreground">{summary.starting_concept}</strong> — right at the edge of what you know.</> : 'Your plan starts from the beginning, at a comfortable pace.'}
-              </p>
-            </div>
-          </div>
-          {summary.known_concepts.length ? (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Skipping what you already know</CardTitle>
-                <CardDescription>These get short spaced reviews instead of full lessons, so they stay fresh.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="flex flex-wrap gap-2">
-                  {summary.known_concepts.map(c => (
-                    <li key={c}><Badge variant="outline" className="gap-1 border-success/30 bg-success/10"><CheckCircle2 className="size-3 text-success" /> {c}</Badge></li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ) : null}
-          <Button asChild size="lg" className="h-11 px-6 shadow-lg shadow-primary/20">
-            <Link href="/today">Go to today&apos;s plan <ArrowRight data-icon="inline-end" /></Link>
-          </Button>
-        </div>
+      <div className="mx-auto w-full max-w-2xl px-4 pt-10 pb-32 sm:px-6 md:pt-16">
+        <p className="text-[15px] text-muted-foreground">Placement complete. {summary.correct} of {summary.asked} answered correctly.</p>
+        <h1 className="type-display-l mt-2">Your plan is ready</h1>
+        <p className="mt-3 text-base text-muted-foreground">
+          {summary.starting_concept ? <>You start with <strong className="text-foreground">{summary.starting_concept}</strong>, at the edge of what you know.</> : 'Your plan starts from the beginning.'}
+        </p>
+        {summary.known_concepts.length ? (
+          <section className="mt-8 rounded-card border bg-card p-5 lg:p-6" aria-labelledby="skip-heading">
+            <h2 id="skip-heading" className="font-display text-xl font-bold tracking-[-0.03em]">Topics you can skip</h2>
+            <p className="mt-1 text-[15px] text-muted-foreground">These are assumptions from placement, not evidence. Short reviews confirm them over the coming days.</p>
+            <ul className="mt-4 grid gap-2">
+              {summary.known_concepts.map(c => (
+                <li key={c} className="flex min-h-12 flex-wrap items-center justify-between gap-2 rounded-[16px] bg-raised px-4 py-2.5">
+                  <span className="font-semibold">{c}</span>
+                  <StatusLabel status="assumed" muted className="text-[13px]" />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        <Button asChild size="lg" className="mt-8">
+          <Link href="/today">See your plan<ArrowCircle /></Link>
+        </Button>
       </div>
     );
   }
 
   const q = state?.question;
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 pt-8 pb-24 sm:px-6 md:pt-12">
-      <div className="mb-3 flex items-center justify-between gap-4">
-        <p className="flex items-center gap-2 text-sm font-medium"><Compass className="size-4 text-primary" /> Quick placement check</p>
-        {state?.max_questions ? <p className="text-sm text-muted-foreground tabular-nums">Question {state.asked + 1} of at most {state.max_questions}</p> : null}
+    <div className="mx-auto w-full max-w-2xl px-4 pt-8 pb-32 sm:px-6 md:pt-12">
+      <div className="mb-10 grid gap-3">
+        <div className="flex items-center justify-between gap-4">
+          <p className="font-semibold">Placement check</p>
+          {state?.max_questions ? <p className="text-sm font-semibold text-muted-foreground tabular-nums">Question {state.asked + 1} of at most {state.max_questions}</p> : <p className="text-sm font-semibold text-muted-foreground tabular-nums">Question {(state?.asked ?? 0) + 1}</p>}
+        </div>
+        {state?.max_questions ? <Progress value={(100 * state.asked) / state.max_questions} aria-label="Placement progress" /> : null}
       </div>
-      {state?.max_questions ? <Progress value={(100 * state.asked) / state.max_questions} className="mb-10 h-1.5" aria-label="Placement progress" /> : null}
       {q ? (
-        <div key={q.id} className="grid gap-5 animate-in fade-in slide-in-from-right-4 duration-300">
-          <Badge variant="outline" className="w-fit">{q.topic}</Badge>
-          <h1 className="text-xl font-semibold leading-snug tracking-tight md:text-2xl">{q.prompt}</h1>
+        <div key={q.id} className="grid gap-5 animate-in fade-in duration-200">
+          <Badge className="w-fit">{q.topic}</Badge>
+          <h1 className="type-title text-balance">{q.prompt}</h1>
           {q.code ? <pre className="code-block">{q.code}</pre> : null}
-          <div className="grid gap-2.5" role="radiogroup" aria-label="Answer choices">
+          <div className="grid gap-3" role="radiogroup" aria-label="Answer choices">
             {q.options.map((option, index) => (
-              <Choice key={option} role="radio" aria-checked={choice === index} selected={choice === index} marker={String.fromCharCode(65 + index)} onClick={() => setChoice(index)}>
-                <span className="whitespace-pre-wrap">{option}</span>
+              <Choice key={option} role="radio" aria-checked={choice === index} selected={choice === index} note={choice === index ? 'Selected' : undefined} marker={String.fromCharCode(65 + index)} onClick={() => setChoice(index)}>
+                <span className="choice-title whitespace-pre-wrap">{option}</span>
               </Choice>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button size="lg" className="h-10 px-5" disabled={busy || choice === null} onClick={() => submit(choice)}>Submit answer</Button>
-            <Button size="lg" variant="ghost" className="h-10" disabled={busy} onClick={() => submit(null)}>I don&apos;t know yet</Button>
+          <div className="grid grid-cols-2 gap-3 sm:flex">
+            <Button size="lg" disabled={busy || choice === null} aria-busy={busy} onClick={() => submit(choice)}>Submit answer</Button>
+            <Button size="lg" variant="outline" disabled={busy} onClick={() => submit(null)}>Not sure yet</Button>
           </div>
-          <p className="text-xs text-muted-foreground">No penalty for guessing wrong or saying you don&apos;t know — this only decides where you start.</p>
+          <p className="text-sm text-muted-foreground">Not sure yet is fine. It helps place you and is not marked wrong.</p>
         </div>
       ) : null}
       {error ? <ErrorNote message={error} /> : null}

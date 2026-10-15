@@ -1,28 +1,36 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { CalendarClock, Check, CircleDot, Gauge, History, Hourglass, Lock, LockOpen, Target, Trophy } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { KIND_LABEL, PACE_LABEL, activityHref, conceptHref, formatDate, formatStamp, hours } from '@/lib/routes';
-import { Button } from '@/components/ui/button';
-import type { PlanView, RoadmapItem } from '@/lib/types';
+import { KIND_LABEL, NAME, PACE_LABEL, activityHref, conceptHref, formatDate, formatStamp, hours } from '@/lib/routes';
+import type { PlanView } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ErrorNote, Loading, Page, PageHeader, Reveal, StatCard } from '@/components/common';
+import { ErrorNote, Loading, Page, Reveal } from '@/components/common';
+import { Illustration } from '@/components/socrat/illustration';
+import { LockedState } from '@/components/socrat/states';
+import { NodeMap } from '@/components/socrat/node-map';
+import { StatusLabel, StatusLegend, statusFromRoadmap } from '@/components/socrat/status';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { celebrate } from '@/components/celebrate';
 
-const STATUS: Record<RoadmapItem['status'], { label: string; tone: string }> = {
-  mastered: { label: 'Mastered', tone: 'border-primary bg-primary text-primary-foreground' },
-  assumed: { label: 'Already known', tone: 'border-success bg-success/80 text-success-foreground' },
-  practiced: { label: 'Practiced', tone: 'border-primary/50 bg-primary/15 text-primary' },
-  in_progress: { label: 'In progress', tone: 'border-primary text-primary ring-4 ring-primary/15' },
-  upcoming: { label: 'Upcoming', tone: 'border-border text-muted-foreground' },
-  locked: { label: 'Locked', tone: 'border-dashed border-border bg-muted text-muted-foreground' },
-};
+const FINISHED = ['mastered', 'assumed', 'practiced'];
+
+/** A native disclosure styled as a card section; keyboard accessible by default. */
+function Disclosure({ id, title, children, defaultOpen = false }: { id: string; title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  return (
+    <details className="group rounded-card border bg-card" open={defaultOpen} aria-labelledby={id}>
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 lg:px-6 [&::-webkit-details-marker]:hidden">
+        <h2 id={id} className="font-display text-lg font-bold tracking-[-0.02em]">{title}</h2>
+        <ChevronDown className="size-5 flex-none transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      <div className="px-5 pb-5 lg:px-6 lg:pb-6">{children}</div>
+    </details>
+  );
+}
 
 export default function PlanPage() {
   const allowed = useGuard('active');
@@ -30,10 +38,7 @@ export default function PlanPage() {
   const [error, setError] = useState('');
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
 
-  // Remember which modules were locked; one that opened since then gets a brief glow. The
-  // new list is saved only after the news has been on screen a moment, so a reload or a
-  // remount while the page settles still shows it.
-  const celebrated = useRef(false);
+  // Remember which modules were locked; one that opened since the last visit draws its outline once.
   useEffect(() => {
     if (!plan) return;
     const key = 'socrat:locked-modules';
@@ -42,10 +47,6 @@ export default function PlanPage() {
     try { before = JSON.parse(localStorage.getItem(key) ?? '[]') as string[]; } catch { /* per-viewer nicety only */ }
     const opened = before.filter(id => plan.modules.some(m => m.id === id && !m.locked_by));
     setUnlocked(new Set(opened));
-    if (opened.length && !celebrated.current) {
-      celebrated.current = true;
-      celebrate('small');
-    }
     const save = setTimeout(() => {
       try { localStorage.setItem(key, JSON.stringify(locked)); } catch { /* ignore */ }
     }, opened.length ? 3000 : 0);
@@ -58,151 +59,184 @@ export default function PlanPage() {
   }, []);
   useEffect(() => { if (allowed) load(); }, [allowed, load]);
 
-  if (!allowed || (!plan && !error)) return <Loading />;
+  if (!allowed || (!plan && !error)) return <Loading label="Loading your skills" />;
   if (!plan) return <Page><ErrorNote message={error} retry={load} /></Page>;
 
+  const current = plan.modules.find(m => m.concepts.some(c => c.concept === plan.current_concept)) ?? plan.modules.find(m => !m.locked_by) ?? plan.modules[0];
+  const currentDone = current ? current.concepts.filter(c => FINISHED.includes(c.status)).length : 0;
+  const guides = plan.modules.flatMap(m => m.concepts).filter(c => c.status !== 'locked' && c.roadmap_resources?.length);
+  // The next checkpoint stays in view: the first locked module starts open.
+  const firstLocked = plan.modules.find(m => m.locked_by)?.id;
+
   return (
-    <Page>
+    <Page wide>
       <Reveal>
-        <PageHeader
-          eyebrow="Your plan"
-          title={<>Finish by {formatDate(plan.projected_finish, { month: 'long', day: 'numeric', year: 'numeric' })}</>}
-          description={plan.pace_reason}
-          actions={plan.target_date ? (
-            <Badge variant="outline" className={cn('h-7 px-3', plan.on_track ? 'border-success/30 bg-success/10 text-success' : 'border-warning/40 bg-warning/10')}>
-              {plan.on_track ? 'On track for' : 'Behind target of'} {formatDate(plan.target_date)}
-            </Badge>
+        <header className="mb-8">
+          <p className="type-label mb-3 text-muted-foreground">{NAME.skills}</p>
+          <h1 className="type-display-l">Your skills</h1>
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">Read, check, then practise. Each skill shows what your evidence supports.</p>
+        </header>
+      </Reveal>
+
+      <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
+        <div className="grid min-w-0 content-start gap-4 lg:col-span-8 lg:gap-6">
+          {/* Hero: the current module. */}
+          {current ? (
+            <Reveal index={1}>
+              <Card tone="hero" className="relative" aria-labelledby="module-heading">
+                <Illustration name="ladder" className="pointer-events-none absolute -right-6 -bottom-6 hidden size-36 opacity-90 sm:block sm:size-48 lg:right-4 lg:bottom-auto lg:top-1/2 lg:size-60 lg:-translate-y-1/2" />
+                <div className="relative grid gap-5 px-(--card-spacing) lg:max-w-[62%]">
+                  <p className="type-label text-(--card-muted)">Current module{current.bridge ? `, bridge from ${current.course}` : ''}</p>
+                  <h2 id="module-heading" className="type-display-l">{current.title}</h2>
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                    <div><dt className="text-sm text-(--card-muted)">Skills done</dt><dd className="type-display-m tabular-nums">{currentDone}/{current.concepts.length}</dd></div>
+                    <div><dt className="text-sm text-(--card-muted)">Study left</dt><dd className="font-display text-2xl font-bold tracking-[-0.03em] tabular-nums">{hours(plan.remaining_minutes)}</dd></div>
+                    <div className="col-span-2 sm:col-span-1"><dt className="text-sm text-(--card-muted)">Course finish</dt><dd className="font-display text-2xl font-bold tracking-[-0.03em]" data-visual-mask="">{formatDate(plan.projected_finish, { month: 'short', day: 'numeric', year: 'numeric' })}</dd></div>
+                  </dl>
+                  <p className="max-w-lg text-[15px] text-(--card-muted)">{PACE_LABEL[plan.pace]} pace. {plan.pace_reason}</p>
+                  {plan.target_date ? (
+                    <div><Badge>{plan.on_track ? 'On track for' : 'Behind your target of'} {formatDate(plan.target_date)}</Badge></div>
+                  ) : null}
+                </div>
+              </Card>
+            </Reveal>
           ) : null}
-        />
-      </Reveal>
-      {plan.target_date && plan.on_track === false ? (
-        <p className="-mt-4 mb-6 text-sm">To hit your target, add a study day or more minutes per day in <Link href="/settings" className="font-medium text-primary underline underline-offset-2">settings</Link>.</p>
-      ) : null}
+          {plan.target_date && plan.on_track === false ? (
+            <p className="text-[15px]">To reach your target, add a study day or more minutes per day in <Link href="/settings" className="font-semibold underline underline-offset-4">{NAME.settings}</Link>.</p>
+          ) : null}
 
-      <Reveal index={1} className="mb-8 grid gap-4 sm:grid-cols-3">
-        <StatCard icon={<Gauge />} label="Pace" value={PACE_LABEL[plan.pace]} hint="Adapts to your results" />
-        <StatCard icon={<Hourglass />} label="Study left" value={hours(plan.remaining_minutes)} hint="At your current pace" />
-        <StatCard icon={<Target />} label="Concepts done" value={`${plan.progress.finished}/${plan.progress.total}`} hint={<Progress value={plan.progress.percent} className="mt-2 h-1.5" aria-label="Concepts done" />} />
-      </Reveal>
+          {/* Skill map of the current module, with an equivalent list. */}
+          {current ? (
+            <Card aria-labelledby="map-heading">
+              <div className="px-(--card-spacing)">
+                <h2 id="map-heading" className="mb-3 font-display text-xl font-bold tracking-[-0.03em]">Skill map: {current.title}</h2>
+                <NodeMap
+                  label={current.title}
+                  nodes={current.concepts.map(c => ({ id: c.concept, title: c.title, href: conceptHref(c.concept), status: statusFromRoadmap(c), current: c.concept === plan.current_concept, reviewDue: c.review_due }))}
+                />
+              </div>
+            </Card>
+          ) : null}
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <section aria-labelledby="roadmap-heading" className="min-w-0">
-          <h2 id="roadmap-heading" className="mb-4 text-lg font-semibold">Roadmap</h2>
-          <p className="mb-4 text-sm text-muted-foreground">Your course and its foundation topics, updated from your learning evidence. Topic guides are selected from <a className="underline" href="https://github.com/nilbuild/developer-roadmap/tree/master/roadmaps" target="_blank" rel="noopener noreferrer">Developer Roadmap</a>; unrelated career paths are excluded.</p>
-          <div className="grid gap-4">
+          {/* All modules, expandable. */}
+          <section aria-labelledby="roadmap-heading" className="grid gap-4 lg:gap-6">
+            <div>
+              <h2 id="roadmap-heading" className="font-display text-2xl font-bold tracking-[-0.03em]">Modules</h2>
+              <p className="mt-1 text-[15px] text-muted-foreground">Your course and its foundation modules, updated from your learning evidence.</p>
+            </div>
             {plan.modules.map((module, mi) => {
-              const done = module.concepts.filter(c => ['mastered', 'assumed', 'practiced'].includes(c.status)).length;
+              const done = module.concepts.filter(c => FINISHED.includes(c.status)).length;
+              const isCurrent = module.id === current?.id;
               return (
                 <Reveal key={module.id} index={mi + 2}>
-                  <Card size="sm" className={cn(unlocked.has(module.id) && 'animate-unlock border-primary/50')}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                        {module.title}
-                        {unlocked.has(module.id) ? <Badge className="h-5 gap-1"><LockOpen className="size-3" /> Unlocked</Badge> : null}
-                      </CardTitle>
-                      <CardDescription>
-                        {module.bridge ? <span className="mr-1 font-medium text-primary">Bridge from {module.course} ·</span> : null}
-                        {module.summary}
-                      </CardDescription>
-                      <CardAction><span className="text-xs font-medium text-muted-foreground tabular-nums">{done}/{module.concepts.length}</span></CardAction>
-                    </CardHeader>
-                    <CardContent>
+                  <details className={cn('group rounded-card border bg-card', unlocked.has(module.id) && 'animate-unlock')} open={isCurrent || unlocked.has(module.id) || module.id === firstLocked}>
+                    <summary className="flex min-h-16 cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 lg:px-6 [&::-webkit-details-marker]:hidden">
+                      <span className="min-w-0 flex-1">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="font-display text-lg font-bold tracking-[-0.02em]">{module.title}</span>
+                          {isCurrent ? <Badge>Current</Badge> : null}
+                          {unlocked.has(module.id) ? <Badge>Unlocked</Badge> : null}
+                          {module.locked_by ? <StatusLabel status="locked" muted className="text-[13px]" /> : null}
+                        </span>
+                        <span className="mt-0.5 block text-sm text-muted-foreground">{module.bridge ? `Bridge from ${module.course}. ` : ''}{module.summary}</span>
+                      </span>
+                      <span className="flex items-center gap-3 text-sm font-semibold tabular-nums">
+                        {done} of {module.concepts.length}
+                        <ChevronDown className="size-5 transition-transform group-open:rotate-180" aria-hidden="true" />
+                      </span>
+                      <Progress value={module.concepts.length ? (100 * done) / module.concepts.length : 0} className="basis-full" aria-label={`${module.title}: ${done} of ${module.concepts.length} skills`} />
+                    </summary>
+                    <div className="grid gap-3 px-5 pb-5 lg:px-6 lg:pb-6">
                       {module.locked_by ? (
-                        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed bg-muted/40 px-3 py-2.5">
-                          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Lock className="size-4" /> Unlocks when you pass the <span className="font-medium text-foreground">{module.locked_by.module}</span> checkpoint.
-                          </p>
-                          <Button asChild size="sm" variant="outline">
-                            <Link href={activityHref(module.locked_by.gate)}><Trophy data-icon="inline-start" /> Go to checkpoint</Link>
-                          </Button>
-                        </div>
+                        <LockedState title={`Locked until ${module.locked_by.module}`} href={activityHref(module.locked_by.gate)}>
+                          Pass the {module.locked_by.module} checkpoint to unlock practice and checks in this module.
+                        </LockedState>
                       ) : null}
-                      <Progress value={module.concepts.length ? (100 * done) / module.concepts.length : 0} className="mb-3 h-1" aria-label={`${module.title} progress`} />
-                      <ul className="-mx-2 grid">
+                      <ul className="grid gap-2">
                         {module.concepts.map(c => {
-                          const s = STATUS[c.status];
-                          const current = c.concept === plan.current_concept;
+                          const status = statusFromRoadmap(c);
+                          const here = c.concept === plan.current_concept;
                           return (
                             <li key={c.concept}>
-                              <Link href={conceptHref(c.concept)} transitionTypes={['nav-forward']} className={cn('flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted', current && 'bg-primary/5', c.status === 'locked' && 'text-muted-foreground')}>
-                                <span className={cn('grid size-6 flex-none place-items-center rounded-full border text-xs', s.tone)} aria-hidden="true">
-                                  {['mastered', 'assumed'].includes(c.status) ? <Check className="size-3.5" /> : c.status === 'in_progress' ? <CircleDot className="size-3.5" /> : c.status === 'locked' ? <Lock className="size-3" /> : null}
+                              <Link href={conceptHref(c.concept)} transitionTypes={['nav-forward']} className={cn('flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[20px] bg-raised px-4 py-3.5 transition-colors hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_5%)]', here && 'ring-1 ring-primary')}>
+                                <span className="min-w-0 flex-1 basis-48 font-semibold">{c.title}</span>
+                                <StatusLabel status={status} detail={status === 'locked' && module.locked_by ? `Locked until ${module.locked_by.module}` : undefined} className="text-[13px]" />
+                                <span className="flex flex-wrap gap-1.5">
+                                  {here ? <Badge>Current</Badge> : null}
+                                  {c.review_due ? <Badge>Review due</Badge> : null}
+                                  {c.lesson_done ? <Badge variant="secondary">Lesson read</Badge> : null}
+                                  {c.quiz_done ? <Badge variant="secondary">Concept check done</Badge> : null}
                                 </span>
-                                <span className="min-w-0 flex-1 text-sm">
-                                  {c.title}
-                                  {current ? <Badge className="ml-2 h-5">current</Badge> : null}
-                                </span>
-                                <span className="text-xs text-muted-foreground">{s.label}</span>
                               </Link>
-                              <div className="mb-2 ml-11 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                {c.lesson_done ? <Badge variant="outline">Lesson completed</Badge> : null}
-                                {c.quiz_done ? <Badge variant="outline">Concept check completed</Badge> : null}
-                                {c.review_due ? <Badge variant="secondary">Review due</Badge> : null}
-                                {c.status !== 'locked' && c.roadmap_resources?.length ? <details className="w-full py-1"><summary className="cursor-pointer">Selected topic guides</summary><ul className="mt-2 grid gap-1">{c.roadmap_resources.map(r => <li key={r.url}><a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary underline">{r.title}</a> · {r.source}</li>)}</ul></details> : null}
-                              </div>
                             </li>
                           );
                         })}
                       </ul>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </details>
                 </Reveal>
               );
             })}
-          </div>
-        </section>
+          </section>
 
-        <aside className="grid content-start gap-6 lg:sticky lg:top-20 lg:self-start">
-          <Card aria-labelledby="schedule-heading">
-            <CardHeader>
-              <CardTitle as="h2" id="schedule-heading" className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Next two weeks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ol className="relative grid gap-4 border-l pl-4">
-                {plan.days.map((day, index) => (
-                  <li key={day.date} className="relative">
-                    <span className={cn('absolute top-1.5 -left-[21px] size-2.5 rounded-full border-2 border-background', index === 0 ? 'bg-primary' : 'bg-muted-foreground/40')} />
-                    <div className="mb-1 flex items-baseline justify-between">
-                      <span className={cn('text-sm font-semibold', index === 0 && 'text-primary')}>{index === 0 ? 'Today' : formatDate(day.date, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                      <span className="text-xs text-muted-foreground tabular-nums">{day.minutes} min</span>
-                    </div>
-                    <ul className="grid gap-0.5">
-                      {day.items.map(item => (
-                        <li key={item.id} className="text-sm">
-                          <Link href={activityHref(item.id)} className="hover:text-primary hover:underline">{item.title}</Link>
-                          <span className="text-xs text-muted-foreground"> · {KIND_LABEL[item.kind]}</span>
-                        </li>
-                      ))}
+          <Card size="sm" aria-label="Status legend"><div className="px-(--card-spacing)"><StatusLegend only={['not_seen', 'read', 'assumed', 'practised', 'mastered', 'review', 'locked']} /></div></Card>
+        </div>
+
+        <aside className="grid min-w-0 content-start gap-4 lg:col-span-4 lg:gap-6">
+          <Disclosure id="schedule-heading" title="Next two weeks" defaultOpen>
+            <ol className="grid gap-4">
+              {plan.days.map((day, index) => (
+                <li key={day.date}>
+                  <div className="mb-1 flex items-baseline justify-between">
+                    <span className="font-semibold" data-visual-mask="">{index === 0 ? NAME.today : formatDate(day.date, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                    <span className="text-[13px] text-muted-foreground tabular-nums">{day.minutes} min</span>
+                  </div>
+                  <ul className="grid gap-1">
+                    {day.items.map(item => (
+                      <li key={item.id} className="text-[15px]">
+                        <Link href={activityHref(item.id)} className="underline-offset-4 hover:underline">{item.title}</Link>
+                        <span className="text-[13px] text-muted-foreground">, {KIND_LABEL[item.kind].toLowerCase()}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+          </Disclosure>
+          {plan.reasons.length || plan.revisions.length ? (
+            <Disclosure id="why-heading" title="Why did my plan change?">
+              <ul className="grid gap-2 text-[15px]">
+                {plan.reasons.map(r => <li key={r}>{r}</li>)}
+              </ul>
+              {plan.revisions.length ? (
+                <>
+                  <h3 className="type-label mt-5 mb-2 text-muted-foreground">Recent changes</h3>
+                  <ol className="grid gap-2 text-[15px]">
+                    {plan.revisions.map(rev => (
+                      <li key={rev.at} className="rounded-[16px] bg-raised p-3">
+                        <p className="text-[13px] text-muted-foreground">{formatStamp(rev.at)}. {PACE_LABEL[rev.pace]}. Finish {formatDate(rev.projected_finish)}</p>
+                        {rev.reasons.map(r => <p key={r} className="mt-1">{r}</p>)}
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              ) : null}
+            </Disclosure>
+          ) : null}
+          {guides.length ? (
+            <Disclosure id="guides-heading" title="Selected topic guides">
+              <p className="mb-3 text-sm text-muted-foreground">Chosen from <a className="underline underline-offset-4" href="https://github.com/nilbuild/developer-roadmap/tree/master/roadmaps" target="_blank" rel="noopener noreferrer">Developer Roadmap<span className="sr-only">, opens in a new tab</span></a>. Unrelated career paths are left out.</p>
+              <ul className="grid gap-3 text-[15px]">
+                {guides.map(c => (
+                  <li key={c.concept}>
+                    <p className="font-semibold">{c.title}</p>
+                    <ul className="mt-1 grid gap-1">
+                      {c.roadmap_resources.map(r => <li key={r.url}><a href={r.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">{r.title}<span className="sr-only">, opens in a new tab</span></a> <span className="text-[13px] text-muted-foreground">{r.source}</span></li>)}
                     </ul>
                   </li>
                 ))}
-              </ol>
-            </CardContent>
-          </Card>
-          {plan.reasons.length || plan.revisions.length ? (
-            <Card aria-labelledby="why-heading">
-              <CardHeader>
-                <CardTitle as="h2" id="why-heading" className="flex items-center gap-2"><History className="size-4 text-primary" /> Why the plan looks like this</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="grid gap-2 text-sm">
-                  {plan.reasons.map(r => <li key={r} className="flex gap-2"><span className="mt-2 size-1.5 flex-none rounded-full bg-primary" />{r}</li>)}
-                </ul>
-                {plan.revisions.length ? (
-                  <>
-                    <h3 className="mt-5 mb-2 text-xs font-medium text-muted-foreground">Recent changes</h3>
-                    <ol className="grid gap-3 text-sm">
-                      {plan.revisions.map(rev => (
-                        <li key={rev.at} className="rounded-lg border bg-muted/30 p-3">
-                          <p className="text-xs text-muted-foreground">{formatStamp(rev.at)} · {PACE_LABEL[rev.pace]} · finish {formatDate(rev.projected_finish)}</p>
-                          {rev.reasons.map(r => <p key={r} className="mt-1">{r}</p>)}
-                        </li>
-                      ))}
-                    </ol>
-                  </>
-                ) : null}
-              </CardContent>
-            </Card>
+              </ul>
+            </Disclosure>
           ) : null}
         </aside>
       </div>

@@ -35,20 +35,20 @@ interface DraftDetail {
 }
 
 const STATUS: Record<Status, { label: string; tone: string }> = {
-  ready: { label: 'Ready to review', tone: 'bg-success/12 text-success border-success/25' },
+  ready: { label: 'Ready to review', tone: 'border-foreground' },
   needs_validation: { label: 'Needs validation', tone: 'bg-muted text-muted-foreground' },
-  failing: { label: 'Gates failing', tone: 'bg-destructive/10 text-destructive border-destructive/25' },
-  changes_requested: { label: 'Changes requested', tone: 'bg-warning/15 text-warning-foreground dark:text-warning border-warning/30' },
+  failing: { label: 'Gates failing', tone: 'border-attention text-attention' },
+  changes_requested: { label: 'Changes requested', tone: 'border-attention' },
 };
 const GATE_ICON: Record<GateStatus, { icon: typeof CheckCircle2; tone: string; label: string }> = {
-  pass: { icon: CheckCircle2, tone: 'text-success', label: 'Pass' },
-  warn: { icon: CircleAlert, tone: 'text-warning-foreground dark:text-warning', label: 'Warning' },
-  fail: { icon: XCircle, tone: 'text-destructive', label: 'Fail' },
+  pass: { icon: CheckCircle2, tone: 'text-foreground', label: 'Pass' },
+  warn: { icon: CircleAlert, tone: 'text-attention', label: 'Warning' },
+  fail: { icon: XCircle, tone: 'text-attention', label: 'Fail' },
   skip: { icon: CircleMinus, tone: 'text-muted-foreground', label: 'Skipped' },
 };
 
 function Code({ children }: { children: string }) {
-  return <pre className="max-h-72 overflow-auto rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-relaxed">{children}</pre>;
+  return <pre className="max-h-72 overflow-auto rounded-[16px] bg-raised p-3 font-mono text-xs leading-relaxed">{children}</pre>;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -133,7 +133,7 @@ export function ReviewQueue() {
             {queue.items.map(d => (
               <TableRow key={d.id}>
                 <TableCell className="pl-4">
-                  <button type="button" className="text-left font-medium text-primary hover:underline" onClick={() => show(d.id)}>{d.title}</button>
+                  <button type="button" className="text-left font-semibold underline-offset-4 hover:underline" onClick={() => show(d.id)}>{d.title}</button>
                   <span className="block font-mono text-xs text-muted-foreground">{d.id}</span>
                 </TableCell>
                 <TableCell>{d.course} · {d.concepts.join(', ')}</TableCell>
@@ -191,7 +191,7 @@ export function ReviewQueue() {
                 ) : null}
                 {open.review ? (
                   <Section title="Earlier review">
-                    <p className="rounded-lg border bg-muted/40 p-3 text-sm">{open.review.notes} <span className="text-muted-foreground">— {open.review.by}, {open.review.at}</span></p>
+                    <p className="rounded-[16px] bg-raised p-3 text-sm">{open.review.notes} <span className="text-muted-foreground">— {open.review.by}, {open.review.at}</span></p>
                   </Section>
                 ) : null}
                 <Section title="Statement"><Markdown source={p.statement} /></Section>
@@ -208,7 +208,7 @@ export function ReviewQueue() {
                 <Section title="Hints (in order)"><ol className="list-decimal pl-5 text-sm">{p.hints.map(h => <li key={h}>{h}</li>)}</ol></Section>
                 <Section title="Approach"><Markdown source={p.approach} /></Section>
                 <Section title="Reference solution"><Code>{p.reference}</Code></Section>
-                <Section title="Brute force">{p.brute ? <Code>{p.brute}</Code> : <p className="text-sm text-destructive">Missing — drafts need one.</p>}</Section>
+                <Section title="Brute force">{p.brute ? <Code>{p.brute}</Code> : <p className="text-sm font-semibold text-attention">Missing — drafts need one.</p>}</Section>
               </div>
               <SheetFooter className="border-t">
                 <label className="grid gap-1.5 text-sm font-medium">

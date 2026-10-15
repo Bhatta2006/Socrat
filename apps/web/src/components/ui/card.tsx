@@ -1,19 +1,39 @@
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
+
+// Bento cards. Depth comes from surface steps and hairlines, never shadows.
+const cardVariants = cva(
+  "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-card py-(--card-spacing) text-[15px] [--card-spacing:20px] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 lg:[--card-spacing:24px] data-[size=sm]:[--card-spacing:16px] data-[size=sm]:has-data-[slot=card-footer]:pb-0",
+  {
+    variants: {
+      tone: {
+        surface: "border bg-card text-card-foreground",
+        hero: "bg-primary text-primary-foreground [--card-muted:var(--primary-foreground)] [--card-line:color-mix(in_srgb,var(--primary-foreground),transparent_55%)] lg:[--card-spacing:32px] [--card-spacing:24px]",
+        lilac: "bg-secondary text-secondary-foreground [--card-muted:color-mix(in_srgb,var(--secondary-foreground),transparent_22%)] [--card-line:color-mix(in_srgb,var(--secondary-foreground),transparent_50%)]",
+        cream: "bg-cream text-cream-foreground [--card-muted:color-mix(in_srgb,var(--cream-foreground),transparent_22%)] [--card-line:color-mix(in_srgb,var(--cream-foreground),transparent_50%)]",
+        raised: "bg-raised text-foreground",
+        outlined: "border border-border-strong bg-transparent text-foreground",
+      },
+    },
+    defaultVariants: { tone: "surface" },
+  }
+)
 
 function Card({
   className,
   size = "default",
+  tone = "surface",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: React.ComponentProps<"div"> & { size?: "default" | "sm" } & VariantProps<typeof cardVariants>) {
   return (
     <div
       data-slot="card"
       data-size={size}
-      className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
-        className
-      )}
+      data-tone={tone}
+      // A labelled card is a region; ARIA does not allow names on generic elements.
+      role={props.role ?? (props['aria-label'] || props['aria-labelledby'] ? 'region' : undefined)}
+      className={cn(cardVariants({ tone }), className)}
       {...props}
     />
   )
@@ -24,7 +44,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
+        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
         className
       )}
       {...props}
@@ -41,7 +61,7 @@ function CardTitle({
     <Tag
       data-slot="card-title"
       className={cn(
-        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
+        "font-display text-lg leading-snug font-bold tracking-[-0.02em] group-data-[size=sm]/card:text-base",
         className
       )}
       {...props}
@@ -53,7 +73,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-sm text-muted-foreground group-data-[tone=hero]/card:text-(--card-muted) group-data-[tone=lilac]/card:text-(--card-muted) group-data-[tone=cream]/card:text-(--card-muted)", className)}
       {...props}
     />
   )
@@ -87,7 +107,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-xl border-t bg-muted/50 p-(--card-spacing)",
+        "flex items-center border-t p-(--card-spacing)",
         className
       )}
       {...props}
@@ -103,4 +123,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  cardVariants,
 }

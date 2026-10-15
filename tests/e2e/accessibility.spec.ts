@@ -34,7 +34,7 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.goto('/login');
     await audit(page, `${scheme} /login`, found);
     await page.getByLabel('Your name').fill(`a11y ${scheme} ${Date.now()}`);
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByRole('button', { name: 'Log in' }).click();
     await expect(page.getByLabel('What should we call you?')).toBeVisible();
     await audit(page, `${scheme} /start`, found);
     await page.getByLabel('What should we call you?').fill('Ada');
@@ -43,7 +43,8 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: /Programming from Zero/ }).click();
     await page.getByRole('button', { name: /never written code/ }).click();
     await page.getByRole('button', { name: 'Python', exact: true }).click();
-    await page.getByRole('button', { name: 'Build my plan' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Create my plan' }).click();
     await expect(page).toHaveURL(/\/today$/);
     for (const path of PAGES) {
       await page.goto(path);

@@ -3,22 +3,23 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, CheckCircle2, Clock, Heart, Lock, Trophy, Unlock, XCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { KIND_LABEL, conceptHref, formatStamp, joinSegments } from '@/lib/routes';
+import { KIND_LABEL, NAME, conceptHref, formatStamp, joinSegments } from '@/lib/routes';
 import type { ActivityKind, Gate, QuizQuestion, QuizSession } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { BackLink, ErrorNote, Loading, Ring } from '@/components/common';
+import { ErrorNote, Loading } from '@/components/common';
 import { Choice } from '@/components/choice';
-import { celebrate } from '@/components/celebrate';
+import { StatusIcon } from '@/components/socrat/status';
+import { AttentionIcon } from '@/components/socrat/states';
+import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 function Options({ q, choice, onChoose, graded }: { q: QuizQuestion; choice: number | null; onChoose(i: number): void; graded: boolean }) {
   return (
-    <div className="grid gap-2.5" role="radiogroup" aria-label="Answer choices">
+    <div className="grid gap-3" role="radiogroup" aria-label="Answer choices">
       {q.options.map((option, index) => {
         let tone: 'idle' | 'correct' | 'wrong' = 'idle';
         if (graded && q.answered) {
@@ -26,6 +27,7 @@ function Options({ q, choice, onChoose, graded }: { q: QuizQuestion; choice: num
           else if (index === q.choice) tone = 'wrong';
         }
         const selected = q.answered ? q.choice === index : choice === index;
+        const note = tone === 'correct' ? (q.choice === index ? 'Correct' : 'Correct answer') : tone === 'wrong' ? 'Incorrect' : selected && !q.answered ? 'Selected' : undefined;
         return (
           <Choice
             key={index}
@@ -33,11 +35,12 @@ function Options({ q, choice, onChoose, graded }: { q: QuizQuestion; choice: num
             aria-checked={selected}
             selected={selected && tone === 'idle'}
             tone={tone}
+            note={note}
             marker={String.fromCharCode(65 + index)}
             disabled={q.answered}
             onClick={() => onChoose(index)}
           >
-            <span className="whitespace-pre-wrap">{option}</span>
+            <span className="choice-title whitespace-pre-wrap">{option}</span>
           </Choice>
         );
       })}
@@ -45,66 +48,56 @@ function Options({ q, choice, onChoose, graded }: { q: QuizQuestion; choice: num
   );
 }
 
-/** One segment per question: green, red or pending — progress you can see at a glance. */
-function Segments({ questions, index }: { questions: QuizQuestion[]; index: number }) {
+/** Focus header: back, title, question count and a thin bar. */
+function QuizHeader({ title, topic, count, value }: { title: string; topic?: string; count?: string; value: number }) {
   return (
-    <div className="mb-8 flex gap-1" aria-hidden="true">
-      {questions.map((q, i) => (
-        <span
-          key={q.id}
-          className={cn(
-            'h-1.5 flex-1 rounded-full bg-muted transition-colors',
-            q.answered && q.correct === true && 'bg-success',
-            q.answered && q.correct === false && 'bg-destructive',
-            q.answered && q.correct === undefined && 'bg-primary',
-            !q.answered && i === index && 'bg-primary/40',
-          )}
-        />
-      ))}
+    <div className="mb-8">
+      <div className="mb-4 flex items-center gap-3">
+        <Link href="/today" transitionTypes={['nav-back']} aria-label={`Back to ${NAME.today}`} className="grid size-11 flex-none place-items-center rounded-full border border-border-strong transition-colors hover:bg-raised">
+          <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
+        </Link>
+        <p className="min-w-0 flex-1 truncate font-semibold">{title}{topic ? <span className="font-medium text-muted-foreground">, {topic}</span> : null}</p>
+        {count ? <p className="flex-none text-sm font-semibold text-muted-foreground tabular-nums">{count}</p> : null}
+      </div>
+      <Progress value={value} aria-label="Progress" />
     </div>
   );
 }
 
-/** Difficulty climbs with each correct answer; misses are limited. The stakes stay visible. */
+/** Difficulty climbs with each correct answer; misses are limited. Shapes and numbers, no colour coding. */
 function GateMeter({ gate, asked }: { gate: Gate; asked: number }) {
   const position = Math.max(0, gate.levels.indexOf(gate.level));
   const left = gate.max_strikes - gate.strikes;
   return (
-    <Card size="sm" className="mb-8">
-      <CardContent className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
-        <div className="min-w-0">
-          <p className="flex items-center gap-2 text-sm font-medium"><Lock className="size-4 text-primary" /> Checkpoint · {gate.module}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {gate.unlocks ? <>Pass to unlock <span className="font-medium text-foreground">{gate.unlocks}</span>. </> : null}
-            Questions get harder each time you&apos;re right. Results at the end.
-          </p>
-          <div className="mt-3 flex items-end gap-1.5" role="img" aria-label={`Difficulty level ${position + 1} of ${gate.levels.length}`}>
-            {gate.levels.map((level, i) => (
-              <span
-                key={level}
-                className={cn('w-8 rounded-sm transition-all duration-500', i <= position ? 'bg-primary' : 'bg-muted')}
-                style={{ height: `${10 + i * 8}px` }}
-              />
+    <div className="mb-8 grid gap-4 rounded-card border bg-card p-5 sm:grid-cols-[1fr_auto] sm:items-center lg:p-6">
+      <div className="min-w-0">
+        <p className="flex items-center gap-2 font-semibold"><StatusIcon status="locked" size={20} /> Checkpoint: {gate.module}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {gate.unlocks ? <>Pass to unlock <span className="font-semibold text-foreground">{gate.unlocks}</span>. </> : null}
+          Questions get harder each time you are right. Results come at the end.
+        </p>
+        <div className="mt-4 flex items-end gap-1.5" role="img" aria-label={`Difficulty level ${position + 1} of ${gate.levels.length}`}>
+          {gate.levels.map((level, i) => (
+            <span key={level} className={cn('w-7 rounded-md', i <= position ? 'bg-primary' : 'bg-raised')} style={{ height: `${10 + i * 8}px` }} />
+          ))}
+          <span className="ml-2 text-[13px] text-muted-foreground">Difficulty {position + 1} of {gate.levels.length}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-6 text-sm">
+        <div>
+          <p className="text-[13px] text-muted-foreground">Question</p>
+          <p className="font-bold tabular-nums">{asked} / up to {gate.max_items}</p>
+        </div>
+        <div role="img" aria-label={`${left} misses left`}>
+          <p className="text-[13px] text-muted-foreground" aria-hidden="true">Misses left</p>
+          <p className="mt-1 flex gap-1" aria-hidden="true">
+            {Array.from({ length: gate.max_strikes }, (_, i) => (
+              <span key={i} className={cn('size-3.5 rounded-full border-[1.5px]', i < left ? 'border-foreground bg-foreground' : 'border-dashed border-muted-foreground')} />
             ))}
-            <span className="ml-2 text-xs text-muted-foreground">Difficulty {position + 1}/{gate.levels.length}</span>
-          </div>
+          </p>
         </div>
-        <div className="flex items-center gap-5 text-sm">
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">Question</p>
-            <p className="font-semibold tabular-nums">{asked} <span className="font-normal text-muted-foreground">/ up to {gate.max_items}</span></p>
-          </div>
-          <div className="text-center" aria-label={`${left} misses left`}>
-            <p className="text-xs text-muted-foreground">Misses left</p>
-            <p className="flex justify-center gap-0.5">
-              {Array.from({ length: gate.max_strikes }, (_, i) => (
-                <Heart key={i} className={cn('size-4', i < left ? 'fill-destructive text-destructive' : 'text-muted-foreground/40')} />
-              ))}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -112,39 +105,30 @@ function GateResult({ gate }: { gate: Gate }) {
   const percent = Math.round((gate.score ?? 0) * 100);
   if (gate.passed) {
     return (
-      <Card className="mb-8 overflow-hidden border-0 bg-gradient-to-br from-success/15 via-card to-card ring-success/30 animate-in fade-in zoom-in-95 duration-500">
-        <CardContent className="flex flex-wrap items-center gap-6 py-2">
-          <span className="grid size-24 place-items-center rounded-full bg-success/15 text-success"><Unlock className="size-10" /></span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm text-muted-foreground">Checkpoint passed · {percent}% weighted score</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">{gate.unlocks ? `${gate.unlocks} unlocked` : 'Course checkpoint passed'}</h1>
-            <p className="mt-2 text-muted-foreground">
-              You held up as the questions got harder — {gate.hard_correct} right at the top level. Your plan now opens the next module.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="mb-8 rounded-card border bg-card p-6 lg:p-8">
+        <p className="text-[15px] text-muted-foreground">Checkpoint passed. Weighted score {percent}%.</p>
+        <h1 className="type-display-l mt-2">{gate.unlocks ? `${gate.unlocks} unlocked` : 'Course checkpoint passed'}</h1>
+        <p className="mt-3 text-base text-muted-foreground">{gate.hard_correct} correct at the hardest level. Your plan now opens the next module.</p>
+        {gate.unlocks ? (
+          <Link href="/plan" className="mt-5 flex min-h-14 items-center gap-3 rounded-[16px] bg-raised px-4 py-3 font-semibold transition-colors hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_5%)]">
+            <StatusIcon status="not_seen" size={22} />
+            <span className="flex-1">{gate.unlocks}</span>
+            <span className="text-[13px] font-medium text-muted-foreground">Now open in {NAME.skills}</span>
+          </Link>
+        ) : null}
+      </section>
     );
   }
   return (
-    <Card className="mb-8 animate-in fade-in zoom-in-95 duration-500">
-      <CardContent className="flex flex-wrap items-center gap-6 py-2">
-        <Ring value={percent} size={104} stroke={9} label={<span className="text-xl">{percent}%</span>} />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm text-muted-foreground">Checkpoint · {gate.module}</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Not yet — and that&apos;s useful</h1>
-          <p className="mt-2 text-muted-foreground">
-            Passing needs {Math.round(gate.pass_score * 100)}% and {gate.hard_needed} right at the hardest level ({gate.hard_correct} this time).
-            Your plan added focused reviews on the weakest topics.
-          </p>
-          {gate.retry_at ? (
-            <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm">
-              <Clock className="size-4 text-primary" /> Next attempt opens {formatStamp(gate.retry_at)}
-            </p>
-          ) : null}
-        </div>
-      </CardContent>
-    </Card>
+    <section className="mb-8 rounded-card border border-attention bg-card p-6 lg:p-8">
+      <p className="flex items-center gap-2 text-[15px] text-muted-foreground"><AttentionIcon /> Checkpoint: {gate.module}. Score {percent}%.</p>
+      <h1 className="type-display-l mt-2">Not yet</h1>
+      <p className="mt-3 text-base text-muted-foreground">
+        Passing needs {Math.round(gate.pass_score * 100)}% and {gate.hard_needed} correct at the hardest level ({gate.hard_correct} this time).
+        Your plan added focused reviews on the weakest topics.
+      </p>
+      {gate.retry_at ? <p className="mt-4 inline-flex rounded-full border border-border-strong px-4 py-2 text-sm font-semibold">Next attempt opens {formatStamp(gate.retry_at)}</p> : null}
+    </section>
   );
 }
 
@@ -192,73 +176,63 @@ export default function Quiz() {
   const total = session?.questions.length ?? 0;
   const showResults = Boolean(session?.completed && (session.feedback === 'at_end' || index === total));
   const percent = Math.round((session?.score ?? 0) * 100);
-  const gatePassed = session?.gate?.passed;
-  useEffect(() => {
-    if (!showResults) return;
-    if (gatePassed) celebrate('big');
-    else if (gatePassed === undefined && percent >= 80) celebrate(percent === 100 ? 'big' : 'small');
-  }, [showResults, percent, gatePassed]);
 
-  if (!allowed || (!session && !error)) return <Loading variant="quiz" />;
+  if (!allowed || (!session && !error)) return <Loading variant="quiz" label="Loading the questions" />;
   if (!session) return <div className="mx-auto max-w-3xl p-6"><ErrorNote message={error} retry={load} /></div>;
 
   const title = KIND_LABEL[kind] ?? 'Quiz';
-  const topic = kind === 'checkpoint' ? 'Mixed questions from this module' : session.questions[0]?.concept_title;
+  const topic = kind === 'checkpoint' ? 'mixed questions from this module' : session.questions[0]?.concept_title;
 
   if (showResults) {
     const wrong = session.questions.filter(q => q.correct === false);
     const right = session.questions.filter(q => q.correct).length;
+    const topics = [...new Map(wrong.map(q => [q.concept, q.concept_title])).entries()];
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-24 sm:px-6 md:pt-8">
-        <BackLink href="/today">Today</BackLink>
+      <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-32 sm:px-6 md:pt-8">
+        <QuizHeader title={title} topic={topic} value={100} />
         {session.gate ? <GateResult gate={session.gate} /> : (
-        <Card className="mb-8 animate-in fade-in zoom-in-95 duration-500">
-          <CardContent className="flex flex-wrap items-center gap-6 py-2">
-            <Ring value={percent} size={104} stroke={9} tone={percent >= 80 ? 'success' : 'primary'} label={<span className="text-xl">{percent}%</span>} />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm text-muted-foreground">{title} complete</p>
-              <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-                {percent >= 80 ? 'Nicely done' : percent >= 50 ? 'Getting there' : "Let's shore this up"}
-              </h1>
-              <p className="mt-2 text-muted-foreground">
-                {right} of {total} correct.{' '}
-                {percent >= 80 ? 'Your plan moves you forward.' : 'Your plan adds a refresher and more practice where it helps.'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        )}
-        {wrong.length ? (
           <section className="mb-8">
-            <h2 className="mb-3 text-lg font-semibold">Worth another look</h2>
-            <div className="grid gap-4">
+            <p className="text-[15px] text-muted-foreground">{title} complete</p>
+            <h1 className="type-display-l mt-2">{right} of {total} correct</h1>
+            <p className="mt-3 text-base text-muted-foreground">{percent >= 80 ? 'Your plan moves you forward.' : 'Your plan adds a refresher and more practice where it helps.'}</p>
+          </section>
+        )}
+        {topics.length ? (
+          <section className="mb-8" aria-labelledby="revisit-heading">
+            <h2 id="revisit-heading" className="mb-3 font-display text-xl font-bold tracking-[-0.03em]">Topics worth revisiting</h2>
+            <ul className="grid gap-2">
+              {topics.map(([id, name]) => (
+                <li key={id} className="flex min-h-14 items-center gap-3 rounded-[16px] bg-raised px-4 py-2">
+                  <StatusIcon status="review" size={22} />
+                  <span className="flex-1 font-semibold">{name}</span>
+                  <Link href={conceptHref(id)} className="text-[15px] font-semibold underline underline-offset-4">Review<span className="sr-only"> {name}</span></Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        {wrong.length ? (
+          <section className="mb-8" aria-labelledby="answers-heading">
+            <h2 id="answers-heading" className="mb-3 font-display text-xl font-bold tracking-[-0.03em]">Answers to review</h2>
+            <div className="grid gap-3">
               {wrong.map(q => (
-                <Card key={q.id}>
-                  <CardContent className="grid gap-3">
-                    <Badge variant="outline" className="w-fit">{q.concept_title}</Badge>
-                    <p className="font-medium">{q.prompt}</p>
-                    {q.code ? <pre className="code-block">{q.code}</pre> : null}
-                    <p className="flex items-start gap-2 rounded-lg bg-success/10 p-3 text-sm">
-                      <CheckCircle2 className="mt-0.5 size-4 flex-none text-success" />
-                      <span><span className="font-semibold">Answer:</span> {q.answer !== undefined ? q.options[q.answer] : ''}</span>
-                    </p>
-                    {q.explanation ? <p className="text-sm text-muted-foreground">{q.explanation}</p> : null}
-                    <Button asChild variant="link" className="h-auto w-fit p-0">
-                      <Link href={conceptHref(q.concept)}><BookOpen data-icon="inline-start" /> Revisit the lesson</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div key={q.id} className="grid gap-3 rounded-card border bg-card p-5">
+                  <Badge className="w-fit">{q.concept_title}</Badge>
+                  <p className="font-semibold">{q.prompt}</p>
+                  {q.code ? <pre className="code-block">{q.code}</pre> : null}
+                  <p className="text-[15px]"><span className="font-bold">Correct answer:</span> {q.answer !== undefined ? q.options[q.answer] : ''}</p>
+                  {q.explanation ? <p className="text-sm text-muted-foreground">{q.explanation}</p> : null}
+                </div>
               ))}
             </div>
           </section>
         ) : null}
         <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg" className="h-10 px-5">
-            <Link href={session.gate?.passed ? '/plan' : '/today'}>
-              {session.gate?.passed ? <><Trophy data-icon="inline-start" /> See what&apos;s unlocked</> : 'Continue'} <ArrowRight data-icon="inline-end" />
-            </Link>
+          <Button asChild size="lg">
+            <Link href={session.gate?.passed ? '/plan' : '/today'}>{session.gate?.passed ? 'See what is unlocked' : 'Continue'}<ArrowCircle /></Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="h-10"><Link href="/progress">See progress</Link></Button>
+          <Button asChild size="lg" variant="outline"><Link href="/plan">{NAME.skills}</Link></Button>
+          <Button asChild size="lg" variant="outline"><Link href="/progress">{NAME.evidence}</Link></Button>
         </div>
       </div>
     );
@@ -267,45 +241,41 @@ export default function Quiz() {
   const q = session.questions[Math.min(index, total - 1)];
   const graded = session.feedback === 'immediate';
   const isLast = index >= total - 1;
+  const answered = session.questions.filter(item => item.answered).length;
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-24 sm:px-6 md:pt-8">
-      <BackLink href="/today">Today</BackLink>
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
-        <p className="text-sm font-medium">{title}{topic ? <span className="text-muted-foreground"> · {topic}</span> : null}</p>
-        {session.gate ? null : <p className="text-sm text-muted-foreground tabular-nums">Question {Math.min(index + 1, total)} of {total}</p>}
-      </div>
-      {session.gate ? <GateMeter gate={session.gate} asked={Math.min(index + 1, total)} /> : <Segments questions={session.questions} index={index} />}
+    <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-32 sm:px-6 md:pt-8">
+      <QuizHeader title={title} topic={topic} count={session.gate ? undefined : `Question ${Math.min(index + 1, total)} of ${total}`} value={total ? (100 * answered) / total : 0} />
+      {session.gate ? <GateMeter gate={session.gate} asked={Math.min(index + 1, total)} /> : null}
 
-      <div key={q.id} className="grid gap-5 animate-in fade-in slide-in-from-right-4 duration-300">
-        {kind === 'checkpoint' ? <Badge variant="outline" className="w-fit">{q.concept_title}</Badge> : null}
-        <h1 className="text-xl font-semibold leading-snug tracking-tight md:text-2xl">{q.prompt}</h1>
+      <div key={q.id} className="grid gap-5 animate-in fade-in duration-200">
+        {kind === 'checkpoint' || kind === 'review' ? <Badge className="w-fit">{kind === 'review' ? `Review: ${q.concept_title}` : q.concept_title}</Badge> : null}
+        <h1 className="type-title text-balance">{q.prompt}</h1>
         {q.code ? <pre className="code-block">{q.code}</pre> : null}
         <Options q={q} choice={choice} onChoose={setChoice} graded={graded} />
 
         {graded && q.answered ? (
-          <div
-            role="status"
-            className={cn(
-              'flex items-start gap-3 rounded-xl border p-4 animate-in fade-in slide-in-from-bottom-2',
-              q.correct ? 'border-success/30 bg-success/10' : 'border-destructive/30 bg-destructive/8',
-            )}
-          >
-            {q.correct ? <CheckCircle2 className="mt-0.5 size-5 flex-none text-success" /> : <XCircle className="mt-0.5 size-5 flex-none text-destructive" />}
+          <div role="status" className={cn('flex items-start gap-3 rounded-[20px] border bg-card p-4 animate-in fade-in slide-in-from-bottom-2 duration-200', q.correct ? 'border-foreground' : 'border-attention')}>
+            {q.correct ? (
+              <span className="grid size-7 flex-none place-items-center rounded-full bg-cream text-cream-foreground" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+              </span>
+            ) : <AttentionIcon size={28} />}
             <div>
-              <p className="font-semibold">{q.correct ? 'Correct' : 'Not quite'}</p>
-              {q.explanation ? <p className="mt-1 text-sm text-muted-foreground">{q.explanation}</p> : null}
+              <p className="font-bold">{q.correct ? 'Correct' : 'Incorrect'}</p>
+              {q.explanation ? <p className="mt-1 text-[15px] text-muted-foreground">{q.explanation}</p> : null}
             </div>
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {!q.answered ? (
-            <Button size="lg" className="h-10 px-5" disabled={busy || choice === null} onClick={answer}>Check answer</Button>
+            <Button size="lg" disabled={busy || choice === null} aria-busy={busy} onClick={answer}>Check answer</Button>
           ) : graded ? (
-            <Button size="lg" className="h-10 px-5" onClick={() => setIndex(isLast ? total : index + 1)}>
-              {isLast ? 'See results' : 'Next question'} <ArrowRight data-icon="inline-end" />
+            <Button size="lg" onClick={() => setIndex(isLast ? total : index + 1)}>
+              {isLast ? 'See results' : 'Next question'}<ArrowCircle />
             </Button>
           ) : null}
+          {choice === null && !q.answered ? <p className="text-sm text-muted-foreground">Choose an answer to check it.</p> : null}
         </div>
         {error ? <ErrorNote message={error} /> : null}
       </div>

@@ -63,7 +63,9 @@ test('a learner can do a whole session with the keyboard alone', async ({ page }
   }
   await tabTo(page, page.getByRole('button', { name: 'Python', exact: true }));
   await page.keyboard.press('Enter');
-  await tabTo(page, page.getByRole('button', { name: 'Build my plan' }));
+  await tabTo(page, page.getByRole('button', { name: 'Continue' }));
+  await page.keyboard.press('Enter');
+  await tabTo(page, page.getByRole('button', { name: 'Create my plan' }));
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/today$/);
   await outline(page, '/today');
@@ -74,7 +76,7 @@ test('a learner can do a whole session with the keyboard alone', async ({ page }
   await outline(page, 'lesson');
 
   // The tutor opens into its message box, closes on Escape and hands focus back.
-  const launcher = page.getByRole('button', { name: 'Ask about this lesson' });
+  const launcher = page.getByRole('button', { name: /^Ask Soc/ }).first();
   await launcher.focus();
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog');
@@ -84,9 +86,9 @@ test('a learner can do a whole session with the keyboard alone', async ({ page }
   await expect(dialog).toBeHidden();
   await expect(launcher).toBeFocused();
 
-  await tabTo(page, page.getByRole('button', { name: 'Mark lesson complete' }), 200);
+  await tabTo(page, page.getByRole('button', { name: 'Mark lesson as read' }), 200);
   await page.keyboard.press('Enter');
-  await tabTo(page, page.getByRole('link', { name: 'Take the concept check' }), 200);
+  await tabTo(page, page.getByRole('link', { name: 'Take concept check' }), 200);
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/quiz\/quiz\/zero\/programs-and-output$/);
   await outline(page, 'quiz');
@@ -96,10 +98,10 @@ test('a learner can do a whole session with the keyboard alone', async ({ page }
   await expect(page.getByRole('radio').first()).toHaveAttribute('aria-checked', 'true');
   await tabTo(page, page.getByRole('button', { name: 'Check answer' }));
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('status').filter({ hasText: /Correct|Not quite/ })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: /Correct|Incorrect/ })).toBeVisible();
 
   await page.goto('/library');
-  await expect(page.getByRole('heading', { name: 'Practice library' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Problems' })).toBeVisible();
   await outline(page, '/library');
   await page.keyboard.press('Control+k');
   const search = page.getByPlaceholder('Search lessons, problems, pages…');

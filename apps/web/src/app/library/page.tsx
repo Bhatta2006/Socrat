@@ -2,21 +2,22 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Building2, CalendarClock, ChevronLeft, ChevronRight, Filter, Search, Sparkles, Star, Timer, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Search, SlidersHorizontal, Star, X } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { conceptHref } from '@/lib/routes';
+import { NAME, conceptHref } from '@/lib/routes';
 import type { Contest, Level as PracticeLevel, LibraryProblem, Recommendations } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { BandBadge, ErrorNote, Loading, Page, PageHeader, Reveal } from '@/components/common';
+import { ErrorNote, Loading, Page, PageHeader, Reveal } from '@/components/common';
 import { Level, LevelCard, PlatformTag, ProblemName, StatusControl } from '@/components/practice';
+import { PracticeNav } from '@/components/socrat/practice-nav';
+import { EmptyState } from '@/components/socrat/states';
+import { StatusIcon, statusFromBand } from '@/components/socrat/status';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowCircle, Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from '@/components/ui/native-select';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -40,7 +41,7 @@ const SORTS = [
   ['easiest', 'Easiest first'],
   ['hardest', 'Hardest first'],
   ['popular', 'Most asked'],
-  ['title', 'A–Z'],
+  ['title', 'A to Z'],
 ] as const;
 const RATINGS = Array.from({ length: 28 }, (_, i) => 800 + i * 100);
 const PAGE = 30;
@@ -91,6 +92,17 @@ function query(f: Filters, offset = 0): string {
   return params.toString();
 }
 
+function Pager({ total, offset, setOffset }: { total: number; offset: number; setOffset: (fn: (o: number) => number) => void }) {
+  if (total <= PAGE) return null;
+  return (
+    <nav aria-label="Pages" className="flex items-center justify-between gap-3 text-sm">
+      <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(o => Math.max(0, o - PAGE))}><ChevronLeft data-icon="inline-start" /> Previous</Button>
+      <span className="font-semibold text-muted-foreground tabular-nums">{offset + 1} to {Math.min(offset + PAGE, total)} of {total.toLocaleString()}</span>
+      <Button variant="outline" size="sm" disabled={offset + PAGE >= total} onClick={() => setOffset(o => o + PAGE)}>Next <ChevronRight data-icon="inline-end" /></Button>
+    </nav>
+  );
+}
+
 export default function Library() {
   const allowed = useGuard('active');
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -102,11 +114,14 @@ export default function Library() {
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [more, setMore] = useState(false);
+  const [sheet, setSheet] = useState(false);
 
   useEffect(() => {
     const initial = fromLocation();
     setFilters(initial);
     setSearch(initial.q);
+    setMore(Boolean(initial.platform.length || initial.rating_min || initial.rating_max || initial.sheet || initial.sort !== 'recommended'));
   }, []);
   useEffect(() => {
     if (!allowed) return;
@@ -147,177 +162,191 @@ export default function Library() {
     return groups;
   }, [meta]);
 
-  if (!allowed || !filters) return <Loading variant="list" />;
-  const total = meta ? Object.values(meta.platforms).reduce((a, b) => a + b, 0) : 0;
-  const active = filters.q || filters.platform.length || filters.concept || filters.difficulty || filters.rating_min || filters.rating_max || filters.sheet;
+  if (!allowed || !filters) return <Loading variant="list" label="Loading problems" />;
+  const unlocked = meta ? Object.values(meta.platforms).reduce((a, b) => a + b, 0) : 0;
   const conceptTitle = meta?.concepts.find(c => c.id === filters.concept)?.title;
+  const chips: { label: string; clear: () => void }[] = [
+    ...(filters.q ? [{ label: `"${filters.q}"`, clear: () => { setSearch(''); update({ q: '' }); } }] : []),
+    ...filters.platform.map(p => ({ label: p, clear: () => update({ platform: filters.platform.filter(x => x !== p) }) })),
+    ...(conceptTitle ? [{ label: conceptTitle, clear: () => update({ concept: '' }) }] : []),
+    ...(filters.difficulty ? [{ label: filters.difficulty[0].toUpperCase() + filters.difficulty.slice(1), clear: () => update({ difficulty: '' }) }] : []),
+    ...(filters.rating_min || filters.rating_max ? [{ label: `Rating ${filters.rating_min || 'any'} to ${filters.rating_max || 'any'}`, clear: () => update({ rating_min: 0, rating_max: 0 }) }] : []),
+    ...(filters.sheet ? [{ label: 'Striver A2Z', clear: () => update({ sheet: '' }) }] : []),
+  ];
+  const clearAll = () => { setSearch(''); update({ ...EMPTY, status: filters.status, sort: filters.sort }); };
+  const [top, ...rest] = recs?.problems ?? [];
+
+  const conceptSelect = (
+    <label className="grid gap-1.5">
+      <span className="text-[13px] font-semibold text-muted-foreground">Skill</span>
+      <NativeSelect className="w-full" value={filters.concept} onChange={e => update({ concept: e.target.value })}>
+        <NativeSelectOption value="">Any skill</NativeSelectOption>
+        {Object.entries(grouped).map(([course, concepts]) => (
+          <NativeSelectOptGroup key={course} label={course}>
+            {concepts.map(c => <NativeSelectOption key={c.id} value={c.id}>{c.title} ({c.problems})</NativeSelectOption>)}
+          </NativeSelectOptGroup>
+        ))}
+      </NativeSelect>
+    </label>
+  );
+  const difficultySelect = (
+    <label className="grid gap-1.5">
+      <span className="text-[13px] font-semibold text-muted-foreground">Difficulty</span>
+      <NativeSelect className="w-full" value={filters.difficulty} onChange={e => update({ difficulty: e.target.value })}>
+        <NativeSelectOption value="">Any</NativeSelectOption>
+        <NativeSelectOption value="easy">Easy</NativeSelectOption>
+        <NativeSelectOption value="medium">Medium</NativeSelectOption>
+        <NativeSelectOption value="hard">Hard</NativeSelectOption>
+      </NativeSelect>
+    </label>
+  );
+  const moreFilters = (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <fieldset>
+        <legend className="mb-1.5 text-[13px] font-semibold text-muted-foreground">Platform</legend>
+        <div className="flex flex-wrap gap-1.5">
+          {PLATFORMS.map(p => {
+            const on = filters.platform.includes(p);
+            return (
+              <button
+                key={p}
+                type="button"
+                aria-pressed={on}
+                className={cn('inline-flex h-11 items-center gap-1.5 rounded-full border border-border-strong px-3.5 text-sm font-medium transition-colors hover:bg-raised', on && 'border-primary font-bold ring-1 ring-primary')}
+                onClick={() => update({ platform: on ? filters.platform.filter(x => x !== p) : [...filters.platform, p] })}
+              >
+                {p}{meta?.platforms[p] ? <span className="text-muted-foreground tabular-nums">{meta.platforms[p].toLocaleString()}</span> : null}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend className="mb-1.5 text-[13px] font-semibold text-muted-foreground">Rating range</legend>
+        <div className="flex items-center gap-2">
+          <NativeSelect className="min-w-0 flex-1" aria-label="Minimum rating" value={filters.rating_min} onChange={e => update({ rating_min: Number(e.target.value) })}>
+            <NativeSelectOption value={0}>Min</NativeSelectOption>
+            {RATINGS.map(r => <NativeSelectOption key={r} value={r}>{r}</NativeSelectOption>)}
+          </NativeSelect>
+          <span className="text-muted-foreground" aria-hidden="true">to</span>
+          <NativeSelect className="min-w-0 flex-1" aria-label="Maximum rating" value={filters.rating_max} onChange={e => update({ rating_max: Number(e.target.value) })}>
+            <NativeSelectOption value={0}>Max</NativeSelectOption>
+            {RATINGS.map(r => <NativeSelectOption key={r} value={r}>{r}</NativeSelectOption>)}
+          </NativeSelect>
+        </div>
+        <p className="mt-1.5 text-[13px] text-muted-foreground">Codeforces scale; other sites are placed on it.</p>
+      </fieldset>
+      <label className="grid gap-1.5">
+        <span className="text-[13px] font-semibold text-muted-foreground">Sort</span>
+        <NativeSelect value={filters.sort} onChange={e => update({ sort: e.target.value as Filters['sort'] })}>
+          {SORTS.map(([id, label]) => <NativeSelectOption key={id} value={id}>{label}</NativeSelectOption>)}
+        </NativeSelect>
+      </label>
+      {meta?.sheets['striver-a2z'] ? (
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 self-end text-[15px]">
+          <Checkbox checked={filters.sheet === 'striver-a2z'} onCheckedChange={v => update({ sheet: v === true ? 'striver-a2z' : '' })} />
+          On the Striver A2Z sheet
+        </label>
+      ) : null}
+    </div>
+  );
 
   return (
     <Page wide>
+      <PracticeNav />
       <Reveal>
         <PageHeader
-          eyebrow="Practice"
-          title="Practice library"
-          description={<>{total ? `${total.toLocaleString()} unlocked problems` : 'Your practice pool'} from completed topics. Complete more lessons to unlock more questions.</>}
-          actions={<Button asChild variant="outline"><Link href="/companies"><Building2 data-icon="inline-start" /> Company question bank</Link></Button>}
+          eyebrow={NAME.practice}
+          title={NAME.problems}
+          description={unlocked ? `${unlocked.toLocaleString()} problems unlocked from the skills you have finished.` : 'Problems appear as you finish skills.'}
         />
       </Reveal>
 
+      {/* Hero: the personalised recommendations. */}
       {recs ? (
-        <Reveal index={1} className="mb-8 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <Card>
-            <CardContent className="grid gap-4">
+        <Reveal index={1} className="mb-8 grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-12 lg:gap-6">
+          {top ? (
+            <section className="relative flex min-h-64 flex-col gap-4 rounded-card bg-primary p-6 text-primary-foreground lg:col-span-6 lg:p-8" data-tone="hero" aria-labelledby="for-you-heading">
+              <p id="for-you-heading" className="type-label">Recommended for you</p>
+              <h2 className="type-display-m max-w-[18ch]">{top.title}</h2>
+              <p className="max-w-md text-[15px]">{top.reason}</p>
+              <div className="flex flex-wrap gap-2"><Badge>{top.platform}</Badge><Level problem={top} /></div>
+              <div className="mt-auto">
+                <Button asChild variant="ink">
+                  {top.url.startsWith('/') ? (
+                    <Link href={top.url}>Open problem<ArrowCircle /></Link>
+                  ) : (
+                    <a href={top.url} target="_blank" rel="noopener noreferrer" onClick={() => api.post(`/library/problems/${top.id}/opened`).catch(() => undefined)}>
+                      Open on {top.platform}<span className="sr-only">, opens in a new tab</span><ArrowCircle />
+                    </a>
+                  )}
+                </Button>
+              </div>
+            </section>
+          ) : (
+            <section className="rounded-card border p-6 lg:col-span-6" aria-labelledby="for-you-heading">
+              <h2 id="for-you-heading" className="font-display text-xl font-bold tracking-[-0.03em]">Recommended for you</h2>
+              <p className="mt-2 text-[15px] text-muted-foreground">Finish your first lesson and recommendations start here.</p>
+            </section>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:col-span-6 lg:gap-6">
+            {rest.slice(0, 2).map(p => (
+              <div key={p.id} className="flex min-w-0 flex-col gap-3 rounded-card border bg-card p-5">
+                <ProblemName problem={p} className="text-base" />
+                <p className="text-sm text-muted-foreground">{p.reason}</p>
+                <div className="mt-auto flex flex-wrap items-center gap-2"><PlatformTag platform={p.platform} /><Level problem={p} /></div>
+              </div>
+            ))}
+            <Link href="/sprint" className="group flex min-h-40 flex-col justify-between gap-4 rounded-card bg-secondary p-5 text-secondary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--secondary),white_8%)]">
+              <span className="type-label">{NAME.sprint}</span>
+              <span className="flex items-end justify-between gap-3">
+                <span className="font-display text-lg leading-tight font-bold tracking-[-0.02em]">3 problems, 45 minutes</span>
+                <ArrowRight className="size-5 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </span>
+            </Link>
+            <div className="flex flex-col gap-3 rounded-card bg-raised p-5">
               <LevelCard level={recs.level} solved={recs.solved_external} />
-              <p className="text-xs text-muted-foreground">Your level comes from your mastery{recs.codeforces ? ' and your Codeforces rating' : ''}. Solve problems and it rises.</p>
-              {!recs.codeforces ? (
-                <Button asChild variant="secondary" size="sm" className="w-fit"><Link href="/settings#codeforces">Link Codeforces for sharper picks</Link></Button>
-              ) : null}
-            </CardContent>
-          </Card>
-          <Card aria-labelledby="for-you-heading">
-            <CardHeader>
-              <CardTitle as="h2" id="for-you-heading" className="flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Recommended for you</CardTitle>
-              <CardDescription>Picked from your mastery, refreshed daily</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {recs.problems.length ? (
-                <ul className="grid gap-2 md:grid-cols-2">
-                  {recs.problems.map(p => (
-                    <li key={p.id} className="min-w-0 rounded-lg border p-3 transition-colors hover:border-primary/40 hover:bg-muted/30">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <ProblemName problem={p} />
-                        <PlatformTag platform={p.platform} />
-                        <Level problem={p} />
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">{p.reason}</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : <p className="text-sm text-muted-foreground">Finish your first lesson and we&apos;ll start picking problems for you.</p>}
-            </CardContent>
-          </Card>
+              {!recs.codeforces ? <Link href="/settings#codeforces" className="text-sm font-semibold underline underline-offset-4">Link Codeforces for sharper picks</Link> : null}
+            </div>
+          </div>
         </Reveal>
       ) : null}
 
-      <Reveal index={2} className={cn('mb-8 grid gap-4', contests.length ? 'md:grid-cols-2' : '')}>
-        <Card className="bg-gradient-to-br from-streak/10 via-card to-card">
-          <CardContent className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="grid size-10 flex-none place-items-center rounded-xl bg-streak/15 text-streak"><Timer className="size-5" /></span>
-              <div>
-                <h2 className="font-semibold">Focus sprint</h2>
-                <p className="text-sm text-muted-foreground">Three judged problems just above your level, 45 minutes on the clock.</p>
-              </div>
-            </div>
-            <Button asChild variant="outline"><Link href="/sprint">Start a sprint <ArrowRight data-icon="inline-end" /></Link></Button>
-          </CardContent>
-        </Card>
-        {contests.length ? (
-          <Card>
-            <CardHeader>
-              <CardTitle as="h2" className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Upcoming rated rounds</CardTitle>
-              <CardDescription>Live practice on Codeforces when you feel ready</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="grid gap-2 text-sm">
-                {contests.map(c => (
-                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2">
-                    <a href={c.url} target="_blank" rel="noopener noreferrer" className="font-medium hover:text-primary hover:underline">{c.name}</a>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {new Date(c.start * 1000).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · {Math.round(c.duration_minutes / 60 * 10) / 10} h
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        ) : null}
-      </Reveal>
+      {contests.length ? (
+        <section className="mb-8 rounded-card border p-5" aria-labelledby="contests-heading">
+          <h2 id="contests-heading" className="font-display text-lg font-bold tracking-[-0.02em]">Upcoming rated rounds</h2>
+          <ul className="mt-3 grid gap-2 text-[15px]">
+            {contests.map(c => (
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+                <a href={c.url} target="_blank" rel="noopener noreferrer" className="font-semibold underline-offset-4 hover:underline">{c.name}<span className="sr-only">, opens on Codeforces</span></a>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
+                  {new Date(c.start * 1000).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}, {Math.round(c.duration_minutes / 60 * 10) / 10} h
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside aria-label="Filters" className="lg:sticky lg:top-20 lg:self-start">
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle as="h2" className="flex items-center gap-2"><Filter className="size-3.5" /> Filters</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-5">
-              <InputGroup>
-                <InputGroupAddon><Search /></InputGroupAddon>
-                <InputGroupInput placeholder="Problem name" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search problems" />
-              </InputGroup>
-              <fieldset>
-                <legend className="mb-2 text-xs font-medium text-muted-foreground">Platform</legend>
-                <div className="flex flex-wrap gap-1.5">
-                  {PLATFORMS.map(p => {
-                    const on = filters.platform.includes(p);
-                    return (
-                      <button
-                        key={p}
-                        type="button"
-                        aria-pressed={on}
-                        className={cn('inline-flex h-7 items-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors hover:border-primary/50', on && 'border-primary bg-primary/10 text-primary')}
-                        onClick={() => update({ platform: on ? filters.platform.filter(x => x !== p) : [...filters.platform, p] })}
-                      >
-                        {p}{meta?.platforms[p] ? <span className="text-muted-foreground tabular-nums">{meta.platforms[p].toLocaleString()}</span> : null}
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-              <label className="grid gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">Concept</span>
-                <NativeSelect className="w-full" value={filters.concept} onChange={e => update({ concept: e.target.value })}>
-                  <NativeSelectOption value="">Any concept</NativeSelectOption>
-                  {Object.entries(grouped).map(([course, concepts]) => (
-                    <NativeSelectOptGroup key={course} label={course}>
-                      {concepts.map(c => <NativeSelectOption key={c.id} value={c.id}>{c.title} ({c.problems})</NativeSelectOption>)}
-                    </NativeSelectOptGroup>
-                  ))}
-                </NativeSelect>
-              </label>
-              <label className="grid gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">Difficulty</span>
-                <NativeSelect className="w-full" value={filters.difficulty} onChange={e => update({ difficulty: e.target.value })}>
-                  <NativeSelectOption value="">Any</NativeSelectOption>
-                  <NativeSelectOption value="easy">Easy</NativeSelectOption>
-                  <NativeSelectOption value="medium">Medium</NativeSelectOption>
-                  <NativeSelectOption value="hard">Hard</NativeSelectOption>
-                </NativeSelect>
-              </label>
-              <fieldset>
-                <legend className="mb-1.5 text-xs font-medium text-muted-foreground">Rating</legend>
-                <div className="flex items-center gap-2">
-                  <NativeSelect className="min-w-0 flex-1" aria-label="Minimum rating" value={filters.rating_min} onChange={e => update({ rating_min: Number(e.target.value) })}>
-                    <NativeSelectOption value={0}>Min</NativeSelectOption>
-                    {RATINGS.map(r => <NativeSelectOption key={r} value={r}>{r}</NativeSelectOption>)}
-                  </NativeSelect>
-                  <span className="text-muted-foreground">–</span>
-                  <NativeSelect className="min-w-0 flex-1" aria-label="Maximum rating" value={filters.rating_max} onChange={e => update({ rating_max: Number(e.target.value) })}>
-                    <NativeSelectOption value={0}>Max</NativeSelectOption>
-                    {RATINGS.map(r => <NativeSelectOption key={r} value={r}>{r}</NativeSelectOption>)}
-                  </NativeSelect>
-                </div>
-                <p className="mt-1.5 text-xs text-muted-foreground">Codeforces ratings; other sites are placed on the same scale.</p>
-              </fieldset>
-              {meta?.sheets['striver-a2z'] ? (
-                <label className="flex cursor-pointer items-center gap-2 text-sm">
-                  <Checkbox checked={filters.sheet === 'striver-a2z'} onCheckedChange={v => update({ sheet: v === true ? 'striver-a2z' : '' })} />
-                  On the Striver A2Z sheet
-                </label>
-              ) : null}
-              {active ? (
-                <Button type="button" variant="ghost" size="sm" onClick={() => { setSearch(''); update({ ...EMPTY, status: filters.status, sort: filters.sort }); }}>
-                  <X data-icon="inline-start" /> Clear filters
-                </Button>
-              ) : null}
-            </CardContent>
-          </Card>
-        </aside>
-
-        <section className="min-w-0" aria-labelledby="results-heading">
-          <h2 id="results-heading" className="sr-only">Problems</h2>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <div role="tablist" aria-label="Status" className="inline-flex h-8 items-center rounded-lg bg-muted p-[3px] text-muted-foreground">
+      {/* Search, three visible filters, more filters. */}
+      <section aria-labelledby="results-heading" className="min-w-0">
+        <h2 id="results-heading" className="sr-only">{NAME.problems}</h2>
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="Search problems"
+              placeholder="Search by problem name"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="h-13 w-full rounded-control border border-border-strong bg-card pr-4 pl-12 text-base text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring"
+            />
+          </div>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="hidden min-w-56 flex-1 md:block">{conceptSelect}</div>
+            <div className="hidden w-44 md:block">{difficultySelect}</div>
+            <div role="tablist" aria-label="Status" className="inline-flex h-12 max-w-full min-w-0 items-center gap-1 overflow-x-auto rounded-full bg-raised p-1 text-muted-foreground">
               {STATUSES.map(([id, label]) => (
                 <button
                   key={id}
@@ -325,95 +354,132 @@ export default function Library() {
                   role="tab"
                   aria-selected={filters.status === id}
                   onClick={() => update({ status: id })}
-                  className={cn(
-                    'inline-flex h-full items-center gap-1.5 rounded-md px-2.5 text-sm font-medium transition-colors',
-                    filters.status === id ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground',
-                  )}
+                  className={cn('inline-flex h-full min-h-10 items-center gap-1.5 rounded-full border border-transparent px-3.5 text-sm font-medium whitespace-nowrap transition-colors', filters.status === id ? 'border-border bg-card font-bold text-foreground' : 'hover:text-foreground')}
                 >
-                  {id === 'bookmarked' ? <Star className="size-3.5" /> : null}{label}
+                  {id === 'bookmarked' ? <Star className="size-3.5" aria-hidden="true" /> : null}{label}
                 </button>
               ))}
             </div>
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Sort</span>
-              <NativeSelect value={filters.sort} onChange={e => update({ sort: e.target.value as Filters['sort'] })}>
-                {SORTS.map(([id, label]) => <NativeSelectOption key={id} value={id}>{label}</NativeSelectOption>)}
-              </NativeSelect>
-            </label>
+            <Button variant="outline" className="hidden md:inline-flex" aria-expanded={more} aria-controls="more-filters" onClick={() => setMore(v => !v)}>
+              <SlidersHorizontal data-icon="inline-start" /> {more ? 'Fewer filters' : 'More filters'}
+            </Button>
+            <Button variant="outline" className="md:hidden" aria-haspopup="dialog" onClick={() => setSheet(true)}>
+              <SlidersHorizontal data-icon="inline-start" /> Filters{chips.length ? ` (${chips.length})` : ''}
+            </Button>
           </div>
-          {active ? (
-            <div className="mb-3 flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="text-muted-foreground">{page ? `${page.total.toLocaleString()} results` : 'Filtering'}</span>
-              {filters.q ? <Badge variant="secondary">“{filters.q}”</Badge> : null}
-              {filters.platform.map(p => <Badge key={p} variant="secondary">{p}</Badge>)}
-              {conceptTitle ? <Badge variant="secondary">{conceptTitle}</Badge> : null}
-              {filters.difficulty ? <Badge variant="secondary" className="capitalize">{filters.difficulty}</Badge> : null}
-              {filters.rating_min || filters.rating_max ? <Badge variant="secondary">{filters.rating_min || 'any'}–{filters.rating_max || 'any'}</Badge> : null}
+          {more ? <div id="more-filters" className="hidden rounded-card border p-5 md:block">{moreFilters}</div> : null}
+          {chips.length ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-semibold text-muted-foreground tabular-nums">{page ? `${page.total.toLocaleString()} results` : 'Filtering'}</span>
+              {chips.map(chip => (
+                <button key={chip.label} type="button" onClick={chip.clear} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border-strong pr-2 pl-3 text-sm font-semibold hover:bg-raised" aria-label={`Remove filter ${chip.label}`}>
+                  {chip.label} <X className="size-4" aria-hidden="true" />
+                </button>
+              ))}
+              <button type="button" onClick={clearAll} className="min-h-9 px-1 text-sm font-semibold underline underline-offset-4">Clear all</button>
             </div>
           ) : null}
-          <Card className="gap-0 overflow-hidden py-0" aria-busy={loading}>
+        </div>
+
+        <Sheet open={sheet} onOpenChange={setSheet}>
+          <SheetContent side="bottom" className="gap-0">
+            <SheetHeader className="px-5 pt-4">
+              <SheetTitle>Filters</SheetTitle>
+              <SheetDescription>Filters apply as you change them.</SheetDescription>
+            </SheetHeader>
+            <div className="grid gap-5 px-5 py-4">
+              {conceptSelect}
+              {difficultySelect}
+              {moreFilters}
+            </div>
+            <div className="sticky bottom-0 flex gap-3 border-t bg-card px-5 py-4">
+              {chips.length ? <Button variant="outline" onClick={clearAll}>Clear all</Button> : null}
+              <Button className="flex-1" onClick={() => setSheet(false)}>Show {page ? page.total.toLocaleString() : ''} problems</Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4">
+          {page ? <Pager total={page.total} offset={offset} setOffset={setOffset} /> : null}
+
+          {/* Desktop: dense table. Phone: card rows. */}
+          <div className={cn('hidden overflow-hidden rounded-card border bg-card transition-opacity md:block', loading && 'opacity-60')} aria-busy={loading}>
             <Table>
-              <TableHeader className="bg-muted/40">
-                <TableRow>
-                  <TableHead className="pl-4">Problem</TableHead>
-                  <TableHead>Level</TableHead>
-                  <TableHead className="hidden md:table-cell">Concept</TableHead>
-                  <TableHead className="pr-4 text-right">Status</TableHead>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-5">Problem</TableHead>
+                  <TableHead>Difficulty</TableHead>
+                  <TableHead className="hidden lg:table-cell">Skill</TableHead>
+                  <TableHead className="pr-5 text-right">Status</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className={cn('transition-opacity', loading && 'opacity-60')}>
+              <TableBody>
                 {page?.items.map(p => (
-                  <TableRow key={p.id} className={cn(p.status === 'solved' && 'bg-success/5')}>
-                    <TableCell className="min-w-56 py-3 pl-4 whitespace-normal">
+                  <TableRow key={p.id} data-problem-row="">
+                    <TableCell className="min-w-56 py-3 pl-5 whitespace-normal">
                       <div className="flex flex-wrap items-center gap-2">
                         <ProblemName problem={p} onOpened={() => replaceItem(p.id, { status: p.status ?? 'attempted' })} />
                         <PlatformTag platform={p.platform} />
                         {p.striver ? <Badge variant="secondary">A2Z</Badge> : null}
                       </div>
-                      {p.companies ? <p className="mt-0.5 text-xs text-muted-foreground">Asked at {p.companies} companies</p> : null}
+                      {p.companies ? <p className="mt-0.5 text-[13px] text-muted-foreground">Asked at {p.companies} companies</p> : null}
                     </TableCell>
                     <TableCell><Level problem={p} /></TableCell>
-                    <TableCell className="hidden min-w-44 md:table-cell">
+                    <TableCell className="hidden min-w-44 whitespace-normal lg:table-cell">
                       {p.concept ? (
-                        <Link href={conceptHref(p.concept.id)} className="grid gap-0.5 hover:text-primary">
-                          <span className="text-sm">{p.concept.title}</span>
-                          <BandBadge band={p.concept.band} />
+                        <Link href={conceptHref(p.concept.id)} className="inline-flex items-center gap-2 text-[15px] underline-offset-4 hover:underline">
+                          <StatusIcon status={statusFromBand(p.concept.band)} size={20} />
+                          {p.concept.title}
                         </Link>
                       ) : null}
                     </TableCell>
-                    <TableCell className="pr-4 text-right">
+                    <TableCell className="pr-5 text-right">
                       <StatusControl id={p.id} status={p.status} bookmarked={p.bookmarked} compact onChange={next => replaceItem(p.id, next)} />
                     </TableCell>
                   </TableRow>
                 ))}
                 {!page ? Array.from({ length: 8 }, (_, i) => (
-                  <TableRow key={`s${i}`}><TableCell colSpan={4} className="px-4"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                  <TableRow key={`s${i}`}><TableCell colSpan={4} className="px-5"><Skeleton className="h-7 w-full" /></TableCell></TableRow>
                 )) : null}
               </TableBody>
             </Table>
-            {page && !page.items.length ? (
-              <Empty className="border-0 py-12">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">{filters.status === 'bookmarked' ? <Star /> : <Search />}</EmptyMedia>
-                  <EmptyTitle>{filters.status === 'bookmarked' ? 'Your list is empty' : 'No problems match'}</EmptyTitle>
-                  <EmptyDescription>{filters.status === 'bookmarked' ? 'Star a problem to save it here.' : 'Try widening the rating range or clearing a filter.'}</EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : null}
-          </Card>
-          {page && page.total > PAGE ? (
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(o => Math.max(0, o - PAGE))}><ChevronLeft data-icon="inline-start" /> Previous</Button>
-              <span className="text-muted-foreground tabular-nums">{offset + 1}–{Math.min(offset + PAGE, page.total)} of {page.total.toLocaleString()}</span>
-              <Button variant="outline" size="sm" disabled={offset + PAGE >= page.total} onClick={() => setOffset(o => o + PAGE)}>Next <ChevronRight data-icon="inline-end" /></Button>
-            </div>
+          </div>
+          <ul className={cn('grid gap-3 md:hidden', loading && 'opacity-60')} aria-busy={loading}>
+            {page?.items.map(p => (
+              <li key={p.id} data-problem-row="" className="grid gap-3 rounded-card border bg-card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <ProblemName problem={p} className="text-base" onOpened={() => replaceItem(p.id, { status: p.status ?? 'attempted' })} />
+                  <StatusIcon status={p.status === 'solved' ? 'practised' : 'not_seen'} size={24} title={p.status === 'solved' ? 'Solved' : p.status === 'attempted' ? 'Attempted' : 'Not solved yet'} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2"><PlatformTag platform={p.platform} /><Level problem={p} />{p.striver ? <Badge variant="secondary">A2Z</Badge> : null}</div>
+                <div className="flex items-center justify-between gap-2">
+                  {p.concept ? <Link href={conceptHref(p.concept.id)} className="text-sm font-semibold underline underline-offset-4">{p.concept.title}</Link> : <span />}
+                  <StatusControl id={p.id} status={p.status} bookmarked={p.bookmarked} compact onChange={next => replaceItem(p.id, next)} />
+                </div>
+              </li>
+            ))}
+            {!page ? Array.from({ length: 4 }, (_, i) => <li key={i}><Skeleton className="h-32 w-full rounded-card" /></li>) : null}
+          </ul>
+
+          {page && !page.items.length ? (
+            filters.status === 'bookmarked' && !chips.length ? (
+              <EmptyState title="Your list is empty">Save a problem with its star to keep it here.</EmptyState>
+            ) : chips.length || filters.status !== 'all' ? (
+              <EmptyState title="No problems match" action={<Button variant="outline" onClick={() => { clearAll(); update({ status: 'all' }); }}>Clear filters</Button>}>
+                Remove a filter or search for a different skill.
+              </EmptyState>
+            ) : (
+              <EmptyState title="Nothing unlocked yet" action={<Button asChild variant="outline"><Link href="/plan">Go to {NAME.skills}</Link></Button>}>
+                Problems appear as you finish skills.
+              </EmptyState>
+            )
           ) : null}
+
+          {page ? <Pager total={page.total} offset={offset} setOffset={setOffset} /> : null}
           {error ? <ErrorNote message={error} retry={load} /> : null}
-          <p className="mt-4 flex items-center gap-1 text-xs text-muted-foreground">
-            Names, ratings and tags only — statements stay on the original sites. <ArrowRight className="size-3" /> Mark problems solved here, or link Codeforces to sync.
-          </p>
-        </section>
-      </div>
+          <p className="text-[13px] text-muted-foreground">Names, ratings and tags only. Statements stay on the original sites. Mark problems solved here, or link Codeforces in {NAME.settings} to sync.</p>
+        </div>
+      </section>
     </Page>
   );
 }

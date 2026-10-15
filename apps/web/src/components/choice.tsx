@@ -1,14 +1,16 @@
 'use client';
 
 import type { ComponentProps, ReactNode } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { StatusIcon } from '@/components/socrat/status';
 
 type Tone = 'idle' | 'correct' | 'wrong';
 
 /**
  * A large selectable card. Use `role="radio"` + `aria-checked` for answers, or
- * `aria-pressed` for setup choices. Correct/wrong tones give instant, unmistakable feedback.
+ * `aria-pressed` for setup choices. Selected: violet ring, check and bold label.
+ * Checked answers show shape plus colour: a check in a cream circle, or a coral triangle.
  */
 export function Choice({
   selected = false,
@@ -17,20 +19,22 @@ export function Choice({
   icon,
   children,
   className,
-  ...props
-}: ComponentProps<'button'> & { selected?: boolean; tone?: Tone; marker?: ReactNode; icon?: ReactNode }) {
+  note,
+  ...rest
+}: ComponentProps<'button'> & { selected?: boolean; tone?: Tone; marker?: ReactNode; icon?: ReactNode; note?: ReactNode }) {
+  const props = rest;
   return (
     <button
       type="button"
       data-selected={selected || undefined}
       data-tone={tone}
       className={cn(
-        'group/choice flex w-full items-start gap-3 rounded-xl border bg-card p-4 text-left transition-all outline-none',
-        'hover:border-primary/50 hover:bg-accent/40 focus-visible:ring-3 focus-visible:ring-ring/50',
-        'data-[selected]:border-primary data-[selected]:bg-primary/5 data-[selected]:ring-1 data-[selected]:ring-primary',
+        'group/choice flex min-h-14 w-full items-start gap-3 rounded-[20px] border border-border-strong bg-card p-4 text-left transition-colors duration-200 outline-none',
+        'hover:bg-raised',
+        'data-[selected]:border-primary data-[selected]:ring-1 data-[selected]:ring-primary data-[selected]:[&_.choice-title]:font-bold',
         'disabled:cursor-default disabled:hover:bg-card',
-        tone === 'correct' && 'animate-pop border-success bg-success/10 ring-1 ring-success hover:bg-success/10',
-        tone === 'wrong' && 'animate-shake border-destructive bg-destructive/8 ring-1 ring-destructive hover:bg-destructive/8',
+        tone === 'correct' && 'border-foreground ring-1 ring-foreground hover:bg-card',
+        tone === 'wrong' && 'border-attention ring-1 ring-attention hover:bg-card',
         className,
       )}
       {...props}
@@ -38,35 +42,40 @@ export function Choice({
       {marker !== undefined ? (
         <span
           className={cn(
-            'grid size-7 flex-none place-items-center rounded-lg border text-xs font-semibold text-muted-foreground transition-colors',
-            'group-data-[selected]/choice:border-primary group-data-[selected]/choice:bg-primary group-data-[selected]/choice:text-primary-foreground',
-            tone === 'correct' && 'border-success bg-success text-success-foreground',
-            tone === 'wrong' && 'border-destructive bg-destructive text-white',
+            'grid size-8 flex-none place-items-center rounded-full border border-dashed border-border-strong text-[13px] font-bold text-muted-foreground transition-colors',
+            'group-data-[selected]/choice:border-solid group-data-[selected]/choice:border-primary group-data-[selected]/choice:bg-primary group-data-[selected]/choice:text-primary-foreground',
+            tone === 'correct' && 'border-solid border-transparent! bg-cream! text-cream-foreground!',
+            tone === 'wrong' && 'border-none! bg-transparent!',
           )}
           aria-hidden="true"
         >
-          {tone === 'correct' ? <Check className="size-4" /> : tone === 'wrong' ? <X className="size-4" /> : marker}
+          {tone === 'correct' ? <Check className="size-4" /> : tone === 'wrong' ? <StatusIcon status="needs_practice" size={28} /> : marker}
         </span>
       ) : null}
-      {icon ? <span className="grid size-10 flex-none place-items-center rounded-lg bg-primary/10 text-primary [&_svg]:size-5">{icon}</span> : null}
-      <span className="min-w-0 flex-1">{children}</span>
+      {icon ? <span className="grid size-10 flex-none place-items-center rounded-full bg-raised text-foreground [&_svg]:size-5 [&_svg]:stroke-[1.5]">{icon}</span> : null}
+      <span className="min-w-0 flex-1 self-center">{children}</span>
+      {note ? <span className="flex-none self-center text-[13px] font-bold">{note}</span> : null}
+      {selected && marker === undefined ? <Check className="mt-0.5 size-5 flex-none text-brand" aria-hidden="true" /> : null}
     </button>
   );
 }
 
-/** Pill toggle used for minutes and weekdays. */
-export function Pill({ pressed, className, ...props }: ComponentProps<'button'> & { pressed: boolean }) {
+/** Pill toggle used for minutes and weekdays: selected shows a check and a violet ring. */
+export function Pill({ pressed, className, children, ...props }: ComponentProps<'button'> & { pressed: boolean }) {
   return (
     <button
       type="button"
       aria-pressed={pressed}
       className={cn(
-        'h-9 rounded-full border bg-card px-4 text-sm font-medium transition-all hover:border-primary/50',
-        'aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:shadow-sm aria-pressed:shadow-primary/20',
-        'outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+        'inline-flex h-11 items-center gap-1.5 rounded-full border border-border-strong bg-card px-4 text-[15px] font-medium transition-colors hover:bg-raised',
+        'aria-pressed:border-primary aria-pressed:font-bold aria-pressed:ring-1 aria-pressed:ring-primary',
+        'outline-none',
         className,
       )}
       {...props}
-    />
+    >
+      {pressed ? <Check className="size-4 text-brand" aria-hidden="true" /> : null}
+      {children}
+    </button>
   );
 }

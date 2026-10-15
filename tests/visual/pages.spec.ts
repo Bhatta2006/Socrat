@@ -22,14 +22,15 @@ async function shoot(page: Page, name: string, mask: Locator[] = []) {
 async function newLearner(page: Page) {
   await page.goto('/login');
   await page.getByLabel('Your name').fill(`visual-${test.info().project.name}-${Date.now()}`);
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.getByRole('button', { name: 'Log in' }).click();
   await page.getByLabel('What should we call you?').fill('Ada');
   await page.getByLabel('Year you were born').selectOption('2001');
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByRole('button', { name: /Programming from Zero/ }).click();
   await page.getByRole('button', { name: /never written code/ }).click();
   await page.getByRole('button', { name: 'Python', exact: true }).click();
-  await page.getByRole('button', { name: 'Build my plan' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: 'Create my plan' }).click();
   await expect(page).toHaveURL(/\/today$/);
 }
 
@@ -77,11 +78,11 @@ test('learner pages', async ({ page }) => {
   await shoot(page, 'today', [...chrome, header, card(/-day streak/), card('Course progress')]);
 
   await page.goto('/plan');
-  await expect(page.getByRole('heading', { name: 'Roadmap' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Modules' })).toBeVisible();
   await shoot(page, 'plan', [...chrome, header, page.locator('[aria-labelledby="schedule-heading"]'), page.locator('[aria-labelledby="why-heading"]')]);
 
   await page.goto('/progress');
-  await expect(page.getByRole('heading', { name: 'Mastery by concept' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mastery by module' })).toBeVisible();
   await shoot(page, 'progress', [...chrome, header, page.locator('[aria-labelledby="activity-heading"]')]);
 
   await page.goto('/learn/zero/programs-and-output');

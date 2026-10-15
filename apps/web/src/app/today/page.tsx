@@ -2,345 +2,319 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, CalendarCheck, CheckCircle2, Circle, Code2, Flame, HeartHandshake, ListChecks, RotateCcw, Shield, Snowflake, Sparkles, Target, Trophy } from 'lucide-react';
+import { ArrowRight, Flame } from 'lucide-react';
 import { api, explain } from '@/lib/api';
-import { useGuard } from '@/lib/session';
-import { KIND_LABEL, PACE_LABEL, activityHref, conceptHref, formatDate, hours } from '@/lib/routes';
-import type { Activity, ActivityKind, AssessmentStatus, Recommendations, Today } from '@/lib/types';
+import { useGuard, useSession } from '@/lib/session';
+import { KIND_LABEL, NAME, PACE_LABEL, activityHref, conceptHref, formatDate } from '@/lib/routes';
+import type { Activity, AssessmentStatus, PlanView, Recommendations, Today } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { BandBadge, ErrorNote, Loading, Page, Reveal, Ring } from '@/components/common';
-import { Level, LevelCard, PlatformTag, ProblemName } from '@/components/practice';
-import { celebrateOnce } from '@/components/celebrate';
+import { ErrorNote, Loading, Page, Reveal, Ring } from '@/components/common';
+import { Level, PlatformTag, ProblemName } from '@/components/practice';
 import Assistant from '@/components/assistant';
+import { Illustration, Soc } from '@/components/socrat/illustration';
+import { StatusIcon, statusFromBand } from '@/components/socrat/status';
+import { WeekStrip } from '@/components/socrat/week-strip';
+import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
-const KIND_ICON: Record<ActivityKind, typeof BookOpen> = {
-  lesson: BookOpen,
-  quiz: ListChecks,
-  problem: Code2,
-  checkpoint: Trophy,
-  review: RotateCcw,
-  remedial: RotateCcw,
-};
+const VERB: Record<string, string> = { lesson: 'Start lesson', problem: 'Open problem', quiz: 'Take concept check', checkpoint: 'Start checkpoint', review: 'Start review', remedial: 'Start refresher' };
+const CHIP: Record<string, string> = { lesson: 'lesson', problem: 'practice', quiz: 'check', checkpoint: 'check', review: 'review', remedial: 'review' };
 
-function ActivityRow({ activity, done = false }: { activity: Activity; done?: boolean }) {
-  const Icon = KIND_ICON[activity.kind] ?? BookOpen;
+function greeting(name: string) {
+  const hour = new Date().getHours();
+  return `${hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'}, ${name}`;
+}
+
+/** The current module from the plan: the next milestone, with real counts only. */
+function milestone(plan: PlanView | null) {
+  if (!plan) return null;
+  const module = plan.modules.find(m => m.concepts.some(c => c.concept === plan.current_concept)) ?? plan.modules.find(m => !m.locked_by);
+  if (!module) return null;
+  const finished = module.concepts.filter(c => ['mastered', 'assumed', 'practiced'].includes(c.status)).length;
+  return { title: module.title, finished, total: module.concepts.length };
+}
+
+function SessionRow({ activity, done }: { activity: Activity; done: boolean }) {
   return (
     <li>
-      <Link
-        href={activityHref(activity.id)}
-        className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/60"
-      >
-        {done ? (
-          <CheckCircle2 className="size-5 flex-none text-success" aria-hidden="true" />
-        ) : (
-          <Circle className="size-5 flex-none text-muted-foreground/50" aria-hidden="true" />
-        )}
+      <Link href={activityHref(activity.id)} className="group flex min-h-14 items-center gap-3 rounded-[16px] px-3 py-2 transition-colors hover:bg-raised">
+        <StatusIcon status={done ? 'practised' : 'not_seen'} size={22} />
         <span className="min-w-0 flex-1">
-          <span className={cn('block text-sm font-medium', done && 'text-muted-foreground line-through decoration-1')}>{activity.title}</span>
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Icon className="size-3" aria-hidden="true" />
-            {KIND_LABEL[activity.kind]}{activity.minutes ? ` · ${activity.minutes} min` : ''}
-          </span>
+          <span className={cn('block font-semibold', done && 'text-muted-foreground')}>{activity.title}</span>
+          <span className="text-[13px] text-muted-foreground">{KIND_LABEL[activity.kind]}{activity.minutes ? `, ${activity.minutes} min` : ''}{done ? ', done' : ''}</span>
         </span>
-        <span className="sr-only">{done ? 'completed' : 'not started'}</span>
-        {!done ? <ArrowRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" /> : null}
+        {!done ? <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" /> : null}
       </Link>
     </li>
   );
 }
 
-/** Seven dots ending today: what's at stake if the learner skips. */
-function WeekStrip({ current, studiedToday, frozen }: { current: number; studiedToday: boolean; frozen: string[] }) {
-  const days = Array.from({ length: 7 }, (_, i) => 6 - i);
-  return (
-    <div className="flex items-end gap-1.5" aria-hidden="true">
-      {days.map(offset => {
-        const isToday = offset === 0;
-        const lit = isToday ? studiedToday : offset <= current - (studiedToday ? 1 : 0);
-        const date = new Date(Date.now() - offset * 86400000);
-        const iso = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-        const covered = frozen.includes(iso);
-        return (
-          <div key={offset} className="grid justify-items-center gap-1">
-            <span
-              className={cn(
-                'grid size-7 place-items-center rounded-full border text-[10px] font-semibold',
-                covered ? 'border-sky-400/50 bg-sky-400/15 text-sky-600 dark:text-sky-300' : lit ? 'border-streak/40 bg-streak text-white' : 'bg-muted/50 text-muted-foreground',
-                isToday && !lit && 'border-dashed border-streak/60',
-              )}
-              title={covered ? 'Covered by a streak freeze' : undefined}
-            >
-              {covered ? <Snowflake className="size-3.5" /> : lit ? <Flame className="size-3.5 fill-current" /> : null}
-            </span>
-            <span className={cn('text-[10px] text-muted-foreground', isToday && 'font-semibold text-foreground')}>
-              {date.toLocaleDateString(undefined, { weekday: 'narrow' })}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function motivation(today: Today): string {
-  const left = Math.max(0, today.minutes.goal - today.minutes.done);
-  if (!today.study_day) return 'A rest day on your schedule — a short review still counts toward your streak.';
-  if (left === 0) return 'Daily goal reached. Anything more is a bonus.';
-  if (!today.streak.studied_today && today.streak.current > 0)
-    return `About ${left} minutes to keep your ${today.streak.current}-day streak going.`;
-  if (today.minutes.done > 0) return `${left} minutes to go — you're ${Math.round((100 * today.minutes.done) / today.minutes.goal)}% of the way.`;
-  return `Your ${today.minutes.goal}-minute session is ready. Start with one step.`;
-}
-
 export default function TodayPage() {
   const allowed = useGuard('active');
+  const { profile } = useSession();
   const [today, setToday] = useState<Today | null>(null);
   const [error, setError] = useState('');
   const [recs, setRecs] = useState<Recommendations | null>(null);
+  const [plan, setPlan] = useState<PlanView | null>(null);
   const [assessment, setAssessment] = useState<AssessmentStatus | null>(null);
+  const [askSoc, setAskSoc] = useState(0);
 
   const load = useCallback(() => {
     setError('');
     api.get<Today>('/today').then(setToday).catch(e => setError(explain(e)));
     api.get<Recommendations>('/library/recommendations?limit=4').then(setRecs).catch(() => undefined);
+    api.get<PlanView>('/plan').then(setPlan).catch(() => undefined);
     api.get<{ current: AssessmentStatus }>('/assessments').then(r => setAssessment(r.current)).catch(() => undefined);
   }, []);
   useEffect(() => { if (allowed) load(); }, [allowed, load]);
-  useEffect(() => {
-    if (today && today.minutes.goal && today.minutes.done >= today.minutes.goal) celebrateOnce(`socrat-goal-${today.date}`, 'big');
-  }, [today]);
 
-  if (!allowed || (!today && !error)) return <Loading />;
+  if (!allowed || (!today && !error)) return <Loading label="Loading today" />;
   if (!today) return <Page><ErrorNote message={error} retry={load} /></Page>;
 
+  const name = profile?.display_name || today.greeting.split(', ').slice(1).join(', ') || 'there';
   const minutePercent = today.minutes.goal ? (100 * today.minutes.done) / today.minutes.goal : 0;
   const next = today.next;
-  const total = today.done.length + today.queue.length;
-  const NextIcon = next ? KIND_ICON[next.kind] ?? BookOpen : Sparkles;
+  const review = today.queue.find(a => a.kind === 'review');
+  const weak = recs?.topics.find(t => t.band === 'needs_practice');
+  const goal = milestone(plan);
+  const assessmentOpen = assessment && (assessment.state === 'available' || assessment.state === 'in_progress');
+  const session = [...today.done.map(a => ({ a, done: true })), ...today.queue.map(a => ({ a, done: false }))];
 
   return (
-    <Page>
+    <Page wide>
+      {/* 1. Header: phone shows "Hi, name" and today's minutes; desktop shows the greeting. */}
       <Reveal>
-        <header className="mb-8 flex flex-wrap items-end justify-between gap-6">
-          <div className="min-w-0">
-            <p className="mb-1.5 text-sm text-muted-foreground">
-              {formatDate(today.date, { weekday: 'long', month: 'long', day: 'numeric' })} · {today.course.title}
-            </p>
-            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{today.greeting}</h1>
-            <p className="mt-1.5 text-muted-foreground">{motivation(today)}</p>
+        <header className="mb-6 flex items-center justify-between gap-4 lg:mb-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid size-11 flex-none place-items-center rounded-full bg-secondary text-[15px] font-bold text-secondary-foreground lg:hidden" aria-hidden="true">{name.slice(0, 2).toUpperCase()}</span>
+            <div className="min-w-0">
+              <h1 className="truncate font-display text-2xl font-bold tracking-[-0.03em] lg:type-display-l lg:whitespace-normal">
+                <span className="lg:hidden">Hi, {name}</span>
+                <span className="hidden lg:inline">{greeting(name)}</span>
+              </h1>
+              <p className="text-sm text-muted-foreground lg:mt-2 lg:text-base" data-visual-mask="">
+                {formatDate(today.date, { weekday: 'long', month: 'long', day: 'numeric' })}. {today.course.title}
+              </p>
+            </div>
           </div>
+          <p className="flex-none text-right lg:hidden">
+            <span className="sr-only">Today: </span>
+            <span className="type-display-m tabular-nums">{today.minutes.goal}</span>
+            <span className="ml-1 text-sm font-semibold text-muted-foreground">min today</span>
+          </p>
         </header>
       </Reveal>
 
+      {/* 2. Return after absence. */}
       {today.days_away >= 3 ? (
         <Reveal>
-          <Card className="mb-6 border-primary/25 bg-primary/5">
-            <CardContent className="flex flex-wrap items-center gap-4">
-              <span className="grid size-10 flex-none place-items-center rounded-full bg-primary/15 text-primary"><HeartHandshake className="size-5" /></span>
-              <div className="min-w-0 flex-1">
-                <h2 className="font-semibold">Welcome back — no catching up needed</h2>
-                <p className="text-sm text-muted-foreground">Your plan has re-flowed around the break. Start with just ten minutes; the rest of the day is optional.</p>
-              </div>
-              {today.next ? <Button asChild><Link href={activityHref(today.next.id)}>Restart with 10 minutes <ArrowRight data-icon="inline-end" /></Link></Button> : null}
-            </CardContent>
-          </Card>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card border px-5 py-4" role="status">
+            <p className="font-semibold">Welcome back. Your plan moved forward while you were away.</p>
+            <Link href="/plan#why-heading" className="text-[15px] font-semibold underline underline-offset-4">See what changed</Link>
+          </div>
         </Reveal>
       ) : null}
 
-      <section className="mb-6 grid gap-4 sm:grid-cols-2" aria-label="Explore your learning">
-        <Card size="sm"><CardHeader><CardTitle>Concept playground</CardTitle><CardDescription>Revisit weak concepts with interactive explanations, simulations and predictions.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link href="/playground">Explore your weak topics <ArrowRight data-icon="inline-end" /></Link></Button></CardContent></Card>
-        <Card size="sm"><CardHeader><CardTitle>Your learning roadmap</CardTitle><CardDescription>{today.progress.finished} of {today.progress.total} concepts achieved. See your current topic, review needs and what unlocks next.</CardDescription></CardHeader><CardContent><Button asChild variant="outline"><Link href="/plan#roadmap-heading">View your roadmap <ArrowRight data-icon="inline-end" /></Link></Button></CardContent></Card>
-      </section>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-12 lg:gap-6">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-3 sm:gap-4 lg:col-span-8 lg:gap-6">
+          {/* 3. Week strip (phone and tablet). */}
+          <Card className="lg:hidden" size="sm" aria-label="This week">
+            <div className="px-(--card-spacing)"><WeekStrip studiedToday={today.streak.studied_today} /></div>
+          </Card>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="grid min-w-0 content-start gap-6">
+          {/* 4. Hero: the next recommended activity. */}
           <Reveal index={1}>
             {next ? (
-              <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary/12 via-card to-card ring-primary/20">
-                <div className="bg-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:linear-gradient(to_left,black,transparent_60%)]" aria-hidden="true" />
-                <CardContent className="relative flex flex-wrap items-center justify-between gap-6 py-2">
-                  <div className="min-w-0 max-w-xl">
-                    <Badge variant="secondary" className="mb-3 gap-1.5 bg-background/70">
-                      <NextIcon className="size-3" /> Up next · {KIND_LABEL[next.kind]}{next.minutes ? ` · ${next.minutes} min` : ''}
-                    </Badge>
-                    <h2 id="next-heading" className="text-2xl font-semibold tracking-tight md:text-3xl">{next.title}</h2>
-                    {next.reason ? <p className="mt-2 text-sm text-muted-foreground">{next.reason}</p> : null}
-                    <Button asChild size="lg" className="mt-5 h-10 px-5 text-sm shadow-sm shadow-primary/20">
+              <Card tone="hero" className="relative min-h-72 lg:min-h-80" aria-labelledby="next-heading">
+                <Illustration name="orbit" className="pointer-events-none absolute -top-4 -right-8 size-28 opacity-95 sm:-top-6 sm:-right-10 sm:size-52 lg:top-1/2 lg:right-4 lg:size-72 lg:-translate-y-1/2" />
+                <div className="relative flex h-full flex-col gap-5 px-(--card-spacing) lg:max-w-[60%]">
+                  <p className="type-label text-(--card-muted)">Next for you</p>
+                  <div>
+                    <h2 id="next-heading" className="type-display-l max-w-[14ch] pr-8 [overflow-wrap:anywhere] sm:pr-0">{next.title}</h2>
+                    <p className="mt-3 max-w-md text-base text-(--card-muted)">{next.reason || 'Next in your plan.'}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge>{CHIP[next.kind] ?? KIND_LABEL[next.kind]}</Badge>
+                    {next.minutes ? <Badge>{next.minutes} min</Badge> : null}
+                  </div>
+                  <div className="mt-auto">
+                    <Button asChild variant="ink" size="lg">
                       <Link href={activityHref(next.id)} transitionTypes={['nav-forward']}>
-                        {next.kind === 'lesson' ? 'Start lesson' : next.kind === 'problem' ? 'Open problem' : 'Begin'}
-                        <ArrowRight data-icon="inline-end" />
+                        {VERB[next.kind] ?? 'Continue'}
+                        <ArrowCircle />
                       </Link>
                     </Button>
                   </div>
-                  <Ring value={minutePercent} size={112} stroke={9} label={
-                    <span className="grid justify-items-center leading-tight">
-                      <span className="text-xl font-semibold">{today.minutes.done}</span>
-                      <span className="text-[11px] font-normal text-muted-foreground">of {today.minutes.goal} min</span>
-                    </span>
-                  } />
-                </CardContent>
+                </div>
               </Card>
             ) : (
-              <Card>
-                <CardContent className="flex flex-wrap items-center gap-5 py-2">
-                  <span className="grid size-12 place-items-center rounded-full bg-success/15 text-success"><Trophy className="size-6" /></span>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-xl font-semibold">{today.study_day ? "You're done for today" : 'Rest day'}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {today.study_day
-                        ? 'Everything planned for today is complete. Rest helps it stick — or keep going from your plan.'
-                        : "Today isn't one of your study days. Come back tomorrow, or work ahead from your plan."}
-                    </p>
-                  </div>
-                  <Button asChild variant="outline"><Link href="/plan">Open my plan</Link></Button>
-                </CardContent>
+              <Card tone="hero" aria-labelledby="next-heading">
+                <div className="flex flex-col gap-4 px-(--card-spacing)">
+                  <h2 id="next-heading" className="type-display-m">{today.study_day ? 'Done for today' : 'Rest day'}</h2>
+                  <p className="max-w-md text-(--card-muted)">
+                    {today.study_day
+                      ? 'Everything planned for today is complete. You can keep going from your plan.'
+                      : 'Today is not one of your study days. You can work ahead from your plan.'}
+                  </p>
+                  <div><Button asChild variant="ink" size="lg"><Link href="/plan">Open {NAME.skills}<ArrowCircle /></Link></Button></div>
+                </div>
               </Card>
             )}
           </Reveal>
 
-          {assessment && (assessment.state === 'available' || assessment.state === 'in_progress') ? (
-            <Reveal index={2}>
-              <Card className="border-streak/30 bg-streak/5">
-                <CardContent className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="grid size-10 flex-none place-items-center rounded-full bg-streak/15 text-streak"><CalendarCheck className="size-5" /></span>
-                    <div className="min-w-0">
-                      <h2 className="font-semibold">{assessment.state === 'in_progress' ? 'Finish your weekly assessment' : 'Your weekly assessment is ready'}</h2>
-                      <p className="truncate text-sm text-muted-foreground">On what you studied: {assessment.topics.slice(0, 3).join(', ')}{assessment.topics.length > 3 ? '…' : ''}</p>
-                    </div>
-                  </div>
-                  <Button asChild variant="outline"><Link href="/assessments">{assessment.state === 'in_progress' ? 'Continue' : 'Take it'} <ArrowRight data-icon="inline-end" /></Link></Button>
-                </CardContent>
-              </Card>
-            </Reveal>
+          {/* 5. Review due and Playground. */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+            {review || today.reviews_due ? (
+              <Link href={review ? activityHref(review.id) : '/plan'} className="group flex min-h-40 flex-col justify-between gap-4 rounded-card bg-raised p-5 transition-colors hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_5%)] lg:p-6">
+                <StatusIcon status="review" size={32} />
+                <span>
+                  <span className="block font-display text-lg leading-tight font-bold tracking-[-0.02em]">
+                    Review due{review ? `: ${review.title.replace(/^Review:?\s*/i, '')}` : ''}
+                  </span>
+                  {today.reviews_due > 1 ? <span className="mt-1 block text-sm text-muted-foreground">{today.reviews_due} reviews due</span> : null}
+                </span>
+              </Link>
+            ) : null}
+            <Link href="/playground" className={cn('group flex min-h-40 flex-col justify-between gap-4 rounded-card bg-secondary p-5 text-secondary-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--secondary),white_8%)] lg:p-6', !(review || today.reviews_due) && 'col-span-2')}>
+              <span className="type-label">{NAME.playground}</span>
+              <span className="flex items-end justify-between gap-3">
+                <span className="font-display text-lg leading-tight font-bold tracking-[-0.02em]">{weak ? `Explore ${weak.title} visually` : 'Ask about any concept'}</span>
+                <ArrowRight className="size-5 flex-none transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </span>
+            </Link>
+          </div>
+
+          {/* 6. Next milestone with the real module progress. */}
+          {goal ? (
+            <Card aria-labelledby="milestone-heading">
+              <div className="grid gap-3 px-(--card-spacing)">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 id="milestone-heading" className="font-display text-lg font-bold tracking-[-0.02em]">Next milestone: {goal.title}</h2>
+                  <span className="text-sm font-semibold text-muted-foreground tabular-nums">{goal.finished} of {goal.total} skills</span>
+                </div>
+                <Progress value={goal.total ? (100 * goal.finished) / goal.total : 0} aria-label={`${goal.title}: ${goal.finished} of ${goal.total} skills`} />
+              </div>
+            </Card>
           ) : null}
 
-          {total ? (
-            <Reveal index={2}>
-              <Card aria-labelledby="agenda-heading">
-                <CardHeader>
-                  <CardTitle id="agenda-heading">Today&apos;s session</CardTitle>
-                  <CardDescription>{today.done.length} of {total} done</CardDescription>
-                  <CardAction>
-                    {today.reviews_due ? <Badge variant="outline" className="border-warning/40 bg-warning/10">{today.reviews_due} review{today.reviews_due > 1 ? 's' : ''} due</Badge> : null}
-                  </CardAction>
-                </CardHeader>
-                <CardContent>
-                  <Progress value={total ? (100 * today.done.length) / total : 0} className="mb-3 h-1.5" aria-label="Session progress" />
-                  <ul className="-mx-3 grid">
-                    {today.done.map(a => <ActivityRow key={a.id} activity={a} done />)}
-                    {today.queue.map(a => <ActivityRow key={a.id} activity={a} />)}
-                  </ul>
-                </CardContent>
-              </Card>
-            </Reveal>
+          {/* 7. Weekly assessment: a card when open, a quiet line when not ready. */}
+          {assessmentOpen ? (
+            <Card aria-labelledby="assessment-heading">
+              <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing)">
+                <div className="min-w-0">
+                  <div className="mb-2"><Badge>{assessment.state === 'in_progress' ? 'In progress' : 'Available'}</Badge></div>
+                  <h2 id="assessment-heading" className="font-display text-lg font-bold tracking-[-0.02em]">{NAME.assessment}</h2>
+                  <p className="truncate text-sm text-muted-foreground">On what you studied: {assessment.topics.slice(0, 3).join(', ')}{assessment.topics.length > 3 ? ', and more' : ''}</p>
+                </div>
+                <Button asChild variant="outline"><Link href="/assessments">{assessment.state === 'in_progress' ? 'Continue assessment' : 'Open assessment'}</Link></Button>
+              </div>
+            </Card>
+          ) : assessment ? (
+            <p className="px-1 text-sm text-muted-foreground">{NAME.assessment}: unlocks as you study more topics this week.</p>
           ) : null}
 
+          {/* Today's plan: what the session holds, in order. */}
+          {session.length ? (
+            <Card aria-labelledby="agenda-heading">
+              <div className="flex items-baseline justify-between gap-3 px-(--card-spacing)">
+                <h2 id="agenda-heading" className="font-display text-lg font-bold tracking-[-0.02em]">Today&apos;s session</h2>
+                <span className="text-sm font-semibold text-muted-foreground tabular-nums">{today.done.length} of {session.length} done</span>
+              </div>
+              <ul className="grid px-[calc(var(--card-spacing)-12px)]">
+                {session.map(({ a, done }) => <SessionRow key={a.id} activity={a} done={done} />)}
+              </ul>
+            </Card>
+          ) : null}
+
+          {/* 8. Practice recommendations. */}
           {recs?.problems.length ? (
-            <Reveal index={3}>
-              <Card aria-labelledby="practice-heading">
-                <CardHeader>
-                  <CardTitle id="practice-heading">Practice picked for you</CardTitle>
-                  <CardDescription>Matched to your level, skipping what you&apos;ve solved</CardDescription>
-                  <CardAction><Button asChild variant="ghost" size="sm"><Link href="/library">Open library <ArrowRight data-icon="inline-end" /></Link></Button></CardAction>
-                </CardHeader>
-                <CardContent>
-                  <ul className="grid gap-1">
-                    {recs.problems.map(p => (
-                      <li key={p.id} className="-mx-2 flex flex-wrap items-start justify-between gap-2 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <ProblemName problem={p} />
-                            <PlatformTag platform={p.platform} />
-                          </div>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{p.reason}</p>
-                        </div>
-                        <Level problem={p} />
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </Reveal>
+            <section aria-labelledby="practice-heading" className="min-w-0">
+              <div className="mb-3 flex items-baseline justify-between gap-3">
+                <h2 id="practice-heading" className="font-display text-xl font-bold tracking-[-0.03em]">Practice picked for you</h2>
+                <Link href="/library" className="text-[15px] font-semibold underline underline-offset-4">See all problems</Link>
+              </div>
+              <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
+                {recs.problems.map(p => (
+                  <li key={p.id} className="flex w-[78%] flex-none snap-start flex-col gap-3 rounded-card border bg-card p-5 sm:w-auto">
+                    <div className="flex items-start justify-between gap-3">
+                      <ProblemName problem={p} className="text-base" />
+                      <StatusIcon status={p.status === 'solved' ? 'practised' : 'not_seen'} size={22} title={p.status === 'solved' ? 'Solved' : 'Not solved yet'} />
+                    </div>
+                    <p className="text-sm text-muted-foreground">{p.reason}</p>
+                    <div className="mt-auto flex flex-wrap items-center gap-2"><PlatformTag platform={p.platform} /><Level problem={p} /></div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
         </div>
 
-        <aside className="grid content-start gap-6">
-          <Reveal index={1}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Flame className="size-4 text-streak" /> {today.streak.current}-day streak</CardTitle>
-                <CardDescription>{today.streak.studied_today ? 'Secured for today. See you tomorrow.' : 'Study today to keep it alive.'}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WeekStrip current={today.streak.current} studiedToday={today.streak.studied_today} frozen={today.streak.frozen} />
-                <div className="mt-4 grid gap-1.5 border-t pt-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <Shield className={cn('size-3.5', today.streak.freezes ? 'fill-sky-400/30 text-sky-500' : 'text-muted-foreground')} />
-                      {today.streak.freezes ? `${today.streak.freezes} streak freeze${today.streak.freezes > 1 ? 's' : ''} ready` : 'Earn a streak freeze'}
-                    </span>
-                    <span className="tabular-nums text-muted-foreground">{today.streak.week_minutes}/{today.streak.week_goal} min this week</span>
-                  </div>
-                  <Progress value={today.streak.week_goal ? Math.min(100, (100 * today.streak.week_minutes) / today.streak.week_goal) : 0} className="h-1" aria-label="Weekly goal progress" />
-                  <p className="text-[11px] text-muted-foreground">Hit the week&apos;s goal to bank a freeze — it covers one missed study day.</p>
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">Longest: {today.streak.longest} days · {hours(today.minutes.goal)} per study day</p>
-              </CardContent>
+        {/* Support column. */}
+        <aside className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-3 sm:gap-4 lg:col-span-4 lg:gap-6" aria-label="Support">
+          <button type="button" onClick={() => setAskSoc(n => n + 1)} className="hidden items-center gap-4 rounded-card border bg-card p-5 text-left transition-colors hover:bg-raised lg:flex" aria-haspopup="dialog">
+            <Soc size={56} />
+            <span className="min-w-0">
+              <span className="block font-display text-lg font-bold tracking-[-0.02em]">Ask Soc</span>
+              <span className="block text-sm text-muted-foreground">Your tutor asks before it tells.</span>
+            </span>
+          </button>
+
+          <Card className="hidden lg:flex" aria-labelledby="week-heading">
+            <div className="grid gap-4 px-(--card-spacing)">
+              <div className="flex items-center justify-between gap-3">
+                <h2 id="week-heading" className="flex items-center gap-2 font-display text-lg font-bold tracking-[-0.02em]">
+                  <Flame className="size-5" strokeWidth={1.5} aria-hidden="true" /> {today.streak.current}-day streak
+                </h2>
+                <Ring value={minutePercent} size={56} ariaLabel={`${today.minutes.done} of ${today.minutes.goal} minutes today`} label={<span className="text-[13px]">{today.minutes.done}</span>} />
+              </div>
+              <WeekStrip studiedToday={today.streak.studied_today} />
+              <p className="text-sm text-muted-foreground">
+                {today.minutes.done} of {today.minutes.goal} min today. {today.streak.week_minutes} of {today.streak.week_goal} min this week.
+              </p>
+            </div>
+          </Card>
+
+          {recs?.topics.length ? (
+            <Card aria-labelledby="learn-next-heading">
+              <div className="px-(--card-spacing)">
+                <h2 id="learn-next-heading" className="mb-3 font-display text-lg font-bold tracking-[-0.02em]">Skills to learn next</h2>
+                <ul className="grid gap-1">
+                  {recs.topics.map(t => (
+                    <li key={t.id}>
+                      <Link href={conceptHref(t.id)} className="-mx-2 flex min-h-12 items-start gap-3 rounded-[14px] px-2 py-2 transition-colors hover:bg-raised">
+                        <StatusIcon status={statusFromBand(t.band)} size={22} className="mt-0.5" />
+                        <span className="min-w-0">
+                          <span className="block font-semibold">{t.title}</span>
+                          <span className="block text-[13px] text-muted-foreground">{t.reason}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </Card>
-          </Reveal>
-          {recs ? (
-            <Reveal index={2}>
-              <Card>
-                <CardContent className="grid gap-5">
-                  <LevelCard level={recs.level} solved={recs.solved_external} />
-                  {recs.topics.length ? (
-                    <div className="border-t pt-4">
-                      <h2 className="mb-2 flex items-center gap-1.5 text-sm font-medium"><Target className="size-3.5 text-primary" /> Learn next</h2>
-                      <ul className="grid gap-3">
-                        {recs.topics.map(t => (
-                          <li key={t.id}>
-                            <Link href={conceptHref(t.id)} className="text-sm font-medium hover:text-primary hover:underline">{t.title}</Link>
-                            <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              <BandBadge band={t.band} />
-                              <span>{t.reason}</span>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-            </Reveal>
           ) : null}
-          <Reveal index={3}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Course progress</CardTitle>
-                <CardDescription>{today.progress.finished} of {today.progress.total} concepts · {PACE_LABEL[today.pace]} pace</CardDescription>
-                <CardAction><span className="text-lg font-semibold tabular-nums">{today.progress.percent}%</span></CardAction>
-              </CardHeader>
-              <CardContent>
-                <Progress value={today.progress.percent} className="h-2" aria-label="Course progress" />
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Projected finish <span className="font-medium text-foreground">{formatDate(today.projected_finish, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                </p>
-                {today.latest_update?.reasons.length ? (
-                  <ul className="mt-3 grid gap-1 border-t pt-3 text-xs text-muted-foreground">
-                    {today.latest_update.reasons.slice(0, 2).map(r => <li key={r}>• {r}</li>)}
-                  </ul>
-                ) : null}
-              </CardContent>
-            </Card>
-          </Reveal>
+
+          {/* 9. Course progress: ring with the real percent. */}
+          <Card aria-labelledby="course-heading">
+            <div className="flex items-center gap-5 px-(--card-spacing)">
+              <Ring value={today.progress.percent} size={80} label={<span className="text-base">{today.progress.percent}%</span>} ariaLabel={`Course ${today.progress.percent} percent complete`} />
+              <div className="min-w-0">
+                <h2 id="course-heading" className="font-display text-lg font-bold tracking-[-0.02em]">Course progress</h2>
+                <p className="text-sm text-muted-foreground">{today.progress.finished} of {today.progress.total} skills. {PACE_LABEL[today.pace]} pace.</p>
+                <p className="mt-1 text-sm text-muted-foreground" data-visual-mask="">Projected finish {formatDate(today.projected_finish, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              </div>
+            </div>
+          </Card>
+          <Link href="/progress" className="flex min-h-12 items-center justify-between gap-3 rounded-card border px-5 py-3 text-[15px] font-semibold transition-colors hover:bg-raised">
+            Check your progress in {NAME.evidence}
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Link>
         </aside>
       </div>
-      <Assistant scope="general" title="Ask your tutor" />
+      <Assistant scope="general" title="Ask Soc" openSignal={askSoc} launcher="phone" />
     </Page>
   );
 }

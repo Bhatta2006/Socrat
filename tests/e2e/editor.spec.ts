@@ -5,14 +5,15 @@ test('editor settings, reset and the resizable split', async ({ page }, info) =>
   await page.setViewportSize({ width: 1400, height: 900 });
   await page.goto('/login');
   await page.getByLabel('Your name').fill(`editor-${Date.now()}`);
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.getByRole('button', { name: 'Log in' }).click();
   await page.getByLabel('What should we call you?').fill('Ada');
   await page.getByLabel('Year you were born').selectOption('2001');
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByRole('button', { name: /Programming from Zero/ }).click();
   await page.getByRole('button', { name: /never written code/ }).click();
   await page.getByRole('button', { name: 'Python', exact: true }).click();
-  await page.getByRole('button', { name: 'Build my plan' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: 'Create my plan' }).click();
   await expect(page).toHaveURL(/\/today$/);
   await page.goto('/problems/greeting');
   const content = page.locator('.cm-content');
@@ -29,8 +30,8 @@ test('editor settings, reset and the resizable split', async ({ page }, info) =>
   await page.keyboard.press('Control+End');
   await page.keyboard.type('\nprint("changed")');
   await expect(content).toContainText('changed');
-  await page.getByRole('button', { name: 'Reset to starter code' }).click();
-  await page.getByRole('button', { name: 'Reset', exact: true }).click();
+  await page.getByRole('button', { name: 'Reset starter code' }).click();
+  await page.getByRole('button', { name: 'Reset code', exact: true }).click();
   await expect(content).not.toContainText('changed');
   expect((await content.innerText()).trim()).toBe(starter.trim());
   const sep = page.getByRole('separator', { name: 'Resize statement and editor' });

@@ -5,26 +5,28 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ViewTransition, useEffect, useState, type ReactNode } from 'react';
 import { useTheme } from 'next-themes';
 import {
-  Building2,
-  CalendarDays,
-  ChartLine,
-  ClipboardCheck,
+  ChartNoAxesColumn,
   Flame,
-  FlaskConical,
-  Home,
-  Library,
+  House,
   LogOut,
   Monitor,
   Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Route,
   Settings,
-  Sparkles,
+  Shapes,
+  SquareCode,
   Sun,
+  type LucideIcon,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { NAV, navFor, type NavKey } from '@/lib/routes';
 import { useSession } from '@/lib/session';
 import type { Today } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CommandMenu } from '@/components/command-menu';
+import { Wordmark } from '@/components/socrat/wordmark';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,57 +39,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-const NAV = [
-  { href: '/today', label: 'Today', icon: Home },
-  { href: '/plan', label: 'Plan', icon: CalendarDays },
-  { href: '/library', label: 'Library', icon: Library },
-  { href: '/assessments', label: 'Assessments', icon: ClipboardCheck },
-  { href: '/progress', label: 'Progress', icon: ChartLine },
-];
-const MORE = [
-  { href: '/playground', label: 'Playground', icon: FlaskConical },
-  { href: '/companies', label: 'Company questions', icon: Building2 },
-  { href: '/settings', label: 'Settings', icon: Settings },
-];
-// Settings stays reachable from the account menu on phones.
-const MOBILE = NAV;
-
-function Wordmark({ className, compact = false }: { className?: string; compact?: boolean }) {
-  return (
-    <span className={cn('inline-flex items-center gap-2 font-semibold tracking-tight', className)}>
-      <span className="grid size-7 flex-none place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-        <Sparkles className="size-4" aria-hidden="true" />
-      </span>
-      {compact ? null : <span className="wordmark-label">Socrat</span>}
-    </span>
-  );
-}
+const ICON: Record<NavKey, LucideIcon> = {
+  today: House,
+  skills: Route,
+  practice: SquareCode,
+  playground: Shapes,
+  evidence: ChartNoAxesColumn,
+  settings: Settings,
+};
+// Settings lives in the avatar menu on phones.
+const MOBILE = NAV.filter(item => item.key !== 'settings');
 
 function DevBanner() {
   const { features } = useSession();
   if (!features?.demo_mode && !features?.dev_login) return null;
   return (
-    <div className="border-b border-warning/30 bg-warning/15 px-4 py-1 text-center text-xs text-warning-foreground dark:text-warning">
-      Local development build — sign-in is simulated and code runs without a secure sandbox.
+    <div className="border-b bg-raised px-4 py-1.5 text-center text-[13px] text-muted-foreground">
+      Local development build. Sign-in is simulated and code runs without a secure sandbox.
     </div>
   );
 }
@@ -110,32 +80,32 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full" aria-label="Account menu">
-          <Avatar className="size-8">
-            <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
+        <Button variant="ghost" size="icon" aria-label="Account menu">
+          <Avatar className="size-9">
+            <AvatarFallback className="bg-secondary text-[13px] font-bold text-secondary-foreground">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
-          <p className="text-sm font-medium">{name}</p>
-          <p className="text-xs text-muted-foreground">Signed in</p>
+      <DropdownMenuContent align="end" className="w-60">
+        <DropdownMenuLabel className="font-normal normal-case tracking-normal">
+          <p className="text-[15px] font-semibold text-foreground">{name}</p>
+          <p className="text-[13px] text-muted-foreground">Logged in</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link href="/settings"><Settings /> Settings</Link></DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Theme</DropdownMenuLabel>
+        <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <ThemeItems />
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={async () => { await signOut(); router.replace('/login'); }}>
-          <LogOut /> Sign out
+          <LogOut /> Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-/** Streak and today's minutes, always in view: loss aversion and the goal gradient at a glance. */
+/** Streak and today's minutes from the learner summary. Neutral: nothing about a streak is coloured. */
 function Momentum() {
   const pathname = usePathname();
   const [today, setToday] = useState<Pick<Today, 'streak' | 'minutes'> | null>(null);
@@ -145,36 +115,35 @@ function Momentum() {
       .catch(() => undefined);
   }, [pathname]);
   if (!today) return null;
-  const percent = today.minutes.goal ? Math.min(100, Math.round((100 * today.minutes.done) / today.minutes.goal)) : 0;
-  const lit = today.streak.studied_today;
+  const percent = today.minutes.goal ? Math.min(100, (100 * today.minutes.done) / today.minutes.goal) : 0;
+  const r = 13;
+  const c = 2 * Math.PI * r;
   return (
     <div className="flex items-center gap-1.5">
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
             href="/progress"
-            className={cn(
-              'inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-sm font-semibold tabular-nums transition-colors',
-              lit ? 'border-streak/30 bg-streak/10 text-streak' : 'text-muted-foreground hover:text-foreground',
-            )}
-            aria-label={`${today.streak.current} day streak`}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border-strong px-3 text-sm font-bold tabular-nums transition-colors hover:bg-raised"
+            aria-label={`${today.streak.current} day streak${today.streak.studied_today ? ', studied today' : ''}`}
           >
-            <Flame className={cn('size-4', lit && 'fill-current')} aria-hidden="true" />
+            <Flame className="size-4" strokeWidth={1.75} aria-hidden="true" />
             {today.streak.current}
           </Link>
         </TooltipTrigger>
         <TooltipContent>
-          {lit ? 'Streak secured for today' : 'Study today to keep your streak'}
-          {today.streak.freezes ? ` · ${today.streak.freezes} freeze${today.streak.freezes > 1 ? 's' : ''} banked` : ''}
+          {today.streak.studied_today ? 'Studied today' : 'Study today to keep your streak'}
+          {today.streak.freezes ? `. ${today.streak.freezes} freeze${today.streak.freezes > 1 ? 's' : ''} banked` : ''}
         </TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href="/today" className="hidden h-8 items-center gap-2 rounded-full border px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground sm:inline-flex">
-            <span className="relative h-1.5 w-12 overflow-hidden rounded-full bg-muted">
-              <span className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
-            </span>
-            <span className="tabular-nums">{today.minutes.done}/{today.minutes.goal}m</span>
+          <Link href="/today" className="hidden h-9 items-center gap-2 rounded-full border border-border-strong py-1 pr-3 pl-1 text-[13px] font-semibold tabular-nums transition-colors hover:bg-raised sm:inline-flex" aria-label={`${today.minutes.done} of ${today.minutes.goal} minutes studied today`}>
+            <svg viewBox="0 0 32 32" className="size-7 -rotate-90" aria-hidden="true">
+              <circle cx="16" cy="16" r={r} fill="none" stroke="var(--border)" strokeWidth="3.5" />
+              <circle cx="16" cy="16" r={r} fill="none" stroke="var(--primary)" strokeWidth="3.5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - percent / 100)} />
+            </svg>
+            {today.minutes.done}/{today.minutes.goal} min
           </Link>
         </TooltipTrigger>
         <TooltipContent>Today&apos;s study goal</TooltipContent>
@@ -183,7 +152,7 @@ function Momentum() {
   );
 }
 
-/** Whether this week's assessment is waiting: a small dot that pulls learners back in. */
+/** Whether this week's assessment is waiting: shown as a dot on Evidence. */
 function useAssessmentReady() {
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
@@ -195,68 +164,113 @@ function useAssessmentReady() {
   return ready;
 }
 
-function NavGroup({ label, items, current, flagged }: { label: string; items: typeof NAV; current: (href: string) => boolean; flagged?: string }) {
-  return (
-    <SidebarGroup>
-      <SidebarGroupLabel>{label}</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map(item => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton asChild isActive={current(item.href)} tooltip={item.label}>
-                <Link href={item.href} aria-current={current(item.href) ? 'page' : undefined}>
-                  <item.icon /> <span>{item.label}</span>
-                  {flagged === item.href ? <span className="ml-auto size-2 rounded-full bg-streak" aria-label="ready" /> : null}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
-}
+const COLLAPSE_KEY = 'socrat:sidebar-collapsed';
 
-function AppSidebar({ current }: { current: (href: string) => boolean }) {
-  const ready = useAssessmentReady();
+/** Desktop: 248 px sidebar, collapsible to a 72 px rail. Tablet: rail only. */
+function Sidebar({ active, collapsed, onToggle, ready }: { active: NavKey | null; collapsed: boolean; onToggle: () => void; ready: boolean }) {
+  const [mac, setMac] = useState(false);
+  useEffect(() => setMac(/Mac|iPhone|iPad/.test(navigator.platform)), []);
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="h-14 justify-center px-3">
-        <Link href="/today" aria-label="Socrat home" className="[&_.wordmark-label]:group-data-[collapsible=icon]:hidden">
-          <Wordmark className="text-base" />
+    <aside
+      className={cn(
+        'sticky top-0 hidden h-dvh flex-none flex-col border-r bg-card md:flex',
+        'w-[72px]',
+        !collapsed && 'lg:w-[248px]',
+      )}
+      data-collapsed={collapsed}
+    >
+      <div className={cn('flex h-16 items-center px-[22px]', !collapsed && 'lg:px-5')}>
+        <Link href="/today" aria-label="Socrat, Today" className="rounded-full">
+          <span className={cn('hidden', !collapsed && 'lg:inline')}><Wordmark /></span>
+          <span className={cn(!collapsed && 'lg:hidden')}><Wordmark compact /></span>
         </Link>
-      </SidebarHeader>
-      <SidebarContent>
-        <nav aria-label="Main">
-          <NavGroup label="Learn" items={NAV} current={current} flagged={ready ? '/assessments' : undefined} />
-          <NavGroup label="More" items={MORE} current={current} />
-        </nav>
-      </SidebarContent>
-      <SidebarFooter className="group-data-[collapsible=icon]:hidden">
-        <div className="rounded-lg border bg-card p-3 text-xs text-muted-foreground">
-          <p className="mb-1 font-medium text-foreground">Tip</p>
-          Press <kbd className="rounded border bg-muted px-1 font-mono">⌘K</kbd> to jump to any lesson or problem.
-        </div>
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
-  );
-}
-
-function MobileNav({ current }: { current: (href: string) => boolean }) {
-  return (
-    <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-      {MOBILE.map(item => (
-        <Link
-          key={item.href}
-          href={item.href}
-          aria-current={current(item.href) ? 'page' : undefined}
-          className={cn('grid justify-items-center gap-0.5 py-2 text-[11px] font-medium text-muted-foreground', current(item.href) && 'text-primary')}
+      </div>
+      <nav aria-label="Main" className="flex-1 px-3 pt-2">
+        <ul className="grid gap-1">
+          {NAV.map(item => {
+            const Icon = ICON[item.key];
+            const current = active === item.key;
+            const flagged = ready && item.key === 'evidence';
+            const link = (
+              <Link
+                href={item.href}
+                aria-current={current ? 'page' : undefined}
+                className={cn(
+                  'relative flex h-12 items-center gap-3 rounded-full px-3 text-[15px] font-medium transition-colors',
+                  current ? 'bg-primary font-bold text-primary-foreground' : 'text-muted-foreground hover:bg-raised hover:text-foreground',
+                )}
+              >
+                <Icon className="size-6 flex-none" strokeWidth={1.5} aria-hidden="true" />
+                <span className={cn('sr-only', !collapsed && 'lg:not-sr-only')}>{item.label}</span>
+                {flagged ? (
+                  <span className={cn('absolute top-2.5 left-8 size-2 rounded-full bg-secondary ring-2 ring-card', !collapsed && 'lg:static lg:ml-auto')}>
+                    <span className="sr-only">: weekly assessment available</span>
+                  </span>
+                ) : null}
+              </Link>
+            );
+            return (
+              <li key={item.key}>
+                <Tooltip>
+                  <TooltipTrigger asChild>{link}</TooltipTrigger>
+                  <TooltipContent side="right" className={cn(!collapsed && 'lg:hidden')}>{item.label}</TooltipContent>
+                </Tooltip>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      <div className="grid gap-1 border-t px-3 py-3">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('socrat:search'))}
+          className="flex h-12 items-center gap-3 rounded-full px-3 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-raised hover:text-foreground"
+          aria-label="Search Socrat"
         >
-          <item.icon className="size-5" aria-hidden="true" />
-          {item.label}
-        </Link>
-      ))}
+          <svg viewBox="0 0 24 24" className="size-6 flex-none" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <span className={cn('hidden flex-1 text-left', !collapsed && 'lg:inline')}>Search</span>
+          <kbd className={cn('hidden rounded-md border border-border-strong px-1.5 font-sans text-xs', !collapsed && 'lg:inline')}>{mac ? '⌘K' : 'Ctrl K'}</kbd>
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="hidden h-12 items-center gap-3 rounded-full px-3 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-raised hover:text-foreground lg:flex"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? <PanelLeftOpen className="size-6" strokeWidth={1.5} aria-hidden="true" /> : <PanelLeftClose className="size-6" strokeWidth={1.5} aria-hidden="true" />}
+          <span className={cn('hidden', !collapsed && 'lg:inline')}>Collapse</span>
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+/** Phone: five destinations. 64 px plus the safe area; active item has a violet pill behind its icon. */
+function MobileNav({ active, ready }: { active: NavKey | null; ready: boolean }) {
+  return (
+    <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
+      <ul className="grid h-16 grid-cols-5">
+        {MOBILE.map(item => {
+          const Icon = ICON[item.key];
+          const current = active === item.key;
+          return (
+            <li key={item.key}>
+              <Link
+                href={item.href}
+                aria-current={current ? 'page' : undefined}
+                className={cn('relative grid h-full content-center justify-items-center gap-1 text-xs font-medium text-muted-foreground', current && 'font-bold text-foreground')}
+              >
+                <span className={cn('grid h-8 w-14 place-items-center rounded-full transition-colors', current && 'bg-primary text-primary-foreground')}>
+                  <Icon className="size-6" strokeWidth={1.5} aria-hidden="true" />
+                </span>
+                {item.label}
+                {ready && item.key === 'evidence' ? <span className="absolute top-2 right-[calc(50%-22px)] size-2 rounded-full bg-secondary"><span className="sr-only">: weekly assessment available</span></span> : null}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
@@ -264,31 +278,34 @@ function MobileNav({ current }: { current: (href: string) => boolean }) {
 function MarketingShell({ children }: { children: ReactNode }) {
   const { profile } = useSession();
   const pathname = usePathname();
+  const ownChrome = pathname === '/' || pathname === '/login';
   return (
     <>
       <a href="#main" className="skip-link">Skip to content</a>
       <DevBanner />
-      {pathname !== '/' && pathname !== '/login' ? <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href={profile ? '/today' : '/'} aria-label="Socrat home"><Wordmark /></Link>
-          <nav className="flex items-center gap-1" aria-label="Site">
-            {profile ? (
-              ['/start', '/placement'].includes(pathname) ? null : <Button asChild size="sm"><Link href="/today">Open app</Link></Button>
-            ) : pathname !== '/login' ? (
-              <>
-                <Button asChild variant="ghost" size="sm"><Link href="/login">Sign in</Link></Button>
-                <Button asChild size="sm"><Link href="/login">Get started</Link></Button>
-              </>
-            ) : null}
-          </nav>
-        </div>
-      </header> : null}
+      {ownChrome ? null : (
+        <header className="sticky top-0 z-40 border-b bg-background">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+            <Link href={profile ? '/today' : '/'} aria-label="Socrat home" className="rounded-full"><Wordmark /></Link>
+            <nav className="flex items-center gap-2" aria-label="Site">
+              {profile ? (
+                ['/start', '/placement'].includes(pathname) ? null : <Button asChild size="sm"><Link href="/today">Open app</Link></Button>
+              ) : (
+                <>
+                  <Button asChild variant="link" size="sm"><Link href="/login">Log in</Link></Button>
+                  <Button asChild size="sm"><Link href="/login">Get started</Link></Button>
+                </>
+              )}
+            </nav>
+          </div>
+        </header>
+      )}
       <main id="main" tabIndex={-1} className="outline-none"><PageTransition>{children}</PageTransition></main>
     </>
   );
 }
 
-// Route changes animate the content area only; links tagged nav-forward/nav-back slide.
+// Route changes fade the content area only; the header stays.
 const PAGE_MOTION = { 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'page-fade' };
 
 function PageTransition({ children }: { children: ReactNode }) {
@@ -304,30 +321,36 @@ export default function Shell({ children }: { children: ReactNode }) {
   const { profile } = useSession();
   const pathname = usePathname();
   const learning = Boolean(profile?.enrollment && profile.enrollment.status === 'active');
-  const current = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`) || (href === '/library' && pathname.startsWith('/companies'));
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try { setCollapsed(localStorage.getItem(COLLAPSE_KEY) === 'true'); } catch { /* default expanded */ }
+  }, []);
+  const ready = useAssessmentReady();
 
   if (!learning) return <MarketingShell>{children}</MarketingShell>;
 
+  const active = navFor(pathname);
+  const toggle = () => setCollapsed(value => {
+    try { localStorage.setItem(COLLAPSE_KEY, String(!value)); } catch { /* per-viewer nicety only */ }
+    return !value;
+  });
   return (
-    <SidebarProvider>
+    <div className="flex min-h-dvh">
       <a href="#main" className="skip-link">Skip to content</a>
-      <AppSidebar current={current} />
-      <SidebarInset id="main" tabIndex={-1} className="min-w-0 outline-none">
+      <Sidebar active={active} collapsed={collapsed} onToggle={toggle} ready={ready} />
+      <div className="flex min-w-0 flex-1 flex-col">
         <DevBanner />
-        <header style={{ viewTransitionName: 'app-header' }} className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sm:px-4">
-          <SidebarTrigger className="hidden md:inline-flex" />
-          <Link href="/today" className="md:hidden" aria-label="Socrat home"><Wordmark compact /></Link>
-          <Separator orientation="vertical" className="mx-1 hidden h-5 md:block" />
+        <header style={{ viewTransitionName: 'app-header' }} className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b bg-background px-4 lg:px-10">
+          <Link href="/today" className="rounded-full md:hidden" aria-label="Socrat, Today"><Wordmark size={26} /></Link>
           <div className="min-w-0 flex-1"><CommandMenu /></div>
           <div className="ml-auto flex items-center gap-1.5">
             <Momentum />
             <UserMenu />
           </div>
         </header>
-        <div className="min-w-0 flex-1"><PageTransition>{children}</PageTransition></div>
-      </SidebarInset>
-      <MobileNav current={current} />
-    </SidebarProvider>
+        <main id="main" tabIndex={-1} className="min-w-0 flex-1 outline-none"><PageTransition>{children}</PageTransition></main>
+      </div>
+      <MobileNav active={active} ready={ready} />
+    </div>
   );
 }

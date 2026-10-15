@@ -2,20 +2,20 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { Building2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { conceptHref } from '@/lib/routes';
+import { NAME, conceptHref } from '@/lib/routes';
 import type { CompanyProblem } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { BandBadge, Difficulty, ErrorNote, Loading, Page, PageHeader } from '@/components/common';
+import { Difficulty, ErrorNote, Loading, Page, PageHeader } from '@/components/common';
 import { ProblemName } from '@/components/practice';
+import { PracticeNav } from '@/components/socrat/practice-nav';
+import { EmptyState } from '@/components/socrat/states';
+import { StatusIcon, statusFromBand } from '@/components/socrat/status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -30,6 +30,17 @@ const WINDOWS = [
 ] as const;
 const PAGE = 50;
 
+function Frequency({ value }: { value: number }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="relative h-1.5 w-16 overflow-hidden rounded-full bg-raised" aria-hidden="true">
+        <span className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${value}%` }} />
+      </span>
+      <span className="text-[13px] font-semibold tabular-nums">{Math.round(value)}%<span className="sr-only"> frequency</span></span>
+    </span>
+  );
+}
+
 export default function Companies() {
   const allowed = useGuard('active');
   const [query, setQuery] = useState('');
@@ -40,19 +51,39 @@ export default function Companies() {
   const [view, setView] = useState<CompanyView | null>(null);
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState('');
+  const [phone, setPhone] = useState(false);
+
+  // Selection lives in the URL so back and reload keep it.
+  useEffect(() => {
+    setPhone(window.matchMedia('(max-width: 1023px)').matches);
+    const company = new URLSearchParams(window.location.search).get('company');
+    if (company) setSelected(company);
+    const onPop = () => setSelected(new URLSearchParams(window.location.search).get('company') ?? '');
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  function choose(slug: string) {
+    setSelected(slug);
+    setOffset(0);
+    window.history.pushState(null, '', slug ? `/companies?company=${encodeURIComponent(slug)}` : '/companies');
+  }
 
   useEffect(() => {
     if (!allowed) return;
     const timer = setTimeout(() => {
       api.get<{ items: Company[] }>(`/companies?q=${encodeURIComponent(query)}&limit=60`)
-        .then(r => { setCompanies(r.items); setSelected(s => s || r.items[0]?.slug || ''); })
+        .then(r => {
+          setCompanies(r.items);
+          // Desktop shows a company straight away; phones start with the list.
+          if (!window.matchMedia('(max-width: 1023px)').matches) setSelected(s => s || r.items[0]?.slug || '');
+        })
         .catch(e => setError(explain(e)));
     }, 200);
     return () => clearTimeout(timer);
   }, [allowed, query]);
 
   const load = useCallback(() => {
-    if (!selected) return;
+    if (!selected) { setView(null); return; }
     setError('');
     api.get<CompanyView>(`/companies/${selected}?window=${range}&difficulty=${difficulty}&offset=${offset}&limit=${PAGE}`)
       .then(setView)
@@ -60,120 +91,139 @@ export default function Companies() {
   }, [selected, range, difficulty, offset]);
   useEffect(load, [load]);
 
-  if (!allowed || !companies) return <Loading variant="list" />;
+  if (!allowed || !companies) return <Loading variant="list" label="Loading company questions" />;
+
+  const unlocked = companies.reduce((sum, c) => sum + c.problems, 0);
+  const nothingUnlocked = !companies.length && !query;
+  const showList = !phone || !selected;
+  const showResults = !phone || Boolean(selected);
+  const filtered = range !== 'all' || difficulty !== 'all';
 
   return (
     <Page wide>
-      <PageHeader
-        eyebrow="Interview prep"
-        title="Company question bank"
-        description="Interview questions for topics you have completed, ordered by frequency. More companies and questions unlock as you learn."
-      />
+      <PracticeNav />
+      <PageHeader eyebrow={NAME.practice} title={NAME.companies} description="Interview questions for skills you have finished, ordered by how often they are asked." />
 
-      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <Card size="sm" className="h-fit lg:sticky lg:top-20">
-          <CardContent className="grid gap-3">
-            <InputGroup>
-              <InputGroupAddon><Search /></InputGroupAddon>
-              <InputGroupInput placeholder="Search companies" aria-label="Search companies" value={query} onChange={e => setQuery(e.target.value)} />
-            </InputGroup>
-            <ScrollArea className="h-[60vh]">
-              <ul className="grid gap-0.5 pr-2">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card bg-raised px-5 py-4">
+        <p className="font-semibold">Questions appear as you finish skills.</p>
+        {!nothingUnlocked ? <p className="text-sm font-semibold text-muted-foreground tabular-nums">{unlocked.toLocaleString()} unlocked{query ? ' in matching companies' : ''}</p> : null}
+      </div>
+
+      {nothingUnlocked ? (
+        <EmptyState title="Nothing unlocked yet" action={<Button asChild variant="outline"><Link href="/plan">Go to {NAME.skills}</Link></Button>}>
+          Nothing unlocked yet. Questions appear as you finish skills.
+        </EmptyState>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+          {showList ? (
+            <aside aria-label="Companies" className="h-fit rounded-card border bg-card p-3 lg:sticky lg:top-24">
+              <div className="relative mb-2">
+                <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <input type="search" placeholder="Search companies" aria-label="Search companies" value={query} onChange={e => setQuery(e.target.value)} className="h-12 w-full rounded-control border border-border-strong bg-card pr-3 pl-10 text-[15px] outline-none focus-visible:border-ring" />
+              </div>
+              <ul className="grid max-h-[60dvh] gap-0.5 overflow-y-auto">
                 {companies.map(c => (
                   <li key={c.slug}>
                     <button
                       type="button"
-                      className={cn('flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm transition-colors hover:bg-muted', selected === c.slug && 'bg-primary/10 font-medium text-primary')}
+                      className={cn('flex min-h-11 w-full items-center justify-between gap-2 rounded-[14px] px-3 py-2 text-left text-[15px] transition-colors hover:bg-raised', selected === c.slug && 'bg-primary font-bold text-primary-foreground hover:bg-primary')}
                       aria-pressed={selected === c.slug}
-                      onClick={() => { setSelected(c.slug); setOffset(0); }}
+                      onClick={() => choose(c.slug)}
                     >
-                      <span className="flex min-w-0 items-center gap-2"><Building2 className="size-3.5 flex-none opacity-60" /><span className="truncate">{c.name}</span></span>
-                      <span className="text-xs text-muted-foreground tabular-nums">{c.problems}</span>
+                      <span className="truncate">{c.name}</span>
+                      <span className="text-[13px] tabular-nums">{c.problems}<span className="sr-only"> unlocked</span></span>
                     </button>
                   </li>
                 ))}
-                {!companies.length ? <li className="px-3 py-2 text-sm text-muted-foreground">No unlocked questions match. Complete lessons in your plan to unlock company questions.</li> : null}
+                {!companies.length ? <li className="px-3 py-3 text-sm text-muted-foreground">No companies match that search.</li> : null}
               </ul>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        <section className="min-w-0">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold tracking-tight">
-              {view?.name ?? (companies.length ? 'Loading…' : 'Questions unlock as you learn')} {view ? <span className="text-sm font-normal text-muted-foreground">· {view.total} problems</span> : null}
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              <NativeSelect value={range} onChange={e => { setRange(e.target.value as typeof range); setOffset(0); }} aria-label="Time window">
-                {WINDOWS.map(([id, label]) => <NativeSelectOption key={id} value={id}>{label}</NativeSelectOption>)}
-              </NativeSelect>
-              <NativeSelect value={difficulty} onChange={e => { setDifficulty(e.target.value as typeof difficulty); setOffset(0); }} aria-label="Difficulty">
-                <NativeSelectOption value="all">Any difficulty</NativeSelectOption>
-                <NativeSelectOption value="easy">Easy</NativeSelectOption>
-                <NativeSelectOption value="medium">Medium</NativeSelectOption>
-                <NativeSelectOption value="hard">Hard</NativeSelectOption>
-              </NativeSelect>
-            </div>
-          </div>
-          <Card className="gap-0 overflow-hidden py-0">
-            <Table>
-              <TableHeader className="bg-muted/40">
-                <TableRow>
-                  <TableHead className="pl-4">Problem</TableHead>
-                  <TableHead>Difficulty</TableHead>
-                  <TableHead>Frequency</TableHead>
-                  <TableHead className="pr-4">Concept</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {view?.items.map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell className="min-w-56 py-3 pl-4 whitespace-normal">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <ProblemName problem={p} />
-                        {p.striver ? <Badge variant="secondary">A2Z</Badge> : null}
-                      </span>
-                    </TableCell>
-                    <TableCell><Difficulty level={p.difficulty} /></TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="relative h-1.5 w-16 overflow-hidden rounded-full bg-muted" role="img" aria-label={`Frequency ${p.frequency}%`}>
-                          <span className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${p.frequency}%` }} />
-                        </span>
-                        <span className="text-xs text-muted-foreground tabular-nums">{Math.round(p.frequency)}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="min-w-48 pr-4">
-                      {p.concept ? (
-                        <Link href={conceptHref(p.concept.id)} className="grid gap-0.5 hover:text-primary">
-                          <span className="text-sm">{p.concept.title}</span>
-                          <BandBadge band={p.concept.band} />
-                        </Link>
-                      ) : <span className="text-xs text-muted-foreground">—</span>}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {!view && companies.length ? Array.from({ length: 8 }, (_, i) => (
-                  <TableRow key={`s${i}`}><TableCell colSpan={4} className="px-4"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
-                )) : null}
-                {!companies.length ? <TableRow><TableCell colSpan={4} className="py-10 text-center text-muted-foreground">Complete topic lessons to unlock matching questions. <Link href="/plan" className="text-primary underline">Continue your plan</Link></TableCell></TableRow> : null}
-                {view && !view.items.length ? (
-                  <TableRow><TableCell colSpan={4} className="py-10 text-center text-muted-foreground">No problems in this window. Try a longer time range.</TableCell></TableRow>
-                ) : null}
-              </TableBody>
-            </Table>
-          </Card>
-          {view && view.total > PAGE ? (
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(o => Math.max(0, o - PAGE))}><ChevronLeft data-icon="inline-start" /> Previous</Button>
-              <span className="text-muted-foreground tabular-nums">{offset + 1}–{Math.min(offset + PAGE, view.total)} of {view.total}</span>
-              <Button variant="outline" size="sm" disabled={offset + PAGE >= view.total} onClick={() => setOffset(o => o + PAGE)}>Next <ChevronRight data-icon="inline-end" /></Button>
-            </div>
+            </aside>
           ) : null}
-          {error ? <ErrorNote message={error} retry={load} /> : null}
-          <p className="mt-4 text-xs text-muted-foreground">Company frequency data: community-maintained LeetCode snapshots. Problems open on LeetCode.</p>
-        </section>
-      </div>
+
+          {showResults ? (
+            <section className="min-w-0" aria-labelledby="company-heading">
+              {phone ? (
+                <Button variant="ghost" size="sm" className="-ml-3 mb-2" onClick={() => choose('')}><ArrowLeft data-icon="inline-start" /> All companies</Button>
+              ) : null}
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <h2 id="company-heading" className="font-display text-2xl font-bold tracking-[-0.03em]">
+                  {view?.name ?? 'Loading'} {view ? <span className="text-base font-semibold text-muted-foreground tabular-nums">{view.total} unlocked</span> : null}
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  <NativeSelect value={range} onChange={e => { setRange(e.target.value as typeof range); setOffset(0); }} aria-label="Time window">
+                    {WINDOWS.map(([id, label]) => <NativeSelectOption key={id} value={id}>{label}</NativeSelectOption>)}
+                  </NativeSelect>
+                  <NativeSelect value={difficulty} onChange={e => { setDifficulty(e.target.value as typeof difficulty); setOffset(0); }} aria-label="Difficulty">
+                    <NativeSelectOption value="all">Any difficulty</NativeSelectOption>
+                    <NativeSelectOption value="easy">Easy</NativeSelectOption>
+                    <NativeSelectOption value="medium">Medium</NativeSelectOption>
+                    <NativeSelectOption value="hard">Hard</NativeSelectOption>
+                  </NativeSelect>
+                </div>
+              </div>
+
+              <div className="hidden overflow-hidden rounded-card border bg-card md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="pl-5">Problem</TableHead>
+                      <TableHead>Difficulty</TableHead>
+                      <TableHead>Frequency</TableHead>
+                      <TableHead className="pr-5">Skill</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {view?.items.map(p => (
+                      <TableRow key={p.id}>
+                        <TableCell className="min-w-56 py-3 pl-5 whitespace-normal">
+                          <span className="flex flex-wrap items-center gap-2"><ProblemName problem={p} />{p.striver ? <Badge variant="secondary">A2Z</Badge> : null}</span>
+                        </TableCell>
+                        <TableCell><Difficulty level={p.difficulty} /></TableCell>
+                        <TableCell><Frequency value={p.frequency} /></TableCell>
+                        <TableCell className="min-w-48 pr-5 whitespace-normal">
+                          {p.concept ? (
+                            <Link href={conceptHref(p.concept.id)} className="inline-flex items-center gap-2 text-[15px] underline-offset-4 hover:underline">
+                              <StatusIcon status={statusFromBand(p.concept.band)} size={20} />{p.concept.title}
+                            </Link>
+                          ) : null}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!view ? Array.from({ length: 8 }, (_, i) => (
+                      <TableRow key={`s${i}`}><TableCell colSpan={4} className="px-5"><Skeleton className="h-7 w-full" /></TableCell></TableRow>
+                    )) : null}
+                  </TableBody>
+                </Table>
+              </div>
+              <ul className="grid gap-3 md:hidden">
+                {view?.items.map(p => (
+                  <li key={p.id} className="grid gap-3 rounded-card border bg-card p-4">
+                    <ProblemName problem={p} className="text-base" />
+                    <div className="flex flex-wrap items-center gap-3"><Difficulty level={p.difficulty} /><Frequency value={p.frequency} /></div>
+                    {p.concept ? <Link href={conceptHref(p.concept.id)} className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4"><StatusIcon status={statusFromBand(p.concept.band)} size={20} />{p.concept.title}</Link> : null}
+                  </li>
+                ))}
+                {!view ? Array.from({ length: 4 }, (_, i) => <li key={i}><Skeleton className="h-28 rounded-card" /></li>) : null}
+              </ul>
+
+              {view && !view.items.length ? (
+                <EmptyState title="No questions match these filters" className="mt-4" action={filtered ? <Button variant="outline" onClick={() => { setRange('all'); setDifficulty('all'); setOffset(0); }}>Clear filters</Button> : undefined}>
+                  Clear a filter to see more.
+                </EmptyState>
+              ) : null}
+              {view && view.total > PAGE ? (
+                <nav aria-label="Pages" className="mt-4 flex items-center justify-between text-sm">
+                  <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(o => Math.max(0, o - PAGE))}><ChevronLeft data-icon="inline-start" /> Previous</Button>
+                  <span className="font-semibold text-muted-foreground tabular-nums">{offset + 1} to {Math.min(offset + PAGE, view.total)} of {view.total}</span>
+                  <Button variant="outline" size="sm" disabled={offset + PAGE >= view.total} onClick={() => setOffset(o => o + PAGE)}>Next <ChevronRight data-icon="inline-end" /></Button>
+                </nav>
+              ) : null}
+              {error ? <ErrorNote message={error} retry={load} /> : null}
+              <p className="mt-4 text-[13px] text-muted-foreground">Frequency data comes from community-maintained LeetCode snapshots. Problems open on LeetCode.</p>
+            </section>
+          ) : null}
+        </div>
+      )}
     </Page>
   );
 }

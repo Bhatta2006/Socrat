@@ -32,13 +32,13 @@ async function mockVisual(page: Page) {
 test('generated visual is embedded, interactive, editable, keyboard operable and isolated', async ({ page }, info) => {
   await enrolled(page); await mockVisual(page); await page.goto('/playground');
   const request = 'Explain how equal groups create a product. Let me edit the multiplier.';
-  await page.getByLabel('Your request', { exact: true }).fill(request);
+  await page.getByLabel('Your question', { exact: true }).fill(request);
   const sent = page.waitForRequest(r => r.url().endsWith('/playground/generate'));
-  await page.getByRole('button', { name: 'Generate visual', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   const payload = (await sent).postDataJSON();
   expect(Object.keys(payload).sort()).toEqual(['level','prompt','request_id']); expect(payload.prompt).toBe(request);
   await expect(page.getByRole('heading', { name: 'Interactive multiplier', exact: true })).toBeVisible();
-  await expect(page.getByText('Step 1 / 4', { exact: true })).toBeVisible();
+  await expect(page.getByText('Step 1 of 4', { exact: true })).toBeVisible();
   const iframe = page.frameLocator('iframe[title="Interactive multiplier — interactive visual"]');
   await expect(iframe.getByLabel('Multiplier', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Next visual step', exact: true }).click();
@@ -56,7 +56,7 @@ test('generated visual is embedded, interactive, editable, keyboard operable and
     (window as unknown as { __explainer: { step: (index: number) => void } }).__explainer.step(2);
     document.getElementById('factor')!.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  await expect(page.getByText('Step 3 / 4', { exact: true })).toBeVisible();
+  await expect(page.getByText('Step 3 of 4', { exact: true })).toBeVisible();
   await expect(timeline).toHaveValue('2');
   await page.getByRole('button', { name: 'Reset', exact: true }).click();
   const isolation = await frame.evaluate(() => {
@@ -90,15 +90,16 @@ test('saved visual reopens after a preview error without another generation', as
   let generations = 0;
   page.on('request', request => { if (request.url().endsWith('/playground/generate')) generations++; });
   await page.route('**/api/v1/playground/artifacts/visual-fixture', route => route.fulfill({ json: artifact(request) }));
-  await page.goto('/playground'); await page.getByLabel('Your request', { exact: true }).fill(request);
-  await page.getByRole('button', { name: 'Generate visual', exact: true }).click();
+  await page.goto('/playground'); await page.getByLabel('Your question', { exact: true }).fill(request);
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('iframe')).toHaveCSS('opacity', '1');
   const frame = page.frames().find(f => f.url().startsWith(frameURL))!;
   await frame.evaluate(() => window.dispatchEvent(new ErrorEvent('error', { message: 'Preview failed' })));
-  await expect(page.getByRole('alert').filter({ hasText: 'This visual stopped responding' })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'The visual stopped responding' })).toBeVisible();
   await expect(page.locator('iframe')).toHaveCount(0);
-  await page.getByRole('button', { name: /Your saved visuals/ }).click();
-  await page.getByRole('button', { name: 'Interactive multiplier', exact: true }).click();
+  // Saved visuals: a panel tab on wide screens, an accordion on phones.
+  await page.locator('[role="tab"]:visible, summary:visible').filter({ hasText: /^Saved \(/ }).first().click();
+  await page.getByRole('button', { name: 'Open Interactive multiplier', exact: true }).click();
   await expect(page.locator('iframe')).toHaveCSS('opacity', '1');
   expect(generations).toBe(1);
 });
@@ -109,9 +110,9 @@ test('visual receives the dashboard theme in light and dark modes', async ({ pag
   for (const theme of ['light','dark'] as const) {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
     await page.goto('/playground');
-    await page.getByLabel('Your request', { exact: true }).fill('Explain multiplication visually');
-    await page.getByRole('button', { name: 'Generate visual', exact: true }).click();
-    await expect(page.getByText('Step 1 / 4', { exact: true })).toBeVisible();
+    await page.getByLabel('Your question', { exact: true }).fill('Explain multiplication visually');
+    await page.getByRole('button', { name: 'Generate', exact: true }).click();
+    await expect(page.getByText('Step 1 of 4', { exact: true })).toBeVisible();
     const primary = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--primary').trim());
     const frame = page.frames().find(f => f.url().startsWith(frameURL))!;
     await expect.poll(() => frame.evaluate(() => document.documentElement.style.getPropertyValue('--primary').trim())).toBe(primary);
@@ -132,27 +133,27 @@ test('course search stays scoped and generation sends the free request without p
   await expect(dialog.getByText('No results. Try another word.')).toBeVisible(); await page.keyboard.press('Escape');
   expect((await page.request.get('/api/v1/concepts/dsa:complexity')).status()).toBe(404);
   expect((await (await page.request.get('/api/v1/library?sort=popular')).json()).total).toBe(0);
-  await page.getByRole('link', { name: 'Explore your weak topics' }).click();
+  await page.getByRole('link', { name: /Ask about any concept|visually$/ }).first().click();
   const request = 'Explain the phases of the Moon with an interactive orbit';
-  await page.getByLabel('Your request', { exact: true }).fill(request);
+  await page.getByLabel('Your question', { exact: true }).fill(request);
   const sent = page.waitForRequest(r => r.url().endsWith('/playground/generate'));
-  await page.getByRole('button', { name: 'Generate visual', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   expect((await sent).postDataJSON().prompt).toBe(request);
-  await expect(page.getByText(`You asked: ${request}`, { exact: true })).toBeVisible();
+  await expect(page.getByTestId('request-bar')).toContainText(request);
 });
 
 test('failed generation preserves the request and reporting removes a saved visual', async ({ page }) => {
   await enrolled(page); await mockVisual(page); await page.goto('/playground');
   const request = 'Explain multiplication with editable groups';
-  await page.getByLabel('Your request', { exact: true }).fill(request);
+  await page.getByLabel('Your question', { exact: true }).fill(request);
   await page.route('**/api/v1/playground/generate', route => route.fulfill({ contentType: 'text/event-stream', body: 'event: error\ndata: {"code":"playground_generation_invalid"}\n\n' }));
-  await page.getByRole('button', { name: 'Generate visual', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'Your request is still here' })).toBeVisible();
-  await expect(page.getByLabel('Your request', { exact: true })).toHaveValue(request);
+  await expect(page.getByLabel('Your question', { exact: true })).toHaveValue(request);
   await expect(page.locator('iframe')).toHaveCount(0);
   await page.unroute('**/api/v1/playground/generate'); await mockVisual(page);
-  await page.getByRole('button', { name: 'Generate visual', exact: true }).click();
-  await expect(page.getByText('Step 1 / 4', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect(page.getByText('Step 1 of 4', { exact: true })).toBeVisible();
   await page.route('**/api/v1/playground/artifacts/visual-fixture/report', route => route.fulfill({ json: { reported: true } }));
   await page.getByRole('button', { name: 'Report an issue' }).click();
   await page.getByLabel('What went wrong?').fill('The example does not explain the question.');

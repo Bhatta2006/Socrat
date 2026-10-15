@@ -3,28 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ArrowUpRight, Check, Code2, Lightbulb, Route } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { destination, useSession } from '@/lib/session';
 import type { Features } from '@/lib/types';
-import { ErrorNote } from '@/components/common';
-import { Button } from '@/components/ui/button';
-import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
+import { ErrorState } from '@/components/socrat/states';
+import { Illustration } from '@/components/socrat/illustration';
+import { Wordmark } from '@/components/socrat/wordmark';
+import { ArrowCircle, Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Spinner } from '@/components/ui/spinner';
-import './login.css';
-
-const PROMISES = [
-  'A plan that adapts to what you actually know',
-  'Lessons and problems in Python, C++ or Java',
-  'A tutor that guides instead of giving answers away',
-];
 
 function GoogleMark() {
   return (
-    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
       <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z" />
       <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z" />
       <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z" />
@@ -65,66 +57,66 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
   }
 
   return (
-    <div className="login-page" data-theme="socrat-landing">
-      <header className="login-header"><Link href="/" className="login-brand" aria-label="Socrat home"><span className="login-mark" aria-hidden="true"><i /><i /><i /></span>socrat<span>.</span></Link><Link href="/" className="login-back"><ArrowLeft size={16} aria-hidden="true" /> Back to home</Link></header>
-      <div className="login-layout">
-        <section className="login-story" aria-labelledby="login-story-title">
-          <div className="login-banner">
-            <p className="login-kicker"><span /> A little curiosity goes a long way</p>
-            <h2 id="login-story-title">Learn today.<br />Think further<br />tomorrow.</h2>
-            <p>Your next breakthrough starts with a question. Let’s find the answer together.</p>
-            <div className="login-art" aria-hidden="true"><div className="login-torus" /><div className="login-coil"><span /><span /><span /><span /></div><div className="login-pebble" /></div>
-            <span className="login-banner-note">Made for the way you learn <ArrowUpRight size={17} aria-hidden="true" /></span>
-          </div>
-          <div className="login-feature-grid"><article><Route size={21} aria-hidden="true" /><h3>A path of your own</h3><p>Start where you are.<br />Know what comes next.</p></article><article><Lightbulb size={21} aria-hidden="true" /><h3>Room to figure it out</h3><p>A helpful question.<br />A hint when you need it.</p></article></div>
-          <div className="login-practice"><span className="login-practice-icon"><Code2 size={21} aria-hidden="true" /></span><div><h3>One idea. So many possibilities.</h3><p>Learn and practice in Python, C++ or Java.</p></div><span className="login-practice-shape" aria-hidden="true" /></div>
+    <div className="login-page min-h-dvh bg-background px-4 py-4 sm:px-6 lg:px-10 lg:py-8">
+      <div className="mx-auto mb-4 flex max-w-[1240px] items-center justify-between gap-4 lg:mb-6">
+        <Link href="/" aria-label="Socrat home" className="rounded-full"><Wordmark /></Link>
+        <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-[15px] font-semibold text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="size-4" aria-hidden="true" /> Back to home
+        </Link>
+      </div>
+
+      <div className="mx-auto grid max-w-[1240px] gap-4 lg:min-h-[calc(100dvh-140px)] lg:grid-cols-[1.1fr_1fr] lg:gap-6">
+        {/* Phone: the form comes first and this card shrinks to a compact header. */}
+        <section aria-labelledby="login-story-title" className="relative order-first flex flex-col justify-between gap-6 overflow-hidden rounded-card bg-secondary p-6 text-secondary-foreground max-lg:min-h-0 lg:order-none lg:p-10">
+          <h2 id="login-story-title" className="font-display text-4xl leading-[1.02] font-bold tracking-[-0.035em] lg:type-display-l lg:text-[64px] lg:leading-[60px]">Learn it.<br />Then prove it.</h2>
+          <Illustration name="welcome" proof className="hidden w-full max-w-[420px] self-end lg:block" />
+          <p className="hidden max-w-sm text-[15px] lg:block">A tutor that asks before it tells. A plan that follows your evidence.</p>
         </section>
-        <section className="login-panel" aria-labelledby="login-title">
-          <div className="login-form-content">
-          <p className="login-kicker">Your next chapter</p>
-          <h1 id="login-title">Welcome to Socrat</h1>
-          <p className="login-description">Sign in or create your account in one step.<br />Your learning journey is waiting.</p>
-          <div className="login-options">
-          {/* The page renders before the session check returns (fast first paint); the
-              sign-in options appear once the server says which are enabled. */}
-          {!features ? (
-            <div className="grid gap-4" role="status" aria-label="Loading sign-in options">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+
+        <section className="login-panel flex flex-col justify-center rounded-card border bg-card p-6 lg:p-12" aria-labelledby="login-title">
+          <div className="mx-auto w-full max-w-md">
+            <h1 id="login-title" className="type-display-l">Log in</h1>
+            <p className="mt-3 text-base text-muted-foreground">New to Socrat? Logging in creates your account.</p>
+
+            <div className="mt-8 grid gap-4">
+              {/* Sign-in options appear once the server says which are enabled. */}
+              {!features ? (
+                <div className="grid gap-4" role="status" aria-label="Loading sign-in options">
+                  <Skeleton className="h-13 w-full rounded-full" />
+                  <Skeleton className="h-40 w-full rounded-card" />
+                </div>
+              ) : null}
+              {features?.oidc_login ? (
+                <Button asChild variant="outline" size="lg" className="w-full">
+                  <a href="/api/v1/auth/login"><GoogleMark /> Continue with Google</a>
+                </Button>
+              ) : null}
+              {features?.dev_login ? (
+                <form onSubmit={devLogin} className="grid gap-4 rounded-card border border-dashed border-border-strong p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold">Simulated learner</p>
+                    <span className="rounded-full border border-border-strong px-3 py-0.5 text-[13px] font-semibold">Development only</span>
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="login-name" className="text-[15px] font-semibold">Your name</label>
+                    <Input id="login-name" value={name} onChange={e => setName(e.target.value)} maxLength={80} autoComplete="given-name" aria-describedby="login-name-help" required autoFocus />
+                    <p id="login-name-help" className="text-sm text-muted-foreground">This simulates a learner on a local build. The same name returns you to the same account.</p>
+                  </div>
+                  <Button size="lg" disabled={busy || !name.trim()} aria-busy={busy}>
+                    {busy ? 'Logging in' : 'Log in'}<ArrowCircle loading={busy} />
+                  </Button>
+                  {!name.trim() ? <p className="text-[13px] text-muted-foreground">Enter a name to continue.</p> : null}
+                </form>
+              ) : null}
+              {features && !features.oidc_login && !features.dev_login ? (
+                <p className="text-[15px] text-muted-foreground">Sign-in is not configured on this server.</p>
+              ) : null}
+              {error ? <ErrorState title="Could not log in" message={error} /> : null}
             </div>
-          ) : null}
-          {features?.oidc_login ? (
-            <Button asChild variant="outline" size="lg" className="login-google daisy-btn">
-              <a href="/api/v1/auth/login"><GoogleMark /> Continue with Google</a>
-            </Button>
-          ) : null}
-          {features?.oidc_login && features?.dev_login ? (
-            <div className="flex items-center gap-3 text-xs text-muted-foreground"><Separator className="flex-1" /> or, for local development <Separator className="flex-1" /></div>
-          ) : null}
-          {features?.dev_login ? (
-            <form onSubmit={devLogin} className="grid gap-4">
-              <Field>
-                <FieldLabel htmlFor="login-name">Your name</FieldLabel>
-                <Input id="login-name" className="login-input" placeholder="e.g. Ada" value={name} onChange={e => setName(e.target.value)} maxLength={80} autoComplete="given-name" aria-describedby="login-name-help" required autoFocus />
-                <FieldDescription id="login-name-help">Development sign-in: the same name returns you to the same account.</FieldDescription>
-              </Field>
-              <Button size="lg" className="login-submit daisy-btn" disabled={busy || !name.trim()}>
-                {busy ? <><Spinner /> Signing in…</> : <>Sign in <ArrowUpRight size={18} aria-hidden="true" /></>}
-              </Button>
-            </form>
-          ) : null}
-          {features && !features.oidc_login && !features.dev_login ? (
-            <p className="text-center text-sm text-muted-foreground">Sign-in is not configured on this server.</p>
-          ) : null}
-          {error ? <ErrorNote message={error} /> : null}
+            <p className="mt-8 text-sm text-muted-foreground">Socrat stores your learning data to plan your practice. You can export or delete it in Settings at any time.</p>
           </div>
-          <div className="login-reassurance"><p>Everything you need to keep going.</p><ul>{PROMISES.map(p => <li key={p}><Check size={15} aria-hidden="true" />{p}</li>)}</ul></div>
-          <p className="login-footnote">A good question is always a good start.</p>
-          </div>
-          <footer className="login-panel-footer"><span>Learn to think. Then code.</span><span>Python / C++ / Java</span></footer>
         </section>
       </div>
-      <footer className="login-footer"><span>© {new Date().getFullYear()} Socrat</span><span>Made for the curious.</span></footer>
     </div>
   );
 }

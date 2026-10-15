@@ -16,6 +16,46 @@ export function joinSegments(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value.map(decodeURIComponent).join(':') : decodeURIComponent(value ?? '');
 }
 
+/**
+ * Canonical names, used in navigation, titles, breadcrumbs, search and buttons. Routes keep
+ * their paths; only labels and grouping changed in the redesign.
+ */
+export const NAME = {
+  today: 'Today',
+  skills: 'Skills',
+  practice: 'Practice',
+  playground: 'Playground',
+  evidence: 'Evidence',
+  settings: 'Settings',
+  problems: 'Problems',
+  companies: 'Company questions',
+  sprint: 'Focus sprint',
+  assessment: 'Weekly assessment',
+} as const;
+
+export type NavKey = 'today' | 'skills' | 'practice' | 'playground' | 'evidence' | 'settings';
+
+/** Six destinations. Each lists the routes that live under it, for the active state. */
+export const NAV: { key: NavKey; href: string; label: string; owns: string[] }[] = [
+  { key: 'today', href: '/today', label: NAME.today, owns: ['/today'] },
+  { key: 'skills', href: '/plan', label: NAME.skills, owns: ['/plan', '/learn', '/quiz'] },
+  { key: 'practice', href: '/library', label: NAME.practice, owns: ['/library', '/companies', '/sprint', '/problems'] },
+  { key: 'playground', href: '/playground', label: NAME.playground, owns: ['/playground'] },
+  { key: 'evidence', href: '/progress', label: NAME.evidence, owns: ['/progress', '/assessments'] },
+  { key: 'settings', href: '/settings', label: NAME.settings, owns: ['/settings'] },
+];
+
+/** Practice is one place with three views; each segment is a real route. */
+export const PRACTICE_SEGMENTS = [
+  { href: '/library', label: NAME.problems },
+  { href: '/companies', label: NAME.companies },
+  { href: '/sprint', label: NAME.sprint },
+] as const;
+
+export function navFor(pathname: string): NavKey | null {
+  return NAV.find(item => item.owns.some(root => pathname === root || pathname.startsWith(`${root}/`)))?.key ?? null;
+}
+
 export const KIND_LABEL: Record<ActivityKind, string> = {
   lesson: 'Lesson',
   quiz: 'Concept check',

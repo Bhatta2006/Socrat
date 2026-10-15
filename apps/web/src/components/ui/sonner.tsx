@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, Loader2Icon } from "lucide-react"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
@@ -19,10 +19,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <InfoIcon className="size-4" />
         ),
         warning: (
-          <TriangleAlertIcon className="size-4" />
+          <TriangleAlertIcon className="size-4 text-attention" />
         ),
         error: (
-          <OctagonXIcon className="size-4" />
+          <TriangleAlertIcon className="size-4 text-attention" />
         ),
         loading: (
           <Loader2Icon className="size-4 animate-spin" />
@@ -33,12 +33,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
+          "--border-radius": "20px",
+          "--normal-bg-hover": "var(--raised)",
         } as React.CSSProperties
       }
+      duration={5000}
+      // Above the phone bottom nav and its safe area.
+      mobileOffset={{ bottom: "calc(80px + env(safe-area-inset-bottom))" }}
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast font-sans! text-[15px]! shadow-floating!",
         },
       }}
       {...props}

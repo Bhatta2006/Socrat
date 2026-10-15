@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Link2, RefreshCw, Trophy, Unlink } from 'lucide-react';
+import { Link2, RefreshCw, Unlink } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, explain } from '@/lib/api';
 import type { CodeforcesAccount } from '@/lib/types';
+import { AttentionIcon } from '@/components/socrat/states';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,8 +23,8 @@ function ago(seconds: number | null): string {
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-lg border bg-muted/30 px-3 py-2">
-      <p className="text-xs text-muted-foreground">{label}</p>
+    <div className="rounded-[16px] bg-raised px-3 py-2.5">
+      <p className="text-[13px] text-muted-foreground">{label}</p>
       <p className="text-base font-semibold tabular-nums">{value}</p>
     </div>
   );
@@ -45,8 +46,8 @@ export default function CodeforcesLink() {
     try {
       const result = await action();
       setAccount(result.account);
-      if (result.synced === false) toast.info('Synced recently', { description: 'Try again in a few minutes.' });
-      else toast.success('Codeforces synced', { description: `${result.account.solved} solved problems imported.` });
+      if (result.synced === false) toast.info('Synced recently. Try again in a few minutes.');
+      else toast.success(`Synced. ${result.account.solved} solved problems imported.`);
     } catch (e) {
       setError(explain(e));
     } finally {
@@ -55,10 +56,10 @@ export default function CodeforcesLink() {
   }
 
   return (
-    <Card id="codeforces" className="mb-6 scroll-mt-20" aria-labelledby="codeforces-heading">
+    <Card id="codeforces" className="scroll-mt-24" aria-labelledby="codeforces-heading">
       <CardHeader>
-        <CardTitle as="h2" id="codeforces-heading" className="flex items-center gap-2"><Trophy className="size-4 text-primary" /> Codeforces</CardTitle>
-        <CardDescription>Link your public handle and Socrat reads your rating and accepted solutions to pitch problems at the right level. Public data only — no password.</CardDescription>
+        <CardTitle as="h2" id="codeforces-heading" className="font-display text-xl font-bold tracking-[-0.03em]">Codeforces</CardTitle>
+        <CardDescription>Link your public handle and Socrat reads your rating and accepted solutions to pitch problems at the right level. Public data only. No password.</CardDescription>
         {account ? <CardAction><Badge variant="outline" className="capitalize">{account.rank}</Badge></CardAction> : null}
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -80,24 +81,24 @@ export default function CodeforcesLink() {
               <Button variant="outline" size="sm" disabled={busy} onClick={() => run(() => api.post('/library/codeforces/sync'))}>
                 {busy ? <Spinner /> : <RefreshCw data-icon="inline-start" />} Sync now
               </Button>
-              <Button variant="ghost" size="sm" disabled={busy} onClick={async () => { await api.del('/library/codeforces'); setAccount(null); toast('Codeforces unlinked'); }}>
+              <Button variant="ghost" size="sm" disabled={busy} onClick={async () => { await api.del('/library/codeforces'); setAccount(null); toast('Codeforces unlinked.'); }}>
                 <Unlink data-icon="inline-start" /> Unlink
               </Button>
-              <span className="text-xs text-muted-foreground">Last synced {ago(account.synced_at)}{account.sync_error ? ' · last sync failed, showing earlier data' : ''}</span>
+              <span className="text-[13px] text-muted-foreground">Last synced {ago(account.synced_at)}{account.sync_error ? '. The last sync failed, so earlier data is shown' : ''}</span>
             </div>
           </>
         ) : (
           <form className="flex flex-wrap items-end gap-2" onSubmit={e => { e.preventDefault(); if (handle.trim()) run(() => api.post('/library/codeforces', { handle: handle.trim() })); }}>
             <label className="grid gap-1.5">
-              <span className="text-xs font-medium">Your handle</span>
-              <Input className="h-9 w-60" value={handle} onChange={e => setHandle(e.target.value)} placeholder="e.g. tourist" autoComplete="off" maxLength={24} />
+              <span className="text-[15px] font-semibold">Your handle</span>
+              <Input className="w-64" value={handle} onChange={e => setHandle(e.target.value)} placeholder="e.g. tourist" autoComplete="off" maxLength={24} />
             </label>
-            <Button className="h-9" disabled={busy || !handle.trim()}>
+            <Button size="lg" disabled={busy || !handle.trim()} aria-busy={busy}>
               {busy ? <Spinner /> : <Link2 data-icon="inline-start" />} Link
             </Button>
           </form>
         )}
-        {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
+        {error ? <p role="alert" className="flex items-center gap-2 rounded-[16px] border border-attention px-3 py-2 text-sm"><AttentionIcon size={20} /> {error}</p> : null}
       </CardContent>
     </Card>
   );

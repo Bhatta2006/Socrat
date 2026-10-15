@@ -13,15 +13,9 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Difficulty } from './common';
 
-const PLATFORM_TONE: Record<string, string> = {
-  Socrat: 'border-primary/30 bg-primary/10 text-primary',
-  LeetCode: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  CSES: 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  Codeforces: 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300',
-};
-
+/** Platform as a plain outlined chip; platforms are not colour-coded. */
 export function PlatformTag({ platform }: { platform: string }) {
-  return <Badge variant="outline" className={cn('font-medium', PLATFORM_TONE[platform])}>{platform}</Badge>;
+  return <Badge variant="outline" className="font-medium">{platform}</Badge>;
 }
 
 /** Difficulty label plus the rating when the platform provides one. */
@@ -29,7 +23,7 @@ export function Level({ problem }: { problem: Pick<ExternalProblem, 'difficulty'
   return (
     <span className="inline-flex items-center gap-1.5">
       <Difficulty level={problem.difficulty} />
-      {problem.rating ? <span className="font-mono text-xs text-muted-foreground tabular-nums" title="Codeforces rating">{problem.rating}</span> : null}
+      {problem.rating ? <span className="text-[13px] font-semibold text-muted-foreground tabular-nums" title="Codeforces rating">{problem.rating}</span> : null}
     </span>
   );
 }
@@ -47,7 +41,7 @@ export function ProblemName({
   className?: string;
   onOpened?: () => void;
 }) {
-  const classes = cn('font-medium underline-offset-4 transition-colors hover:text-primary hover:underline', className);
+  const classes = cn('font-semibold underline-offset-4 transition-colors hover:underline', className);
   if (problem.url.startsWith('/')) return <Link href={problem.url} className={classes}>{problem.title}</Link>;
   return (
     <a
@@ -60,8 +54,8 @@ export function ProblemName({
       }}
     >
       {problem.title}
-      <span className="sr-only"> (opens on {problem.platform} in a new tab)</span>
-      <ExternalLink aria-hidden="true" className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover/link:opacity-100" />
+      <span className="sr-only">, opens on {problem.platform} in a new tab</span>
+      <ExternalLink aria-hidden="true" className="size-3.5 flex-none text-muted-foreground" strokeWidth={1.75} />
     </a>
   );
 }
@@ -86,8 +80,8 @@ export function StatusControl({
     try {
       const result = await api.put<{ status: PracticeStatus; bookmarked: boolean }>(`/library/problems/${id}`, body);
       onChange?.(result);
-      if (body.status === 'solved') toast.success('Marked solved', { description: 'Counted toward your mastery on this concept.' });
-      else if (body.bookmarked) toast.success('Saved to your list');
+      if (body.status === 'solved') toast.success('Marked solved.', { description: 'A self-reported solve counts lightly toward this skill.' });
+      else if (body.bookmarked) toast.success('Saved to your list.');
     } catch (e) {
       toast.error(explain(e));
     } finally {
@@ -102,8 +96,8 @@ export function StatusControl({
           <Button
             type="button"
             size={compact ? 'icon-sm' : 'sm'}
-            variant={solved ? 'default' : 'ghost'}
-            className={cn(solved && 'bg-success text-success-foreground hover:bg-success/90')}
+            variant={solved ? 'secondary' : 'ghost'}
+            className={cn(solved && 'font-bold')}
             disabled={busy}
             aria-pressed={solved}
             onClick={() => save({ status: solved ? 'attempted' : 'solved' })}
@@ -112,13 +106,13 @@ export function StatusControl({
             {compact ? <span className="sr-only">{solved ? 'Solved' : 'Mark as solved'}</span> : solved ? 'Solved' : 'Mark solved'}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{solved ? 'Solved — click to undo' : 'Mark as solved'}</TooltipContent>
+        <TooltipContent>{solved ? 'Solved. Select to undo' : 'Mark as solved'}</TooltipContent>
       </Tooltip>
       <Button
         type="button"
         size="icon-sm"
         variant="ghost"
-        className={cn(bookmarked ? 'text-amber-500' : 'text-muted-foreground')}
+        className={cn(bookmarked ? 'text-foreground' : 'text-muted-foreground')}
         disabled={busy}
         aria-pressed={bookmarked}
         aria-label={bookmarked ? 'Remove from my list' : 'Save to my list'}
@@ -133,17 +127,17 @@ export function StatusControl({
 export function LevelCard({ level, solved }: { level: Level; solved?: number }) {
   return (
     <div>
-      <p className="text-xs font-medium text-muted-foreground">Practice level</p>
-      <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-2xl font-semibold tracking-tight">{level.name}</span>
-        <span className="font-mono text-sm text-muted-foreground tabular-nums">~{level.rating}</span>
+      <p className="type-label text-muted-foreground">Practice level</p>
+      <div className="mt-2 flex items-baseline gap-2">
+        <span className="font-display text-3xl font-bold tracking-[-0.03em]">{level.name}</span>
+        <span className="text-sm font-semibold text-muted-foreground tabular-nums">about {level.rating}</span>
       </div>
       {level.next_name ? (
         <>
           <Progress value={level.progress * 100} className="mt-3 h-1.5" aria-label={`Progress to ${level.next_name}`} />
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            {Math.round(level.progress * 100)}% of the way to <span className="font-medium text-foreground">{level.next_name}</span>
-            {solved ? ` · ${solved} solved` : ''}
+          <p className="mt-2 text-[13px] text-muted-foreground">
+            {Math.round(level.progress * 100)}% of the way to <span className="font-semibold text-foreground">{level.next_name}</span>
+            {solved ? `. ${solved} solved` : ''}
           </p>
         </>
       ) : null}

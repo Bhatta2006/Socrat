@@ -1,5 +1,15 @@
-.visual-canvas:fullscreen { overflow-y: auto; height: 100dvh; }
-.visual-timeline { width: 100%; height: 44px; appearance: none; border-radius: 999px; background: linear-gradient(to bottom, transparent 18px, var(--muted) 18px, var(--muted) 26px, transparent 26px); accent-color: var(--primary); cursor: pointer; }
-.visual-timeline:focus-visible { outline: 2px solid var(--ring); outline-offset: 6px; }
-.visual-timeline::-webkit-slider-thumb { width: 18px; height: 18px; appearance: none; border: 2px solid var(--card); border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
-.visual-timeline::-moz-range-thumb { width: 14px; height: 14px; border: 2px solid var(--card); border-radius: 50%; background: var(--primary); }
+.visual-canvas:fullscreen { overflow-y: auto; height: 100dvh; border-radius: 0; border: 0; }
+/* Timeline scrubber: a 6 px track with one tick per step, and a 20 px thumb on a 44 px hit area. */
+.visual-timeline {
+  --tick: calc((100% - 20px) / max(var(--ticks, 1), 1));
+  width: 100%;
+  height: 44px;
+  appearance: none;
+  background:
+    repeating-linear-gradient(to right, var(--border-strong) 0 2px, transparent 2px var(--tick)) 10px 14px / calc(100% - 20px) 6px no-repeat,
+    linear-gradient(var(--raised), var(--raised)) 0 19px / 100% 6px no-repeat;
+  cursor: pointer;
+}
+.visual-timeline:disabled { cursor: default; opacity: 0.5; }
+.visual-timeline::-webkit-slider-thumb { width: 20px; height: 20px; appearance: none; border: 2px solid var(--card); border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 1.5px var(--primary); }
+.visual-timeline::-moz-range-thumb { width: 16px; height: 16px; border: 2px solid var(--card); border-radius: 50%; background: var(--primary); }

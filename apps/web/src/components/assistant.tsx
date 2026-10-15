@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, explain, stream } from '@/lib/api';
 import type { ChatMessage } from '@/lib/types';
-import { Check, Lightbulb, SendHorizontal, Sparkles, ThumbsDown, ThumbsUp, X } from 'lucide-react';
+import { Check, Lightbulb, SendHorizontal, ThumbsDown, ThumbsUp, X } from 'lucide-react';
+import { Soc } from '@/components/socrat/illustration';
 import Markdown from './markdown';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -24,6 +25,8 @@ interface Props {
   onSent?: () => void;
   /** Opens the panel from outside (e.g. a "Get a hint" button). Increment to trigger. */
   openSignal?: number;
+  /** Hide the floating launcher, or show it on phones only, when the page has its own "Ask Soc" control. */
+  launcher?: boolean | 'phone';
 }
 
 const LEVEL_TEXT = ['Asking what you tried', 'Guiding question', 'Conceptual nudge', 'Approach', 'Partial plan', 'Full walkthrough'];
@@ -32,7 +35,7 @@ const STARTERS: Record<string, string[]> = {
   concept: ['Explain this with a real example', 'When would I use this?', 'Give me a problem to practise this'],
 };
 
-export default function Assistant({ scope, title, language, context, onSent, openSignal = 0 }: Props) {
+export default function Assistant({ scope, title, language, context, onSent, openSignal = 0, launcher: showLauncher = true }: Props) {
   const problem = scope.startsWith('problem:');
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -47,11 +50,18 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   const input = useRef<HTMLTextAreaElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
+  const opener = useRef<HTMLElement | null>(null);
 
-  // Keyboard users land in the message box on open and back on the launcher on close.
+  // Keyboard users land in the message box on open and back on whatever opened it on close
+  // (the floating launcher, or a page's own "Ask Soc" button).
   useEffect(() => {
-    if (open) input.current?.focus();
-    else if (wasOpen.current) launcher.current?.focus();
+    if (open) {
+      if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) opener.current = document.activeElement;
+      input.current?.focus();
+    } else if (wasOpen.current) {
+      const back = opener.current && opener.current.isConnected && opener.current.offsetParent !== null ? opener.current : launcher.current;
+      back?.focus();
+    }
     wasOpen.current = open;
   }, [open]);
 
@@ -123,11 +133,21 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   }
 
   if (!open) {
+    if (!showLauncher) return null;
+    // 56 px, 16 px above the phone bottom nav; bottom right on desktop.
     return (
-      <div className="fixed right-4 bottom-20 z-50 md:right-6 md:bottom-6">
-        <Button size="lg" className="size-12 rounded-full p-0 shadow-lg shadow-primary/25 sm:h-11 sm:w-auto sm:px-5" ref={launcher} onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label={title}>
-          <Sparkles className="size-5 sm:size-4" /> <span className="hidden sm:inline">{title}</span>
-        </Button>
+      <div className={`fixed right-4 bottom-[calc(80px+env(safe-area-inset-bottom))] z-40 md:bottom-6 lg:right-8 lg:bottom-8 ${showLauncher === 'phone' ? 'lg:hidden' : ''}`}>
+        <button
+          type="button"
+          ref={launcher}
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+          aria-label="Ask Soc, your tutor"
+          className="group/soc flex h-14 items-center gap-3 rounded-full bg-card p-1 shadow-floating ring-1 ring-border transition-transform duration-200 ease-[var(--ease-soft)] active:scale-[0.98] lg:pr-5"
+        >
+          <Soc size={48} />
+          <span className="hidden text-[15px] font-semibold lg:inline">Ask Soc</span>
+        </button>
       </div>
     );
   }
@@ -135,40 +155,40 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   const level = ladder.revealed ? 5 : ladder.ceiling ?? 0;
   return (
     <section
-      className="fixed inset-x-2 bottom-2 z-[60] flex h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:h-[min(680px,calc(100dvh-6rem))] sm:w-[420px]"
+      className="fixed inset-x-0 bottom-0 z-[60] flex h-[calc(100dvh-4rem)] flex-col overflow-hidden rounded-t-card border bg-card pb-[env(safe-area-inset-bottom)] text-card-foreground shadow-floating animate-in fade-in slide-in-from-bottom-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:h-[min(680px,calc(100dvh-6rem))] sm:w-[420px] sm:rounded-card sm:pb-0"
       role="dialog"
       aria-label={title}
       onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } }}
     >
       <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid size-8 flex-none place-items-center rounded-full bg-primary/12 text-primary"><Sparkles className="size-4" /></span>
+          <Soc size={40} />
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold">{title}</h2>
+            <h2 className="font-display text-lg font-bold tracking-[-0.02em]">{title}</h2>
             {problem ? (
               <div className="mt-1 flex items-center gap-2">
                 <div className="flex gap-0.5" aria-hidden="true">
-                  {[0, 1, 2, 3, 4, 5].map(n => <span key={n} className={`h-1 w-3 rounded-full ${n <= level ? 'bg-primary' : 'bg-muted'}`} />)}
+                  {[0, 1, 2, 3, 4, 5].map(n => <span key={n} className={`h-1.5 w-3 rounded-full ${n <= level ? 'bg-primary' : 'bg-raised'}`} />)}
                 </div>
                 <p className="text-xs text-muted-foreground">{LEVEL_TEXT[level]}</p>
               </div>
-            ) : <p className="text-xs text-muted-foreground">Asks before it tells · knows your plan</p>}
+            ) : <p className="text-[13px] text-muted-foreground">Asks before it tells. Knows your plan.</p>}
           </div>
         </div>
-        <Button variant="ghost" size="icon-sm" onClick={() => setOpen(false)} aria-label="Close tutor"><X /></Button>
+        <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close tutor"><X /></Button>
       </header>
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
         {!messages.length ? (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-[15px] text-muted-foreground">
             {problem
-              ? 'Stuck? Tell me what you tried and where it breaks. Hints get more specific as you keep working — run your code or explain your thinking to unlock the next level.'
+              ? 'Tell me what you tried and where it breaks. Hints get more specific as you keep working. Run your code or explain your thinking to unlock the next level.'
               : scope === 'general'
                 ? 'I know your plan, your progress and the whole practice library. Ask what to study, which problems to do next, or anything you are stuck on.'
                 : 'Ask about this lesson, an idea that feels fuzzy, or what to focus on next.'}
             {!problem ? (
               <div className="mt-4 grid gap-2">
                 {STARTERS[scope === 'general' ? 'general' : 'concept'].map(s => (
-                  <Button key={s} type="button" variant="outline" size="sm" className="h-auto justify-start py-2 text-left font-normal whitespace-normal" disabled={busy || !loaded} onClick={() => send('chat', s)}>
+                  <Button key={s} type="button" variant="outline" size="sm" className="h-auto min-h-11 justify-start rounded-[16px] py-2.5 text-left font-medium whitespace-normal" disabled={busy || !loaded} onClick={() => send('chat', s)}>
                     {s}
                   </Button>
                 ))}
@@ -185,7 +205,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
                 <ul className="mb-2 grid gap-1 text-xs text-muted-foreground" aria-label="What the tutor is checking">
                   {activity.map((a, j) => (
                     <li key={a} className="flex items-center gap-2">
-                      {j === activity.length - 1 && !m.content ? <Spinner className="size-3" /> : <Check className="size-3 text-success" />}
+                      {j === activity.length - 1 && !m.content ? <Spinner className="size-3" /> : <Check className="size-3" />}
                       {a}
                     </li>
                   ))}
@@ -205,7 +225,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
                           type="button"
                           aria-pressed={on}
                           aria-label={value === 1 ? 'Helpful reply' : 'Not helpful'}
-                          className={`grid size-6 place-items-center rounded-md transition-colors hover:bg-background ${on ? 'text-primary' : 'text-muted-foreground/70'}`}
+                          className={`grid size-8 place-items-center rounded-full transition-colors hover:bg-card ${on ? 'text-brand' : 'text-muted-foreground'}`}
                           onClick={() => rate(m.id!, on ? 0 : value)}
                         >
                           <Icon className={`size-3.5 ${on ? 'fill-current' : ''}`} />
@@ -217,22 +237,22 @@ export default function Assistant({ scope, title, language, context, onSent, ope
                 </>
               ) : activity.length && busy && i === messages.length - 1 ? null : (
                 <span className="flex items-center gap-1 py-1" aria-label="Thinking">
-                  {[0, 1, 2].map(n => <span key={n} className="size-1.5 animate-bounce rounded-full bg-muted-foreground/60" style={{ animationDelay: `${n * 120}ms` }} />)}
+                  {[0, 1, 2].map(n => <span key={n} className="size-1.5 animate-pulse-slow rounded-full bg-muted-foreground" style={{ animationDelay: `${n * 200}ms` }} />)}
                 </span>
               )}
             </div>
           ),
         )}
       </div>
-      {error ? <p role="alert" className="mx-4 mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
+      {error ? <p role="alert" className="mx-4 mb-2 rounded-[16px] border border-attention px-3 py-2 text-sm">{error}</p> : null}
       {problem ? (
         <div className="flex flex-wrap items-center gap-2 border-t px-4 pt-3">
-          <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => send('hint')}><Lightbulb data-icon="inline-start" /> Give me a hint</Button>
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => send('hint')}><Lightbulb data-icon="inline-start" /> Give me a hint</Button>
           {confirmReveal ? (
             <span className="flex flex-wrap items-center gap-2 text-xs">
               Show the full solution? It counts as heavy help.
-              <Button type="button" size="xs" variant="destructive" disabled={busy} onClick={() => send('reveal_confirmed', '')}>Yes, show it</Button>
-              <Button type="button" size="xs" variant="ghost" onClick={() => setConfirmReveal(false)}>Keep trying</Button>
+              <Button type="button" size="sm" variant="destructive" disabled={busy} onClick={() => send('reveal_confirmed', '')}>Yes, show it</Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmReveal(false)}>Keep trying</Button>
             </span>
           ) : (
             <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => setConfirmReveal(true)}>Show solution</Button>
@@ -244,7 +264,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
         <Textarea
           id={`assistant-${scope}`}
           ref={input}
-          className="max-h-40 min-h-10 flex-1 resize-none"
+          className="max-h-40 min-h-12 flex-1 resize-none py-2.5"
           rows={2}
           maxLength={4000}
           value={draft}
@@ -252,7 +272,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send('chat'); } }}
         />
-        <Button size="icon-lg" disabled={busy || !draft.trim()} aria-label="Send"><SendHorizontal /></Button>
+        <Button size="icon-lg" disabled={busy || !draft.trim()} aria-label="Send message"><SendHorizontal /></Button>
       </form>
     </section>
   );

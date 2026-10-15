@@ -1,19 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, CheckCircle2, Circle, ExternalLink, Flag, Timer, Zap } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { formatStamp } from '@/lib/routes';
+import { NAME, formatStamp } from '@/lib/routes';
 import type { SprintView } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { Difficulty, ErrorNote, Loading, Page, PageHeader, Ring } from '@/components/common';
-import { celebrate } from '@/components/celebrate';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Spinner } from '@/components/ui/spinner';
+import { Difficulty, ErrorNote, Loading, Page, PageHeader } from '@/components/common';
+import { PracticeNav } from '@/components/socrat/practice-nav';
+import { StatusIcon } from '@/components/socrat/status';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { ArrowCircle, Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 
 interface Overview {
   current: SprintView | null;
@@ -40,81 +42,97 @@ function useCountdown(seconds: number | null, onExpire: () => void) {
   return left;
 }
 
+/** Announces 15, 5 and 1 minutes left, never every second. */
+function useMilestones(left: number) {
+  const [message, setMessage] = useState('');
+  const said = useRef(new Set<number>());
+  useEffect(() => {
+    for (const minutes of [15, 5, 1]) {
+      if (left <= minutes * 60 && left > minutes * 60 - 5 && !said.current.has(minutes)) {
+        said.current.add(minutes);
+        setMessage(`${minutes} minute${minutes > 1 ? 's' : ''} left in the sprint.`);
+      }
+    }
+  }, [left]);
+  return message;
+}
+
+function ProblemRow({ p, index, live }: { p: SprintView['problems'][number]; index: number; live: boolean }) {
+  const solved = p.solved_after !== null;
+  return (
+    <li className="flex min-h-16 flex-wrap items-center gap-3 rounded-card border bg-card px-4 py-3 lg:px-5">
+      <StatusIcon status={solved ? 'practised' : 'not_seen'} size={24} title={solved ? 'Solved' : 'Not solved yet'} />
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">{index + 1}. {p.title}</p>
+        <p className="text-[13px] text-muted-foreground">{p.concept}{solved ? `. Solved in ${clock(p.solved_after!)}` : ''}</p>
+      </div>
+      <Difficulty level={p.difficulty} />
+      {live && !solved ? (
+        <Button asChild size="sm" variant="outline">
+          <a href={`/problems/${p.id}`} target="_blank" rel="noopener noreferrer">Solve<span className="sr-only"> {p.title}, opens in a new tab</span> <ExternalLink data-icon="inline-end" /></a>
+        </Button>
+      ) : !live ? <Link href={`/problems/${p.id}`} className="text-sm font-semibold underline underline-offset-4">Open<span className="sr-only"> {p.title}</span></Link> : null}
+    </li>
+  );
+}
+
 function Running({ sprint, refresh, finish, busy }: { sprint: SprintView; refresh: () => void; finish: () => void; busy: boolean }) {
   const left = useCountdown(sprint.seconds_left, refresh);
-  const total = sprint.deadline - sprint.started_at;
+  const announcement = useMilestones(left);
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
     const onFocus = () => refresh();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
   }, [refresh]);
+  const nearEnd = left <= 300;
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <div className="grid gap-3">
-        {sprint.problems.map((p, i) => (
-          <Card key={p.id} className={cn('transition-colors', p.solved_after !== null && 'ring-success/40 bg-success/5')}>
-            <CardContent className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="grid size-8 flex-none place-items-center rounded-full border text-sm font-semibold">{i + 1}</span>
-                <div className="min-w-0">
-                  <p className="font-medium">{p.title}</p>
-                  <p className="text-xs text-muted-foreground">{p.concept}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Difficulty level={p.difficulty} />
-                {p.solved_after !== null ? (
-                  <Badge variant="outline" className="gap-1 border-success/30 bg-success/10 text-success"><CheckCircle2 className="size-3" /> {clock(p.solved_after)}</Badge>
-                ) : (
-                  <Button asChild size="sm" variant="outline">
-                    <a href={`/problems/${p.id}`} target="_blank" rel="noopener noreferrer">Solve <ExternalLink data-icon="inline-end" /></a>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        <p className="text-xs text-muted-foreground">Problems open in a new tab so the clock stays here. A solve counts when Submit is accepted.</p>
+    <div className="grid gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="inline-flex h-11 items-center rounded-full border border-border-strong px-4 font-display text-lg font-bold tabular-nums" aria-hidden={hidden}>
+          {hidden ? 'Timer hidden' : nearEnd ? `${Math.max(1, Math.ceil(left / 60))} min left` : clock(left)}
+        </span>
+        <label className="flex min-h-11 items-center gap-3 text-[15px] font-medium">
+          <Switch checked={hidden} onCheckedChange={setHidden} /> Hide timer
+        </label>
+        <span className="sr-only" role="status" aria-live="polite">{announcement}</span>
       </div>
-      <Card className="h-fit lg:sticky lg:top-20">
-        <CardContent className="grid justify-items-center gap-4 py-2 text-center">
-          <Ring value={total ? (100 * left) / total : 0} size={120} stroke={9} tone={left < 300 ? 'streak' : 'primary'} label={<span role="timer" className="text-xl tabular-nums">{clock(left)}</span>} />
-          <p className="text-sm text-muted-foreground">{sprint.solved} of {sprint.problems.length} solved</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={refresh}>Refresh</Button>
-            <Button size="sm" disabled={busy} onClick={finish}><Flag data-icon="inline-start" /> Finish</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <p className="font-semibold tabular-nums">{sprint.solved} of {sprint.problems.length} solved</p>
+      <ol className="grid gap-3">
+        {sprint.problems.map((p, i) => <ProblemRow key={p.id} p={p} index={i} live />)}
+      </ol>
+      <p className="text-[13px] text-muted-foreground">Problems open in a new tab so the clock stays here. A solve counts when Submit solution is accepted.</p>
+      <div className="flex flex-wrap gap-3">
+        <Button variant="outline" onClick={refresh}>Refresh</Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild><Button disabled={busy} aria-busy={busy}>Finish sprint</Button></AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Finish the sprint now</AlertDialogTitle>
+              <AlertDialogDescription>The clock stops and unsolved problems stay unsolved for this sprint. They remain in your recommendations.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep going</AlertDialogCancel>
+              <AlertDialogAction onClick={finish}>Finish sprint</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
 
 function Result({ sprint }: { sprint: SprintView }) {
-  useEffect(() => { if (sprint.solved === sprint.problems.length) celebrate('big'); else if (sprint.solved) celebrate('small'); }, [sprint]);
   return (
-    <Card>
-      <CardContent className="grid gap-5">
-        <div className="flex flex-wrap items-center gap-5">
-          <Ring value={(100 * sprint.solved) / sprint.problems.length} size={96} stroke={8} tone={sprint.solved ? 'success' : 'primary'} label={<span className="text-lg">{sprint.solved}/{sprint.problems.length}</span>} />
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">{sprint.solved === sprint.problems.length ? 'Clean sweep' : sprint.solved ? 'Good sprint' : 'Every sprint makes the next one faster'}</h2>
-            <p className="text-muted-foreground">Unsolved problems stay in your recommendations so you can finish them calmly.</p>
-          </div>
-        </div>
-        <ul className="grid gap-2">
-          {sprint.problems.map(p => (
-            <li key={p.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
-              <span className="flex items-center gap-2">
-                {p.solved_after !== null ? <CheckCircle2 className="size-4 text-success" /> : <Circle className="size-4 text-muted-foreground" />}
-                <Link href={`/problems/${p.id}`} className="font-medium hover:text-primary hover:underline">{p.title}</Link>
-              </span>
-              <span className="tabular-nums text-muted-foreground">{p.solved_after !== null ? `solved in ${clock(p.solved_after)}` : 'not yet'}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+    <section className="grid gap-5" aria-labelledby="result-heading">
+      <div>
+        <h2 id="result-heading" className="type-display-l tabular-nums">{sprint.solved} of {sprint.problems.length} solved</h2>
+        <p className="mt-3 text-base text-muted-foreground">Unsolved problems stay in your recommendations, so you can finish them without the clock.</p>
+      </div>
+      <ol className="grid gap-3">
+        {sprint.problems.map((p, i) => <ProblemRow key={p.id} p={p} index={i} live={false} />)}
+      </ol>
+    </section>
   );
 }
 
@@ -144,44 +162,42 @@ export default function Sprint() {
     try { setView(await api.post<SprintView>(`/library/sprints/${view.id}/finish`)); load(); } catch (e) { setError(explain(e)); } finally { setBusy(false); }
   }
 
-  if (!allowed || (!overview && !error)) return <Loading />;
+  if (!allowed || (!overview && !error)) return <Loading variant="list" label="Loading the sprint" />;
   return (
     <Page>
-      <PageHeader eyebrow="Focus sprint" title="Three problems. One clock." description="Problems picked just above where you are, from topics you've studied. Solve as many as you can before time runs out." />
+      <PracticeNav />
+      <PageHeader eyebrow={NAME.practice} title={NAME.sprint} description="Judged problems just above where you are, from skills you have studied." />
       {view && !view.finished ? <Running sprint={view} refresh={refresh} finish={finish} busy={busy} /> : view?.finished ? (
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           <Result sprint={view} />
-          <Button className="w-fit" onClick={() => { setView(null); start(); }} disabled={busy}><Zap data-icon="inline-start" /> Start another sprint</Button>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => { setView(null); start(); }} disabled={busy} aria-busy={busy}>Start another sprint<ArrowCircle loading={busy} /></Button>
+            <Button asChild variant="outline"><Link href="/library">{NAME.problems}</Link></Button>
+            <Button asChild variant="outline"><Link href="/progress">{NAME.evidence}</Link></Button>
+          </div>
         </div>
       ) : (
-        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-streak/12 via-card to-card ring-streak/20">
-          <CardContent className="grid gap-4 py-2">
-            <span className="grid size-12 place-items-center rounded-xl bg-streak/15 text-streak"><Timer className="size-6" /></span>
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Ready when you are</h2>
-              <p className="mt-1 max-w-xl text-muted-foreground">45 minutes, three judged problems, easiest first. Your tutor stays available — but the clock keeps running.</p>
-            </div>
-            <Button size="lg" className="h-10 w-fit px-5" disabled={busy} onClick={start}>{busy ? <Spinner /> : <Zap data-icon="inline-start" />} Start sprint</Button>
-          </CardContent>
-        </Card>
+        <section className="flex flex-col gap-5 rounded-card bg-primary p-6 text-primary-foreground lg:p-8" data-tone="hero" aria-labelledby="sprint-heading">
+          <p className="type-label">{NAME.sprint}</p>
+          <h2 id="sprint-heading" className="type-display-l">3 problems, 45 minutes</h2>
+          <p className="max-w-xl text-base">Problems come from skills you have studied, easiest first. Soc stays available, and the clock keeps running.</p>
+          <div><Button variant="ink" size="lg" disabled={busy} aria-busy={busy} onClick={start}>Start sprint<ArrowCircle loading={busy} /></Button></div>
+        </section>
       )}
       {error ? <ErrorNote message={error} /> : null}
       {overview?.history.length ? (
-        <Card className="mt-8">
-          <CardHeader><CardTitle>Past sprints</CardTitle><CardDescription>Solved count and time used</CardDescription></CardHeader>
-          <CardContent>
-            <ul className="grid divide-y text-sm">
-              {overview.history.map(h => (
-                <li key={h.id} className="flex items-center justify-between py-2">
-                  <span>{formatStamp(h.started_at)}</span>
-                  <span className="tabular-nums text-muted-foreground">{h.solved}/{h.total} solved · {h.minutes} min</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <section className="mt-10" aria-labelledby="history-heading">
+          <h2 id="history-heading" className="mb-3 font-display text-xl font-bold tracking-[-0.03em]">Past sprints</h2>
+          <ul className="grid divide-y rounded-card border bg-card px-5 text-[15px]">
+            {overview.history.map(h => (
+              <li key={h.id} className="flex min-h-12 items-center justify-between gap-3 py-2">
+                <span>{formatStamp(h.started_at)}</span>
+                <span className="font-semibold tabular-nums">{h.solved} of {h.total} solved, {h.minutes} min</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
-      <p className="mt-6 text-sm"><Link href="/library" className="inline-flex items-center gap-1 text-primary hover:underline">Back to the library <ArrowRight className="size-3.5" /></Link></p>
     </Page>
   );
 }

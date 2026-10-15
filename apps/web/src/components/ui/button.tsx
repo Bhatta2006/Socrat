@@ -3,34 +3,42 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 import { Slot } from "radix-ui"
 
+// Pills with a 44 px minimum target. Focus uses the global 2 px ring (globals.css).
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button relative inline-flex shrink-0 items-center justify-center rounded-full border border-transparent font-semibold whitespace-nowrap transition-[background-color,border-color,color,transform] duration-200 ease-[var(--ease-soft)] outline-none select-none active:not-aria-[haspopup]:not-disabled:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 aria-busy:pointer-events-none aria-invalid:border-attention [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px] [&_svg]:stroke-[1.75]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        // Primary on neutral surfaces.
+        default: "bg-primary text-primary-foreground hover:bg-[color-mix(in_srgb,var(--primary),white_10%)]",
+        // Primary on a violet or lilac card.
+        ink: "bg-ink text-ink-foreground hover:bg-[color-mix(in_srgb,var(--ink),white_10%)]",
+        // Supporting action.
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border-strong bg-transparent text-foreground hover:bg-raised aria-expanded:bg-raised",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-raised text-foreground hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_6%)] aria-expanded:bg-raised",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "text-foreground hover:bg-raised aria-expanded:bg-raised",
+        // Run code: outlined violet.
+        run: "border-primary bg-transparent text-brand hover:bg-[color-mix(in_srgb,var(--primary),transparent_88%)]",
+        // Delete or remove: outlined coral.
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
+          "border-attention bg-transparent text-attention hover:bg-[color-mix(in_srgb,var(--attention),transparent_90%)]",
+        // Confirming a destructive action inside its dialog.
+        attention: "bg-attention text-attention-foreground hover:bg-[color-mix(in_srgb,var(--attention),black_8%)]",
+        link: "rounded-md px-0! text-foreground underline decoration-1 underline-offset-4 hover:decoration-2",
       },
       size: {
         default:
-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        icon: "size-8",
-        "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
-        "icon-lg": "size-9",
+          "h-11 gap-2 px-5 text-[15px] has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4 has-data-[slot=arrow]:pr-2",
+        xs: "h-8 gap-1 px-3 text-xs [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-9 gap-1.5 px-3.5 text-sm has-data-[slot=arrow]:pr-1.5 [&_svg:not([class*='size-'])]:size-4",
+        lg: "h-13 gap-2.5 px-6 text-base has-data-[slot=arrow]:pr-2 lg:h-12",
+        icon: "size-11",
+        "icon-xs": "size-8 [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-sm": "size-9",
+        "icon-lg": "size-12",
       },
     },
     defaultVariants: {
@@ -63,4 +71,17 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+/** The circular arrow at the end of a primary pill: cream circle, violet arrow. */
+function ArrowCircle({ className, loading = false }: { className?: string; loading?: boolean }) {
+  return (
+    <span data-slot="arrow" aria-hidden="true" className={cn("grid size-7 flex-none place-items-center rounded-full bg-cream text-primary transition-transform duration-200 ease-[var(--ease-soft)] group-hover/button:translate-x-0.5 [&_svg]:size-4!", className)}>
+      {loading ? (
+        <svg viewBox="0 0 24 24" fill="none" className="animate-spin"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="2.5" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" /></svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      )}
+    </span>
+  )
+}
+
+export { Button, ArrowCircle, buttonVariants }

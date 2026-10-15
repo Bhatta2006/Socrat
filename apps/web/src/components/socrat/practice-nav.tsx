@@ -1,0 +1,34 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { PRACTICE_SEGMENTS } from '@/lib/routes';
+import { cn } from '@/lib/utils';
+
+/** Problems | Company questions | Focus sprint. Real route links, so URLs and back work. */
+export function PracticeNav({ className }: { className?: string }) {
+  const pathname = usePathname();
+  return (
+    <nav aria-label="Practice" className={cn('mb-6 max-w-full overflow-x-auto', className)}>
+      <ul className="inline-flex h-12 items-center gap-1 rounded-full bg-raised p-1">
+        {PRACTICE_SEGMENTS.map(segment => {
+          const active = pathname === segment.href || pathname.startsWith(`${segment.href}/`);
+          return (
+            <li key={segment.href} className="h-full">
+              <Link
+                href={segment.href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'inline-flex h-full min-h-10 items-center rounded-full border border-transparent px-4 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground',
+                  active && 'border-border bg-card font-bold text-foreground',
+                )}
+              >
+                {segment.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}

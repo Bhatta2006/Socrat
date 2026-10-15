@@ -1,76 +1,98 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { CheckCircle2, Download, LogOut, Monitor, Moon, Sun, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Check, Download, LogOut } from 'lucide-react';
 import { api, explain } from '@/lib/api';
+import { useReducedMotion } from '@/lib/motion';
 import { useGuard, useSession } from '@/lib/session';
-import { LANGUAGE_LABEL, hours } from '@/lib/routes';
+import { LANGUAGE_LABEL, NAME, hours } from '@/lib/routes';
 import type { Course, Language, Profile } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ErrorNote, Loading, Page, PageHeader } from '@/components/common';
 import { Pill } from '@/components/choice';
 import CodeforcesLink from '@/components/codeforces-link';
+import { SuccessLine } from '@/components/socrat/states';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
-import { Spinner } from '@/components/ui/spinner';
+import { Switch } from '@/components/ui/switch';
 
 const MINUTES = [15, 20, 30, 45, 60, 90, 120];
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const THEMES = [
-  { id: 'light', label: 'Light', icon: Sun },
-  { id: 'dark', label: 'Dark', icon: Moon },
-  { id: 'system', label: 'System', icon: Monitor },
+  { id: 'light', label: 'Light' },
+  { id: 'dark', label: 'Dark' },
+  { id: 'system', label: 'System' },
 ] as const;
+
+function Section({ id, title, description, children, className }: { id: string; title: string; description?: string; children: React.ReactNode; className?: string }) {
+  return (
+    <section aria-labelledby={id} className={cn('rounded-card border bg-card p-5 lg:p-6', className)}>
+      <h2 id={id} className="font-display text-xl font-bold tracking-[-0.03em]">{title}</h2>
+      {description ? <p className="mt-1 text-[15px] text-muted-foreground">{description}</p> : null}
+      <div className="mt-5">{children}</div>
+    </section>
+  );
+}
+
+/** A small flat preview of each theme: canvas, card, a violet bar. */
+function ThemePreview({ id }: { id: 'light' | 'dark' | 'system' }) {
+  const swatch = (bg: string, card: string, text: string) => (
+    <span className="flex h-16 flex-1 flex-col gap-1.5 p-2" style={{ background: bg }}>
+      <span className="h-2 w-10 rounded-full" style={{ background: text }} />
+      <span className="flex-1 rounded-md p-1.5" style={{ background: card }}><span className="block h-2 w-8 rounded-full bg-[#7D39EB]" /></span>
+    </span>
+  );
+  const light = swatch('#F6F4FA', '#FFFFFF', '#17151F');
+  const dark = swatch('#0E0D14', '#17151F', '#E9E6F2');
+  return <span className="flex w-full overflow-hidden rounded-[14px] border" aria-hidden="true">{id === 'light' ? light : id === 'dark' ? dark : <>{light}{dark}</>}</span>;
+}
 
 function Appearance() {
   const { theme, setTheme } = useTheme();
+  const motion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle as="h2">Appearance</CardTitle>
-        <CardDescription>Choose how Socrat looks. System follows your device.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid max-w-md grid-cols-3 gap-2" role="radiogroup" aria-label="Theme">
-          {THEMES.map(t => {
-            const active = mounted && (theme ?? 'system') === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                onClick={() => setTheme(t.id)}
-                className={cn('grid justify-items-center gap-2 rounded-xl border p-4 text-sm font-medium transition-all hover:border-primary/50', active && 'border-primary bg-primary/5 ring-1 ring-primary')}
-              >
-                <t.icon className={cn('size-5', active ? 'text-primary' : 'text-muted-foreground')} />
-                {t.label}
-              </button>
-            );
-          })}
+    <Section id="appearance-heading" title="Appearance" description="System follows your device.">
+      <div className="grid max-w-lg grid-cols-3 gap-3" role="radiogroup" aria-label="Theme">
+        {THEMES.map(t => {
+          const active = mounted && (theme ?? 'system') === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setTheme(t.id)}
+              className={cn('grid gap-2 rounded-[20px] border border-border-strong p-2 pb-3 text-left transition-colors hover:bg-raised', active && 'border-primary ring-1 ring-primary')}
+            >
+              <ThemePreview id={t.id} />
+              <span className="flex items-center gap-1.5 px-1 text-[15px] font-medium">
+                {active ? <Check className="size-4 text-brand" aria-hidden="true" /> : null}
+                <span className={cn(active && 'font-bold')}>{t.label}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-6 flex items-start justify-between gap-4 border-t pt-5">
+        <div>
+          <label htmlFor="reduce-motion" className="font-semibold">Reduce motion</label>
+          <p id="reduce-motion-help" className="text-sm text-muted-foreground">
+            Turns off fades, slides and visual playback in this browser. {motion.reduced && !motion.setting ? 'Your device already asks for less motion.' : ''}
+          </p>
         </div>
-      </CardContent>
-    </Card>
+        <Switch id="reduce-motion" checked={motion.setting} onCheckedChange={motion.set} aria-describedby="reduce-motion-help" />
+      </div>
+    </Section>
   );
 }
 
@@ -87,6 +109,7 @@ export default function Settings() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState<'idle' | 'busy' | 'done'>('idle');
   const [confirmDelete, setConfirmDelete] = useState('');
 
   useEffect(() => {
@@ -114,8 +137,7 @@ export default function Settings() {
         ...(targetDate ? { target_date: targetDate } : { clear_target_date: true }),
       });
       await refresh();
-      setStatus('Saved. Your plan has been updated.');
-      toast.success('Settings saved', { description: 'Your plan has been re-flowed around the new schedule.' });
+      setStatus(`Saved. Your plan was updated at ${new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}.`);
     } catch (e) {
       setError(explain(e));
     } finally {
@@ -124,6 +146,8 @@ export default function Settings() {
   }
 
   async function exportData() {
+    setExporting('busy');
+    setError('');
     try {
       const data = await api.get<unknown>('/me/export');
       const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
@@ -132,9 +156,10 @@ export default function Settings() {
       link.download = `socrat-export-${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       URL.revokeObjectURL(url);
-      toast.success('Export downloaded');
+      setExporting('done');
     } catch (e) {
       setError(explain(e));
+      setExporting('idle');
     }
   }
 
@@ -151,106 +176,113 @@ export default function Settings() {
     }
   }
 
-  if (!allowed || !profile?.enrollment) return <Loading variant="form" />;
+  if (!allowed || !profile?.enrollment) return <Loading variant="form" label="Loading settings" />;
   const toggleDay = (i: number) => setWeekdays(w => (w.includes(i) ? (w.length > 1 ? w.filter(x => x !== i) : w) : [...w, i].sort()));
 
   return (
     <Page narrow>
-      <PageHeader eyebrow="Settings" title="Your account and plan" description="Changes to your schedule re-flow your plan immediately." />
+      <PageHeader title={NAME.settings} description="Changes to your schedule update your plan straight away." />
+      <div className="grid gap-4 lg:gap-6">
+        <Appearance />
 
-      <form onSubmit={save}>
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle as="h2">Profile and schedule</CardTitle>
-            <CardDescription>How Socrat addresses you and how much time you have.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="settings-name">Name</FieldLabel>
-                <Input id="settings-name" className="h-9" value={name} onChange={e => setName(e.target.value)} maxLength={80} />
+        <form onSubmit={save}>
+          <Section id="schedule-heading" title="Profile and schedule" description="How Socrat addresses you and how much time you have.">
+            <div className="grid gap-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="settings-name">Name</FieldLabel>
+                  <Input id="settings-name" value={name} onChange={e => setName(e.target.value)} maxLength={80} />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="settings-language">Language</FieldLabel>
+                  <NativeSelect id="settings-language" className="w-full [&_select]:h-13" value={language} onChange={e => setLanguage(e.target.value as Language)}>
+                    {(course?.languages ?? [language]).map(l => <NativeSelectOption key={l} value={l}>{LANGUAGE_LABEL[l]}</NativeSelectOption>)}
+                  </NativeSelect>
+                </Field>
+              </div>
+              <fieldset>
+                <legend className="mb-2 text-[15px] font-semibold">Time per study day</legend>
+                <div className="flex flex-wrap gap-2">
+                  {MINUTES.map(m => <Pill key={m} pressed={minutes === m} onClick={() => setMinutes(m)}>{hours(m)}</Pill>)}
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend className="mb-2 text-[15px] font-semibold">Study days</legend>
+                <div className="flex flex-wrap gap-2">
+                  {DAYS.map((d, i) => <Pill key={d} pressed={weekdays.includes(i)} onClick={() => toggleDay(i)}>{d}</Pill>)}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{hours(minutes)} on {weekdays.length} day{weekdays.length === 1 ? '' : 's'} is {hours(minutes * weekdays.length)} a week.</p>
+              </fieldset>
+              <Field className="max-w-xs">
+                <FieldLabel htmlFor="settings-target">Target date</FieldLabel>
+                <Input id="settings-target" type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} aria-describedby="settings-target-help" />
+                <FieldDescription id="settings-target-help">Leave empty for no deadline.</FieldDescription>
               </Field>
-              <Field>
-                <FieldLabel htmlFor="settings-language">Language</FieldLabel>
-                <NativeSelect id="settings-language" className="w-full [&_select]:h-9" value={language} onChange={e => setLanguage(e.target.value as Language)}>
-                  {(course?.languages ?? [language]).map(l => <NativeSelectOption key={l} value={l}>{LANGUAGE_LABEL[l]}</NativeSelectOption>)}
-                </NativeSelect>
-              </Field>
+              <div className="flex flex-wrap items-center gap-4 border-t pt-5">
+                <Button disabled={busy} aria-busy={busy}>{busy ? 'Saving' : 'Save changes'}</Button>
+                {status ? <SuccessLine>{status}</SuccessLine> : null}
+              </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 px-4 py-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Course</p>
-                <p className="text-sm font-medium">{course?.title ?? profile.enrollment.course}</p>
-              </div>
-              <Button asChild variant="outline" size="sm"><Link href="/start">Switch course</Link></Button>
+          </Section>
+        </form>
+
+        <Section id="course-heading" title="Course">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-[13px] text-muted-foreground">Current course</p>
+              <p className="font-semibold">{course?.title ?? profile.enrollment.course}</p>
             </div>
-            <fieldset>
-              <legend className="mb-2 text-sm font-medium">Time per study day</legend>
-              <div className="flex flex-wrap gap-2">
-                {MINUTES.map(m => <Pill key={m} pressed={minutes === m} onClick={() => setMinutes(m)}>{hours(m)}</Pill>)}
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend className="mb-2 text-sm font-medium">Study days</legend>
-              <div className="flex flex-wrap gap-2">
-                {DAYS.map((d, i) => <Pill key={d} pressed={weekdays.includes(i)} onClick={() => toggleDay(i)}>{d}</Pill>)}
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">{hours(minutes * weekdays.length)} per week</p>
-            </fieldset>
-            <Field className="max-w-xs">
-              <FieldLabel htmlFor="settings-target">Target date</FieldLabel>
-              <Input id="settings-target" type="date" className="h-9" value={targetDate} onChange={e => setTargetDate(e.target.value)} />
-              <FieldDescription>Leave empty for no deadline.</FieldDescription>
-            </Field>
-          </CardContent>
-          <CardFooter className="flex flex-wrap items-center gap-3">
-            <Button disabled={busy}>{busy ? <Spinner /> : null} Save changes</Button>
-            {status ? <span role="status" className="flex items-center gap-1.5 text-sm text-success"><CheckCircle2 className="size-4" /> {status}</span> : null}
-          </CardFooter>
-        </Card>
-      </form>
+            <AlertDialog>
+              <AlertDialogTrigger asChild><Button variant="outline">Switch course</Button></AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Switch course</AlertDialogTitle>
+                  <AlertDialogDescription>Starting a new course pauses your current plan. Your progress, results and code history are kept, and you can come back to it.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep this course</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => router.push('/start')}>Choose a course</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </Section>
 
-      <Appearance />
-      <CodeforcesLink />
+        <CodeforcesLink />
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle as="h2">Your data</CardTitle>
-          <CardDescription>Download everything Socrat stores about you: profile, enrollments, results, code submissions and tutor conversations.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={exportData}><Download data-icon="inline-start" /> Download my data</Button>
-          <Button variant="ghost" onClick={async () => { await signOut(); router.replace('/login'); }}><LogOut data-icon="inline-start" /> Sign out</Button>
-        </CardContent>
-      </Card>
+        <Section id="data-heading" title="Your data" description="Download everything Socrat stores about you: profile, enrollments, results, code submissions and tutor conversations.">
+          <div className="flex flex-wrap items-center gap-4">
+            <Button variant="outline" onClick={exportData} disabled={exporting === 'busy'} aria-busy={exporting === 'busy'}>
+              <Download data-icon="inline-start" /> {exporting === 'busy' ? 'Preparing your export' : 'Download my data'}
+            </Button>
+            {exporting === 'done' ? <SuccessLine>Downloaded.</SuccessLine> : null}
+          </div>
+        </Section>
 
-      <Card className="ring-destructive/30">
-        <CardHeader>
-          <CardTitle as="h2" className="text-destructive">Delete account</CardTitle>
-          <CardDescription>Permanently deletes your account, progress, code and conversations. This cannot be undone.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive"><Trash2 data-icon="inline-start" /> Delete my account</Button>
-            </AlertDialogTrigger>
+        <Section id="account-heading" title="Account">
+          <Button variant="outline" onClick={async () => { await signOut(); router.replace('/login'); }}><LogOut data-icon="inline-start" /> Log out</Button>
+        </Section>
+
+        <Section id="danger-heading" title="Danger zone" description="Permanently removes your account, progress, code and conversations." className="border-attention">
+          <AlertDialog onOpenChange={open => { if (!open) setConfirmDelete(''); }}>
+            <AlertDialogTrigger asChild><Button variant="destructive">Delete account</Button></AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete your account?</AlertDialogTitle>
-                <AlertDialogDescription>Your plan, progress, code and tutor conversations will be erased. Type <strong>delete</strong> to confirm.</AlertDialogDescription>
+                <AlertDialogTitle>Delete your account</AlertDialogTitle>
+                <AlertDialogDescription>This permanently removes your learning data. Export it first if you want a copy. Type <strong className="text-foreground">delete</strong> to confirm.</AlertDialogDescription>
               </AlertDialogHeader>
               <Input value={confirmDelete} onChange={e => setConfirmDelete(e.target.value)} autoComplete="off" aria-label="Type delete to confirm" />
               <AlertDialogFooter>
                 <AlertDialogCancel>Keep my account</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" disabled={busy || confirmDelete.trim().toLowerCase() !== 'delete'} onClick={deleteAccount}>
+                <AlertDialogAction variant="attention" disabled={busy || confirmDelete.trim().toLowerCase() !== 'delete'} onClick={deleteAccount}>
                   Delete permanently
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </CardContent>
-      </Card>
-      {error ? <ErrorNote message={error} /> : null}
+        </Section>
+        {error ? <ErrorNote message={error} /> : null}
+      </div>
     </Page>
   );
 }

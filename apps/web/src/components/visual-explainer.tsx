@@ -2,52 +2,83 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { ChevronLeft, ChevronRight, Expand, Pause, Play, RotateCcw, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, Info, Pause, Play, RotateCcw, X } from 'lucide-react';
 import type { VisualArtifact, VisualState } from '@/lib/explainer';
+import { useReducedMotion } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AttentionIcon } from '@/components/socrat/states';
 import './visual-explainer.css';
 
-export default function VisualExplainer({ artifact }: { artifact: VisualArtifact }) {
+type Failure = '' | 'load' | 'stopped';
+
+/**
+ * The generated visual and its host controls, read as one object: the canvas fills the card
+ * and the control dock is attached inside its bottom edge. The frame stays opaque-origin and
+ * network-blocked; only step, reset and theme messages cross the boundary.
+ */
+export default function VisualExplainer({ artifact, onExplain, onReport, onBack }: {
+  artifact: VisualArtifact;
+  onExplain?: () => void;
+  onReport?: () => void;
+  onBack?: () => void;
+}) {
   const { resolvedTheme } = useTheme();
-  const frameSource = useMemo(() => { const url = new URL(artifact.frame_url); url.searchParams.set('theme', resolvedTheme === 'dark' ? 'dark' : 'light'); return url.toString(); }, [artifact.frame_url, resolvedTheme]);
+  const [nonce, setNonce] = useState(0);
+  const frameSource = useMemo(() => {
+    const url = new URL(artifact.frame_url);
+    url.searchParams.set('theme', resolvedTheme === 'dark' ? 'dark' : 'light');
+    return url.toString();
+    // `nonce` reloads the same visual after a preview failure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [artifact.frame_url, resolvedTheme, nonce]);
   const frame = useRef<HTMLIFrameElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
   const heartbeat = useRef(Date.now());
+  const everReady = useRef(false);
+  const themeAtLoad = useRef(resolvedTheme);
   const latest = useRef<VisualState>({ count: artifact.qa.step_count, current: 0, description: '', height: 650 });
   const [state, setState] = useState(latest.current);
   const [ready, setReady] = useState(false);
-  const [failure, setFailure] = useState('');
+  const [failure, setFailure] = useState<Failure>('');
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState('1');
+  const motion = useReducedMotion();
   const [reduced, setReduced] = useState(false);
-  const [full, setFull] = useState(false);
+  const [full, setFull] = useState<'' | 'native' | 'overlay'>('');
+  const [themeNote, setThemeNote] = useState(false);
+  const [portrait, setPortrait] = useState(false);
+
+  // The app's reduce-motion setting (or the system's) turns playback off; the switch can too.
+  useEffect(() => { setReduced(motion.reduced); if (motion.reduced) setPlaying(false); }, [motion.reduced]);
+
   const send = useCallback((data: Record<string, unknown>) => {
     frame.current?.contentWindow?.postMessage({ ...data, channel: artifact.id }, '*');
   }, [artifact.id]);
   const theme = useCallback(() => {
     const styles = getComputedStyle(document.documentElement);
-    const names = ['background','foreground','card','muted','muted-foreground','border','primary','primary-foreground','success','warning','destructive','chart-1','chart-2','chart-3','chart-4','chart-5','radius'];
-    send({ type: 'theme', tokens: Object.fromEntries(names.map(name => [name, styles.getPropertyValue('--' + name).trim()])), dark: resolvedTheme === 'dark', reducedMotion: reduced });
+    const names = ['background', 'foreground', 'card', 'muted', 'muted-foreground', 'border', 'primary', 'primary-foreground', 'success', 'warning', 'destructive', 'chart-1', 'chart-2', 'chart-3', 'chart-4', 'chart-5', 'radius'];
+    const tokens = Object.fromEntries(names.map(name => [name, styles.getPropertyValue('--' + name).trim()]));
+    // The document sits on the card surface, so there is no seam between canvas and card.
+    tokens.background = styles.getPropertyValue('--card').trim();
+    send({ type: 'theme', tokens, dark: resolvedTheme === 'dark', reducedMotion: reduced });
   }, [send, resolvedTheme, reduced]);
 
-  useEffect(() => {
-    const preference = matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(preference.matches);
-    const update = () => { setReduced(preference.matches); if (preference.matches) setPlaying(false); };
-    preference.addEventListener('change', update);
-    return () => preference.removeEventListener('change', update);
-  }, []);
   useEffect(() => {
     function message(event: MessageEvent) {
       if (event.origin !== 'null' || event.source !== frame.current?.contentWindow || event.data?.channel !== artifact.id) return;
       const data = event.data;
-      if (data.type === 'ready') { heartbeat.current = Date.now(); setReady(true); }
+      if (data.type === 'ready') { heartbeat.current = Date.now(); everReady.current = true; setReady(true); }
       else if (data.type === 'heartbeat') heartbeat.current = Date.now();
-      else if (data.type === 'error') { setFailure('This visual stopped responding. Regenerate it or report the issue.'); setPlaying(false); }
+      else if (data.type === 'error') { setFailure('stopped'); setPlaying(false); }
       else if (data.type === 'state' && Number.isInteger(data.count) && data.count >= 1 && data.count <= 2000 && Number.isInteger(data.current) && data.current >= 0 && data.current < data.count && typeof data.description === 'string' && data.description.length <= 6000 && Number.isFinite(data.height)) {
+        everReady.current = true;
         setReady(true);
         const next = { count: data.count, current: data.current, description: data.description, height: Math.min(1600, Math.max(420, data.height)) };
         latest.current = next;
@@ -57,12 +88,15 @@ export default function VisualExplainer({ artifact }: { artifact: VisualArtifact
     addEventListener('message', message);
     const watchdog = setInterval(() => {
       if (document.hidden) { heartbeat.current = Date.now(); return; }
-      if (Date.now() - heartbeat.current > 8000) { setFailure('The visual did not respond in time. Regenerate it or report the issue.'); setPlaying(false); }
+      if (Date.now() - heartbeat.current > 8000) { setFailure(everReady.current ? 'stopped' : 'load'); setPlaying(false); }
     }, 1000);
     return () => { removeEventListener('message', message); clearInterval(watchdog); };
   }, [artifact.id]);
   useEffect(() => { if (ready) theme(); }, [ready, theme]);
-  useEffect(() => { setReady(false);setPlaying(false);heartbeat.current=Date.now(); }, [frameSource]);
+  useEffect(() => {
+    setReady(false); setPlaying(false); heartbeat.current = Date.now(); everReady.current = false;
+    if (themeAtLoad.current !== resolvedTheme) { setThemeNote(true); themeAtLoad.current = resolvedTheme; }
+  }, [frameSource, resolvedTheme]);
   useEffect(() => {
     if (!playing || reduced || !ready || failure) return;
     const timer = setInterval(() => {
@@ -72,37 +106,174 @@ export default function VisualExplainer({ artifact }: { artifact: VisualArtifact
     }, 1400 / Number(speed));
     return () => clearInterval(timer);
   }, [playing, reduced, ready, failure, send, speed]);
-  useEffect(() => { const update = () => setFull(document.fullscreenElement === canvas.current); document.addEventListener('fullscreenchange', update); return () => document.removeEventListener('fullscreenchange', update); }, []);
-  function seek(index: number) { setPlaying(false); send({ type: 'step', index }); }
 
-  return <Card className="overflow-hidden">
-    <div ref={canvas} className="visual-canvas relative bg-background">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-        <div className="flex items-center gap-2 text-sm"><ShieldCheck className="size-4 text-primary" /><span>Interactive canvas</span><span className="text-xs text-muted-foreground">Isolated preview</span></div>
-        <Button variant="ghost" className="min-h-11" onClick={async () => { if (full) await document.exitFullscreen(); else await canvas.current?.requestFullscreen(); }} aria-label={full ? 'Exit expanded canvas' : 'Expand canvas'}><Expand className="size-4" /><span className="hidden sm:inline">{full ? 'Exit expanded view' : 'Expand'}</span></Button>
-      </div>
-      {failure ? <div role="alert" className="grid min-h-80 place-items-center p-8 text-center text-sm text-destructive">{failure}</div> : <>
-        {!ready ? <p role="status" className="absolute inset-x-0 top-20 z-10 text-center text-sm text-muted-foreground">Opening your interactive visual…</p> : null}
-        <iframe ref={frame} src={frameSource} title={artifact.title + ' — interactive visual'} sandbox="allow-scripts" referrerPolicy="no-referrer" allow="camera 'none'; microphone 'none'; geolocation 'none'; clipboard-read 'none'; clipboard-write 'none'" className="block w-full border-0" style={{ height: state.height, opacity: ready ? 1 : 0 }} />
-      </>}
-      <div className="border-t bg-card p-4" onKeyDown={event => {
-        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || !ready || failure) return;
-        if (event.key === 'ArrowRight') { event.preventDefault(); seek(Math.min(state.count - 1, state.current + 1)); }
-        if (event.key === 'ArrowLeft') { event.preventDefault(); seek(Math.max(0, state.current - 1)); }
-      }}>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="min-h-11" disabled={!ready || !!failure || state.current === 0} onClick={() => seek(state.current - 1)} aria-label="Previous visual step"><ChevronLeft /></Button>
-          <Button className="min-h-11 min-w-24" disabled={!ready || !!failure || reduced || state.count <= 1} onClick={() => { if (state.current === state.count - 1) seek(0); setPlaying(value => !value); }}>{playing ? <Pause /> : <Play />}{playing ? 'Pause' : 'Play'}</Button>
-          <Button variant="outline" className="min-h-11" disabled={!ready || !!failure || state.current >= state.count - 1} onClick={() => seek(state.current + 1)} aria-label="Next visual step"><ChevronRight /></Button>
-          <Button variant="ghost" className="min-h-11" disabled={!ready || !!failure} onClick={() => { setPlaying(false); send({ type: 'reset' }); }}><RotateCcw />Reset</Button>
-          <span className="ml-auto text-xs text-muted-foreground tabular-nums">{state.count > 1 ? `Step ${state.current + 1} / ${state.count}` : 'Live experiment'}</span>
-          <label className="sr-only" htmlFor={`speed-${artifact.id}`}>Playback speed</label><NativeSelect id={`speed-${artifact.id}`} value={speed} className="min-h-11" onChange={event => setSpeed(event.target.value)}><NativeSelectOption value="0.5">0.5×</NativeSelectOption><NativeSelectOption value="1">1×</NativeSelectOption><NativeSelectOption value="2">2×</NativeSelectOption></NativeSelect>
+  // Expanded view: the Fullscreen API where available, otherwise a fixed overlay with a focus trap.
+  useEffect(() => {
+    const update = () => setFull(document.fullscreenElement === canvas.current ? 'native' : f => (f === 'native' ? '' : f));
+    document.addEventListener('fullscreenchange', update);
+    return () => document.removeEventListener('fullscreenchange', update);
+  }, []);
+  useEffect(() => {
+    if (!full) return;
+    closeButton.current?.focus();
+    const query = window.matchMedia('(orientation: portrait) and (max-width: 767px)');
+    setPortrait(query.matches);
+    if (full !== 'overlay') return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setFull(''); return; }
+      if (event.key !== 'Tab' || !canvas.current) return;
+      const items = [...canvas.current.querySelectorAll<HTMLElement>('button:not(:disabled), select, input, iframe, [tabindex="0"]')];
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [full]);
+  async function expand() {
+    if (full === 'native') { await document.exitFullscreen().catch(() => undefined); return; }
+    if (full === 'overlay') { setFull(''); return; }
+    try {
+      if (!canvas.current?.requestFullscreen) throw new Error('unsupported');
+      await canvas.current.requestFullscreen();
+    } catch {
+      setFull('overlay');
+    }
+  }
+
+  function seek(index: number) { setPlaying(false); send({ type: 'step', index }); }
+  function reload() { setFailure(''); setNonce(n => n + 1); }
+  const steps = state.count > 1;
+  const disabled = !ready || Boolean(failure);
+  const stepLabel = steps ? `Step ${state.current + 1} of ${state.count}` : 'Live experiment';
+
+  return (
+    <div className="grid gap-3">
+      <div
+        ref={canvas}
+        className={cn('visual-canvas relative flex flex-col overflow-hidden rounded-card border bg-card', full === 'overlay' && 'fixed inset-0 z-[70] rounded-none border-0')}
+        role={full === 'overlay' ? 'dialog' : undefined}
+        aria-modal={full === 'overlay' ? true : undefined}
+        aria-label={full ? `${artifact.title}, expanded` : undefined}
+      >
+        {full ? (
+          <div className="flex items-center justify-between gap-3 border-b px-4 py-2">
+            <p className="truncate font-semibold">{artifact.title}</p>
+            {portrait ? <p className="text-[13px] text-muted-foreground">Rotate for more room</p> : null}
+            <Button ref={closeButton} variant="outline" size="sm" onClick={expand}><X data-icon="inline-start" /> Close</Button>
+          </div>
+        ) : null}
+
+        <div className="relative min-h-[max(420px,70dvh)] flex-1 lg:min-h-[560px]">
+          {failure ? (
+            <div role="alert" className="grid min-h-[inherit] place-items-center p-8 text-center">
+              <div className="grid max-w-md justify-items-center gap-3">
+                <AttentionIcon size={32} />
+                <p className="font-display text-xl font-bold tracking-[-0.02em]">{failure === 'load' ? 'The visual was generated but did not load.' : 'The visual stopped responding.'}</p>
+                <div className="mt-2 flex flex-wrap justify-center gap-2">
+                  <Button onClick={reload}>Reload visual</Button>
+                  {onExplain ? <Button variant="outline" onClick={onExplain}>Read the explanation</Button> : null}
+                  {onReport ? <Button variant="outline" onClick={onReport}>Report an issue</Button> : null}
+                  {onBack ? <Button variant="ghost" onClick={onBack}>Back to saved visuals</Button> : null}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {!ready ? (
+                <div className="absolute inset-0 z-10 grid place-content-center gap-4 p-8" role="status">
+                  <Skeleton className="mx-auto h-40 w-64 max-w-full rounded-[20px]" />
+                  <p className="text-center text-[15px] text-muted-foreground">{themeNote ? 'Applying theme.' : 'Loading the visual.'}</p>
+                </div>
+              ) : null}
+              <iframe
+                ref={frame}
+                src={frameSource}
+                title={artifact.title + ' — interactive visual'}
+                sandbox="allow-scripts"
+                referrerPolicy="no-referrer"
+                allow="camera 'none'; microphone 'none'; geolocation 'none'; clipboard-read 'none'; clipboard-write 'none'"
+                className="block w-full border-0"
+                style={{ height: state.height, opacity: ready ? 1 : 0 }}
+              />
+            </>
+          )}
         </div>
-        {state.count > 1 ? <div className="mt-4"><label htmlFor={`timeline-${artifact.id}`} className="sr-only">Visual timeline</label><input id={`timeline-${artifact.id}`} type="range" min={0} max={state.count - 1} value={state.current} disabled={!ready || !!failure} onChange={event => seek(Number(event.target.value))} className="visual-timeline" /></div> : null}
-        <div className="mt-4 flex items-center gap-2"><Checkbox id={`motion-${artifact.id}`} checked={reduced} onCheckedChange={value => { setReduced(value === true); if (value) setPlaying(false); }} /><label htmlFor={`motion-${artifact.id}`} className="text-xs text-muted-foreground">Reduce motion · step manually</label></div>
-        <p role="status" className="mt-4 min-h-6 text-sm leading-relaxed">{state.description}</p>
+
+        {/* Control dock, attached inside the card. */}
+        <div
+          className="border-t bg-card px-4 py-3 lg:px-5"
+          onKeyDown={event => {
+            if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || disabled) return;
+            if (event.key === 'ArrowRight') { event.preventDefault(); seek(Math.min(state.count - 1, state.current + 1)); }
+            if (event.key === 'ArrowLeft') { event.preventDefault(); seek(Math.max(0, state.current - 1)); }
+          }}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            {steps ? (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" disabled={disabled || state.current === 0} onClick={() => seek(state.current - 1)} aria-label="Previous visual step"><ChevronLeft /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Previous step</TooltipContent>
+                </Tooltip>
+                <Button className="min-w-28" disabled={disabled || reduced} onClick={() => { if (state.current === state.count - 1) seek(0); setPlaying(value => !value); }}>
+                  {playing ? <Pause /> : <Play />}{playing ? 'Pause' : 'Play'}
+                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" disabled={disabled || state.current >= state.count - 1} onClick={() => seek(state.current + 1)} aria-label="Next visual step"><ChevronRight /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Next step</TooltipContent>
+                </Tooltip>
+              </>
+            ) : <span className="type-label px-1 text-muted-foreground">Live experiment</span>}
+            <Button variant="ghost" disabled={disabled} onClick={() => { setPlaying(false); send({ type: 'reset' }); }}><RotateCcw />Reset</Button>
+            {steps ? <span className="px-1 text-sm font-semibold tabular-nums">{stepLabel}</span> : null}
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {steps ? (
+                <>
+                  <label className="sr-only" htmlFor={`speed-${artifact.id}`}>Playback speed</label>
+                  <NativeSelect id={`speed-${artifact.id}`} size="sm" value={speed} onChange={event => setSpeed(event.target.value)} className="w-24">
+                    <NativeSelectOption value="0.5">0.5×</NativeSelectOption>
+                    <NativeSelectOption value="1">1×</NativeSelectOption>
+                    <NativeSelectOption value="2">2×</NativeSelectOption>
+                  </NativeSelect>
+                  <label className="flex min-h-11 items-center gap-2 px-1 text-sm font-medium">
+                    <Switch checked={reduced} onCheckedChange={value => { setReduced(value); if (value) setPlaying(false); }} />
+                    Reduce motion
+                  </label>
+                </>
+              ) : null}
+              <Button variant="outline" onClick={expand} aria-label={full ? 'Exit expanded canvas' : 'Expand canvas'}><Expand />{full ? 'Exit' : 'Expand'}</Button>
+            </div>
+          </div>
+          {steps ? (
+            <div className="mt-2">
+              <label htmlFor={`timeline-${artifact.id}`} className="sr-only">Visual timeline</label>
+              <input id={`timeline-${artifact.id}`} type="range" min={0} max={state.count - 1} value={state.current} disabled={disabled} onChange={event => seek(Number(event.target.value))} className="visual-timeline" style={{ '--ticks': state.count - 1 } as React.CSSProperties} aria-valuetext={`${stepLabel}${state.description ? `: ${state.description.slice(0, 120)}` : ''}`} />
+            </div>
+          ) : null}
+          {steps && reduced ? <p className="mt-1 text-sm text-muted-foreground">Playback is paused while reduced motion is on. Use Next and Previous to step.</p> : null}
+          {!steps ? <p className="mt-1 text-sm text-muted-foreground">This is one scene. Change the inputs to explore. There is nothing to play.</p> : null}
+          <p role="status" className="mt-2 min-h-6 text-[15px] leading-relaxed">{state.description}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <p className="text-[13px] text-muted-foreground">Generated by AI and checked automatically. It can still be wrong. Compare it with your lesson.{themeNote ? ' Switching theme restarts the experiment.' : ''}</p>
+        <div className="flex items-center gap-1">
+          <Popover>
+            <PopoverTrigger asChild><Button variant="ghost" size="sm"><Info data-icon="inline-start" /> About this visual</Button></PopoverTrigger>
+            <PopoverContent align="end" className="text-[15px]">
+              This visual runs in an isolated frame, separate from your account and learning data. Exploring it does not count as practice or mastery.
+            </PopoverContent>
+          </Popover>
+          {onReport ? <Button variant="link" size="sm" onClick={onReport}>Report an issue</Button> : null}
+        </div>
       </div>
     </div>
-    <CardContent className="pt-0 text-xs text-muted-foreground">AI-generated visual. Browser checks{artifact.qa.ai_review === 'passed' ? ' and AI review' : ''} passed; factual accuracy has not been verified.</CardContent>
-  </Card>;
+  );
 }

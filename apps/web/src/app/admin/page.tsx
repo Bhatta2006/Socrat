@@ -36,7 +36,7 @@ interface Overview {
 function Vital({ value, unit }: { value?: { p75: number; ok: boolean }; unit: string }) {
   if (!value) return <span className="text-muted-foreground">—</span>;
   return (
-    <span className={value.ok ? 'text-success' : 'text-destructive'}>
+    <span className={value.ok ? 'text-foreground' : 'font-semibold text-attention'}>
       <span className="tabular-nums">{value.p75.toLocaleString()}{unit}</span>{' '}
       <span className="text-xs">{value.ok ? 'good' : 'over'}</span>
     </span>
@@ -101,7 +101,7 @@ export default function Admin() {
   const e = data.engagement;
   return (
     <Page wide>
-      <PageHeader eyebrow="Owner" title="How learners are doing" description="Computed from learning data. No third-party tracking." />
+      <PageHeader eyebrow={<span className="inline-flex rounded-full border border-border-strong px-2.5 py-0.5 normal-case tracking-normal">Admin</span>} title="How learners are doing" description="Computed from learning data. No third-party tracking." />
 
       <Tabs defaultValue="metrics" className="gap-6">
         <TabsList>
@@ -124,7 +124,7 @@ export default function Admin() {
           <CardContent><Funnel steps={data.funnel} /></CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="size-4 text-primary" /> Retention</CardTitle><CardDescription>Studied on day N after sign-up</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="size-4" /> Retention</CardTitle><CardDescription>Studied on day N after sign-up</CardDescription></CardHeader>
           <CardContent className="grid grid-cols-3 gap-3">
             {data.retention.map(r => (
               <div key={r.day} className="rounded-lg border p-3 text-center">
@@ -210,7 +210,7 @@ export default function Admin() {
               {data.unhelpful_resources.map(r => (
                 <TableRow key={`${r.concept}-${r.url}`}>
                   <TableCell className="pl-4">{r.concept}</TableCell>
-                  <TableCell className="max-w-80 truncate"><a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{r.url}</a></TableCell>
+                  <TableCell className="max-w-80 truncate"><a href={r.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:underline">{r.url}</a></TableCell>
                   <TableCell className="text-right tabular-nums">{r.opens}</TableCell>
                   <TableCell className="pr-4 text-right tabular-nums">{r.helpful} / {r.unhelpful}</TableCell>
                 </TableRow>

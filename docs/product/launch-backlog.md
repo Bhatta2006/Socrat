@@ -19,6 +19,11 @@ Priorities:
 
 ## Progress log
 
+- **2026-10-15 — UI redesign, "Learn it. Then prove it.":**
+  - Violet, lilac, cream and ink palette with lime reserved for mastery and review due; new brand mark, Geist display, Figtree body, JetBrains Mono code (fonts vendored).
+  - Status system (shape, label, colour) mapped to roadmap status and mastery bands; six-item navigation (Today, Skills, Practice, Playground, Evidence, Settings) with a five-item phone nav.
+  - Every learner page, landing, login, onboarding (now with a review step), placement and the Playground rebuilt; confetti and achievement badges removed; in-app reduce-motion setting added.
+  - New layout overflow e2e test; accessibility, keyboard, visual and explainer suites updated and passing. Details: `docs/redesign/REPORT.md` and `docs/redesign/DESIGN-SYSTEM.md`.
 - **2026-10-13 — Content-placement playbook, backend/content first pass:**
   - Owner-approved starter content: 30 packs / 279 atoms, covering the first ten concepts in each track, with 30 concept repairs and syntax support.
   - Added two scaffolded beginner judge problems, taking the original problem count to 85; the broader eight-per-concept inventory target remains open.
@@ -706,5 +711,5 @@ Known issues after the shadcn redesign (commit `e71a3ab`):
 - **Integrity:** no answers in the client before grading; server-side randomisation; assistance lowers mastery credit.
 - **Licensing:** no copied statements, editorials or book text; links and facts only, with provenance recorded.
 - **Hidden goal:** CP progression shapes recommendations and plans but never appears in copy outside the CP course.
-- **Design:** use shadcn/ui primitives and tokens from `apps/web/src/app/globals.css`; light and dark parity; mobile at 390 px; skeletons over spinners; one primary action per screen.
+- **Design:** follow `docs/redesign/DESIGN-SYSTEM.md`: tokens from `apps/web/src/app/globals.css`, the status system for every learning state, one violet hero per screen, light and dark parity, no horizontal overflow from 320 px, skeletons over spinners.
 - **Privacy:** new tables appear in export and are removed on account deletion; no secrets in logs or the repository.

@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import { CopyCodeBlock } from '@/components/socrat/copy-code-block';
 
 /**
  * Minimal, dependency-free Markdown renderer for lessons and assistant replies.
@@ -107,6 +108,19 @@ export function inline(text: string): ReactNode[] {
 
 const HEADINGS = ['h2', 'h2', 'h3', 'h4', 'h4', 'h4'] as const;
 
+/** Stable anchor for a heading, shared with the lesson's "On this page" links. */
+export function slug(text: string): string {
+  return 'section-' + text.toLowerCase().replace(/[`*_[\]()]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+/** Second-level headings of a lesson, for on-page navigation. */
+export function outline(source: string): { id: string; text: string }[] {
+  return parse(source).filter(b => b.type === 'heading' && b.level <= 2).map(b => {
+    const text = (b as { text: string }).text.replace(/[`*_]/g, '');
+    return { id: slug(text), text };
+  });
+}
+
 export default function Markdown({ source, language, className = '' }: { source: string; language?: string; className?: string }) {
   const blocks = parse(source).filter(b => {
     if (b.type !== 'code' || !language) return true;
@@ -119,12 +133,12 @@ export default function Markdown({ source, language, className = '' }: { source:
         switch (b.type) {
           case 'heading': {
             const Tag = HEADINGS[b.level - 1];
-            return <Tag key={index}>{inline(b.text)}</Tag>;
+            return <Tag key={index} id={b.level <= 2 ? slug(b.text.replace(/[`*_]/g, '')) : undefined}>{inline(b.text)}</Tag>;
           }
           case 'paragraph':
             return <p key={index}>{inline(b.text)}</p>;
           case 'code':
-            return <pre key={index} data-lang={b.lang || undefined} tabIndex={0} aria-label={`${b.lang || 'Code'} example`}><code>{b.text}</code></pre>;
+            return <CopyCodeBlock key={index} code={b.text} lang={b.lang || undefined} />;
           case 'list': {
             const Tag = b.ordered ? 'ol' : 'ul';
             return <Tag key={index}>{b.items.map((item, n) => <li key={n}>{inline(item)}</li>)}</Tag>;
@@ -133,7 +147,7 @@ export default function Markdown({ source, language, className = '' }: { source:
             return <blockquote key={index}>{inline(b.text)}</blockquote>;
           case 'table':
             return (
-              <div key={index} className="table-scroll">
+              <div key={index} className="table-scroll" tabIndex={0} role="region" aria-label="Table">
                 <table>
                   <thead><tr>{b.head.map((h, n) => <th key={n}>{inline(h)}</th>)}</tr></thead>
                   <tbody>{b.rows.map((row, r) => <tr key={r}>{row.map((c, n) => <td key={n}>{inline(c)}</td>)}</tr>)}</tbody>
