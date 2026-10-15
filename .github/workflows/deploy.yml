@@ -1,0 +1,114 @@
+name: deploy-production
+
+# Continuous delivery to the Oracle Cloud VM.
+#
+# Runs after the `continuous-integration` workflow succeeds on main (CI has already built, scanned and
+# attested the images tagged `sha-<commit>`). It can also be started by hand for any commit that has
+# published images. The `production` GitHub environment should require a reviewer.
+#
+# Required repository/environment configuration is listed in docs/operations/oracle-deploy.md.
+
+on:
+  workflow_run:
+    workflows: [continuous-integration]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Full commit SHA whose published images should be deployed
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      COMMIT: ${{ github.event.inputs.commit || github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.COMMIT }}
+
+      - name: Resolve image references
+        id: images
+        run: |
+          set -euo pipefail
+          [[ "$COMMIT" =~ ^[0-9a-f]{40}$ ]] || { echo "COMMIT must be a full lowercase SHA" >&2; exit 1; }
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for name in api web explainer; do
+            ref="ghcr.io/${owner}/socrat-${name}:sha-${COMMIT}"
+            digest="$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "No published image for $ref" >&2; exit 1; }
+            echo "${name}=ghcr.io/${owner}/socrat-${name}@${digest}" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Prepare SSH
+        env:
+          SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.ORACLE_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Upload the runtime definition and deploy script
+        env:
+          TARGET: ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}
+        run: |
+          set -euo pipefail
+          ssh_opts=(-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o BatchMode=yes)
+          ssh "${ssh_opts[@]}" "$TARGET" 'mkdir -p /opt/socrat/runtime'
+          scp "${ssh_opts[@]}" -r infra/runtime/production/. "$TARGET:/opt/socrat/runtime/"
+          scp "${ssh_opts[@]}" scripts/operations/deploy-production.sh "$TARGET:/opt/socrat/runtime/deploy-production.sh"
+
+      - name: Deploy (health-gated, rolls back on failure)
+        env:
+          TARGET: ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          API_IMAGE: ${{ steps.images.outputs.api }}
+          WEB_IMAGE: ${{ steps.images.outputs.web }}
+          EXPLAINER_IMAGE: ${{ steps.images.outputs.explainer }}
+          APP_HOST: ${{ vars.APP_HOST }}
+          SANDBOX_HOST: ${{ vars.SANDBOX_HOST }}
+          TLS_EMAIL: ${{ vars.TLS_EMAIL }}
+          OIDC_ISSUER: ${{ vars.SOCRAT_OIDC_ISSUER }}
+          OIDC_CLIENT_ID: ${{ vars.SOCRAT_OIDC_CLIENT_ID }}
+          AI_PROVIDER: ${{ vars.SOCRAT_AI_PROVIDER }}
+          OPENAI_BASE_URL: ${{ vars.SOCRAT_OPENAI_BASE_URL }}
+          OPENAI_MODEL: ${{ vars.SOCRAT_OPENAI_MODEL }}
+          EXPLAINER_MODEL: ${{ vars.SOCRAT_EXPLAINER_MODEL }}
+          EXPLAINER_KWARGS: ${{ vars.SOCRAT_EXPLAINER_CHAT_TEMPLATE_KWARGS }}
+          CONTENT_ADMINS: ${{ vars.SOCRAT_CONTENT_ADMIN_IDENTITIES }}
+          ADMIN_SUBJECTS: ${{ vars.SOCRAT_ADMIN_SUBJECTS }}
+        run: |
+          set -euo pipefail
+          ssh_opts=(-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o BatchMode=yes)
+          # The registry token travels over stdin only; it is never placed on a command line or written to disk.
+          printf '%s' "$GHCR_TOKEN" | ssh "${ssh_opts[@]}" "$TARGET" "docker login ghcr.io -u '$GHCR_USER' --password-stdin"
+          ssh "${ssh_opts[@]}" "$TARGET" \
+            RELEASE_SHA="'$COMMIT'" \
+            SOCRAT_API_IMAGE="'$API_IMAGE'" SOCRAT_WEB_IMAGE="'$WEB_IMAGE'" SOCRAT_EXPLAINER_IMAGE="'$EXPLAINER_IMAGE'" \
+            APP_HOST="'$APP_HOST'" SANDBOX_HOST="'$SANDBOX_HOST'" TLS_EMAIL="'$TLS_EMAIL'" \
+            SOCRAT_OIDC_ISSUER="'$OIDC_ISSUER'" SOCRAT_OIDC_CLIENT_ID="'$OIDC_CLIENT_ID'" \
+            SOCRAT_AI_PROVIDER="'$AI_PROVIDER'" SOCRAT_OPENAI_BASE_URL="'$OPENAI_BASE_URL'" SOCRAT_OPENAI_MODEL="'$OPENAI_MODEL'" \
+            SOCRAT_EXPLAINER_MODEL="'$EXPLAINER_MODEL'" SOCRAT_EXPLAINER_CHAT_TEMPLATE_KWARGS="'$EXPLAINER_KWARGS'" \
+            SOCRAT_CONTENT_ADMIN_IDENTITIES="'$CONTENT_ADMINS'" SOCRAT_ADMIN_SUBJECTS="'$ADMIN_SUBJECTS'" \
+            bash /opt/socrat/runtime/deploy-production.sh
+
+      - name: Remove SSH material
+        if: always()
+        run: rm -rf ~/.ssh/deploy_key ~/.ssh/known_hosts

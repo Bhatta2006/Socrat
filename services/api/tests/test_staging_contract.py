@@ -165,7 +165,7 @@ def test_ci_validates_operations_and_publishes_attested_multiarch_images():
     }
     publish_text = json.dumps(publish)
     assert "linux/amd64,linux/arm64" in publish_text
-    assert publish_text.count("actions/attest@") == 2
+    assert publish_text.count("actions/attest@") == 3  # api, web, visual checker
     assert ":sha-${{ github.sha }}" in publish_text
 
     workflow_text = workflow_path.read_text(encoding="utf-8")

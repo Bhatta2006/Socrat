@@ -1,0 +1,301 @@
+name: socrat
+
+# Single-host production runtime for an Oracle Cloud VM (Ampere A1 or AMD).
+# Derived from the reviewed staging runtime: immutable image references, private back-end network,
+# secrets mounted as files, one-shot migrations, health-gated ingress. Additions over staging:
+# the visual checker (Playground), the AI provider, and a second public host for sandboxed frames.
+# Code execution stays disabled here: it needs the separate gVisor runner host (infra/execution).
+
+x-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-database-environment: &database-environment
+  SOCRAT_DATABASE_HOST: postgres
+  SOCRAT_DATABASE_PORT: "5432"
+  SOCRAT_DATABASE_NAME: socrat
+  SOCRAT_DATABASE_USER: socrat
+  SOCRAT_DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+
+services:
+  postgres:
+    image: postgres:17.10-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: socrat
+      POSTGRES_USER: socrat
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    secrets:
+      - postgres_password
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socrat -d socrat"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    deploy:
+      resources:
+        limits: { cpus: "1.00", memory: 2G }
+    security_opt:
+      - no-new-privileges:true
+    logging: *bounded-logging
+
+  migrate:
+    image: "${SOCRAT_API_IMAGE:?Set SOCRAT_API_IMAGE to the published ghcr.io API image}"
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    environment: *database-environment
+    secrets:
+      - postgres_password
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    logging: *bounded-logging
+
+  api:
+    image: "${SOCRAT_API_IMAGE:?Set SOCRAT_API_IMAGE to the published ghcr.io API image}"
+    restart: unless-stopped
+    environment:
+      <<: *database-environment
+      SOCRAT_ENVIRONMENT: production
+      SOCRAT_PUBLIC_ORIGIN: "https://${APP_HOST:?Set APP_HOST to the owned application DNS name}"
+      SOCRAT_DEV_LOGIN_ENABLED: "false"
+      SOCRAT_SESSION_SECRET_FILE: /run/secrets/session_secret
+      SOCRAT_OIDC_ISSUER: "${SOCRAT_OIDC_ISSUER:?Set the OIDC issuer URL}"
+      SOCRAT_OIDC_CLIENT_ID: "${SOCRAT_OIDC_CLIENT_ID:?Set the OIDC client ID}"
+      SOCRAT_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+      SOCRAT_METRICS_TOKEN_FILE: /run/secrets/metrics_token
+      SOCRAT_CONTENT_ADMIN_IDENTITIES: "${SOCRAT_CONTENT_ADMIN_IDENTITIES:-[]}"
+      SOCRAT_ADMIN_SUBJECTS: "${SOCRAT_ADMIN_SUBJECTS:-[]}"
+      SOCRAT_ONBOARDING_ENABLED: "true"
+      SOCRAT_DIAGNOSTICS_ENABLED: "true"
+      SOCRAT_PLANNING_ENABLED: "true"
+      SOCRAT_LEARNING_SESSIONS_ENABLED: "true"
+      SOCRAT_ASSESSMENTS_ENABLED: "true"
+      SOCRAT_DASHBOARD_ENABLED: "true"
+      SOCRAT_REMINDERS_ENABLED: "true"
+      SOCRAT_TUTOR_ENABLED: "true"
+      SOCRAT_TUTOR_MODEL_ENABLED: "${SOCRAT_TUTOR_MODEL_ENABLED:-false}"
+      SOCRAT_TUTOR_ADVISOR_SHADOW_ENABLED: "false"
+      SOCRAT_EXECUTION_ENABLED: "false"
+      # AI provider (any OpenAI-compatible endpoint, or anthropic). The key is a mounted file.
+      SOCRAT_AI_PROVIDER: "${SOCRAT_AI_PROVIDER:-openai}"
+      SOCRAT_OPENAI_BASE_URL: "${SOCRAT_OPENAI_BASE_URL:-}"
+      SOCRAT_OPENAI_MODEL: "${SOCRAT_OPENAI_MODEL:-}"
+      SOCRAT_OPENAI_API_KEY_FILE: /run/secrets/ai_api_key
+      SOCRAT_AI_TIMEOUT_SECONDS: "${SOCRAT_AI_TIMEOUT_SECONDS:-60}"
+      # Playground (AI visual explainer): frames are served from a second, unrelated registrable domain.
+      SOCRAT_EXPLAINER_ENABLED: "${SOCRAT_EXPLAINER_ENABLED:-true}"
+      SOCRAT_EXPLAINER_MODEL: "${SOCRAT_EXPLAINER_MODEL:-}"
+      SOCRAT_EXPLAINER_CHAT_TEMPLATE_KWARGS: "${SOCRAT_EXPLAINER_CHAT_TEMPLATE_KWARGS:-{}}"
+      SOCRAT_EXPLAINER_DAILY_MESSAGES: "${SOCRAT_EXPLAINER_DAILY_MESSAGES:-20}"
+      SOCRAT_EXPLAINER_SANDBOX_ORIGIN: "https://${SANDBOX_HOST:?Set SANDBOX_HOST to a DNS name on a different registrable domain}"
+      SOCRAT_EXPLAINER_CHECKER_URL: http://explainer-checker:8010/check
+      SOCRAT_EXPLAINER_CHECKER_SECRET_FILE: /run/secrets/explainer_checker_secret
+    secrets:
+      - postgres_password
+      - session_secret
+      - oidc_client_secret
+      - metrics_token
+      - ai_api_key
+      - explainer_checker_secret
+    networks:
+      - backend
+      # Outbound HTTPS for OIDC discovery and the AI provider. Not a destination allow-list.
+      - egress
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      explainer-checker:
+        condition: service_healthy
+    expose: ["8000"]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready')"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "1.50", memory: 1536M }
+    logging: *bounded-logging
+
+  worker:
+    image: "${SOCRAT_API_IMAGE:?Set SOCRAT_API_IMAGE to the published ghcr.io API image}"
+    command: ["python", "-m", "socrat.worker"]
+    restart: unless-stopped
+    environment:
+      <<: *database-environment
+      PYTHONPATH: services/api/src
+      SOCRAT_REMINDERS_ENABLED: "true"
+    secrets:
+      - postgres_password
+    networks:
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "0.50", memory: 512M }
+    logging: *bounded-logging
+
+  web:
+    image: "${SOCRAT_WEB_IMAGE:?Set SOCRAT_WEB_IMAGE to the published ghcr.io web image}"
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    networks:
+      - backend
+    depends_on:
+      api:
+        condition: service_healthy
+    expose: ["3000"]
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+      - /app/apps/web/.next/cache:size=64m,noexec,nosuid
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "1.00", memory: 1G }
+    logging: *bounded-logging
+
+  # Headless browser that validates generated visuals. No outbound network: it only answers the API.
+  explainer-checker:
+    image: "${SOCRAT_EXPLAINER_IMAGE:?Set SOCRAT_EXPLAINER_IMAGE to the published ghcr.io checker image}"
+    restart: unless-stopped
+    init: true
+    shm_size: 256mb
+    environment:
+      SOCRAT_EXPLAINER_CHECKER_SECRET_FILE: /run/secrets/explainer_checker_secret
+    secrets:
+      - explainer_checker_secret
+    networks:
+      - backend
+    expose: ["8010"]
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8010/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "1.00", memory: 1G }
+    logging: *bounded-logging
+
+  caddy:
+    image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
+    restart: unless-stopped
+    environment:
+      APP_HOST: "${APP_HOST:?Set APP_HOST}"
+      SANDBOX_HOST: "${SANDBOX_HOST:?Set SANDBOX_HOST}"
+      TLS_EMAIL: "${TLS_EMAIL:?Set TLS_EMAIL for certificate expiry notices}"
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+      - backend
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -q --spider --no-check-certificate --header=Host:$${APP_HOST} https://127.0.0.1/api/health/live"
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    read_only: true
+    cap_drop: ["ALL"]
+    cap_add: ["NET_BIND_SERVICE"]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits: { cpus: "0.50", memory: 256M }
+    logging: *bounded-logging
+
+secrets:
+  postgres_password:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/postgres_password"
+  session_secret:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/session_secret"
+  oidc_client_secret:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/oidc_client_secret"
+  metrics_token:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/metrics_token"
+  ai_api_key:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/ai_api_key"
+  explainer_checker_secret:
+    file: "${SOCRAT_SECRETS_DIR:?Set SOCRAT_SECRETS_DIR}/explainer_checker_secret"
+
+networks:
+  edge:
+  egress:
+    driver: bridge
+  backend:
+    internal: true
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:

@@ -95,6 +95,23 @@ jobs:
           SOCRAT_OIDC_ISSUER: https://identity.example.test
           SOCRAT_OIDC_CLIENT_ID: ci-client
         run: docker compose -f infra/runtime/staging/compose.yaml config --quiet
+      - name: Validate the production Compose model
+        env:
+          SOCRAT_API_IMAGE: ghcr.io/example/socrat-api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          SOCRAT_WEB_IMAGE: ghcr.io/example/socrat-web@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          SOCRAT_EXPLAINER_IMAGE: ghcr.io/example/socrat-explainer@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+          SOCRAT_SECRETS_DIR: ${{ github.workspace }}/.cache/ci-secrets
+          APP_HOST: app.example.test
+          SANDBOX_HOST: visuals.example.invalid
+          TLS_EMAIL: operations@example.test
+          SOCRAT_OIDC_ISSUER: https://identity.example.test
+          SOCRAT_OIDC_CLIENT_ID: ci-client
+        run: |
+          printf '%s' 'ci-ai-key' > "$GITHUB_WORKSPACE/.cache/ci-secrets/ai_api_key"
+          printf '%s' 'ci-explainer-checker-secret-0123456789' > "$GITHUB_WORKSPACE/.cache/ci-secrets/explainer_checker_secret"
+          docker compose -f infra/runtime/production/compose.yaml config --quiet
+          docker run --rm --env APP_HOST=app.example.test --env SANDBOX_HOST=visuals.example.invalid --env TLS_EMAIL=operations@example.test             --volume "$PWD/infra/runtime/production/Caddyfile:/etc/caddy/Caddyfile:ro"             caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b             caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          bash -n scripts/operations/deploy-production.sh
       - name: Validate Prometheus configuration and alert rules
         shell: bash
         run: |
@@ -135,8 +152,16 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+    outputs:
+      owner: ${{ steps.owner.outputs.name }}
+      api_digest: ${{ steps.api.outputs.digest }}
+      web_digest: ${{ steps.web.outputs.digest }}
+      explainer_digest: ${{ steps.explainer.outputs.digest }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Resolve the lowercase image namespace
+        id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
@@ -152,11 +177,11 @@ jobs:
           file: services/api/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/bhatta2006/socrat-api:sha-${{ github.sha }}
+          tags: ghcr.io/${{ steps.owner.outputs.name }}/socrat-api:sha-${{ github.sha }}
       - name: Attest API image
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-name: ghcr.io/bhatta2006/socrat-api
+          subject-name: ghcr.io/${{ steps.owner.outputs.name }}/socrat-api
           subject-digest: ${{ steps.api.outputs.digest }}
           push-to-registry: true
       - name: Build and publish web image
@@ -167,10 +192,28 @@ jobs:
           file: apps/web/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/bhatta2006/socrat-web:sha-${{ github.sha }}
+          # Baked into the CSP frame-src of the web app: the Playground sandbox host for this deployment.
+          build-args: |
+            NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN=${{ vars.SOCRAT_SANDBOX_ORIGIN || 'http://127.0.0.1:8000' }}
+          tags: ghcr.io/${{ steps.owner.outputs.name }}/socrat-web:sha-${{ github.sha }}
       - name: Attest web image
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-name: ghcr.io/bhatta2006/socrat-web
+          subject-name: ghcr.io/${{ steps.owner.outputs.name }}/socrat-web
           subject-digest: ${{ steps.web.outputs.digest }}
+          push-to-registry: true
+      - name: Build and publish visual checker image
+        id: explainer
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: services/explainer/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ steps.owner.outputs.name }}/socrat-explainer:sha-${{ github.sha }}
+      - name: Attest visual checker image
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ghcr.io/${{ steps.owner.outputs.name }}/socrat-explainer
+          subject-digest: ${{ steps.explainer.outputs.digest }}
           push-to-registry: true

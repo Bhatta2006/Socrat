@@ -1,10 +1,13 @@
 import http from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const token = process.env.SOCRAT_EXPLAINER_CHECKER_SECRET || '';
+// The secret may be mounted as a file (SOCRAT_EXPLAINER_CHECKER_SECRET_FILE) so it never sits in the environment.
+const secretFile = process.env.SOCRAT_EXPLAINER_CHECKER_SECRET_FILE;
+const token = (secretFile ? readFileSync(secretFile, 'utf8').trim() : process.env.SOCRAT_EXPLAINER_CHECKER_SECRET || '');
 if (token.length < 32) throw Error('Configure a strong checker secret');
 const script = fileURLToPath(new URL('./check-artifact.mjs', import.meta.url));
 let running = 0;

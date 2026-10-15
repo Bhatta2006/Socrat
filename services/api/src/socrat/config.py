@@ -110,6 +110,7 @@ class Settings(DatabaseSettings):
         default=SecretStr(""),
         validation_alias=AliasChoices("socrat_openai_api_key", "nebius_api_key", "openai_api_key"),
     )
+    openai_api_key_file: str = ""
     openai_model: str = ""
     openai_base_url: str = ""
     ai_timeout_seconds: float = Field(default=45, ge=5, le=120)
@@ -124,6 +125,7 @@ class Settings(DatabaseSettings):
     explainer_sandbox_origin: str = ""
     explainer_checker_url: str = ""
     explainer_checker_secret: SecretStr = SecretStr("")
+    explainer_checker_secret_file: str = ""
     # Who may open /admin: OIDC subjects (or "issuer|subject"). Empty = nobody.
     admin_subjects: list[str] = Field(default_factory=list, max_length=50)
     # Content review queue: drafts are YAML files on an authoring checkout; approval moves
@@ -179,6 +181,12 @@ class Settings(DatabaseSettings):
         )
         self.metrics_token = _secret_from_file(
             "metrics_token", self.metrics_token, self.metrics_token_file
+        )
+        self.openai_api_key = _secret_from_file(
+            "openai_api_key", self.openai_api_key, self.openai_api_key_file
+        )
+        self.explainer_checker_secret = _secret_from_file(
+            "explainer_checker_secret", self.explainer_checker_secret, self.explainer_checker_secret_file
         )
         if self.environment == "test":
             self.codeforces_autosync = False
