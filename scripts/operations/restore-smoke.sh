@@ -5,7 +5,7 @@ archive=""
 compose_file="compose.yaml"
 project_name="socrat"
 env_file=""
-expected_revision="0010"
+expected_revision=""
 
 while (($#)); do
   case "$1" in
@@ -24,6 +24,11 @@ if [[ -z "$archive" || ! -f "$archive" ]]; then
 fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ -z "$expected_revision" ]]; then
+  # Default to the schema head this checkout supports (the readiness check uses the same value).
+  expected_revision="$(sed -n 's/^SCHEMA_REVISION = "\(.*\)"$/\1/p' "$repo_root/services/api/src/socrat/schema_revision.py")"
+  [[ -n "$expected_revision" ]] || { printf 'Could not read SCHEMA_REVISION.\n' >&2; exit 2; }
+fi
 [[ "$compose_file" = /* ]] || compose_file="$repo_root/$compose_file"
 compose=(docker compose --project-name "$project_name")
 if [[ -n "$env_file" ]]; then

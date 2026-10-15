@@ -20,6 +20,7 @@ export interface Profile {
   timezone: string | null;
   csrf_token: string;
   onboarded: boolean;
+  tour_seen: boolean;
   enrollment: Enrollment | null;
 }
 

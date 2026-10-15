@@ -11,7 +11,8 @@ import { Illustration } from '@/components/socrat/illustration';
 import { StatusIcon, StatusLabel } from '@/components/socrat/status';
 import { Wordmark } from '@/components/socrat/wordmark';
 import { ArrowCircle, Button } from '@/components/ui/button';
-import { DrawLine, InView, Parallax, ScrollMeter, ScrubText, Underline } from '@/components/motion';
+import { InView } from '@/components/motion';
+import { DrawLine, Parallax, ScrollMeter, ScrubText, Underline } from '@/components/motion-scroll';
 import { Reveal } from '@/components/common';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -255,7 +256,7 @@ export default function Home() {
         {/* Final call to action */}
         <section aria-labelledby="cta-title" className="mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10 lg:pb-24">
           <InView data-tone="hero" className="flex flex-col items-start gap-6 rounded-card bg-forest p-8 text-forest-foreground lg:flex-row lg:items-end lg:justify-between lg:p-12">
-            <ScrubText from={0.35}><h2 id="cta-title" className="type-display-l max-w-[14ch]">Start where you are.</h2></ScrubText>
+            <ScrubText><h2 id="cta-title" className="type-display-l max-w-[14ch]">Start where you are.</h2></ScrubText>
             <Button asChild variant="ink" size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
           </InView>
         </section>

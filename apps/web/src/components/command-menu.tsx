@@ -38,6 +38,7 @@ export function CommandMenu() {
         onPointerEnter={() => void load()}
         onFocus={() => void load()}
         aria-label="Search Socrat"
+        data-tour="search"
         className="ml-auto grid size-11 place-items-center rounded-full text-foreground transition-colors hover:bg-raised sm:hidden"
       >
         <Search className="size-5" strokeWidth={1.75} aria-hidden="true" />
@@ -48,6 +49,7 @@ export function CommandMenu() {
         onPointerEnter={() => void load()}
         onFocus={() => void load()}
         aria-label="Search Socrat"
+        data-tour="search"
         className="hidden h-11 w-64 items-center gap-2.5 rounded-control border border-border-strong bg-card px-4 text-[15px] text-muted-foreground transition-colors hover:border-ring sm:flex lg:w-80"
       >
         <Search className="size-4.5" strokeWidth={1.75} aria-hidden="true" />

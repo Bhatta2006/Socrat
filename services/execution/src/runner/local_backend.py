@@ -16,6 +16,13 @@ from runner.docker_backend import SandboxUnavailable
 from runner.toolchains import toolchains
 from socrat.execution.protocol import CaseResult, JobEnvelope, RuntimeProfile, same_output
 
+# Windows: create suspended (assigned to a Job Object, then resumed) and without a console.
+# A sys.platform check, unlike os.name, lets mypy accept the Windows-only constant on Linux.
+if sys.platform == "win32":
+    CREATION_FLAGS = 0x4 | subprocess.CREATE_NO_WINDOW
+else:
+    CREATION_FLAGS = 0
+
 
 @dataclass
 class Captured:
@@ -57,7 +64,7 @@ def capture_process(
     started = time.monotonic()
     job = None
     process = None
-    if os.name == "nt":
+    if sys.platform == "win32":
         from runner.windows_job import WindowsJob
 
         job = WindowsJob(memory_mb * 1024 * 1024, pids)
@@ -75,7 +82,7 @@ def capture_process(
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            creationflags=(0x4 | subprocess.CREATE_NO_WINDOW) if os.name == "nt" else 0,
+            creationflags=CREATION_FLAGS,
             start_new_session=os.name != "nt",
         )
         if job:

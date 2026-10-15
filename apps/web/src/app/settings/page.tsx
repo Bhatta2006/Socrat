@@ -12,6 +12,7 @@ import type { Course, Language, Profile } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ErrorNote, Loading, Page, PageHeader } from '@/components/common';
 import { Pill } from '@/components/choice';
+import { TOUR_EVENT } from '@/components/tour';
 import CodeforcesLink from '@/components/codeforces-link';
 import { SuccessLine } from '@/components/socrat/states';
 import {
@@ -58,6 +59,7 @@ function ThemePreview({ id }: { id: 'light' | 'dark' | 'system' }) {
 function Appearance() {
   const { theme, setTheme } = useTheme();
   const motion = useReducedMotion();
+  const { profile } = useSession();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   return (
@@ -92,6 +94,15 @@ function Appearance() {
         </div>
         <Switch id="reduce-motion" checked={motion.setting} onCheckedChange={motion.set} aria-describedby="reduce-motion-help" />
       </div>
+      {profile?.enrollment?.status === 'active' ? (
+        <div className="mt-6 flex items-center justify-between gap-4 border-t pt-5">
+          <div>
+            <p className="font-semibold">Tour of Socrat</p>
+            <p className="text-sm text-muted-foreground">A one-minute walk through each section.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent(TOUR_EVENT))}>Replay tour</Button>
+        </div>
+      ) : null}
     </Section>
   );
 }

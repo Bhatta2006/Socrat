@@ -10,10 +10,24 @@ from html.parser import HTMLParser
 from socrat.catalog.registry import REPO_ROOT
 
 MAX_BYTES = 300_000
-TAGS = set("html head body title meta style script main section article header footer nav div span p h1 h2 h3 h4 h5 h6 strong em b i small code pre blockquote ul ol li dl dt dd table thead tbody tfoot tr th td caption button input label select option optgroup textarea fieldset legend output details summary progress meter br hr svg g path rect circle ellipse line polyline polygon text tspan defs desc marker lineargradient radialgradient stop clippath mask pattern symbol use canvas math mrow mi mn mo mfrac msup msub msqrt mroot mtext".split())
-TAGS.update("filter fegaussianblur feoffset feflood feblend fecolormatrix fecomposite femerge femergenode fedropshadow".split())
+TAGS = set(
+    "html head body title meta style script main section article header footer nav aside figure figcaption div span p h1 h2 h3 h4 h5 h6 strong em b i u s small mark sub sup abbr cite q dfn time var samp kbd code pre blockquote ul ol li dl dt dd table thead tbody tfoot tr th td caption button input label select option optgroup textarea fieldset legend output details summary progress meter br hr svg g path rect circle ellipse line polyline polygon text tspan defs desc marker lineargradient radialgradient stop clippath mask pattern symbol use canvas math mrow mi mn mo mfrac msup msub msqrt mroot mtext".split()
+)
+TAGS.update(
+    "filter fegaussianblur feoffset feflood feblend fecolormatrix fecomposite femerge femergenode fedropshadow".split()
+)
 VOID = {"meta", "input", "br", "hr"}
-URL_ATTRS = {"src", "srcset", "href", "xlink:href", "action", "formaction", "ping", "poster", "background"}
+URL_ATTRS = {
+    "src",
+    "srcset",
+    "href",
+    "xlink:href",
+    "action",
+    "formaction",
+    "ping",
+    "poster",
+    "background",
+}
 
 
 class ArtifactError(ValueError):
@@ -50,29 +64,45 @@ class Validator(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if tag not in TAGS:
-            raise ArtifactError(f"Unsupported HTML element: {tag[:40]}; use standard HTML/SVG/canvas without embeds")
+            raise ArtifactError(
+                f"Unsupported HTML element: {tag[:40]}; use standard HTML/SVG/canvas without embeds"
+            )
         if self.closed:
             raise ArtifactError("HTML elements must be inside the document")
         attributes = {}
         for key, value in attrs:
             value = value or ""
-            if key in attributes or key.startswith("on") or key in {"srcdoc", "nonce", "is", "autofocus", "contenteditable"}:
-                raise ArtifactError("Use addEventListener; inline handlers and privileged attributes are forbidden")
-            if key in URL_ATTRS and not (tag == "use" and key in {"href", "xlink:href"} and re.fullmatch(r"#[\w-]+", value)):
+            if (
+                key in attributes
+                or key.startswith("on")
+                or key in {"srcdoc", "nonce", "is", "autofocus", "contenteditable"}
+            ):
+                raise ArtifactError(
+                    "Use addEventListener; inline handlers and privileged attributes are forbidden"
+                )
+            if key in URL_ATTRS and not (
+                tag == "use" and key in {"href", "xlink:href"} and re.fullmatch(r"#[\w-]+", value)
+            ):
                 raise ArtifactError("External resources and navigation are forbidden")
             if key == "style":
                 self.check_css(value)
             attributes[key] = value
         if tag == "meta" and not (
-            "charset" in attributes or attributes.get("name", "").lower() in {"viewport", "description"}
+            "charset" in attributes
+            or attributes.get("name", "").lower() in {"viewport", "description"}
         ):
             raise ArtifactError("Only charset, viewport and description metadata are allowed")
-        if tag == "script" and any(k != "type" or v not in {"text/javascript", "application/javascript"} for k, v in attributes.items()):
+        if tag == "script" and any(
+            k != "type" or v not in {"text/javascript", "application/javascript"}
+            for k, v in attributes.items()
+        ):
             raise ArtifactError("Scripts must be inline vanilla JavaScript")
         identity = attributes.get("id")
         if identity:
             if identity in self.ids:
-                raise ArtifactError(f"Duplicate element id: {identity[:80]}; use a unique id for each element and update its references")
+                raise ArtifactError(
+                    f"Duplicate element id: {identity[:80]}; use a unique id for each element and update its references"
+                )
             self.ids.add(identity)
         if identity == "transcript":
             self.transcript_depth = len(self.stack) + 1
@@ -80,7 +110,12 @@ class Validator(HTMLParser):
             self.visual = True
         if tag in {"button", "input", "select"}:
             self.controls += 1
-        self.parts.append("<" + tag + "".join(f' {k}="{html.escape(v, quote=True)}"' for k, v in attributes.items()) + ">")
+        self.parts.append(
+            "<"
+            + tag
+            + "".join(f' {k}="{html.escape(v, quote=True)}"' for k, v in attributes.items())
+            + ">"
+        )
         if tag not in VOID:
             self.stack.append(tag)
         if tag == "script":
@@ -98,7 +133,9 @@ class Validator(HTMLParser):
             return
         if not self.stack or self.stack[-1] != tag:
             expected = self.stack[-1] if self.stack else "no open element"
-            raise ArtifactError(f"Close {expected[:40]} before closing {tag[:40]}; all HTML elements must be balanced")
+            raise ArtifactError(
+                f"Close {expected[:40]} before closing {tag[:40]}; all HTML elements must be balanced"
+            )
         if self.transcript_depth == len(self.stack):
             self.transcript_depth = 0
         self.stack.pop()
@@ -133,8 +170,9 @@ class Validator(HTMLParser):
     @staticmethod
     def check_css(css):
         local_urls = re.findall(r"url\s*\((.*?)\)", css, re.I | re.S)
-        if (re.search(r"@import|expression\s*\(|-moz-binding|behavior\s*:", css, re.I)
-                or any(not re.fullmatch(r"(['\"]?)#[\w-]+\1", value.strip()) for value in local_urls)):
+        if re.search(r"@import|expression\s*\(|-moz-binding|behavior\s*:", css, re.I) or any(
+            not re.fullmatch(r"(['\"]?)#[\w-]+\1", value.strip()) for value in local_urls
+        ):
             raise ArtifactError("CSS must not load resources or execute code")
 
 
@@ -152,7 +190,9 @@ def validate(raw: str) -> Document:
     if parser.stack or not parser.closed or not all(t in raw.lower() for t in ["<head", "<body"]):
         raise ArtifactError("Return a complete, balanced HTML document")
     if not 2 <= len(title) <= 140 or "transcript" not in parser.ids or len(transcript) > 30_000:
-        raise ArtifactError("Include a meaningful title and section id=transcript for the complete explanation")
+        raise ArtifactError(
+            "Include a meaningful title and section id=transcript for the complete explanation"
+        )
     if not parser.visual or not parser.controls or not parser.scripts:
         raise ArtifactError("Include id=visual, interactive input controls, and working JavaScript")
     if not any("__explainer" in script for script in parser.scripts):
@@ -169,7 +209,9 @@ html[data-reduced-motion=true] *,html[data-reduced-motion=true] *::before,html[d
 """
 
 
-def compile_document(document: str, channel: str, app_origin: str, theme: str = "light") -> tuple[str, str]:
+def compile_document(
+    document: str, channel: str, app_origin: str, theme: str = "light"
+) -> tuple[str, str]:
     """Revalidate stored content; only this compiler grants script nonces and messaging."""
     clean = validate(document).html
     nonce = secrets.token_urlsafe(24)
@@ -217,8 +259,10 @@ setInterval(()=>{if(!failed){send('heartbeat');update()}},1000);
     clean = clean.replace("</head>", f"<style>{BASE_STYLE}{theme_style}</style></head>")
     clean = clean.replace("</body>", f'<script nonce="{nonce}">{runtime}</script></body>')
     # Both policies must pass: copying an inline nonce must never authorize external scripts.
-    csp = (f"default-src 'none'; script-src 'nonce-{nonce}'; style-src 'unsafe-inline'; "
-           f"img-src data:; font-src data:; connect-src 'none'; frame-src 'none'; worker-src 'none'; "
-           f"object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors {app_origin}; sandbox allow-scripts"
-           ", script-src 'unsafe-inline'")
+    csp = (
+        f"default-src 'none'; script-src 'nonce-{nonce}'; style-src 'unsafe-inline'; "
+        f"img-src data:; font-src data:; connect-src 'none'; frame-src 'none'; worker-src 'none'; "
+        f"object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors {app_origin}; sandbox allow-scripts"
+        ", script-src 'unsafe-inline'"
+    )
     return clean, csp

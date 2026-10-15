@@ -21,8 +21,9 @@ test('landing hero, paths, questions and navigation work on desktop and phone', 
   await expect(page.locator('.landing-question').first()).toHaveAttribute('open', '');
   await expect(page.getByRole('link', { name: /Get started with/ })).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  // The nav floats as a pill just below the top edge.
   const nav = await page.locator('.landing-nav').boundingBox();
-  expect(nav?.y).toBe(0);
+  expect(nav?.y).toBeLessThanOrEqual(12);
   expect(nav?.height).toBeLessThan(66);
   if (info.project.name === 'mobile') {
     await page.getByRole('button', { name: 'Open navigation' }).click();
@@ -41,8 +42,11 @@ test('landing is flat: inline SVG illustration, no canvas or WebGL, nav stays pu
   await expect(page.locator('canvas')).toHaveCount(0);
   const hero = page.locator('section[aria-labelledby="hero-title"] svg[aria-hidden="true"]');
   await expect(hero.first()).toBeVisible();
+  // The nav rises into place on load, then stays pinned 12 px below the top while scrolling.
+  const navY = async () => (await page.locator('.landing-nav').boundingBox())?.y;
+  await expect.poll(navY).toBe(12);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await expect.poll(async () => (await page.locator('.landing-nav').boundingBox())?.y).toBe(0);
+  await expect.poll(navY).toBe(12);
 });
 
 test('landing remains usable without the course API', async ({ page }) => {

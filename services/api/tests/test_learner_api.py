@@ -85,7 +85,9 @@ def complete_curriculum(client):
             f"checkpoint:{cat.owner[c]}:{cat.module_of(c)}" for c in scope
         }
         for activity in ids - learn.completed_for(db, enrollment):
-            db.add(ActivityRecord(enrollment_id=enrollment.id, activity_id=activity, completed_at=1))
+            db.add(
+                ActivityRecord(enrollment_id=enrollment.id, activity_id=activity, completed_at=1)
+            )
 
 
 def test_age_gate_blocks_under_thirteen(client):

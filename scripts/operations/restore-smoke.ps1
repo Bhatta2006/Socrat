@@ -4,12 +4,18 @@ param(
     [string]$ComposeFile = "compose.yaml",
     [string]$ProjectName = "socrat",
     [string]$EnvFile = "",
-    [ValidatePattern('^[0-9]{4}$')][string]$ExpectedRevision = "0010"
+    [ValidatePattern('^[0-9]{4}[A-Za-z0-9_]*$')][string]$ExpectedRevision = ""
 )
 
 $ErrorActionPreference = 'Stop'
 $resolved = (Resolve-Path -LiteralPath $Archive).Path
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+if (-not $ExpectedRevision) {
+    # Default to the schema head this checkout supports (the readiness check uses the same value).
+    $match = Select-String -LiteralPath (Join-Path $repoRoot 'services/api/src/socrat/schema_revision.py') -Pattern '^SCHEMA_REVISION = "(.+)"$'
+    if (-not $match) { throw 'Could not read SCHEMA_REVISION.' }
+    $ExpectedRevision = $match.Matches[0].Groups[1].Value
+}
 $composePath = if ([System.IO.Path]::IsPathRooted($ComposeFile)) {
     [System.IO.Path]::GetFullPath($ComposeFile)
 } else { [System.IO.Path]::GetFullPath((Join-Path $repoRoot $ComposeFile)) }

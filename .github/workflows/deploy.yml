@@ -34,6 +34,9 @@ jobs:
     environment: production
     env:
       COMMIT: ${{ github.event.inputs.commit || github.event.workflow_run.head_sha }}
+      # Layout of the Oracle VM: Ubuntu's snap Docker can only read below /home, and an existing
+      # nginx owns 80/443, so the stack runs through the host-proxy overlay (see oracle-deploy.md).
+      REMOTE: /home/ubuntu/socrat
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -70,9 +73,9 @@ jobs:
         run: |
           set -euo pipefail
           ssh_opts=(-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o BatchMode=yes)
-          ssh "${ssh_opts[@]}" "$TARGET" 'mkdir -p /opt/socrat/runtime'
-          scp "${ssh_opts[@]}" -r infra/runtime/production/. "$TARGET:/opt/socrat/runtime/"
-          scp "${ssh_opts[@]}" scripts/operations/deploy-production.sh "$TARGET:/opt/socrat/runtime/deploy-production.sh"
+          ssh "${ssh_opts[@]}" "$TARGET" "mkdir -p $REMOTE/runtime"
+          scp "${ssh_opts[@]}" -r infra/runtime/production/. "$TARGET:$REMOTE/runtime/"
+          scp "${ssh_opts[@]}" scripts/operations/deploy-production.sh "$TARGET:$REMOTE/runtime/deploy-production.sh"
 
       - name: Deploy (health-gated, rolls back on failure)
         env:
@@ -98,8 +101,11 @@ jobs:
           set -euo pipefail
           ssh_opts=(-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o BatchMode=yes)
           # The registry token travels over stdin only; it is never placed on a command line or written to disk.
-          printf '%s' "$GHCR_TOKEN" | ssh "${ssh_opts[@]}" "$TARGET" "docker login ghcr.io -u '$GHCR_USER' --password-stdin"
-          ssh "${ssh_opts[@]}" "$TARGET" \
+          printf '%s' "$GHCR_TOKEN" | ssh "${ssh_opts[@]}" "$TARGET" "sudo docker --config $REMOTE/docker-config login ghcr.io -u '$GHCR_USER' --password-stdin"
+          ssh "${ssh_opts[@]}" "$TARGET" sudo env \
+            DOCKER_CONFIG="$REMOTE/docker-config" SOCRAT_HOST_PROXY=1 \
+            SOCRAT_HEALTH_URL="http://127.0.0.1:18000/api/health/ready" \
+            SOCRAT_RUNTIME_DIR="$REMOTE/runtime" SOCRAT_STATE_DIR="$REMOTE/releases" SOCRAT_SECRETS_DIR="$REMOTE/secrets" \
             RELEASE_SHA="'$COMMIT'" \
             SOCRAT_API_IMAGE="'$API_IMAGE'" SOCRAT_WEB_IMAGE="'$WEB_IMAGE'" SOCRAT_EXPLAINER_IMAGE="'$EXPLAINER_IMAGE'" \
             APP_HOST="'$APP_HOST'" SANDBOX_HOST="'$SANDBOX_HOST'" TLS_EMAIL="'$TLS_EMAIL'" \
@@ -107,7 +113,7 @@ jobs:
             SOCRAT_AI_PROVIDER="'$AI_PROVIDER'" SOCRAT_OPENAI_BASE_URL="'$OPENAI_BASE_URL'" SOCRAT_OPENAI_MODEL="'$OPENAI_MODEL'" \
             SOCRAT_EXPLAINER_MODEL="'$EXPLAINER_MODEL'" SOCRAT_EXPLAINER_CHAT_TEMPLATE_KWARGS="'$EXPLAINER_KWARGS'" \
             SOCRAT_CONTENT_ADMIN_IDENTITIES="'$CONTENT_ADMINS'" SOCRAT_ADMIN_SUBJECTS="'$ADMIN_SUBJECTS'" \
-            bash /opt/socrat/runtime/deploy-production.sh
+            bash "$REMOTE/runtime/deploy-production.sh"
 
       - name: Remove SSH material
         if: always()

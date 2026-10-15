@@ -185,6 +185,7 @@ def profile_view(db: Session, user: User, csrf: str) -> dict:
         timezone=user.timezone,
         csrf_token=csrf,
         onboarded=enrollment is not None,
+        tour_seen=user.tour_seen_at is not None,
         enrollment=None
         if enrollment is None
         else dict(
@@ -257,6 +258,15 @@ def update_me(body: ProfileUpdate, request: Request):
             user.timezone = body.timezone
         record_event(db, user.id, "profile.updated")
         return profile_view(db, user, session.csrf_token)
+
+
+@router.post("/me/tour", status_code=204)
+def finish_tour(request: Request):
+    """Records that the learner finished or skipped the first-run tour, so it shows once."""
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        if user.tour_seen_at is None:
+            user.tour_seen_at = now()
 
 
 @router.get("/me/export")
@@ -530,7 +540,11 @@ def guard(db: Session, cat: Catalog, enrollment: Enrollment, activity_id: str) -
         learn.require_unlocked(db, cat, enrollment, concept, now())
     elif activity_id.startswith("checkpoint:"):
         from socrat.planner import gates
-        if not any(c in learn.curriculum(cat, enrollment) for c in gates.module_concepts(cat, activity_id.removeprefix("checkpoint:"))):
+
+        if not any(
+            c in learn.curriculum(cat, enrollment)
+            for c in gates.module_concepts(cat, activity_id.removeprefix("checkpoint:"))
+        ):
             raise HTTPException(404, "not_found")
 
 
@@ -615,13 +629,20 @@ def companies(request: Request, q: str = "", limit: int = 60):
     index = practice.default_index()
     with Session(engine(request)) as db:
         user = user_of(request, db)
-        learner = library.learner_for(db, catalog(), user, learn.active_enrollment(db, user.id), now())
+        learner = library.learner_for(
+            db, catalog(), user, learn.active_enrollment(db, user.id), now()
+        )
     needle = q.strip().lower()
     items = [
-        dict(slug=slug, name=c["name"], problems=sum(
-            library_problem in index.problems and learner.can_practice(index.problems[library_problem])
-            for library_problem, _, _ in c["problems"]
-        ))
+        dict(
+            slug=slug,
+            name=c["name"],
+            problems=sum(
+                library_problem in index.problems
+                and learner.can_practice(index.problems[library_problem])
+                for library_problem, _, _ in c["problems"]
+            ),
+        )
         for slug, c in index.companies.items()
         if not needle or needle in c["name"].lower()
     ]
@@ -656,7 +677,11 @@ def company(
     rows = []
     for problem_id, frequency, seen in entry["problems"]:
         problem = index.problems.get(problem_id)
-        if problem is None or not learner.can_practice(problem) or practice.WINDOW_RANK.get(seen, 4) > cutoff:
+        if (
+            problem is None
+            or not learner.can_practice(problem)
+            or practice.WINDOW_RANK.get(seen, 4) > cutoff
+        ):
             continue
         if difficulty != "all" and problem["difficulty"] != difficulty:
             continue
@@ -710,7 +735,11 @@ def problem(problem_id: str, request: Request, language: str | None = None):
     with Session(engine(request)) as db:
         user = user_of(request, db)
         enrollment = learn.active_enrollment(db, user.id)
-        if enrollment is None or f"{cat.problems[problem_id][0]}:{cat.problem(problem_id).concepts[0]}" not in learn.curriculum(cat, enrollment):
+        if (
+            enrollment is None
+            or f"{cat.problems[problem_id][0]}:{cat.problem(problem_id).concepts[0]}"
+            not in learn.curriculum(cat, enrollment)
+        ):
             raise HTTPException(404, "not_found")
         lang = (
             language
@@ -727,7 +756,10 @@ def save_draft(problem_id: str, body: SourceInput, request: Request):
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
         enrollment = learn.require_enrollment(db, user.id)
-        if f"{cat.problems[problem_id][0]}:{cat.problem(problem_id).concepts[0]}" not in learn.curriculum(cat, enrollment):
+        if (
+            f"{cat.problems[problem_id][0]}:{cat.problem(problem_id).concepts[0]}"
+            not in learn.curriculum(cat, enrollment)
+        ):
             raise HTTPException(404, "not_found")
         language = body.language or (enrollment.language if enrollment else "python")
         draft = db.get(Draft, (user.id, problem_id, language))
@@ -753,7 +785,9 @@ def queue(problem_id: str, body: RunInput, request: Request, mode: str):
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
         enrollment = learn.require_enrollment(db, user.id)
-        if f"{cat.problems[problem_id][0]}:{problem_obj.concepts[0]}" not in learn.curriculum(cat, enrollment):
+        if f"{cat.problems[problem_id][0]}:{problem_obj.concepts[0]}" not in learn.curriculum(
+            cat, enrollment
+        ):
             raise HTTPException(404, "not_found")
         language = body.language or (enrollment.language if enrollment else "python")
         if enrollment is not None and enrollment.status == "active":

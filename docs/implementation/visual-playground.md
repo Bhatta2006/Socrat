@@ -27,6 +27,11 @@ is not the default experience. Generated material is labelled as not verified fo
    exact request, generated source and bounded rendered-state observations for wrong subjects, contradictions, incorrect computations,
    fake interactions and missing visual labels. Material findings use the same bounded repair loop;
    no prescribed examples or subject-specific answers are supplied to either model call.
+   The review is advisory once the browser check has passed. Findings on the final attempt ship
+   with `qa.ai_review = "flagged"`. An unparseable review is retried once, and if the reviewer
+   is still unavailable the visual ships with `qa.ai_review = "unavailable"` instead of failing.
+   The checker reports its verdict and exits without waiting for the browser to finish closing,
+   which took about 6 s with Edge on Windows and pushed passing visuals past the 18-second budget.
 5. Accepted source and metadata are saved privately in the existing assistant-message store.
    The browser receives metadata and a signed, expiring frame URL, not HTML inserted into React.
 6. The canvas uses `sandbox="allow-scripts"`, without `allow-same-origin`, and a response CSP with
