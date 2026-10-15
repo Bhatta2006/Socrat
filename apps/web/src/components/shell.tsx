@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
-import { m } from 'motion/react';
 import { PageTransition, ScrollBar } from '@/components/motion';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme } from 'next-themes';
@@ -205,7 +204,7 @@ function Sidebar({ active, collapsed, onToggle, ready }: { active: NavKey | null
                   current ? 'font-bold text-primary-foreground' : 'text-muted-foreground hover:bg-raised hover:text-foreground',
                 )}
               >
-                {current ? <m.span layoutId="side-pill" className="absolute inset-0 -z-10 rounded-[18px] bg-primary" transition={{ type: 'spring', stiffness: 520, damping: 40 }} /> : null}
+                {current ? <span className="absolute inset-0 -z-10 rounded-[18px] bg-primary animate-in fade-in duration-200" /> : null}
                 <Icon className={cn('size-6 flex-none')} strokeWidth={1.5} aria-hidden="true" />
                 <span className={cn('sr-only', !collapsed && 'lg:not-sr-only')}>{item.label}</span>
                 {flagged ? (
@@ -269,7 +268,7 @@ function MobileNav({ active, ready }: { active: NavKey | null; ready: boolean })
                 className={cn('relative grid h-full content-center justify-items-center gap-1 text-xs font-medium text-muted-foreground', current && 'font-bold text-foreground')}
               >
                 <span className={cn('relative isolate grid h-8 w-14 place-items-center rounded-full transition-colors', current && 'text-primary-foreground')}>
-                  {current ? <m.span layoutId="mobile-pill" className="absolute inset-0 -z-10 rounded-full bg-primary" transition={{ type: 'spring', stiffness: 520, damping: 40 }} /> : null}
+                  {current ? <span className="absolute inset-0 -z-10 rounded-full bg-primary animate-in fade-in zoom-in-90 duration-200" /> : null}
                   <Icon className="size-6" strokeWidth={1.5} aria-hidden="true" />
                 </span>
                 {item.label}

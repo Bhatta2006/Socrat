@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { AnimatePresence, m } from 'motion/react';
 import { api } from '@/lib/api';
 import { NAME } from '@/lib/routes';
 import { useSession } from '@/lib/session';
@@ -192,26 +191,19 @@ export function Tour() {
   const centred = !place;
 
   return (
-    <AnimatePresence>
-      {open ? (
-        <m.div
-          key="tour"
-          className="fixed inset-0 z-[70]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-        >
+    // CSS only: the shell renders this on every route, so it must not pull in motion's engine.
+    open ? (
+        <div className="fixed inset-0 z-[70] animate-in fade-in duration-200">
           {/* Blocks the page while the tour is open; the scrim comes from the spotlight's ring. */}
           <div className={centred ? 'absolute inset-0 bg-ink/60' : 'absolute inset-0'} aria-hidden="true" />
           {rect ? (
-            <m.div
+            <div
               aria-hidden="true"
-              className="pointer-events-none absolute rounded-[20px] ring-2 ring-primary"
-              style={{ boxShadow: '0 0 0 9999px color-mix(in srgb, var(--ink), transparent 40%)' }}
-              initial={false}
-              animate={{ left: rect.left - PAD, top: rect.top - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 40 }}
+              className="pointer-events-none absolute rounded-[20px] ring-2 ring-primary transition-[left,top,width,height] duration-300 ease-[var(--ease-soft)]"
+              style={{
+                boxShadow: '0 0 0 9999px color-mix(in srgb, var(--ink), transparent 40%)',
+                left: rect.left - PAD, top: rect.top - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2,
+              }}
             />
           ) : null}
           <div
@@ -246,8 +238,7 @@ export function Tour() {
               </div>
             </div>
           </div>
-        </m.div>
-      ) : null}
-    </AnimatePresence>
+        </div>
+      ) : null
   );
 }

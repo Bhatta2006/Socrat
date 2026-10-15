@@ -7,7 +7,6 @@ import { REDUCE_MOTION_SCRIPT } from '@/lib/motion';
 import Shell from '@/components/shell';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { MotionProvider } from '@/components/motion-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { WebVitals } from '@/components/web-vitals';
 
@@ -49,11 +48,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <WebVitals />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={200}>
-            <MotionProvider>
-              <SessionProvider>
-                <Shell>{children}</Shell>
-              </SessionProvider>
-            </MotionProvider>
+            <SessionProvider>
+              <Shell>{children}</Shell>
+            </SessionProvider>
             <Toaster closeButton position="bottom-right" />
           </TooltipProvider>
         </ThemeProvider>

@@ -10,7 +10,7 @@ const cardVariants = cva(
       tone: {
         surface: "border bg-card text-card-foreground",
         hero: "bg-forest text-forest-foreground [--card-muted:color-mix(in_srgb,var(--forest-foreground),transparent_18%)] [--card-line:color-mix(in_srgb,var(--forest-foreground),transparent_55%)] lg:[--card-spacing:32px] [--card-spacing:24px]",
-        violet: "bg-violet text-violet-foreground [--card-muted:color-mix(in_srgb,var(--violet-foreground),transparent_18%)] [--card-line:color-mix(in_srgb,var(--violet-foreground),transparent_55%)]",
+        violet: "bg-violet text-violet-foreground [--card-muted:color-mix(in_srgb,var(--violet-foreground),transparent_8%)] [--card-line:color-mix(in_srgb,var(--violet-foreground),transparent_55%)]",
         lilac: "bg-secondary text-secondary-foreground [--card-muted:color-mix(in_srgb,var(--secondary-foreground),transparent_22%)] [--card-line:color-mix(in_srgb,var(--secondary-foreground),transparent_50%)]",
         cream: "bg-cream text-cream-foreground [--card-muted:color-mix(in_srgb,var(--cream-foreground),transparent_22%)] [--card-line:color-mix(in_srgb,var(--cream-foreground),transparent_50%)]",
         raised: "bg-raised text-foreground",

@@ -210,7 +210,7 @@ export default function Lesson() {
       <ReadingProgress />
 
       {/* Header card: the one violet element on this reading screen. */}
-      <header className="relative mb-6 overflow-hidden rounded-card bg-violet p-6 text-violet-foreground [--card-muted:color-mix(in_srgb,var(--violet-foreground),transparent_18%)] lg:p-8" data-tone="violet">
+      <header className="relative mb-6 overflow-hidden rounded-card bg-violet p-6 text-violet-foreground [--card-muted:color-mix(in_srgb,var(--violet-foreground),transparent_8%)] lg:p-8" data-tone="violet">
         <Illustration name="stack" className="pointer-events-none absolute -right-8 -bottom-10 size-40 opacity-90 lg:right-6 lg:size-52" />
         <div className="relative max-w-[70%] lg:max-w-[75%]">
           <Link href="/plan" transitionTypes={['nav-back']} aria-label={`Back to ${NAME.skills}`} className="mb-5 grid size-11 place-items-center rounded-full bg-ink text-ink-foreground">
