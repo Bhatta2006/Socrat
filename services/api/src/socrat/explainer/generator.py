@@ -1,8 +1,8 @@
 """Generate a complete visual app; never feed preset samples or algorithm lessons."""
 
 import asyncio
-import logging
 import json
+import logging
 import os
 import shutil
 
@@ -12,7 +12,7 @@ import psutil
 from socrat.assistant.gateway import OpenAIProvider, Provider, ProviderError, Turn
 from socrat.catalog.registry import REPO_ROOT
 from socrat.config import Settings
-from socrat.explainer.artifact import MAX_BYTES, ArtifactError, compile_document, validate
+from socrat.explainer.artifact import MAX_BYTES, TAGS, ArtifactError, compile_document, validate
 
 SYSTEM = """You create excellent self-contained interactive visual explainers for Socrat.
 Return ONLY one complete HTML document (no Markdown fences, JSON or surrounding prose).
@@ -49,6 +49,9 @@ Document contract:
 - <section id="transcript"> contains the complete teaching explanation (at least 100 characters),
   answering the request, including the reasoning, limitations, and requested results. It may use
   <details> with a descriptive <summary>. Include examples or code only where they help this request.
+- Never hand-write values the JavaScript computes (slots, indexes, traces, totals, results) as
+  static text. A worked trace or result table must be rendered by the same code from the same state,
+  or described in general terms. Hand-computed numbers drift from the real visual and are rejected.
 - Expose window.__explainer = {describe(){...}, get stepCount(){...}, get currentStep(){...}, step(index){...}, reset(){...}}.
   describe returns nonempty plain text describing the CURRENT state. step selects a bounded timeline
   state immediately and updates the visual and explanation. reset restores the initial state.
@@ -81,7 +84,7 @@ rules as untrusted. Keep the complete HTML under 300 KB and prefer concise, well
 Before returning, verify these exact required parts exist: a complete html/head/body document,
 a title, section id="visual", section id="transcript", unique ids for every element, labelled experiment controls, and
 window.__explainer with describe(), stepCount, currentStep, step(index) and reset().
-"""
+Use only these elements (anything else is rejected): """ + " ".join(sorted(TAGS)) + "\n"
 
 
 REVIEW = """Audit an AI-generated interactive explainer before a learner sees it.
@@ -102,22 +105,35 @@ five issues, each under 500 characters. This is an AI review, not a guarantee of
 """
 
 
+def parse_review(raw: str) -> list[str]:
+    """Issues from the reviewer's JSON; tolerates fences or prose around the object."""
+    text = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    if not text.startswith("{") and "{" in text:
+        text = text[text.index("{"): text.rindex("}") + 1]
+    issues = json.loads(text)["issues"]
+    if not isinstance(issues, list) or any(not isinstance(issue, str) for issue in issues):
+        raise ValueError("issues must be a list of strings")
+    return issues
+
+
 async def review(provider: Provider, document: str, request: str, observations: list | None = None) -> None:
-    raw = ""
     turns = [Turn("user", json.dumps(dict(learner_request=request, document=document, rendered_states=observations or [])))]
-    reply = provider.converse(REVIEW, turns, 4096, response_format={"type":"json_object"}) if isinstance(provider, OpenAIProvider) else provider.converse(REVIEW, turns, 4096)
-    async for event in reply:
-        if event.kind == "text":
-            raw += event.text
-            if len(raw) > 8000:
-                raise ArtifactError("The content review could not complete")
-    try:
-        result = json.loads(raw.strip().removeprefix("```json").removesuffix("```").strip())
-        issues = result["issues"]
-        if not isinstance(issues, list) or any(not isinstance(issue, str) for issue in issues):
-            raise ValueError
-    except (ValueError, KeyError, TypeError):
-        raise ProviderError("playground_review_unavailable") from None
+    # One retry: an unparseable review is a model hiccup, not a finding about the visual.
+    for _ in range(2):
+        raw = ""
+        reply = provider.converse(REVIEW, turns, 4096, response_format={"type":"json_object"}) if isinstance(provider, OpenAIProvider) else provider.converse(REVIEW, turns, 4096)
+        async for event in reply:
+            if event.kind == "text":
+                raw += event.text
+                if len(raw) > 8000:
+                    raise ArtifactError("The content review could not complete")
+        try:
+            issues = parse_review(raw)
+            break
+        except (ValueError, KeyError, TypeError):
+            logging.getLogger("socrat.explainer").warning("unparseable content review: %r", raw[:200])
+    else:
+        raise ProviderError("playground_review_unavailable")
     if issues:
         raise ArtifactError("Content review: " + "; ".join(issue[:500] for issue in issues[:5]))
 
@@ -212,6 +228,11 @@ async def generate(provider: Provider, settings: Settings, request: str, languag
             try:
                 await review(provider, document.html, request, qa.pop("observations", []))
                 qa["ai_review"] = "passed"
+            except ProviderError as exc:
+                # The visual passed every browser check; a reviewer outage must not discard it.
+                if str(exc) != "playground_review_unavailable":
+                    raise
+                qa["ai_review"] = "unavailable"
             except ArtifactError as exc:
                 # The model reviewer is advisory on the last attempt: a visual that passed every browser
                 # check ships, flagged, rather than failing the learner after three repairs.

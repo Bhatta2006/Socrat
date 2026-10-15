@@ -119,17 +119,32 @@ async function main() {
           element.dispatchEvent(new Event('input',{bubbles:true}));element.dispatchEvent(new Event('change',{bubbles:true}));
         }
       });
-      const after = await frame.evaluate(() => document.querySelector('#visual').innerHTML + window.__explainer.describe() + document.body.textContent);
+      const state = () => frame.evaluate(() => document.querySelector('#visual').innerHTML + window.__explainer.describe() + document.body.textContent);
+      let after = await state();
+      // Many apps apply an edited input with a button ("Search", "Run"); press the first one.
+      if (before === after && await fields.count() && await frame.locator('button').count()) {
+        await frame.locator('button').first().evaluate(button => button.click());
+        after = await state();
+      }
       observations.push(await observe());
       if (before === after) throw Error('Input controls must change the visual or its explanation');
     }
     await frame.evaluate(() => window.__explainer.reset());
     if (errors.length || blocked.length) throw Error(errors.length ? 'Visual script error: '+errors[0] : 'Visual attempted external access');
     const count = await frame.evaluate(() => Number(window.__explainer.stepCount));
-    process.stdout.write(JSON.stringify({ ok: true, step_count: count, title: initial.title, transcript: initial.transcript, observations, checks: ['script-syntax','capability-policy','sandbox-load','nonblank-canvas','labelled-controls','working-interaction','reset'] }));
-  } finally { await browser.close(); }
+    return { ok: true, step_count: count, title: initial.title, transcript: initial.transcript, observations, checks: ['script-syntax','capability-policy','sandbox-load','nonblank-canvas','labelled-controls','working-interaction','reset'] };
+  } finally {
+    // Closing can take several seconds (Edge on Windows: ~6 s) while the verdict is already known.
+    // The caller waits for this process to exit under an 18 s budget, so a slow close used to fail
+    // visuals that had passed. Give it a moment, then exit; Playwright kills the browser on exit.
+    await Promise.race([browser.close().catch(() => undefined), new Promise(resolve => setTimeout(resolve, CLOSE_GRACE_MS))]);
+  }
 }
 
+const CLOSE_GRACE_MS = 500;
+
 if (process.argv[1]?.endsWith('check-artifact.mjs')) {
-  main().catch(error => { const infrastructure = String(error.message).includes('browserType.launch'); process.stdout.write(JSON.stringify({ ok: false, infrastructure, reason: infrastructure ? 'Browser checker unavailable' : String(error.message).slice(0,300) })); process.exitCode=1; });
+  main()
+    .catch(error => { const infrastructure = String(error.message).includes('browserType.launch'); return { ok: false, infrastructure, reason: infrastructure ? 'Browser checker unavailable' : String(error.message).slice(0,300) }; })
+    .then(result => process.stdout.write(JSON.stringify(result), () => process.exit(result.ok ? 0 : 1)));
 }

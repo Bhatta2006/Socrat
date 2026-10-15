@@ -10,7 +10,7 @@ from html.parser import HTMLParser
 from socrat.catalog.registry import REPO_ROOT
 
 MAX_BYTES = 300_000
-TAGS = set("html head body title meta style script main section article header footer nav div span p h1 h2 h3 h4 h5 h6 strong em b i small code pre blockquote ul ol li dl dt dd table thead tbody tfoot tr th td caption button input label select option optgroup textarea fieldset legend output details summary progress meter br hr svg g path rect circle ellipse line polyline polygon text tspan defs desc marker lineargradient radialgradient stop clippath mask pattern symbol use canvas math mrow mi mn mo mfrac msup msub msqrt mroot mtext".split())
+TAGS = set("html head body title meta style script main section article header footer nav aside figure figcaption div span p h1 h2 h3 h4 h5 h6 strong em b i u s small mark sub sup abbr cite q dfn time var samp kbd code pre blockquote ul ol li dl dt dd table thead tbody tfoot tr th td caption button input label select option optgroup textarea fieldset legend output details summary progress meter br hr svg g path rect circle ellipse line polyline polygon text tspan defs desc marker lineargradient radialgradient stop clippath mask pattern symbol use canvas math mrow mi mn mo mfrac msup msub msqrt mroot mtext".split())
 TAGS.update("filter fegaussianblur feoffset feflood feblend fecolormatrix fecomposite femerge femergenode fedropshadow".split())
 VOID = {"meta", "input", "br", "hr"}
 URL_ATTRS = {"src", "srcset", "href", "xlink:href", "action", "formaction", "ping", "poster", "background"}

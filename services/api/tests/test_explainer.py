@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import uuid
 from pathlib import Path
 from urllib.parse import urlparse
@@ -78,7 +79,11 @@ def test_artifact_validation_and_compiler_boundaries():
 
 
 def test_real_browser_preflight():
+    started = time.monotonic()
     checked = asyncio.run(generator.render_check(artifact.validate(HTML), Settings(environment='test')))
+    # The checker must exit once its verdict is known; waiting for a slow browser close (about 6 s
+    # with Edge on Windows) pushed passing visuals past the 18 s budget under load.
+    assert time.monotonic() - started < 6
     assert checked['ok'] and checked['step_count'] == 4
     broken = HTML.replace('get currentStep(){return index}', 'get currentStep(){return 0}')
     with pytest.raises(artifact.ArtifactError, match='currentStep must report'):
@@ -87,6 +92,12 @@ def test_real_browser_preflight():
     assert asyncio.run(generator.render_check(artifact.validate(nonzero), Settings(environment='test')))['ok']
     text_scene = HTML.replace('type="number"', 'type="text"').replace('let index=0;', 'let index=1;').replace('get stepCount(){return 4}', 'get stepCount(){return 1}').replace('get currentStep(){return index}', 'get currentStep(){return 0}')
     assert asyncio.run(generator.render_check(artifact.validate(text_scene), Settings(environment='test')))['ok']
+    # A single scene whose edited input is applied by a button, as many generated apps do.
+    applied = (HTML.replace('let index=0;', 'let index=1;').replace('get stepCount(){return 4}', 'get stepCount(){return 1}')
+        .replace('get currentStep(){return index}', 'get currentStep(){return 0}')
+        .replace("factor.addEventListener('input',render);", "document.getElementById('apply').addEventListener('click',render);")
+        .replace('value="2">', 'value="2"><button id="apply" type="button">Apply</button>'))
+    assert asyncio.run(generator.render_check(artifact.validate(applied), Settings(environment='test')))['ok']
 
 
 def test_generate_has_no_prescribed_examples_and_repairs_invalid_html(monkeypatch):
@@ -113,7 +124,33 @@ def test_ai_review_uses_the_request_and_document_and_rejects_contradictions():
     assert json.loads(provider.calls[0][1][0].content) == dict(learner_request=request, document=HTML, rendered_states=[])
     asyncio.run(generator.review(Provider(['{"issues":[]}']), HTML, request))
     with pytest.raises(generator.ProviderError, match='playground_review_unavailable'):
-        asyncio.run(generator.review(Provider(['unstructured review']), HTML, request))
+        asyncio.run(generator.review(Provider(['unstructured review', 'still not JSON']), HTML, request))
+
+
+def test_ai_review_tolerates_wrapped_json_and_retries_one_malformed_reply():
+    request = 'Explain a concept with editable inputs'
+    asyncio.run(generator.review(Provider(['Here is my audit:\n```json\n{"issues": []}\n```']), HTML, request))
+    provider = Provider(['{"issues": [', '{"issues": []}'])
+    asyncio.run(generator.review(provider, HTML, request))
+    assert len(provider.calls) == 2
+
+
+def test_reviewer_outage_does_not_discard_a_visual_that_passed_the_browser_check(monkeypatch):
+    provider = Provider([HTML, 'not json', 'not json either'])
+    async def check(*args): return QA
+    monkeypatch.setattr(generator, 'render_check', check)
+    async def run():
+        return [event async for event in generator.generate(provider, Settings(environment='test'), 'Explain a stack', 'python', 'standard')]
+    events = asyncio.run(run())
+    assert events[-1]['event'] == 'document'
+    assert events[-1]['document']['qa']['ai_review'] == 'unavailable'
+    assert len(provider.calls) == 3  # one generation, no repair rounds spent on the reviewer
+
+
+def test_prompt_lists_the_allowed_elements_and_forbids_hand_computed_traces():
+    assert 'Use only these elements' in generator.SYSTEM and ' kbd ' in generator.SYSTEM
+    assert 'Never hand-write values the JavaScript computes' in generator.SYSTEM
+    artifact.validate(HTML.replace('</h1>', ' <kbd>Enter</kbd> <sub>2</sub></h1>', 1))
 
 
 def test_ai_review_findings_repair_the_document_without_changing_the_request(monkeypatch):
