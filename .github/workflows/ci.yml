@@ -194,7 +194,7 @@ jobs:
           push: true
           # Baked into the CSP frame-src of the web app: the Playground sandbox host for this deployment.
           build-args: |
-            NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN=${{ vars.SOCRAT_SANDBOX_ORIGIN || 'http://127.0.0.1:8000' }}
+            NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN=${{ vars.SOCRAT_SANDBOX_ORIGIN || 'https://socrat.dathcodes.dev' }}
           tags: ghcr.io/${{ steps.owner.outputs.name }}/socrat-web:sha-${{ github.sha }}
       - name: Attest web image
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
