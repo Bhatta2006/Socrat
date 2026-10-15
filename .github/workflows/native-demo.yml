@@ -52,16 +52,13 @@ jobs:
       - name: Prepare native test and stack directories
         run: python -c "from pathlib import Path; Path('.cache').mkdir(exist_ok=True)"
       - run: node --experimental-strip-types --test tests/editor-diagnostics.test.mjs
-      - run: uv run pytest services/api/tests/test_local_backend.py services/api/tests/test_demo.py services/api/tests/test_execution_worker.py --basetemp=.cache/ci-native-tests
+      - run: uv run pytest services/api/tests/test_local_backend.py services/api/tests/test_execution_worker.py --basetemp=.cache/ci-native-tests
       - run: npm run typecheck
       - run: npm run build
-      - name: Install browser on Windows
-        if: runner.os == 'Windows'
-        run: npx playwright install chromium
-      - name: Install browser on Linux
-        if: runner.os == 'Linux'
-        run: npx playwright install --with-deps chromium
-      - name: Verify native Windows stack, learning journeys and references
+      # The v1 demo journeys (playwright.demo.config.ts) and reference bundles (scripts/demo/) were
+      # removed with the v2 backend; learner journeys run in ci.yml (npm run test:e2e). This job
+      # proves the native stack itself boots and serves on each OS.
+      - name: Verify native Windows stack
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -76,10 +73,8 @@ jobs:
               if ($process.HasExited) { Get-Content .cache/ci-stack-error.log; throw 'Native stack exited' }
               Start-Sleep -Seconds 2
             } until ($ready)
-            npm run test:demo
-            if ($LASTEXITCODE) { throw 'Native learning journeys failed' }
-            uv run python scripts/demo/verify-references.py --workers 2
-            if ($LASTEXITCODE) { throw 'Native reference bundles failed' }
+            $api = Invoke-RestMethod http://127.0.0.1:8000/api/health/ready -TimeoutSec 10
+            if ($api.status -ne 'ready') { Get-Content .cache/ci-stack-error.log; throw 'Native API is not ready' }
           } finally {
             if (-not $process.HasExited) { taskkill.exe /PID $process.Id /T /F }
           }
@@ -90,22 +85,13 @@ jobs:
           bash scripts/dev/start-demo.sh >.cache/ci-stack.log 2>&1 &
           echo $! >.cache/ci-stack.pid
           for n in $(seq 1 600); do curl -fsS http://localhost:3000 >/dev/null 2>&1 && break; sleep 1; done
-          curl -fsS http://localhost:3000 >/dev/null
-      - name: Real Python, C++ and Java desktop/mobile learning journeys
-        if: runner.os == 'Linux'
-        run: npm run test:demo
-      - name: Every original reference and its full public/hidden bundle
-        if: runner.os == 'Linux'
-        run: uv run python scripts/demo/verify-references.py --workers 2
+          curl -fsS http://localhost:3000 >/dev/null || { cat .cache/ci-stack.log; exit 1; }
+          curl -fsS http://127.0.0.1:8000/api/health/ready | grep -q '"ready"' || { cat .cache/ci-stack.log; exit 1; }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: native-demo-${{ runner.os }}
           include-hidden-files: true
           path: |
-            docs/demo/screens/*.png
-            docs/demo/screens/videos/*/video.webm
-            .cache/*results*.json
-            .cache/demo-reference-*.json
             .cache/*stack*.log
             .cache/native-*.log
