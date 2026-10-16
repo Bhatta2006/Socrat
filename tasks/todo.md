@@ -1,6 +1,6 @@
 # Content system tasks
 
-M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M4 done; see `docs/implementation/content-system-m1.md` … `content-system-m4.md`.
+M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M5 done; see `docs/implementation/content-system-m1.md` … `content-system-m5.md`.
 Verification for every task: the commands in `tasks/plan.md` plus the task's own check.
 
 ## M1 provenance
@@ -50,12 +50,12 @@ Verification for every task: the commands in `tasks/plan.md` plus the task's own
 - [x] Checkpoint M4 (e2e not run: stale local `socrat.e2e.db`)
 
 ## M5 pilot-content
-- [ ] 20. DSA batch 1 (variable window, at-most-k, lower/upper bound)
-- [ ] 21. DSA batch 2 (answer predicate, unbounded coin change, top-k)
-- [ ] 22. Zero batch (accumulator, traverse-and-filter, frequency count)
-- [ ] 23. CP batch (difference array, fast power, subset enumeration)
-- [ ] 24. Length lint and full verification
-- [ ] Checkpoint M5
+- [x] 20. DSA batch 1 (variable window, at-most-k, lower/upper bound)
+- [x] 21. DSA batch 2 (answer predicate, unbounded coin change, top-k)
+- [x] 22. Zero batch (accumulator, traverse-and-filter, frequency count)
+- [x] 23. CP batch (difference array, fast power, subset enumeration)
+- [x] 24. Length lint and full verification
+- [x] Checkpoint M5 (e2e not run: stale local `socrat.e2e.db`; packs need human review)
 
 ## M6 pattern-planner
 - [ ] 25. Priority scoring module
