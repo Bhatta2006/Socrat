@@ -76,8 +76,14 @@ def test_missing_directory_means_no_patterns(tmp_path, catalog):
     assert patterns.load(tmp_path / "absent", catalog, set(), lambda: set()) == {}
 
 
-def test_repository_has_no_patterns_yet_so_existing_behaviour_is_unchanged(catalog):
-    assert catalog.patterns == {}
+def test_repository_patterns_are_provisional_original_and_unreviewed(catalog):
+    assert catalog.patterns  # the M5 pilot packs
+    for pattern in catalog.patterns.values():
+        assert pattern.status == "provisional" and pattern.provenance.review is None
+        assert pattern.provenance.origin == "original"
+        assert pattern.id in catalog.pattern_atoms
+        pack = catalog.pattern_atoms[pattern.id]
+        assert pack.status == "draft" and pack.review is None
 
 
 @pytest.mark.parametrize(

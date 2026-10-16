@@ -14,3 +14,19 @@ defects:
     kind: off-by-one
     misconception: exclude-candidate-mid
     description: hi = mid - 1 throws mid away even though mid may be the answer.
+  - id: sw-overwrite-best
+    kind: wrong-update
+    misconception: overwrite-best
+    description: best is set to the current window length, so it forgets a longer earlier window.
+  - id: sw-length-off-by-one
+    kind: off-by-one
+    misconception: window-length-off-by-one
+    description: The window length is measured as right - left, one short.
+  - id: sw-drop-wrong-end
+    kind: missing-update
+    misconception: drop-wrong-end
+    description: Shrinking subtracts the entering element instead of the one that leaves.
+  - id: akd-boundary
+    kind: wrong-comparison
+    misconception: k-distinct-boundary
+    description: The window shrinks while at least k values are inside, so it never holds exactly k.

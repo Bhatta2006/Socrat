@@ -47,3 +47,26 @@
 - accumulator-starts-at-bound
 - loop-bound-off-by-one
 - trace-step-slip
+# M5 pilot patterns (D6). Each is used by a distractor or names a pattern pitfall.
+- shrink-with-if
+- window-length-off-by-one
+- stale-window-summary
+- window-sum-not-length
+- window-rule-boundary
+- drop-wrong-end
+- reset-instead-of-shrink
+- overwrite-best
+- skip-first-element
+- window-with-negatives
+- pattern-fixed-vs-variable-window
+- pattern-window-vs-prefix-sums
+- pattern-window-vs-two-pointers
+- pattern-window-for-single-item
+- pattern-brute-force-default
+- pattern-sort-breaks-order
+- pattern-search-vs-scan
+- stale-zero-count
+- k-distinct-boundary
+- exactly-vs-at-most
+- distinct-count-not-length
+- shrink-too-far
