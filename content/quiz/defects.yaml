@@ -30,3 +30,23 @@ defects:
     kind: wrong-comparison
     misconception: k-distinct-boundary
     description: The window shrinks while at least k values are inside, so it never holds exactly k.
+  - id: ap-strict-predicate
+    kind: wrong-comparison
+    misconception: predicate-boundary
+    description: The feasibility check uses < instead of <=, rejecting an answer that fits exactly.
+  - id: ap-skip-mid
+    kind: off-by-one
+    misconception: exclude-candidate-mid
+    description: A feasible mid is discarded with hi = mid - 1 although it may be the best answer.
+  - id: dp-missing-plus-one
+    kind: wrong-update
+    misconception: dp-missing-plus-one
+    description: The transition forgets to count the coin just used.
+  - id: dp-coin-boundary
+    kind: wrong-comparison
+    misconception: coin-equals-amount
+    description: A coin equal to the amount is never used because the check is c < a.
+  - id: dp-wrong-subproblem
+    kind: wrong-update
+    misconception: dp-wrong-subproblem
+    description: The transition builds on dp[a - 1] instead of dp[a - c].

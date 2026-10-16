@@ -6,6 +6,7 @@ verifier rarely has to reject anything. The verifier still re-runs every item in
 language: these checks only choose inputs.
 """
 
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, cast
@@ -85,11 +86,32 @@ def blank_out(code: Code, line: Lines) -> Code:
     return {lang: mutate.apply_line(text, line[lang], BLANK) for lang, text in code.items()}
 
 
-def prints(code: str) -> str | None:
+STEP_LIMIT = 200_000
+
+
+class TooManySteps(Exception):
+    pass
+
+
+def prints(code: str, limit: int = STEP_LIMIT) -> str | None:
+    """Output of a Python variant, or None if it crashes or runs too long (likely forever)."""
+    steps = 0
+
+    def tracer(frame, event, arg):
+        nonlocal steps
+        steps += 1
+        if steps > limit:
+            raise TooManySteps
+        return tracer
+
+    previous = sys.gettrace()
+    sys.settrace(tracer)
     try:
         return run_python(code)
-    except Exception:  # noqa: BLE001 - a crashing variant prints nothing useful
+    except Exception:  # noqa: BLE001 - a crashing or endless variant prints nothing useful
         return None
+    finally:
+        sys.settrace(previous)
 
 
 def predict(spec: Spec, values: dict, code: Code, answer: str) -> Draft | None:
