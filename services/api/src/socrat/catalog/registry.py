@@ -16,6 +16,7 @@ import yaml
 
 from socrat.catalog.atoms import AtomPack
 from socrat.catalog.patterns import Pattern
+from socrat.catalog.quizbank import QuizFamily
 from socrat.catalog.schema import Concept, Course, Problem, TestCase
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
@@ -74,6 +75,7 @@ class Catalog:
     order: list[str] = field(default_factory=list)  # global topological order
     atom_packs: dict[str, AtomPack] = field(default_factory=dict)
     patterns: dict[str, "Pattern"] = field(default_factory=dict)
+    quiz_families: dict[str, "QuizFamily"] = field(default_factory=dict)
 
     def course(self, course_id: str) -> Course:
         try:
@@ -175,15 +177,18 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
         catalog.atom_packs = atoms.load(root.parent / "atoms", catalog.concepts, catalog.courses)
     except (ValueError, OSError, yaml.YAMLError) as exc:
         raise CatalogError(f"Invalid atom catalogue: {exc}") from exc
-    from socrat.catalog import patterns
+    from socrat.catalog import patterns, quizbank
 
     taxonomy = atoms.load_taxonomy(root.parent / "atoms")
+    catalog.quiz_families = quizbank.load(root.parent / "quiz", catalog, taxonomy)
     catalog.patterns = patterns.load(
         root.parent / "patterns",
         catalog,
         taxonomy,
         lambda: patterns.external_problem_ids(root.parent / "practice" / "problems.jsonl"),
+        catalog.quiz_families,
     )
+    quizbank.check_patterns(catalog.quiz_families, catalog.patterns)
     registry_file = root.parent / "sources" / "registry.yaml"
     if registry_file.exists():
         from socrat.catalog import sources
@@ -202,6 +207,11 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
             | (
                 {"patterns": {k: v.model_dump(mode="json") for k, v in catalog.patterns.items()}}
                 if catalog.patterns
+                else {}
+            )
+            | (
+                {"quiz": {k: v.model_dump(mode="json") for k, v in catalog.quiz_families.items()}}
+                if catalog.quiz_families
                 else {}
             ),
             sort_keys=True,

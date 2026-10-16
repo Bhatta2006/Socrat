@@ -97,6 +97,8 @@ def provenances(catalog) -> Iterator[tuple[str, Provenance]]:
             yield f"atoms {key}", pack.provenance
     for key, pattern in getattr(catalog, "patterns", {}).items():
         yield f"pattern {key}", pattern.provenance
+    for key, family in getattr(catalog, "quiz_families", {}).items():
+        yield f"quiz family {key}", family.provenance
 
 
 def violations(records, registry: SourceRegistry) -> list[str]:

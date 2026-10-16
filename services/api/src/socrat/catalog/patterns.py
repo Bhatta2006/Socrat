@@ -100,6 +100,7 @@ def load(
     catalog,
     taxonomy: set[str],
     external_ids: Callable[[], set[str]],
+    families: dict | None = None,
 ) -> dict[str, Pattern]:
     """Load and cross-check every pattern file; raises CatalogError on the first problem."""
     from socrat.catalog.registry import CatalogError
@@ -144,5 +145,11 @@ def load(
         for atom_id in pattern.atoms:
             if atom_id not in available:
                 raise CatalogError(f"{path}: unknown atom {atom_id} for {pattern.concept}")
+        if pattern.quiz_family:
+            family = (families or {}).get(pattern.quiz_family)
+            if family is None:
+                raise CatalogError(f"{path}: unknown quiz family {pattern.quiz_family}")
+            if family.pattern != pattern.id:
+                raise CatalogError(f"{path}: quiz family {family.id} belongs to {family.pattern}")
         found[pattern.id] = pattern
     return found
