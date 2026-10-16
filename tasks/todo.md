@@ -1,6 +1,6 @@
 # Content system tasks
 
-M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M6 done; see `docs/implementation/content-system-m1.md` … `content-system-m6.md`.
+M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M7 done; see `docs/implementation/content-system-m1.md` … `content-system-m7.md`.
 Verification for every task: the commands in `tasks/plan.md` plus the task's own check.
 
 ## M1 provenance
@@ -65,7 +65,7 @@ Verification for every task: the commands in `tasks/plan.md` plus the task's own
 - [x] Checkpoint M6 (e2e not run: stale local `socrat.e2e.db`)
 
 ## M7 item-calibration
-- [ ] 29. Stats job and flag rules
-- [ ] 30. Status transition CLI with human approver
-- [ ] 31. Markdown report without PII
-- [ ] Checkpoint M7
+- [x] 29. Stats job and flag rules
+- [x] 30. Status transition CLI with human approver
+- [x] 31. Markdown report without PII
+- [x] Checkpoint M7 (e2e not run: stale local `socrat.e2e.db`)
