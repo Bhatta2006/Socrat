@@ -1,30 +1,30 @@
 # Content system tasks
 
-Blocked on M0 approval (decisions D1–D12 in `docs/implementation/content-system-m0.md`).
+M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1 done; see `docs/implementation/content-system-m1.md`.
 Verification for every task: the commands in `tasks/plan.md` plus the task's own check.
 
 ## M1 provenance
-- [ ] 1. Provenance and SourceRef models; optional `provenance` on Concept, QuizItem, Problem
+- [x] 1. Provenance and SourceRef models; optional `provenance` on Concept, QuizItem, Problem
   - Acceptance: all current YAML loads unchanged; digest unchanged when no file uses the field
   - Verify: `uv run pytest services/api/tests/test_core_engine.py services/api/tests/test_provenance.py`
   - Files: `catalog/provenance.py`, `catalog/schema.py`, tests
-- [ ] 2. `content/sources/registry.yaml` (Appendix A) and license gate
+- [x] 2. `content/sources/registry.yaml` (Appendix A) and license gate
   - Acceptance: ◻ entries are `unverified`; an `origin: adapted` fixture citing one fails with a clear message
   - Verify: `uv run pytest services/api/tests/test_provenance.py -k gate`; CI runs the validator
   - Files: `content/sources/registry.yaml`, `catalog/sources.py`, `scripts/content/validate_sources.py`
-- [ ] 3. LICENSE, NOTICE.md, ATTRIBUTION.md (drafts) and `/attribution` page
+- [x] 3. LICENSE, NOTICE.md, ATTRIBUTION.md (drafts) and `/attribution` page
   - Acceptance: each file says "draft, legal review required"; page renders the attribution list
   - Verify: `npm run typecheck`, `npm run build`, bundle budget
   - Files: root docs, `apps/web/src/app/attribution/page.tsx`
-- [ ] 4. Inventory generator in `scripts/content/inventory.py`
+- [x] 4. Inventory generator in `scripts/content/inventory.py`
   - Acceptance: every row has `rights_or_license` and `review_record` set, `unknown` where unknown
   - Verify: `uv run python scripts/content/inventory.py --check`
   - Files: `scripts/content/inventory.py`, test
-- [ ] 5. Link health (extend `check_links.py`, `link_health.py` entry point)
+- [x] 5. Link health (extend `check_links.py`, `link_health.py` entry point)
   - Acceptance: offline by default with fixtures; `--live` does HEAD→GET, delay, robots, own UA; CSV out
   - Verify: `uv run pytest services/api/tests/test_link_health.py`
   - Files: `scripts/content/check_links.py`, `scripts/content/link_health.py`, fixtures, test
-- [ ] Checkpoint M1: full suite, lint, types; commit; report; wait for approval
+- [x] Checkpoint M1: full suite, lint, types; commit; report; wait for approval
 
 ## M2 content-schemas
 - [ ] 6. Pattern schema, loader, cross-reference validation
