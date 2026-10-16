@@ -1,6 +1,6 @@
 # Content system tasks
 
-M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1 and M2 done; see `docs/implementation/content-system-m1.md` and `content-system-m2.md`.
+M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M3 done; see `docs/implementation/content-system-m1.md`, `content-system-m2.md` and `content-system-m3.md`.
 Verification for every task: the commands in `tasks/plan.md` plus the task's own check.
 
 ## M1 provenance
@@ -34,13 +34,13 @@ Verification for every task: the commands in `tasks/plan.md` plus the task's own
 - [x] Checkpoint M2
 
 ## M3 quiz-engine
-- [ ] 10. Config + rating math
-- [ ] 11. Pools and band mapping
-- [ ] 12. Selection and ladder guarantees
-- [ ] 13. Modes, stop rules, cold start, roll-up
-- [ ] 14. API behind `adaptive_quiz`, evidence via `mastery.apply`
-- [ ] 15. Simulator and property tests
-- [ ] Checkpoint M3
+- [x] 10. Config + rating math
+- [x] 11. Pools and band mapping
+- [x] 12. Selection and ladder guarantees
+- [x] 13. Modes, stop rules, cold start, roll-up
+- [x] 14. API behind `adaptive_quiz`, evidence via `mastery.apply`
+- [x] 15. Simulator and property tests
+- [x] Checkpoint M3 (e2e not run: stale local `socrat.e2e.db` at revision 0011)
 
 ## M4 item-generators
 - [ ] 16. Framework and verifier
