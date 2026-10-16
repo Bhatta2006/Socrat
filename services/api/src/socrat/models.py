@@ -383,3 +383,70 @@ class WebVital(Base):
     metric: Mapped[str] = mapped_column(String(8))  # LCP | INP | CLS | FCP | TTFB
     value: Mapped[float] = mapped_column(Float)
     device: Mapped[str] = mapped_column(String(8))  # mobile | desktop
+
+
+# ---------------------------------------------------------------- adaptive quiz runtime
+# Item definitions live in content files; only runtime state is stored here. Written by the
+# adaptive quiz engine (behind adaptive_quiz_enabled) and the calibration job.
+
+
+class QuizResponse(Base):
+    """One answered quiz item; learner-scoped, erased with the account."""
+
+    __tablename__ = "quiz_responses"
+    __table_args__ = (Index("ix_quiz_responses_enrollment_created", "enrollment_id", "created_at"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(ForeignKey("enrollments.id", ondelete="CASCADE"))
+    item_id: Mapped[str] = mapped_column(String(200), index=True)
+    family: Mapped[str] = mapped_column(String(200), default="")
+    pattern: Mapped[str] = mapped_column(String(200), default="")
+    concept: Mapped[str] = mapped_column(String(160))
+    mode: Mapped[str] = mapped_column(String(24))  # placement | concept_check | review | ...
+    pool: Mapped[str] = mapped_column(String(16))  # practice | assessment
+    session_id: Mapped[str] = mapped_column(String(36), default="")
+    correct: Mapped[bool] = mapped_column(Boolean)
+    score: Mapped[float] = mapped_column(Float)  # 1.0 unassisted ... 0.0 wrong
+    hint_level: Mapped[int] = mapped_column(Integer, default=0)
+    time_s: Mapped[int] = mapped_column(Integer, default=0)
+    seed: Mapped[str] = mapped_column(String(64), default="")
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class LearnerAbility(Base):
+    """Elo-style rating per learner and pattern; drives item selection, never mastery."""
+
+    __tablename__ = "learner_abilities"
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), primary_key=True
+    )
+    pattern: Mapped[str] = mapped_column(String(200), primary_key=True)
+    theta: Mapped[float] = mapped_column(Float)
+    n: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class ItemRating(Base):
+    """Current difficulty of a provisional item; frozen once the item is calibrated."""
+
+    __tablename__ = "item_ratings"
+    item_id: Mapped[str] = mapped_column(String(200), primary_key=True)
+    d_current: Mapped[float] = mapped_column(Float)
+    n_responses: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class ItemCalibration(Base):
+    """Item health from the calibration job. approved_by is set only by a named human."""
+
+    __tablename__ = "item_calibrations"
+    item_id: Mapped[str] = mapped_column(String(200), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16))  # provisional | calibrated | retired
+    n_responses: Mapped[int] = mapped_column(Integer, default=0)
+    pct_correct: Mapped[float | None] = mapped_column(Float, nullable=True)
+    discrimination: Mapped[float | None] = mapped_column(Float, nullable=True)
+    distractor_counts: Mapped[dict] = mapped_column(JSON, default=dict)
+    median_time_s: Mapped[float | None] = mapped_column(Float, nullable=True)
+    flags: Mapped[list] = mapped_column(JSON, default=list)
+    computed_at: Mapped[int] = mapped_column(Integer, default=now)
+    approved_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    approved_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
