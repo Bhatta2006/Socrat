@@ -1,6 +1,6 @@
 # Content system tasks
 
-M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M5 done; see `docs/implementation/content-system-m1.md` … `content-system-m5.md`.
+M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M6 done; see `docs/implementation/content-system-m1.md` … `content-system-m6.md`.
 Verification for every task: the commands in `tasks/plan.md` plus the task's own check.
 
 ## M1 provenance
@@ -58,11 +58,11 @@ Verification for every task: the commands in `tasks/plan.md` plus the task's own
 - [x] Checkpoint M5 (e2e not run: stale local `socrat.e2e.db`; packs need human review)
 
 ## M6 pattern-planner
-- [ ] 25. Priority scoring module
-- [ ] 26. Pattern triggers behind `pattern_planner`
-- [ ] 27. Session templates and hard-constraint property tests
-- [ ] 28. Golden tests for three learner states
-- [ ] Checkpoint M6
+- [x] 25. Priority scoring module
+- [x] 26. Pattern triggers behind `pattern_planner`
+- [x] 27. Session templates and hard-constraint property tests
+- [x] 28. Golden tests for three learner states
+- [x] Checkpoint M6 (e2e not run: stale local `socrat.e2e.db`)
 
 ## M7 item-calibration
 - [ ] 29. Stats job and flag rules
