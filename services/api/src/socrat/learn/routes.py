@@ -297,6 +297,52 @@ def delete_me(request: Request):
 # ---------------------------------------------------------------- catalog & enrollment
 
 
+@router.get("/attribution")
+def attribution():
+    """Public: the sources Socrat links to or adapts, and every adapted record."""
+    from socrat.catalog import sources
+
+    registry = sources.load_registry()
+    use = {
+        "adapt": "May be adapted with attribution",
+        "share-alike-lane": "May be adapted in a labelled share-alike section",
+        "link-only": "Linked only; not copied or adapted",
+        "per-item": "License differs per item; linked unless an item is verified",
+        "verify": "Not used until its license is verified",
+    }
+    return {
+        "sources": [
+            dict(
+                id=entry.id,
+                name=entry.name,
+                url=str(entry.url),
+                content=entry.content,
+                license=entry.license,
+                license_status=entry.license_status,
+                use=use[entry.action],
+            )
+            for entry in registry.sources
+        ],
+        "adapted": [
+            dict(
+                record=where,
+                attribution=provenance.attribution_md,
+                sources=[
+                    dict(
+                        title=ref.title,
+                        author=ref.author,
+                        url=str(ref.url),
+                        license=ref.license_spdx,
+                    )
+                    for ref in provenance.authors_adapted_from
+                ],
+            )
+            for where, provenance in sources.provenances(catalog())
+            if provenance.origin == "adapted"
+        ],
+    }
+
+
 @router.get("/courses")
 def courses():
     cat = catalog()

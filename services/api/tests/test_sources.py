@@ -2,6 +2,7 @@
 
 import pytest
 from catalog_support import basics
+from test_learner_api import client  # noqa: F401
 
 from socrat.catalog import sources
 from socrat.catalog.registry import CatalogError, build
@@ -131,3 +132,15 @@ def test_loading_content_runs_the_license_gate(tmp_path):
     write_tree(blocked, course_with(adapted(source_id="thealgorithms")))
     with pytest.raises(CatalogError, match="license gate: .*thealgorithms is unverified"):
         load(blocked / "courses", tests_root=None)
+
+
+def test_attribution_endpoint_is_public_and_built_from_the_registry(client):  # noqa: F811
+    response = client.get("/api/v1/attribution")
+    assert response.status_code == 200
+    body = response.json()
+    by_id = {s["id"]: s for s in body["sources"]}
+    assert by_id["usaco-guide"]["use"] == "Linked only; not copied or adapted"
+    assert by_id["tech-interview-handbook"]["license_status"] == "verified"
+    assert by_id["kactl"]["use"] == "Not used until its license is verified"
+    # No shipped content is adapted yet, so nothing is listed as adapted.
+    assert body["adapted"] == []

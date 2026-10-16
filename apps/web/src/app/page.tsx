@@ -270,6 +270,7 @@ export default function Home() {
             <a href="#paths" className="hover:text-foreground">Paths</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
             <Link href="/login" className="hover:text-foreground">Log in</Link>
+            <Link href="/attribution" className="hover:text-foreground">Attribution</Link>
           </nav>
           <p className="text-[13px] text-muted-foreground">© {new Date().getFullYear()} Socrat</p>
         </div>
