@@ -93,7 +93,7 @@ Priorities:
 - **2026-10-13 — Item 7 (personalised reading), mechanism:** done.
   - Lessons show 3 resources picked by the learner's band and language, ranked by Bayesian-smoothed community helpfulness and the learner's own history (opened or unhelpful).
   - The rest sit behind "More resources", with helpful and not-helpful feedback (`resource_events`, migration `0005_feedback`).
-  - The weekly `content-link-check` workflow runs `scripts/content/check_links.py`.
+  - The weekly `content-link-check` workflow runs `scripts/content/link_health.py --live` and uploads its CSV report.
   - Remaining: growing the catalogue to 6–10 vetted resources per concept, which needs owner approval of sources.
 - **2026-10-13 — Item 9 (tutor quality), UX part:** done.
   - Thumbs up and down on tutor replies (`assistant_messages.rating`), included in the export.
