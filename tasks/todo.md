@@ -1,6 +1,6 @@
 # Content system tasks
 
-M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1 done; see `docs/implementation/content-system-m1.md`.
+M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1 and M2 done; see `docs/implementation/content-system-m1.md` and `content-system-m2.md`.
 Verification for every task: the commands in `tasks/plan.md` plus the task's own check.
 
 ## M1 provenance
@@ -27,11 +27,11 @@ Verification for every task: the commands in `tasks/plan.md` plus the task's own
 - [x] Checkpoint M1: full suite, lint, types; commit; report; wait for approval
 
 ## M2 content-schemas
-- [ ] 6. Pattern schema, loader, cross-reference validation
-- [ ] 7. Quiz family / bank item / generator spec; wrap existing 234 items read-only
-- [ ] 8. Project schema and JSON contracts
-- [ ] 9. Runtime tables migration with downgrade test
-- [ ] Checkpoint M2
+- [x] 6. Pattern schema, loader, cross-reference validation
+- [x] 7. Quiz family / bank item / generator spec; wrap existing 234 items read-only
+- [x] 8. Project schema and JSON contracts
+- [x] 9. Runtime tables migration with downgrade test
+- [x] Checkpoint M2
 
 ## M3 quiz-engine
 - [ ] 10. Config + rating math
