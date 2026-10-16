@@ -75,6 +75,8 @@ def render(cat: Catalog, item: Item, seed: str, language: str) -> dict:
             hints=[],
         )
     family = cat.quiz_families[item.family]
+    if item.seed is not None:
+        return render_generated(cat, item, seed, language)
     b = next(b for b in family.items if b.id == item.item_id)
     order = list(range(len(b.options)))
     random.Random(f"{seed}:{b.id}").shuffle(order)
@@ -86,6 +88,26 @@ def render(cat: Catalog, item: Item, seed: str, language: str) -> dict:
         order=order,
         answer=order.index(b.answer),
         explanation=b.explanation,
+        hints=list(family.hint_ladder),
+    )
+
+
+def render_generated(cat: Catalog, item: Item, seed: str, language: str) -> dict:
+    from socrat.quiz.generate import framework
+
+    family = cat.quiz_families[item.family]
+    assert cat.quiz_root is not None and item.seed is not None
+    made = framework.draft(cat.quiz_root, family, item.seed)
+    order = list(range(len(made.options)))
+    random.Random(f"{seed}:{item.key}").shuffle(order)
+    code = made.code.get(cast(Language, language)) or next(iter(made.code.values()))
+    return dict(
+        prompt=made.prompt,
+        code=code,
+        options=[made.option_text(i, language) for i in order],
+        order=order,
+        answer=order.index(made.answer),
+        explanation=made.explanation,
         hints=list(family.hint_ladder),
     )
 

@@ -235,3 +235,40 @@ def test_unknown_mode_concept_or_session(on):
         == 422
     )
     assert client.get(f"{sessions}/missing/next").status_code == 404
+
+
+def test_generated_items_are_served_but_write_no_evidence_until_reviewed(on, monkeypatch):
+    app, client = on
+    headers = learner(client)
+    # for-loops sits behind earlier lessons; open it so the engine can be exercised.
+    monkeypatch.setattr(service.learn, "require_unlocked", lambda *args: None)
+    view = client.post(
+        "/api/v1/adaptive-quiz/sessions",
+        json={"mode": "concept_check", "concepts": ["zero:for-loops"]},
+        headers=headers,
+    ).json()
+    session_id, served = view["id"], []
+    while not view["finished"]:
+        key = view["current"]["item"]
+        served.append(key)
+        if key.startswith("quiz:"):  # a generated family item
+            assert view["current"]["format"] == "fill_blank"
+            assert "___" in view["current"]["code"]
+            assert view["current"]["hints_available"] == 3
+            if len(served) == 1 or not any(k.startswith("quiz:") for k in served[:-1]):
+                hint = client.post(
+                    f"/api/v1/adaptive-quiz/sessions/{session_id}/hint", headers=headers
+                )
+                assert hint.json()["level"] == 1 and hint.json()["remaining"] == 2
+        view = client.post(
+            f"/api/v1/adaptive-quiz/sessions/{session_id}/answer",
+            json={"item": key, "choice": correct_choice(session_id, key)},
+            headers=headers,
+        ).json()["session"]
+    generated = [k for k in served if k.startswith("quiz:zero:for-loops:accumulator:s")]
+    assert generated, served
+    with Session(app.state.engine) as db:
+        responses = {r.item_id for r in db.scalars(select(QuizResponse))}
+        assert set(generated) <= responses
+        evidence = list(db.scalars(select(Evidence).where(Evidence.kind == "quiz")))
+        assert {e.details["item"] for e in evidence} == set(served) - set(generated)

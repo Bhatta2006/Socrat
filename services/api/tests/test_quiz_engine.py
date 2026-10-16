@@ -85,7 +85,7 @@ def test_pool_partition_is_stable_and_near_seventy_percent():
 
 
 def test_legacy_bank_wraps_every_item_with_bands_and_pools():
-    items = pools.bank(default_catalog())
+    items = pools.keep_practice(pools.legacy_bank(default_catalog()))
     assert len(items) == 234
     assert len({i.key for i in items}) == 234
     assert {i.band for i in items} <= {1, 2, 3}
@@ -250,7 +250,7 @@ def test_stop_rules():
 
 
 def test_ceiling_is_capped_by_the_pool():
-    legacy = pools.bank(default_catalog())
+    legacy = pools.legacy_bank(default_catalog())
     assert modes.ceiling("interview", legacy, 7) == 3
     assert modes.ceiling("foundations", simulate.synthetic_bank(), 7) == 4
     assert modes.ceiling("interview", simulate.synthetic_bank(), 3) == 3

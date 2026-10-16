@@ -4,7 +4,8 @@ Every item gets one pool, fixed for its lifetime:
 
 - a static item that names its pool keeps it;
 - any other item is split by a stable hash of its global key, ~70% practice;
-- a generated item's pool comes from the seed range it was drawn from (M4).
+- a generated item's pool comes from the seed range it was drawn from, and it is served
+  only when the verified manifest lists it (M4).
 
 A concept whose hash split would leave no practice item keeps its lowest-hash item in
 practice, so concept checks always have something to serve (M0 gap 8).
@@ -42,6 +43,7 @@ class Item:
     languages: tuple[str, ...] = ()  # empty: no code, any language works
     misconceptions: tuple[str | None, ...] = ()  # by authored option index
     reviewed: bool = True  # False: answers do not count as mastery evidence (§8.7)
+    seed: int | None = None  # generated items: the generator seed
 
 
 def unit(key: str, salt: str = POOL_SALT) -> float:
@@ -136,9 +138,44 @@ def keep_practice(items: list[Item]) -> list[Item]:
     ]
 
 
+def generated_bank(catalog, cfg: EngineConfig = DEFAULT) -> list[Item]:
+    """Generated items listed in the verified manifest; the seed range decides the pool."""
+    from socrat.quiz.generate import framework
+
+    root = catalog.quiz_root
+    if root is None:
+        return []
+    manifest = framework.load_manifest(root)
+    items = []
+    for family in catalog.quiz_families.values():
+        if family.generator is None or family.status == "retired":
+            continue
+        reviewed = family.provenance.review is not None
+        for seed, pool, draft in framework.verified_drafts(root, family, manifest):
+            items.append(
+                Item(
+                    key=framework.item_key(family, seed),
+                    concept=family.concept,
+                    pattern=family.pattern or family.concept,
+                    family=family.id,
+                    item_id=f"s{seed}",
+                    format=family.format,
+                    band=draft.band,
+                    d_prior=cfg.prior(draft.band),
+                    pool=pool,
+                    status=family.status,
+                    languages=tuple(draft.code),
+                    misconceptions=tuple(o.misconception for o in draft.options),
+                    reviewed=reviewed,
+                    seed=seed,
+                )
+            )
+    return items
+
+
 def bank(catalog, cfg: EngineConfig = DEFAULT) -> list[Item]:
     items = legacy_bank(catalog, cfg) + family_bank(catalog.quiz_families, cfg)
-    return keep_practice(items)
+    return keep_practice(items) + generated_bank(catalog, cfg)
 
 
 def summary(items: list[Item]) -> dict[str, dict[str, int]]:
