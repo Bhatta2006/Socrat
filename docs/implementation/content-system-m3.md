@@ -58,8 +58,9 @@ SOCRAT_ADAPTIVE_QUIZ_ENABLED=true                 # to try the API locally
    600 points stronger than the estimate. After 30 items such learners are still about 120
    points underestimated and succeed well above target (0.88 vs 0.72 on Interview). The ±0.07
    test therefore uses learners whose prior is within ±100 of their true ability, which is
-   what placement and prior mastery are meant to provide. A larger early K or a few probe items
-   would fix this; it needs a decision (see below).
+   what placement and prior mastery are meant to provide. **Decision (2026-10-16): keep the
+   spec's K schedule for now**; revisit (larger early K or probe items) once real response
+   data exists.
 2. **The ladder now outranks variety.** In the first version, the soft filters (exposure, format
    runs, interleaving) ran before the band choice and could remove every item one band up, so
    the "two corrects → harder" guarantee broke. The property test caught this. Bands are now
@@ -101,8 +102,6 @@ SOCRAT_ADAPTIVE_QUIZ_ENABLED=true                 # to try the API locally
 
 ## Needs a human
 
-- Decide whether to change the spec's K schedule (or add probe items) to fix slow θ
-  convergence from a poor prior (finding 1).
 - M1's legal and license-verification items remain open.
 - To run e2e locally, the stale `socrat.e2e.db` (revision `0011`) has to be removed or
   regenerated.
