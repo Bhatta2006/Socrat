@@ -15,6 +15,7 @@ from pathlib import Path
 import yaml
 
 from socrat.catalog.atoms import AtomPack
+from socrat.catalog.patterns import Pattern
 from socrat.catalog.schema import Concept, Course, Problem, TestCase
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
@@ -72,6 +73,7 @@ class Catalog:
     problems: dict[str, tuple[str, Problem]] = field(default_factory=dict)
     order: list[str] = field(default_factory=list)  # global topological order
     atom_packs: dict[str, AtomPack] = field(default_factory=dict)
+    patterns: dict[str, "Pattern"] = field(default_factory=dict)
 
     def course(self, course_id: str) -> Course:
         try:
@@ -173,6 +175,15 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
         catalog.atom_packs = atoms.load(root.parent / "atoms", catalog.concepts, catalog.courses)
     except (ValueError, OSError, yaml.YAMLError) as exc:
         raise CatalogError(f"Invalid atom catalogue: {exc}") from exc
+    from socrat.catalog import patterns
+
+    taxonomy = atoms.load_taxonomy(root.parent / "atoms")
+    catalog.patterns = patterns.load(
+        root.parent / "patterns",
+        catalog,
+        taxonomy,
+        lambda: patterns.external_problem_ids(root.parent / "practice" / "problems.jsonl"),
+    )
     registry_file = root.parent / "sources" / "registry.yaml"
     if registry_file.exists():
         from socrat.catalog import sources
@@ -187,7 +198,12 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
             {
                 "catalog": catalog.digest,
                 "atoms": {q: p.model_dump(mode="json") for q, p in catalog.atom_packs.items()},
-            },
+            }
+            | (
+                {"patterns": {k: v.model_dump(mode="json") for k, v in catalog.patterns.items()}}
+                if catalog.patterns
+                else {}
+            ),
             sort_keys=True,
         ).encode()
     ).hexdigest()

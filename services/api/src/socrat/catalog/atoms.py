@@ -115,14 +115,17 @@ class AtomPack(Model):
         return self
 
 
+def load_taxonomy(root: Path) -> set[str]:
+    """The controlled misconception IDs (``misconceptions.yaml`` next to the atom packs)."""
+    taxonomy_file = root / "misconceptions.yaml"
+    if not taxonomy_file.exists():
+        return set()
+    return set(yaml.safe_load(taxonomy_file.read_text(encoding="utf-8")) or [])
+
+
 def load(root: Path, concepts: dict, courses: dict) -> dict[str, AtomPack]:
     packs = {}
-    taxonomy_file = root / "misconceptions.yaml"
-    taxonomy = (
-        set(yaml.safe_load(taxonomy_file.read_text(encoding="utf-8")) or [])
-        if taxonomy_file.exists()
-        else set()
-    )
+    taxonomy = load_taxonomy(root)
     for path in sorted(root.glob("*/*.yaml")):
         pack = AtomPack.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
         if pack.concept not in concepts or pack.concept in packs:
