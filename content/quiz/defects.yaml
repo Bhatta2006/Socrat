@@ -70,3 +70,39 @@ defects:
     kind: wrong-update
     misconception: frequency-single-bucket
     description: Every letter is counted in counts[0] instead of its own counter.
+  - id: diff-end-off-by-one
+    kind: off-by-one
+    misconception: diff-end-off-by-one
+    description: The cancel mark goes at r instead of r + 1, so position r loses the addition.
+  - id: diff-sign-error
+    kind: wrong-update
+    misconception: diff-sign-error
+    description: The mark after the range adds x instead of cancelling it.
+  - id: diff-missing-prefix
+    kind: wrong-update
+    misconception: missing-prefix-sum
+    description: The rebuild copies each mark instead of keeping a running sum.
+  - id: pow-parity
+    kind: wrong-comparison
+    misconception: fast-power-parity
+    description: The power is multiplied in on 0 bits of the exponent instead of 1 bits.
+  - id: pow-base-not-square
+    kind: wrong-update
+    misconception: fast-power-base-not-square
+    description: The result is multiplied by the base instead of the current square.
+  - id: pow-double-not-square
+    kind: wrong-update
+    misconception: square-vs-double
+    description: The running power is doubled instead of squared.
+  - id: subset-too-few-masks
+    kind: off-by-one
+    misconception: subset-count-off-by-one
+    description: The mask loop stops at 2^(n-1), so the last element is never chosen.
+  - id: subset-wrong-bit-test
+    kind: wrong-comparison
+    misconception: bit-test-wrong
+    description: mask & i tests the bits of i instead of bit number i.
+  - id: subset-add-index
+    kind: wrong-update
+    misconception: confuse-index-value
+    description: The subset sum adds the index i instead of the value a[i].

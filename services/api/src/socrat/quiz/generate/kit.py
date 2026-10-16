@@ -209,6 +209,14 @@ def generate(spec: Spec, rng, params: dict) -> Draft:
         values = spec.sample(rng, params)
         code = spec.program(values)
         answer = spec.answer(values)
+        # An author error (a line that is not in the program, e.g. because of a trailing
+        # comment) would otherwise look like 200 unlucky samples.
+        if blank is not None and not mutate.applicable(
+            code, {k: (blank.line[k], "") for k in code}
+        ):
+            raise ValueError(f"blank line {blank.line['python']!r} is not in the program")
+        if chosen is not None and not mutate.applicable(code, chosen.edit):
+            raise ValueError(f"defect {chosen.defect}: its line is not in the program")
         if prints(code["python"]) != answer:
             raise ValueError(f"the Python program disagrees with the reference on {values}")
         if kind == "predict":
