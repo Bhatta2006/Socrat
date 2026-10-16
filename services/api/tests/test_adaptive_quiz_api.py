@@ -1,5 +1,7 @@
 """Adaptive quiz API behind ``adaptive_quiz_enabled`` (M3 task 14)."""
 
+import re
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -251,10 +253,11 @@ def test_generated_items_are_served_but_write_no_evidence_until_reviewed(on, mon
     while not view["finished"]:
         key = view["current"]["item"]
         served.append(key)
-        if key.startswith("quiz:"):  # a generated family item
+        if key.startswith("quiz:"):  # a family item: generated (":s<seed>") or static
+            assert view["current"]["hints_available"] == 3
+        if re.fullmatch(r"quiz:zero:for-loops:accumulator:s\d+", key):
             assert view["current"]["format"] == "fill_blank"
             assert "___" in view["current"]["code"]
-            assert view["current"]["hints_available"] == 3
             if len(served) == 1 or not any(k.startswith("quiz:") for k in served[:-1]):
                 hint = client.post(
                     f"/api/v1/adaptive-quiz/sessions/{session_id}/hint", headers=headers
@@ -265,7 +268,7 @@ def test_generated_items_are_served_but_write_no_evidence_until_reviewed(on, mon
             json={"item": key, "choice": correct_choice(session_id, key)},
             headers=headers,
         ).json()["session"]
-    generated = [k for k in served if k.startswith("quiz:zero:for-loops:accumulator:s")]
+    generated = [k for k in served if k.startswith("quiz:")]  # all from unreviewed families
     assert generated, served
     with Session(app.state.engine) as db:
         responses = {r.item_id for r in db.scalars(select(QuizResponse))}
