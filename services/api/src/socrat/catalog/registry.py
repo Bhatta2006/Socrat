@@ -16,6 +16,7 @@ import yaml
 
 from socrat.catalog.atoms import AtomPack
 from socrat.catalog.patterns import Pattern
+from socrat.catalog.projects import Project
 from socrat.catalog.quizbank import QuizFamily
 from socrat.catalog.schema import Concept, Course, Problem, TestCase
 
@@ -76,6 +77,7 @@ class Catalog:
     atom_packs: dict[str, AtomPack] = field(default_factory=dict)
     patterns: dict[str, "Pattern"] = field(default_factory=dict)
     quiz_families: dict[str, "QuizFamily"] = field(default_factory=dict)
+    projects: dict[str, "Project"] = field(default_factory=dict)
 
     def course(self, course_id: str) -> Course:
         try:
@@ -177,7 +179,7 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
         catalog.atom_packs = atoms.load(root.parent / "atoms", catalog.concepts, catalog.courses)
     except (ValueError, OSError, yaml.YAMLError) as exc:
         raise CatalogError(f"Invalid atom catalogue: {exc}") from exc
-    from socrat.catalog import patterns, quizbank
+    from socrat.catalog import patterns, projects, quizbank
 
     taxonomy = atoms.load_taxonomy(root.parent / "atoms")
     catalog.quiz_families = quizbank.load(root.parent / "quiz", catalog, taxonomy)
@@ -189,6 +191,7 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
         catalog.quiz_families,
     )
     quizbank.check_patterns(catalog.quiz_families, catalog.patterns)
+    catalog.projects = projects.load(root.parent / "projects", catalog)
     registry_file = root.parent / "sources" / "registry.yaml"
     if registry_file.exists():
         from socrat.catalog import sources
@@ -212,6 +215,11 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
             | (
                 {"quiz": {k: v.model_dump(mode="json") for k, v in catalog.quiz_families.items()}}
                 if catalog.quiz_families
+                else {}
+            )
+            | (
+                {"projects": {k: v.model_dump(mode="json") for k, v in catalog.projects.items()}}
+                if catalog.projects
                 else {}
             ),
             sort_keys=True,

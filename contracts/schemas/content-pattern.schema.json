@@ -1,0 +1,403 @@
+{
+  "$defs": {
+    "Complexity": {
+      "additionalProperties": false,
+      "properties": {
+        "time": {
+          "maxLength": 60,
+          "minLength": 2,
+          "title": "Time",
+          "type": "string"
+        },
+        "space": {
+          "maxLength": 60,
+          "minLength": 2,
+          "title": "Space",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time",
+        "space"
+      ],
+      "title": "Complexity",
+      "type": "object"
+    },
+    "PatternProblems": {
+      "additionalProperties": false,
+      "properties": {
+        "native": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Native",
+          "type": "array"
+        },
+        "external": {
+          "items": {
+            "pattern": "^(leetcode|cf|cses):[A-Za-z0-9-]{1,120}$",
+            "type": "string"
+          },
+          "title": "External",
+          "type": "array"
+        }
+      },
+      "title": "PatternProblems",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Who made a record, from what, under which rights. Optional: absent means legacy.\n\n``review`` is only ever written by a human; tooling never fills it in.",
+      "properties": {
+        "origin": {
+          "default": "original",
+          "enum": [
+            "original",
+            "adapted",
+            "linked",
+            "partnered"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "author": {
+          "default": "Socrat Learning",
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "authors_adapted_from": {
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "title": "Authors Adapted From",
+          "type": "array"
+        },
+        "review": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Review"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "rights": {
+          "default": "Socrat original, all rights reserved",
+          "maxLength": 300,
+          "minLength": 2,
+          "title": "Rights",
+          "type": "string"
+        },
+        "attribution_md": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Attribution Md",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "description": "Human sign-off recorded when a drafted problem is approved (item 5 of the backlog).",
+      "properties": {
+        "by": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "By",
+          "type": "string"
+        },
+        "at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "At",
+          "type": "string"
+        },
+        "notes": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "by",
+        "at"
+      ],
+      "title": "Review",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "description": "One source an adapted record was derived from (Content Master Plan \u00a72.5).",
+      "properties": {
+        "source_id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Title",
+          "type": "string"
+        },
+        "author": {
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "license_spdx": {
+          "maxLength": 64,
+          "minLength": 2,
+          "title": "License Spdx",
+          "type": "string"
+        },
+        "license_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "License Url",
+          "type": "string"
+        },
+        "retrieved_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "changes": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Changes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "title",
+        "author",
+        "url",
+        "license_spdx",
+        "license_url",
+        "retrieved_at",
+        "content_sha256"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "Variant": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "band": {
+          "maximum": 7,
+          "minimum": 1,
+          "title": "Band",
+          "type": "integer"
+        },
+        "title": {
+          "default": "",
+          "maxLength": 120,
+          "title": "Title",
+          "type": "string"
+        },
+        "problem": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Problem"
+        }
+      },
+      "required": [
+        "id",
+        "band"
+      ],
+      "title": "Variant",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^[a-z][a-z0-9-]{0,63}:[a-z][a-z0-9-]{0,63}/[a-z][a-z0-9-]{0,63}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "concept": {
+      "pattern": "^[a-z][a-z0-9-]{0,63}:[a-z][a-z0-9-]{0,63}$",
+      "title": "Concept",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Title",
+      "type": "string"
+    },
+    "tracks": {
+      "items": {
+        "enum": [
+          "foundations",
+          "interview",
+          "competitive"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Tracks",
+      "type": "array"
+    },
+    "recognise": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Recognise",
+      "type": "array"
+    },
+    "state": {
+      "default": "",
+      "maxLength": 300,
+      "title": "State",
+      "type": "string"
+    },
+    "transition": {
+      "default": "",
+      "maxLength": 300,
+      "title": "Transition",
+      "type": "string"
+    },
+    "base_cases": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 6,
+      "title": "Base Cases",
+      "type": "array"
+    },
+    "complexity": {
+      "$ref": "#/$defs/Complexity"
+    },
+    "template": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "propertyNames": {
+        "enum": [
+          "python",
+          "cpp",
+          "java"
+        ]
+      },
+      "title": "Template",
+      "type": "object"
+    },
+    "variants": {
+      "items": {
+        "$ref": "#/$defs/Variant"
+      },
+      "maxItems": 7,
+      "minItems": 1,
+      "title": "Variants",
+      "type": "array"
+    },
+    "pitfalls": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9-]{0,63}$",
+        "type": "string"
+      },
+      "title": "Pitfalls",
+      "type": "array"
+    },
+    "atoms": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9-]{0,63}$",
+        "type": "string"
+      },
+      "title": "Atoms",
+      "type": "array"
+    },
+    "quiz_family": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Quiz Family"
+    },
+    "problems": {
+      "$ref": "#/$defs/PatternProblems"
+    },
+    "showcase": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Showcase",
+      "type": "array"
+    },
+    "status": {
+      "default": "provisional",
+      "enum": [
+        "provisional",
+        "calibrated",
+        "retired"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    }
+  },
+  "required": [
+    "id",
+    "concept",
+    "title",
+    "tracks",
+    "recognise",
+    "complexity",
+    "variants",
+    "provenance"
+  ],
+  "title": "Pattern",
+  "type": "object"
+}
