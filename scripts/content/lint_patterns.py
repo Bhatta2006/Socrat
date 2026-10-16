@@ -30,6 +30,7 @@ LANGUAGES = ("python", "cpp", "java")
 REQUIRED_ATOMS = ("worked", "faded", "visualizer", "micro", "classify")
 MIN_ITEMS, MIN_BANDS = 12, 4
 PROMPT_WORDS, OPTION_WORDS, EXPLANATION_WORDS = 70, 16, 70
+MICRO_SECONDS = (60, 90)  # Content Master Plan §3.3: pitfall micro-lesson 60-90 s
 
 
 def words(text: str) -> int:
@@ -81,6 +82,8 @@ def lint_pattern(catalog, pattern, items, tools) -> list[str]:
             and kinds["micro"].misconception != pattern.pitfalls[0]
         ):
             problems.append("the micro-lesson must target the top pitfall")
+        if "micro" in kinds and not MICRO_SECONDS[0] <= kinds["micro"].seconds <= MICRO_SECONDS[1]:
+            problems.append(f"the micro-lesson should take {MICRO_SECONDS[0]}-{MICRO_SECONDS[1]} s")
         listed = set(pattern.atoms)
         unlisted = [a.id for a in pack.atoms if a.id not in listed]
         if unlisted:

@@ -442,3 +442,33 @@ def test_counterexample_search_for_greedy_coin_change():
     bad, good = counterexample.split(greedy, brute, inputs)
     assert ((1, 3, 4), 6) in bad and ((1, 3, 4), 4) in good
     assert counterexample.breaks(lambda *a: 1 / 0, brute, ((1,), 1))
+
+
+# ---------------------------------------------------------------- kit
+
+
+def test_kit_stops_endless_variants_and_flags_missing_lines():
+    from socrat.quiz.generate import kit
+
+    assert kit.prints("print(1 + 1)") == "2"
+    assert kit.prints("while True: pass") is None  # step limit, not a hang
+    assert kit.prints("print([][1])") is None
+
+    spec = kit.Spec(
+        sample=lambda rng, params: {"v": rng.randint(1, 9)},
+        program=lambda v: {"python": f"x = {v['v']}  # a comment hides the line\nprint(x)"},
+        answer=lambda v: str(v["v"]),
+        wrong=lambda v: [],
+        predict="What prints?",
+        fill=lambda v: "Fill it.",
+        fix=lambda v: "Fix it.",
+        explain=lambda v, a: "It prints x.",
+        blanks=[kit.Blank(kit.lines("x = 1"), [])],
+    )
+    messages = set()
+    for seed in range(12):  # each seed picks predict (no distractors) or the blank
+        with pytest.raises(ValueError) as failure:
+            kit.generate(spec, random.Random(seed), {})
+        messages.add(str(failure.value).split(" after")[0].split(" is not")[0])
+    assert "blank line 'x = 1'" in messages  # failed at once, not after 200 tries
+    assert "no predict item for 'predict'" in messages
