@@ -16,7 +16,13 @@ from socrat.models import (
 )
 from socrat.schema_revision import SCHEMA_REVISION
 
-TABLES = {"quiz_responses", "learner_abilities", "item_ratings", "item_calibrations"}
+TABLES = {
+    "quiz_responses",
+    "learner_abilities",
+    "item_ratings",
+    "item_calibrations",
+    "quiz_engine_sessions",
+}
 
 
 def migrated(tmp_path, revision="head"):
@@ -29,7 +35,7 @@ def migrated(tmp_path, revision="head"):
 
 def test_upgrade_creates_the_tables_and_downgrade_removes_only_them(tmp_path):
     config, engine = migrated(tmp_path)
-    assert SCHEMA_REVISION == "0009_quiz_runtime"
+    assert SCHEMA_REVISION == "0010_quiz_engine_sessions"
     before = set(sa.inspect(engine).get_table_names())
     assert TABLES <= before
     command.downgrade(config, "0008_product_tour")

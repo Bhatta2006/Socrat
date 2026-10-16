@@ -28,6 +28,7 @@ from socrat.learn.session_routes import router as session_router
 from socrat.library import autosync
 from socrat.library.routes import router as library_router
 from socrat.models import User
+from socrat.quiz.routes import router as adaptive_quiz_router
 from socrat.schema_revision import SCHEMA_REVISION
 from socrat.vitals import router as vitals_router
 
@@ -65,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.include_router(learner_router)
     app.include_router(explainer_router)
+    app.include_router(adaptive_quiz_router)
     app.include_router(session_router)
     app.include_router(library_router)
     app.include_router(assessments_router)
@@ -193,6 +195,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "code_execution": settings.execution_enabled,
             "execution_backend": settings.execution_backend,
             "demo_mode": settings.demo_mode,
+            "adaptive_quiz": settings.adaptive_quiz_enabled,
         }
 
     @app.post("/api/v1/auth/dev-login")

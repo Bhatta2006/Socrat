@@ -450,3 +450,19 @@ class ItemCalibration(Base):
     computed_at: Mapped[int] = mapped_column(Integer, default=now)
     approved_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
     approved_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class QuizEngineSession(Base):
+    """One adaptive quiz session: scope, served steps and the item awaiting an answer."""
+
+    __tablename__ = "quiz_engine_sessions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), index=True
+    )
+    mode: Mapped[str] = mapped_column(String(24))
+    track: Mapped[str] = mapped_column(String(16))
+    concepts: Mapped[list] = mapped_column(JSON)
+    state: Mapped[dict] = mapped_column(JSON, default=dict)  # steps, pending, micro, stop
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    completed_at: Mapped[int | None] = mapped_column(Integer, nullable=True)

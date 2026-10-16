@@ -118,6 +118,8 @@ class Settings(DatabaseSettings):
     ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
     ai_tools: bool = True  # let the tutor look up the learner's data and the library
     explainer_enabled: bool = True
+    # Content system pilot (Content Master Plan §8): off until reviewed content exists.
+    adaptive_quiz_enabled: bool = False
     explainer_model: str = ""
     explainer_chat_template_kwargs: dict = Field(default_factory=dict)
     explainer_daily_messages: int = Field(default=20, ge=1, le=200)
