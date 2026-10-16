@@ -409,6 +409,7 @@ class QuizResponse(Base):
     hint_level: Mapped[int] = mapped_column(Integer, default=0)
     time_s: Mapped[int] = mapped_column(Integer, default=0)
     seed: Mapped[str] = mapped_column(String(64), default="")
+    choice: Mapped[int | None] = mapped_column(Integer, nullable=True)  # authored option index
     created_at: Mapped[int] = mapped_column(Integer, default=now)
 
 

@@ -7,7 +7,7 @@ mastery ``Evidence`` through ``learn.record_evidence`` → ``mastery.apply`` (D4
 """
 
 import random
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from typing import cast
 
 from fastapi import HTTPException
@@ -19,6 +19,7 @@ from socrat.catalog.schema import Language
 from socrat.learn import service as learn
 from socrat.models import (
     Enrollment,
+    ItemCalibration,
     ItemRating,
     LearnerAbility,
     QuizEngineSession,
@@ -48,6 +49,21 @@ def spec_of(session: QuizEngineSession, cfg: EngineConfig = DEFAULT) -> ModeSpec
 
 def track_of(session: QuizEngineSession) -> Track:
     return cast(Track, session.track)
+
+
+def approved(db: Session) -> dict[str, str]:
+    """Statuses a named human approved (M7); they override the content file's status."""
+    rows = db.scalars(select(ItemCalibration).where(ItemCalibration.approved_by.is_not(None)))
+    return {row.item_id: row.status for row in rows}
+
+
+def effective(items: list[Item], statuses: dict[str, str]) -> list[Item]:
+    return [replace(i, status=statuses[i.key]) if i.key in statuses else i for i in items]
+
+
+def items_for(db: Session, cat: Catalog, cfg: EngineConfig = DEFAULT) -> list[Item]:
+    """The bank with approved calibrations applied: calibrated freezes d, retired is never served."""
+    return effective(bank(cat, cfg), approved(db))
 
 
 def track_for(enrollment: Enrollment) -> Track:
@@ -198,7 +214,7 @@ def context(
     now: int,
     cfg: EngineConfig = DEFAULT,
 ) -> tuple[Context, list[Item], int]:
-    items = scope_items(bank(cat, cfg), session.concepts)
+    items = scope_items(items_for(db, cat, cfg), session.concepts)
     spec = spec_of(session, cfg)
     patterns = sorted({i.pattern for i in items})
     track = track_of(session)
@@ -277,7 +293,7 @@ def start(
     concepts = sorted(set(concepts))
     for concept in concepts:
         learn.require_unlocked(db, cat, enrollment, concept, now)
-    if not modes.available(spec, concepts, bank(cat, cfg), cfg):
+    if not modes.available(spec, concepts, items_for(db, cat, cfg), cfg):
         return None
     session = QuizEngineSession(
         enrollment_id=enrollment.id,
@@ -335,12 +351,13 @@ def answer(
         raise HTTPException(409, "quiz_already_completed")
     if pending["item"] != item_key:
         raise HTTPException(409, "not_current_item")
-    item = item_by_key(cat, item_key, cfg)
+    item = effective([item_by_key(cat, item_key, cfg)], approved(db))[0]
     shown = render(cat, item, session.id, enrollment.language)
     if choice is not None and not 0 <= choice < len(shown["options"]):
         raise HTTPException(422, "invalid_choice")
     hints = int(pending["hints"])
     outcome: Outcome
+    authored: int | None = None
     if choice is None:
         outcome, tag = "skipped", None
     else:
@@ -392,6 +409,7 @@ def answer(
                 score=change.score,
                 hint_level=hints,
                 time_s=max(0, time_s),
+                choice=authored,
                 created_at=now,
             )
         )
