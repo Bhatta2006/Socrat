@@ -150,6 +150,69 @@
       "title": "Atom",
       "type": "object"
     },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Who made a record, from what, under which rights. Optional: absent means legacy.\n\n``review`` is only ever written by a human; tooling never fills it in.",
+      "properties": {
+        "origin": {
+          "default": "original",
+          "enum": [
+            "original",
+            "adapted",
+            "linked",
+            "partnered"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "author": {
+          "default": "Socrat Learning",
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "authors_adapted_from": {
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "title": "Authors Adapted From",
+          "type": "array"
+        },
+        "review": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Review"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "rights": {
+          "default": "Socrat original, all rights reserved",
+          "maxLength": 300,
+          "minLength": 2,
+          "title": "Rights",
+          "type": "string"
+        },
+        "attribution_md": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Attribution Md",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
     "Review": {
       "additionalProperties": false,
       "description": "Human sign-off recorded when a drafted problem is approved (item 5 of the backlog).",
@@ -177,6 +240,77 @@
         "at"
       ],
       "title": "Review",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "description": "One source an adapted record was derived from (Content Master Plan \u00a72.5).",
+      "properties": {
+        "source_id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Title",
+          "type": "string"
+        },
+        "author": {
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "license_spdx": {
+          "maxLength": 64,
+          "minLength": 2,
+          "title": "License Spdx",
+          "type": "string"
+        },
+        "license_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "License Url",
+          "type": "string"
+        },
+        "retrieved_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "changes": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Changes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "title",
+        "author",
+        "url",
+        "license_spdx",
+        "license_url",
+        "retrieved_at",
+        "content_sha256"
+      ],
+      "title": "SourceRef",
       "type": "object"
     },
     "Step": {
@@ -281,6 +415,17 @@
       "anyOf": [
         {
           "$ref": "#/$defs/Review"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "provenance": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Provenance"
         },
         {
           "type": "null"

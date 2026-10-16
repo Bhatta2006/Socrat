@@ -30,6 +30,53 @@ class Resource(Model):
     languages: list[Language] = Field(default_factory=list)  # empty = language-neutral
 
 
+class Review(Model):
+    """Human sign-off recorded when a drafted problem is approved (item 5 of the backlog)."""
+
+    by: str = Field(min_length=2, max_length=120)
+    at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    notes: str = Field(default="", max_length=2000)
+
+
+class SourceRef(Model):
+    """One source an adapted record was derived from (Content Master Plan §2.5)."""
+
+    source_id: Slug  # must exist in content/sources/registry.yaml (checked by the license gate)
+    title: str = Field(min_length=2, max_length=200)
+    author: str = Field(min_length=2, max_length=200)
+    url: HttpUrl
+    license_spdx: str = Field(min_length=2, max_length=64)
+    license_url: HttpUrl
+    retrieved_at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    changes: str = Field(default="", max_length=1000)
+
+
+class Provenance(Model):
+    """Who made a record, from what, under which rights. Optional: absent means legacy.
+
+    ``review`` is only ever written by a human; tooling never fills it in.
+    """
+
+    origin: Literal["original", "adapted", "linked", "partnered"] = "original"
+    author: str = Field(default="Socrat Learning", min_length=2, max_length=200)
+    authors_adapted_from: list[SourceRef] = Field(default_factory=list)
+    review: Review | None = None
+    version: int = Field(default=1, ge=1)
+    rights: str = Field(
+        default="Socrat original, all rights reserved", min_length=2, max_length=300
+    )
+    attribution_md: str = Field(default="", max_length=2000)
+
+    @model_validator(mode="after")
+    def sources_match_origin(self):
+        if self.origin == "adapted" and not self.authors_adapted_from:
+            raise ValueError("adapted content must cite at least one source")
+        if self.origin != "adapted" and self.authors_adapted_from:
+            raise ValueError("only adapted content lists authors_adapted_from")
+        return self
+
+
 class QuizItem(Model):
     id: Slug
     kind: Literal["mcq", "output", "bug"] = "mcq"
@@ -39,6 +86,7 @@ class QuizItem(Model):
     answer: int = Field(ge=0)
     explanation: str = Field(min_length=5, max_length=2000)
     difficulty: int = Field(ge=1, le=5)
+    provenance: Provenance | None = None
 
     def snippet(self, language: str) -> str | None:
         """The code shown with this question in the learner's language, if any."""
@@ -94,6 +142,7 @@ class Concept(Model):
     quiz: list[QuizItem] = Field(min_length=2, max_length=10)
     problems: list[Slug] = Field(default_factory=list)
     practice_links: list[PracticeLink] = Field(default_factory=list, max_length=10)
+    provenance: Provenance | None = None
 
 
 class Example(Model):
@@ -106,14 +155,6 @@ class TestCase(Model):
     input: str = Field(max_length=2_000_000)
     expected: str = Field(max_length=2_000_000)
     public: bool = False
-
-
-class Review(Model):
-    """Human sign-off recorded when a drafted problem is approved (item 5 of the backlog)."""
-
-    by: str = Field(min_length=2, max_length=120)
-    at: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
-    notes: str = Field(default="", max_length=2000)
 
 
 class Problem(Model):
@@ -139,6 +180,7 @@ class Problem(Model):
     review: Review | None = None
     time_limit_ms: int = Field(default=2000, ge=500, le=10000)
     tests: list[TestCase] = Field(default_factory=list)
+    provenance: Provenance | None = None
 
 
 class Module(Model):

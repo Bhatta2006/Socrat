@@ -7,7 +7,7 @@ from typing import Literal
 import yaml
 from pydantic import Field, model_validator
 
-from socrat.catalog.schema import Language, Model, Review, Slug
+from socrat.catalog.schema import Language, Model, Provenance, Review, Slug
 
 AtomKind = Literal[
     "hook",
@@ -98,6 +98,8 @@ class AtomPack(Model):
     rollback: str = Field(min_length=3, max_length=160)
     status: Literal["draft", "released", "quarantined"] = "draft"
     review: Review | None = None
+    # Pack-level provenance keeps learner-facing atom JSON unchanged.
+    provenance: Provenance | None = None
     atoms: list[Atom] = Field(min_length=1, max_length=20)
 
     @model_validator(mode="after")
