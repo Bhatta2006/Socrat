@@ -109,23 +109,25 @@ def test_every_proof_item_verifies_in_three_languages_and_the_manifest_is_curren
 
 
 def test_new_misconceptions_are_all_used(catalog):
-    root = catalog.quiz_root
-    used = set()
-    for family_id in PROOF:
-        fam = catalog.quiz_families[family_id]
+    """D6: every specific ID added since M4 is used by a distractor, pitfall or micro-lesson."""
+    used = {t for i in pools.bank(catalog) for t in i.misconceptions if t}
+    for fam in catalog.quiz_families.values():
         used |= {rule.misconception for rule in fam.distractors}
-        for seed, _ in framework.seeds(fam):
-            used |= {o.misconception for o in framework.draft(root, fam, seed).options}
+    for pattern in catalog.patterns.values():
+        used |= set(pattern.pitfalls)
+    for pack in catalog.pattern_atoms.values():
+        used |= {a.misconception for a in pack.atoms if a.misconception}
     text = (CONTENT_ROOT.parent / "atoms" / "misconceptions.yaml").read_text(encoding="utf-8")
-    new = text.split("(M4, decision D6)")[1].split()
-    new_ids = {line for line in new if line != "-" and "-" in line}
+    added = text.split("(M4, decision D6)")[1]
+    new_ids = {line.strip()[2:] for line in added.splitlines() if line.strip().startswith("- ")}
+    assert len(new_ids) >= 17
     assert new_ids - {"trace-step-slip"} <= used  # trace-step-slip is used by trace.options
-    assert len(new_ids) == 17
 
 
 def test_only_verified_items_reach_the_bank(catalog, tmp_path):
     served = [i for i in pools.bank(catalog) if i.seed is not None]
-    assert len(served) == 300
+    manifest = framework.load_manifest(catalog.quiz_root)
+    assert len(served) == sum(len(entry["items"]) for entry in manifest.values())
     assert all(not i.reviewed and i.status == "provisional" for i in served)
     by_family = {f: [i for i in served if i.family == f] for f in PROOF}
     assert {f: len(v) for f, v in by_family.items()} == {f: 100 for f in PROOF}
@@ -146,10 +148,9 @@ def test_only_verified_items_reach_the_bank(catalog, tmp_path):
             counts[item.family] = counts.get(item.family, 0) + 1
     finally:
         catalog.quiz_root = original
-    assert counts == {
-        "quiz:dsa:sliding-window:fixed-window-sum": 99,
-        "quiz:dsa:binary-search:boundaries": 100,
-    }
+    assert counts["quiz:dsa:sliding-window:fixed-window-sum"] == 99  # tampered digest
+    assert "quiz:zero:for-loops:accumulator" not in counts  # stale source
+    assert counts["quiz:dsa:binary-search:boundaries"] == 100  # untouched
 
 
 # ---------------------------------------------------------------- verifier rejects

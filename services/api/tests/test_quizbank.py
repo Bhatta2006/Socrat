@@ -89,12 +89,12 @@ def test_generator_and_static_families_load(tmp_path, catalog, taxonomy):
     assert families[GENERATED["id"]].provenance.review is None
 
 
-def test_repository_holds_only_the_m4_proof_families(catalog):
-    assert set(catalog.quiz_families) == {
+def test_repository_families_are_provisional_original_and_unreviewed(catalog):
+    assert {
         "quiz:dsa:sliding-window:fixed-window-sum",
         "quiz:dsa:binary-search:boundaries",
         "quiz:zero:for-loops:accumulator",
-    }
+    } <= set(catalog.quiz_families)
     for family in catalog.quiz_families.values():
         assert family.status == "provisional" and family.provenance.review is None
         assert family.provenance.origin == "original" and family.generator is not None

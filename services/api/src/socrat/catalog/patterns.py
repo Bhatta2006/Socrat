@@ -43,6 +43,13 @@ class Variant(Model):
     problem: str | None = None  # a native problem id or an external id listed under `problems`
 
 
+class TemplateIO(Model):
+    """Input and expected output that every language's template is run against."""
+
+    stdin: str = Field(default="", max_length=2000)
+    expected: str = Field(min_length=1, max_length=2000)
+
+
 class PatternProblems(Model):
     native: list[Slug] = Field(default_factory=list)
     external: list[ExternalId] = Field(default_factory=list)
@@ -58,7 +65,8 @@ class Pattern(Model):
     transition: str = Field(default="", max_length=300)
     base_cases: list[str] = Field(default_factory=list, max_length=6)
     complexity: Complexity
-    template: dict[Language, str] = Field(default_factory=dict)
+    template: dict[Language, str] = Field(default_factory=dict)  # complete programs
+    template_io: TemplateIO | None = None
     variants: list[Variant] = Field(min_length=1, max_length=7)
     pitfalls: list[Slug] = Field(default_factory=list)
     atoms: list[Slug] = Field(default_factory=list)
@@ -141,7 +149,9 @@ def load(
             if misconception not in taxonomy:
                 raise CatalogError(f"{path}: unknown misconception {misconception}")
         pack = catalog.atom_packs.get(pattern.concept)
+        own = getattr(catalog, "pattern_atoms", {}).get(pattern.id)
         available = {atom.id for atom in pack.atoms} if pack else set()
+        available |= {atom.id for atom in own.atoms} if own else set()
         for atom_id in pattern.atoms:
             if atom_id not in available:
                 raise CatalogError(f"{path}: unknown atom {atom_id} for {pattern.concept}")

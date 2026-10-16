@@ -26,6 +26,11 @@ from socrat.quiz.generate.framework import BLANK, Draft
 from socrat.quiz.generate.harness import Result, Runner
 
 HASH_SEEDS = ("1", "2")
+EXECUTED = {"output_prediction", "trace", "fill_blank", "bug_spot"}
+
+
+def format_of(family: QuizFamily, item: Draft) -> str:
+    return item.format or family.format
 
 
 @dataclass
@@ -47,7 +52,7 @@ def static_problems(family: QuizFamily, item: Draft, answer: str, taxonomy: set[
     for option in item.options:
         if option.misconception and option.misconception not in taxonomy:
             problems.append(f"unknown misconception {option.misconception}")
-    fmt = family.format
+    fmt = format_of(family, item)
     if fmt == "output_prediction":
         if item.options[item.answer].text != answer:
             problems.append(f"answer option {item.options[item.answer].text!r} is not {answer!r}")
@@ -73,12 +78,13 @@ def static_problems(family: QuizFamily, item: Draft, answer: str, taxonomy: set[
 def snippets_for(family: QuizFamily, item: Draft) -> dict[str, dict[str, str]]:
     """Role ("shown" or "option:<i>") -> language -> code to run."""
     runs: dict[str, dict[str, str]] = {}
-    if framework.shown_check(family.format) != "none":
+    fmt = format_of(family, item)
+    if framework.shown_check(fmt) != "none":
         runs["shown"] = {str(lang): code for lang, code in item.code.items()}
     for i, option in enumerate(item.options):
-        if family.format == "fill_blank":
+        if fmt == "fill_blank":
             runs[f"option:{i}"] = framework.fill(dict(item.code), option)
-        elif family.format == "bug_spot":
+        elif fmt == "bug_spot":
             runs[f"option:{i}"] = {str(lang): code for lang, code in option.variant.items()}
     return runs
 
@@ -113,7 +119,7 @@ def dynamic_problems(
             continue
         value = next(iter(values.values()))
         if role == "shown":
-            check = framework.shown_check(family.format)
+            check = framework.shown_check(format_of(family, item))
             if check == "equals" and value != answer:
                 problems.append(f"shown code prints {value!r}, reference says {answer!r}")
             if check == "differs" and value == answer:
@@ -141,7 +147,8 @@ def verify_family(
         try:
             item = framework.draft(root, family, seed)
             again = framework.draft(root, family, seed)
-            answer = framework.expected(family, item)
+            executed = format_of(family, item) in EXECUTED
+            answer = framework.expected(family, item, root) if executed else ""
         except Exception as exc:  # noqa: BLE001 - any generator failure rejects the seed
             verdict.problems.append(f"generator failed: {type(exc).__name__}: {exc}")
             continue

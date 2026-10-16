@@ -209,6 +209,29 @@
       "title": "SourceRef",
       "type": "object"
     },
+    "TemplateIO": {
+      "additionalProperties": false,
+      "description": "Input and expected output that every language's template is run against.",
+      "properties": {
+        "stdin": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Stdin",
+          "type": "string"
+        },
+        "expected": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Expected",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected"
+      ],
+      "title": "TemplateIO",
+      "type": "object"
+    },
     "Variant": {
       "additionalProperties": false,
       "properties": {
@@ -326,6 +349,17 @@
       },
       "title": "Template",
       "type": "object"
+    },
+    "template_io": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TemplateIO"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "variants": {
       "items": {

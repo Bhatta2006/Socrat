@@ -14,7 +14,9 @@ from pydantic import Field
 
 from socrat.catalog.schema import Model, Slug
 
-Kind = Literal["off-by-one", "wrong-init", "missing-update", "wrong-comparison", "wrong-output"]
+Kind = Literal[
+    "off-by-one", "wrong-init", "missing-update", "wrong-update", "wrong-comparison", "wrong-output"
+]
 
 
 class Defect(Model):

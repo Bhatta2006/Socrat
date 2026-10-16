@@ -55,6 +55,8 @@ jobs:
         run: uv run python scripts/content/validate_atoms.py
       - name: Verify generated quiz items in Python, C++20 and Java
         run: uv run python scripts/content/validate_quiz.py --check
+      - name: Lint pattern packs and run their templates
+        run: uv run python scripts/content/lint_patterns.py
       # Judge tests are generated from each problem's reference solution into the untracked
       # .cache/content-tests; the catalog refuses to load without them.
       # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor, which Chromium's

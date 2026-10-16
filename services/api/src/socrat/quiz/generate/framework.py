@@ -25,11 +25,11 @@ from typing import Any, Literal, cast
 
 from pydantic import Field, model_validator
 
-from socrat.catalog.quizbank import GeneratorSpec, Pool, QuizFamily
+from socrat.catalog.quizbank import GeneratorSpec, ItemFormat, Pool, QuizFamily
 from socrat.catalog.schema import Language, Model, Slug
 
 BLANK = "___"
-FRAMEWORK_VERSION = "1"
+FRAMEWORK_VERSION = "2"
 MANIFEST = "verified.json"
 SAFE_BUILTINS = {
     name: getattr(builtins, name)
@@ -56,6 +56,7 @@ class Draft(Model):
     answer: int = Field(ge=0)
     explanation: str = Field(min_length=5, max_length=2000)
     band: int = Field(ge=1, le=7)
+    format: ItemFormat | None = None  # overrides the family's format for this item
     values: dict[str, Any] = Field(default_factory=dict)  # inputs of the reference expression
     trace_line: int | None = Field(default=None, ge=1)  # trace items: compare this line only
 
@@ -142,11 +143,13 @@ def draft(root: Path, family: QuizFamily, seed: int) -> Draft:
     return result
 
 
-def expected(family: QuizFamily, item: Draft) -> str:
+def expected(family: QuizFamily, item: Draft, root: Path | None = None) -> str:
     """The answer, from the family's reference expression only."""
     assert family.generator is not None
     # Values go in globals: comprehensions in the expression cannot see eval's locals.
-    scope = {**item.values, "__builtins__": SAFE_BUILTINS}
+    # A generator may export brute-force helpers (HELPERS) for long references.
+    helpers = getattr(module(root, family.generator), "HELPERS", {}) if root else {}
+    scope = {**helpers, **item.values, "__builtins__": SAFE_BUILTINS}
     value = eval(family.generator.reference, scope)  # noqa: S307 - trusted authoring expression
     if isinstance(value, bool):
         return "true" if value else "false"

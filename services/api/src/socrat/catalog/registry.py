@@ -14,7 +14,7 @@ from pathlib import Path
 
 import yaml
 
-from socrat.catalog.atoms import AtomPack
+from socrat.catalog.atoms import AtomPack, PatternAtomPack
 from socrat.catalog.patterns import Pattern
 from socrat.catalog.projects import Project
 from socrat.catalog.quizbank import QuizFamily
@@ -78,6 +78,7 @@ class Catalog:
     patterns: dict[str, "Pattern"] = field(default_factory=dict)
     quiz_families: dict[str, "QuizFamily"] = field(default_factory=dict)
     projects: dict[str, "Project"] = field(default_factory=dict)
+    pattern_atoms: dict[str, PatternAtomPack] = field(default_factory=dict)
     quiz_root: Path | None = None  # content/quiz: families, generators, verified manifest
 
     def course(self, course_id: str) -> Course:
@@ -178,6 +179,9 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
     catalog = build([load_course(folder, tests_root) for folder in folders])
     try:
         catalog.atom_packs = atoms.load(root.parent / "atoms", catalog.concepts, catalog.courses)
+        catalog.pattern_atoms = atoms.load_pattern_packs(
+            root.parent / "atoms", catalog.concepts, catalog.courses
+        )
     except (ValueError, OSError, yaml.YAMLError) as exc:
         raise CatalogError(f"Invalid atom catalogue: {exc}") from exc
     from socrat.catalog import patterns, projects, quizbank
@@ -217,6 +221,15 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
             | (
                 {"quiz": {k: v.model_dump(mode="json") for k, v in catalog.quiz_families.items()}}
                 if catalog.quiz_families
+                else {}
+            )
+            | (
+                {
+                    "pattern_atoms": {
+                        k: v.model_dump(mode="json") for k, v in catalog.pattern_atoms.items()
+                    }
+                }
+                if catalog.pattern_atoms
                 else {}
             )
             | (

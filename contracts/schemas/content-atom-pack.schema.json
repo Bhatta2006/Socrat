@@ -56,7 +56,8 @@
             "micro",
             "pattern",
             "explanation",
-            "reflection"
+            "reflection",
+            "classify"
           ],
           "title": "Kind",
           "type": "string"
