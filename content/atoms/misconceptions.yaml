@@ -29,3 +29,21 @@
 - binary-search-answer-repair
 - greedy-cp-repair
 - bitmasks-repair
+# Specific misconceptions for generated items (M4, decision D6). Each is used by a distractor.
+- window-off-by-one
+- stop-after-first
+- confuse-index-value
+- lower-vs-upper-bound
+- half-open-bound
+- exclude-candidate-mid
+- lo-hi-confusion
+- off-by-one-output
+- overwrite-not-accumulate
+- count-not-sum
+- bound-instead-of-variable
+- product-not-sum
+- accumulator-init-one
+- accumulator-starts-at-first
+- accumulator-starts-at-bound
+- loop-bound-off-by-one
+- trace-step-slip

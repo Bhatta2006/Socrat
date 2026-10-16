@@ -1,0 +1,26 @@
+id: quiz:dsa:binary-search:boundaries
+family: boundaries
+concept: dsa:binary-search
+format: bug_spot
+tracks: [interview, competitive]
+languages: [python, cpp, java]
+generator:
+  template: binary_search_boundaries
+  params: {n: [5, 9], value: [1, 20]}
+  reference: "sum(1 for v in a if v < x)"
+  seeds:
+    practice: {start: 0, stop: 70}
+    assessment: {start: 70, stop: 100}
+distractors:
+  - {rule: "compare with <= (upper bound)", misconception: lower-vs-upper-bound}
+  - {rule: "start hi at the last index", misconception: half-open-bound}
+  - {rule: "move left with hi = mid - 1", misconception: exclude-candidate-mid}
+  - {rule: "print lo + 1", misconception: off-by-one-output}
+  - {rule: "print hi instead of lo", misconception: lo-hi-confusion}
+hint_ladder:
+  - Run the code by hand on these values and track lo and hi.
+  - Which index should it print? Count the values smaller than x.
+  - Find the first step where lo or hi moves somewhere the answer cannot be.
+time_limit_s: 180
+provenance:
+  origin: original

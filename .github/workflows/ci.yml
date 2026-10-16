@@ -53,6 +53,8 @@ jobs:
       - run: uv run mypy services/api/src services/execution/src
       - name: Validate authored content atoms in Python, C++20 and Java
         run: uv run python scripts/content/validate_atoms.py
+      - name: Verify generated quiz items in Python, C++20 and Java
+        run: uv run python scripts/content/validate_quiz.py --check
       # Judge tests are generated from each problem's reference solution into the untracked
       # .cache/content-tests; the catalog refuses to load without them.
       # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor, which Chromium's

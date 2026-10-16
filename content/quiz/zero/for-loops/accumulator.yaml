@@ -1,0 +1,29 @@
+id: quiz:zero:for-loops:accumulator
+family: accumulator
+concept: zero:for-loops
+format: fill_blank
+tracks: [foundations]
+languages: [python, cpp, java]
+generator:
+  template: accumulator
+  params: {n: [6, 99], start: [0, 9], step: [1, 4]}
+  reference: "sum(range(lo, n + 1, step))"
+  seeds:
+    practice: {start: 0, stop: 70}
+    assessment: {start: 70, stop: 101}
+distractors:
+  - {rule: "assign instead of add", misconception: overwrite-not-accumulate}
+  - {rule: "add 1 instead of i", misconception: count-not-sum}
+  - {rule: "add n instead of i", misconception: bound-instead-of-variable}
+  - {rule: "multiply instead of add", misconception: product-not-sum}
+  - {rule: "start the total at 1", misconception: accumulator-init-one}
+  - {rule: "start the total at the first number", misconception: accumulator-starts-at-first}
+  - {rule: "start the total at n", misconception: accumulator-starts-at-bound}
+  - {rule: "stop the loop one step early or late", misconception: loop-bound-off-by-one}
+hint_ladder:
+  - What should total hold after the loop has finished?
+  - Run the first two passes of the loop by hand.
+  - Each pass must add the current number to total, and the loop must reach n.
+time_limit_s: 90
+provenance:
+  origin: original

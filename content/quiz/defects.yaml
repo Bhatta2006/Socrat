@@ -1,0 +1,16 @@
+# Defect catalogue for mutation items (Content Master Plan §8.6). Each defect is one
+# controlled change to a correct snippet. Generators supply the concrete line edit per
+# language; the verifier checks the defect is observable on the item's input.
+defects:
+  - id: bs-inclusive-compare
+    kind: wrong-comparison
+    misconception: lower-vs-upper-bound
+    description: Comparing with <= instead of < moves past equal values, so the search finds the upper bound.
+  - id: bs-closed-hi
+    kind: wrong-init
+    misconception: half-open-bound
+    description: hi starts at the last index in a half-open search, so the length is never returned.
+  - id: bs-skip-mid
+    kind: off-by-one
+    misconception: exclude-candidate-mid
+    description: hi = mid - 1 throws mid away even though mid may be the answer.
