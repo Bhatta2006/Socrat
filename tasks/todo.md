@@ -1,6 +1,6 @@
 # Content system tasks
 
-M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M3 done; see `docs/implementation/content-system-m1.md`, `content-system-m2.md` and `content-system-m3.md`.
+M0 approved (decisions D1–D12 in `docs/implementation/content-system-m0.md`). M1–M4 done; see `docs/implementation/content-system-m1.md` … `content-system-m4.md`.
 Verification for every task: the commands in `tasks/plan.md` plus the task's own check.
 
 ## M1 provenance
@@ -43,11 +43,11 @@ Verification for every task: the commands in `tasks/plan.md` plus the task's own
 - [x] Checkpoint M3 (e2e not run: stale local `socrat.e2e.db` at revision 0011)
 
 ## M4 item-generators
-- [ ] 16. Framework and verifier
-- [ ] 17. Defects, traces, stories, counterexamples
-- [ ] 18. Three proof families in three languages
-- [ ] 19. Verifier negative tests; 100 items per family
-- [ ] Checkpoint M4
+- [x] 16. Framework and verifier
+- [x] 17. Defects, traces, stories, counterexamples
+- [x] 18. Three proof families in three languages
+- [x] 19. Verifier negative tests; 100 items per family
+- [x] Checkpoint M4 (e2e not run: stale local `socrat.e2e.db`)
 
 ## M5 pilot-content
 - [ ] 20. DSA batch 1 (variable window, at-most-k, lower/upper bound)
