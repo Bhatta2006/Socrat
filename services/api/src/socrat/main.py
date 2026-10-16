@@ -196,6 +196,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "execution_backend": settings.execution_backend,
             "demo_mode": settings.demo_mode,
             "adaptive_quiz": settings.adaptive_quiz_enabled,
+            "pattern_planner": settings.pattern_planner_enabled,
         }
 
     @app.post("/api/v1/auth/dev-login")

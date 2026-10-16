@@ -120,6 +120,7 @@ class Settings(DatabaseSettings):
     explainer_enabled: bool = True
     # Content system pilot (Content Master Plan §8): off until reviewed content exists.
     adaptive_quiz_enabled: bool = False
+    pattern_planner_enabled: bool = False
     explainer_model: str = ""
     explainer_chat_template_kwargs: dict = Field(default_factory=dict)
     explainer_daily_messages: int = Field(default=20, ge=1, le=200)

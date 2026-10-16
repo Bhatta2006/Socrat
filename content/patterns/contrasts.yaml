@@ -1,0 +1,50 @@
+# Side-by-side contrast cards for the "confuses two similar patterns" trigger (§9.4).
+# Keyed by a pattern-confusion misconception. Original, provisional, not reviewed.
+pattern-fixed-vs-variable-window:
+  title: "Fixed or variable window?"
+  body: >-
+    Fixed window: the problem gives the length k; slide by adding one value and dropping one.
+    Variable window: the length is what you are looking for; grow while the rule holds and
+    shrink when it breaks. Ask first: is the length given, or is it the answer?
+pattern-window-vs-prefix-sums:
+  title: "Window or prefix sums?"
+  body: >-
+    Use a window when every value is positive, so adding can only break the rule and dropping
+    can only repair it. Use prefix sums with a hash map when values can be negative or the
+    total must be hit exactly: a run i..j sums to P[j + 1] − P[i].
+pattern-window-vs-two-pointers:
+  title: "Window or two pointers?"
+  body: >-
+    A window keeps a summary of everything between left and right, because the answer is about
+    the whole run. Two pointers on a sorted array compare just the two ends, such as a pair
+    sum, and move whichever end gets closer to the target.
+pattern-window-for-single-item:
+  title: "A run, or a single item?"
+  body: >-
+    Windows answer questions about consecutive runs: longest, shortest, best total. A question
+    about one item, such as the largest value or the first value above x, needs only a scan
+    or a search, not a window.
+pattern-brute-force-default:
+  title: "Brute force, or the pattern?"
+  body: >-
+    Brute force is the right first idea and a good checker. Estimate its cost against the
+    limits: n = 10^5 rules out O(n²). If it is too slow, look for the structure that lets you
+    reuse work: a running summary, a monotone rule, or sorted order.
+pattern-sort-breaks-order:
+  title: "Can you sort?"
+  body: >-
+    Sorting helps when only the set of values matters. When the answer depends on positions,
+    such as consecutive runs, deliveries in order or neighbours, sorting destroys the
+    information you need. Check whether the problem says "consecutive" or "in order".
+pattern-search-vs-scan:
+  title: "Search, or scan once?"
+  body: >-
+    Binary search fits when a yes/no rule over sorted positions or over the answer flips only
+    once. A single pass fits when every element must be visited anyway, such as totals, runs
+    and counts. If you would check every candidate in order, ask whether the rule is monotone.
+pattern-search-needs-sorted-input:
+  title: "Does binary search need sorted input?"
+  body: >-
+    Searching an array needs it sorted. Searching on the answer does not: it needs a check
+    that is monotone in the answer, such as "can finish within H hours at speed s". The input
+    can be in any order.

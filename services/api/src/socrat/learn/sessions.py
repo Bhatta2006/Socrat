@@ -90,6 +90,7 @@ def start(
     now: int,
     minutes: int | None = None,
     allow_drafts: bool = False,
+    pattern_planner: bool = False,
 ) -> LearningSession:
     from socrat.assessments import service as assessments
 
@@ -240,24 +241,48 @@ def start(
         ),
         None,
     )
-    blocks = compose(
-        catalog,
-        focus,
-        states,
-        problems,
-        budget,
-        level.start_concept is None or repair,
-        recovery,
-        due,
-        dict(failures),
-        syntax_friction,
-        slow_correct,
-        now,
-        enrollment.language,
-        diverse,
-        allow_drafts,
-        transfer,
-    )
+    pattern_plan = None
+    if pattern_planner:
+        from socrat.learn import pattern_sessions
+
+        last = (previous.payload.get("pattern_plan") or {}).get("pattern") if previous else None
+        pattern_plan = pattern_sessions.plan(
+            db,
+            catalog,
+            enrollment,
+            states,
+            locked,
+            learn.curriculum(catalog, enrollment),
+            solved,
+            helped,
+            budget,
+            level.start_concept is None or repair,
+            recovery,
+            now,
+            allow_drafts,
+            last,
+        )
+    if pattern_plan is not None:
+        focus, blocks = pattern_plan.concept, pattern_plan.blocks
+    else:
+        blocks = compose(
+            catalog,
+            focus,
+            states,
+            problems,
+            budget,
+            level.start_concept is None or repair,
+            recovery,
+            due,
+            dict(failures),
+            syntax_friction,
+            slow_correct,
+            now,
+            enrollment.language,
+            diverse,
+            allow_drafts,
+            transfer,
+        )
     if not recovery and not any(b.get("mode") == "independent" for b in blocks):
         raise HTTPException(409, "fresh_independent_problem_unavailable")
     row = LearningSession(
@@ -280,6 +305,15 @@ def start(
             outcomes=[],
         ),
     )
+    if pattern_plan is not None:
+        row.payload["pattern_plan"] = dict(
+            pattern=pattern_plan.pattern,
+            type=pattern_plan.kind,
+            triggers=list(pattern_plan.fired),
+            scores=[
+                dict(pattern=s.pattern, total=s.total, parts=s.parts) for s in pattern_plan.scores
+            ],
+        )
     db.add(row)
     db.flush()
     record_event(db, user.id, "learning.session_started", row.id)
@@ -324,7 +358,7 @@ def answer(
     )
     last = step_index == len(block["atom"]["steps"]) - 1
     atom_kind = block["atom"]["kind"]
-    if last and atom_kind in SCORED_ATOMS:
+    if last and atom_kind in SCORED_ATOMS and counts_as_evidence(block):
         score = sum(data["answers"][f"{block_index}:{i}"] for i in range(step_index + 1)) / (
             step_index + 1
         )
@@ -424,7 +458,7 @@ def advance(
     if block["kind"] == "atom":
         atom_kind = block["atom"]["kind"]
         outcome["atom_kind"] = atom_kind
-        if atom_kind in {"worked", "concept", "explanation"}:
+        if atom_kind in {"worked", "concept", "explanation"} and not block.get("pattern"):
             kind = "quiz" if atom_kind == "explanation" else "lesson"
             learn.complete_activity(
                 db,
@@ -569,8 +603,17 @@ def view(
     )
 
 
+def counts_as_evidence(block: dict) -> bool:
+    """Pattern atoms count only once their pack is released (human-reviewed)."""
+    return not block.get("pattern") or block.get("status") == "released"
+
+
 def ensure_content(catalog: Catalog, block: dict):
-    if block["kind"] == "atom":
+    if block["kind"] == "atom" and block.get("pattern"):
+        pattern_pack = catalog.pattern_atoms.get(block["pattern"])
+        if pattern_pack is None or pattern_pack.status == "quarantined":
+            raise HTTPException(423, "content_quarantined")
+    elif block["kind"] == "atom":
         pack = catalog.atom_packs.get(block["concept"])
         if pack is None or pack.status == "quarantined":
             raise HTTPException(423, "content_quarantined")

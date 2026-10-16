@@ -67,6 +67,7 @@ def start(body: Start, request: Request):
                 now(),
                 body.minutes,
                 allow_drafts=not request.app.state.settings.secure,
+                pattern_planner=request.app.state.settings.pattern_planner_enabled,
             )
             return sessions.view(db, catalog(), user, row, enrollment, now())
     except IntegrityError:
