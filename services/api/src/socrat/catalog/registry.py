@@ -173,6 +173,15 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
         catalog.atom_packs = atoms.load(root.parent / "atoms", catalog.concepts, catalog.courses)
     except (ValueError, OSError, yaml.YAMLError) as exc:
         raise CatalogError(f"Invalid atom catalogue: {exc}") from exc
+    registry_file = root.parent / "sources" / "registry.yaml"
+    if registry_file.exists():
+        from socrat.catalog import sources
+
+        try:
+            registry = sources.load_registry(registry_file)
+        except (ValueError, OSError, yaml.YAMLError) as exc:
+            raise CatalogError(f"Invalid source registry: {exc}") from exc
+        sources.check_catalog(catalog, registry)
     catalog.digest = hashlib.sha256(
         json.dumps(
             {
