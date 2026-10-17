@@ -101,7 +101,8 @@ jobs:
           set -euo pipefail
           ssh_opts=(-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o BatchMode=yes)
           # The registry token travels over stdin only; it is never placed on a command line or written to disk.
-          printf '%s' "$GHCR_TOKEN" | ssh "${ssh_opts[@]}" "$TARGET" "sudo docker --config $REMOTE/docker-config login ghcr.io -u '$GHCR_USER' --password-stdin"
+          # Best-effort: the images are public, so a failed login (denied on the snap Docker) must not stop the deploy.
+          printf '%s' "$GHCR_TOKEN" | ssh "${ssh_opts[@]}" "$TARGET" "sudo docker --config $REMOTE/docker-config login ghcr.io -u '$GHCR_USER' --password-stdin" || echo "ghcr login skipped (images are public)"
           ssh "${ssh_opts[@]}" "$TARGET" sudo env \
             DOCKER_CONFIG="$REMOTE/docker-config" SOCRAT_HOST_PROXY=1 \
             SOCRAT_HEALTH_URL="http://127.0.0.1:18000/api/health/ready" \
