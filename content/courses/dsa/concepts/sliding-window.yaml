@@ -206,7 +206,29 @@ quiz:
     answer: 0
     explanation: '"abc" has length 3; every longer window repeats a character.'
     difficulty: 1
-problems: [longest-unique-substring, max-window-sum]
+  - id: negatives-break
+    kind: mcq
+    prompt: "Why does the shrink-while-sum ≥ s window fail when values can be negative?"
+    options:
+      - "Removing an element can increase the sum, so shrinking is no longer safe"
+      - "Negative numbers overflow"
+      - "The window can be empty"
+      - "It doesn't fail"
+    answer: 0
+    explanation: "The window relies on sums growing when extended and falling when shrunk; negatives break that monotonicity. Use prefix sums with a structure instead."
+    difficulty: 4
+  - id: window-complexity
+    kind: mcq
+    prompt: "A variable window has a while-loop inside the for-loop. Why is it still O(n)?"
+    options:
+      - "Each index enters and leaves the window at most once"
+      - "The while-loop runs at most once per step"
+      - "n is small"
+      - "It is actually O(n²)"
+    answer: 0
+    explanation: "The left pointer only moves forward, so the inner loop runs at most n times in total across the whole scan."
+    difficulty: 5
+problems: [longest-unique-substring, max-window-sum, shortest-fundraiser]
 practice_links:
   - title: Longest Substring Without Repeating Characters
     url: https://leetcode.com/problems/longest-substring-without-repeating-characters/

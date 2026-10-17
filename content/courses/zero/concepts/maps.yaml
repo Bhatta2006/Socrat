@@ -185,7 +185,35 @@ quiz:
     answer: 0
     explanation: Hash maps have no guaranteed sorted order. Sort the keys (or use a sorted map such as C++ map or Java TreeMap).
     difficulty: 2
-problems: [word-frequency, first-repeat]
+  - id: get-default
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        counts = {}
+        for ch in "banana":
+            counts[ch] = counts.get(ch, 0) + 1
+        print(counts["a"], counts.get("z", 0))
+    options:
+      - "3 0"
+      - "3 None"
+      - "An error"
+      - "2 0"
+    answer: 0
+    explanation: "\"banana\" has three a's; get returns the default 0 for a missing key instead of raising KeyError."
+    difficulty: 4
+  - id: key-types
+    kind: mcq
+    prompt: "Which of these can be a dictionary key in Python?"
+    options:
+      - "(1, 2)"
+      - "[1, 2]"
+      - "{1: 2}"
+      - "{1, 2}"
+    answer: 0
+    explanation: "Keys must be hashable (immutable). A tuple works; lists, dicts and sets do not."
+    difficulty: 5
+problems: [word-frequency, first-repeat, class-election]
 practice_links:
   - title: Distinct Numbers
     url: https://cses.fi/problemset/task/1621

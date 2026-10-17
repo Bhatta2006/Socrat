@@ -186,7 +186,36 @@ quiz:
     answer: 0
     explanation: Constants and lower-order terms are dropped; growth is dominated by n².
     difficulty: 1
-problems: [sum-queries]
+  - id: halving-loop
+    kind: mcq
+    prompt: "What is the time complexity?"
+    code:
+      python: |
+        i = 1
+        while i < n:
+            for j in range(i):
+                work()
+            i *= 2
+    options:
+      - "O(n)"
+      - "O(n log n)"
+      - "O(log n)"
+      - "O(n²)"
+    answer: 0
+    explanation: "The inner loop runs 1 + 2 + 4 + … < 2n times in total: a geometric series, so O(n)."
+    difficulty: 4
+  - id: amortised
+    kind: mcq
+    prompt: "Appending n items to a dynamic array that doubles its capacity when full costs, in total,"
+    options:
+      - "O(n)"
+      - "O(n log n)"
+      - "O(n²)"
+      - "O(log n)"
+    answer: 0
+    explanation: "Copies happen at sizes 1, 2, 4, …, under 2n element moves overall, so each append is O(1) amortised."
+    difficulty: 5
+problems: [sum-queries, matching-pairs]
 practice_links:
   - title: Contains Duplicate
     url: https://leetcode.com/problems/contains-duplicate/

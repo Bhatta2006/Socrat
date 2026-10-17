@@ -204,7 +204,39 @@ quiz:
     answer: 0
     explanation: Starting at 0 fails when every value is negative. The first element is always a real candidate.
     difficulty: 2
-problems: [above-average, increasing-steps]
+  - id: alias
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        a = [1, 2]
+        b = a
+        b.append(3)
+        print(a)
+    options:
+      - "[1, 2, 3]"
+      - "[1, 2]"
+      - "[3]"
+      - "An error"
+    answer: 0
+    explanation: "b = a makes both names refer to the same list; append changes that one list. Copy with a[:] or list(a)."
+    difficulty: 4
+  - id: slice-reverse
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        xs = [5, 6, 7, 8, 9]
+        print(xs[-2::-2])
+    options:
+      - "[8, 6]"
+      - "[9, 7, 5]"
+      - "[8, 6, 4]"
+      - "[8]"
+    answer: 0
+    explanation: "Start at index -2 (8) and step back by 2: 8, then 6; the next index would be before the start."
+    difficulty: 5
+problems: [above-average, increasing-steps, runner-up-score]
 practice_links:
   - title: Missing Number
     url: https://cses.fi/problemset/task/1083

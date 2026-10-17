@@ -202,7 +202,33 @@ quiz:
     answer: 0
     explanation: Index 2 is g (a=0, l=1, g=2) and the last character is m.
     difficulty: 1
-problems: [vowel-count, caesar-shift]
+  - id: immutable
+    kind: mcq
+    prompt: "s = \"cat\". What happens on s[0] = \"b\"?"
+    options:
+      - "A TypeError: strings cannot be changed in place"
+      - "s becomes \"bat\""
+      - "s becomes \"b\""
+      - "Nothing happens"
+    answer: 0
+    explanation: "Strings are immutable. Build a new one instead: s = \"b\" + s[1:]."
+    difficulty: 4
+  - id: split-join
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        line = "  a  b c "
+        print("-".join(line.split()))
+    options:
+      - "a-b-c"
+      - "--a--b-c-"
+      - "a--b-c"
+      - "-a-b-c-"
+    answer: 0
+    explanation: "split() with no argument splits on runs of whitespace and drops empty pieces."
+    difficulty: 5
+problems: [vowel-count, caesar-shift, mirror-phrase]
 practice_links:
   - title: Petya and Strings
     url: https://codeforces.com/problemset/problem/112/A

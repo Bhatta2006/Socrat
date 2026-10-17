@@ -168,7 +168,29 @@ quiz:
     answer: 0
     explanation: Flushing on every line turns buffered output into many slow system calls.
     difficulty: 1
-problems: [sum-big]
+  - id: sync-off
+    kind: mcq
+    prompt: "In C++, what does ios::sync_with_stdio(false); cin.tie(nullptr); change?"
+    options:
+      - "Streams stop syncing with C stdio and cin no longer flushes cout first"
+      - "cin reads faster numbers only"
+      - "Output becomes unbuffered"
+      - "It enables multithreading"
+    answer: 0
+    explanation: "Both remove per-operation overhead; afterwards don't mix printf/scanf with cin/cout."
+    difficulty: 4
+  - id: endl-cost
+    kind: mcq
+    prompt: "Why is printing 10^6 lines with std::endl much slower than with \\n?"
+    options:
+      - "endl flushes the buffer every line"
+      - "endl writes two characters"
+      - "\\n is optimised away"
+      - "endl allocates memory"
+    answer: 0
+    explanation: "Each flush forces a system call; \\n just adds to the buffer."
+    difficulty: 5
+problems: [sum-big, pairwise-sums]
 practice_links:
   - title: Weird Algorithm
     url: https://cses.fi/problemset/task/1068

@@ -135,7 +135,29 @@ quiz:
     answer: 0
     explanation: By the pigeonhole principle a state repeats quickly; the rest is periodic.
     difficulty: 3
-problems: [robot-walk]
+  - id: simulate-size
+    kind: mcq
+    prompt: "A simulation runs for up to 10^18 steps but the state repeats with a short cycle. The usual technique is"
+    options:
+      - "detect the cycle and skip whole cycles"
+      - "simulate step by step faster"
+      - "use floating point"
+      - "binary search on steps"
+    answer: 0
+    explanation: "Record when each state was first seen; once a state repeats, jump ahead by multiples of the cycle length."
+    difficulty: 4
+  - id: order-of-updates
+    kind: mcq
+    prompt: "Updating a grid in place for a Game-of-Life step gives wrong results because"
+    options:
+      - "later cells read neighbours that were already updated this step"
+      - "the grid is too large"
+      - "integers overflow"
+      - "the edges wrap"
+    answer: 0
+    explanation: "Every cell must see the previous generation; write into a second grid (or encode old and new states)."
+    difficulty: 5
+problems: [robot-walk, lift-log]
 practice_links:
   - title: Beautiful Matrix
     url: https://codeforces.com/problemset/problem/263/A

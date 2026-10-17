@@ -166,7 +166,29 @@ quiz:
     answer: 0
     explanation: gcd(84, 36) = gcd(36, 12) = gcd(12, 0) = 12.
     difficulty: 1
-problems: [prime-count-queries]
+  - id: sieve-complexity
+    kind: mcq
+    prompt: "The sieve of Eratosthenes up to N runs in"
+    options:
+      - "O(N log log N)"
+      - "O(N log N)"
+      - "O(N √N)"
+      - "O(N²)"
+    answer: 0
+    explanation: "Crossing out multiples of each prime p costs N/p; summing over primes gives N log log N."
+    difficulty: 4
+  - id: gcd-lcm
+    kind: mcq
+    prompt: "Why compute lcm(a, b) as a // gcd(a, b) * b rather than a * b // gcd(a, b) in C++?"
+    options:
+      - "a * b can overflow even when the lcm fits"
+      - "Division is faster first"
+      - "gcd must be computed last"
+      - "They give different answers"
+    answer: 0
+    explanation: "Dividing first keeps the intermediate value no larger than the result."
+    difficulty: 5
+problems: [prime-count-queries, divisor-counts]
 practice_links:
   - title: Counting Divisors
     url: https://cses.fi/problemset/task/1713

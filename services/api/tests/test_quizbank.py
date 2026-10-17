@@ -1,4 +1,4 @@
-"""Quiz families, bank items, generator specs and the read-only wrap of the 234 legacy items."""
+"""Quiz families, bank items, generator specs and the read-only wrap of the 284 legacy items."""
 
 import copy
 from collections import Counter
@@ -179,10 +179,10 @@ def test_pattern_quiz_family_must_resolve_to_a_family_for_that_pattern(tmp_path,
 
 def test_legacy_items_are_wrapped_read_only_with_global_keys_and_bands(catalog):
     items = quizbank.legacy_items(catalog)
-    assert len(items) == 234
-    assert len({i.key for i in items}) == 234
+    assert len(items) == 284
+    assert len({i.key for i in items}) == 284
     assert all(i.status == "provisional" for i in items)
-    assert Counter(i.format for i in items) == {"mcq": 214, "output_prediction": 20}
+    assert Counter(i.format for i in items) == {"mcq": 248, "output_prediction": 34, "bug_spot": 2}
     for item in items:
         expected = quizbank.BAND_FOR_DIFFICULTY[item.difficulty]
         if item.languages:

@@ -189,7 +189,41 @@ quiz:
     answer: 0
     explanation: break leaves the innermost loop that contains it; the outer loop continues.
     difficulty: 2
-problems: [staircase, pair-count]
+  - id: inner-body-runs
+    kind: mcq
+    prompt: "How many times does the inner body run?"
+    code:
+      python: |
+        for i in range(5):
+            for j in range(i):
+                pass
+    options:
+      - "10"
+      - "25"
+      - "15"
+      - "5"
+    answer: 0
+    explanation: "The inner loop runs 0 + 1 + 2 + 3 + 4 = 10 times."
+    difficulty: 4
+  - id: break-only-inner
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        for i in range(3):
+            for j in range(3):
+                if j == 1:
+                    break
+                print(i, j)
+    options:
+      - "0 0\n1 0\n2 0"
+      - "0 0"
+      - "0 0\n0 2\n1 0\n1 2\n2 0\n2 2"
+      - "Nothing"
+    answer: 0
+    explanation: "break leaves only the inner loop, so each i prints its j = 0 line and moves on."
+    difficulty: 5
+problems: [staircase, pair-count, number-triangle]
 practice_links:
   - title: Beautiful Matrix
     url: https://codeforces.com/problemset/problem/263/A

@@ -300,7 +300,8 @@ def test_session_hides_answers_requires_real_work_and_exports_truthful_summary(c
         "/api/v1/learning-sessions", json={"minutes": 20}, headers=headers
     ).json()
     assert next_session["id"] != view["id"]
-    assert next_session["concept"] == "zero:variables-and-types"
+    # programs-and-output now has a second judged problem, so practice continues there.
+    assert next_session["concept"] == "zero:programs-and-output"
 
 
 def test_session_and_issue_ownership_csrf_replay_and_deletion(client):  # noqa: F811

@@ -202,7 +202,38 @@ quiz:
     answer: 0
     explanation: else is the fallback that catches every case the earlier conditions did not.
     difficulty: 1
-problems: [grade-letter, max-of-three]
+  - id: elif-order
+    kind: output
+    prompt: "What does this print for score = 85?"
+    code:
+      python: |
+        score = 85
+        if score >= 50:
+            print("pass")
+        elif score >= 80:
+            print("merit")
+        else:
+            print("fail")
+    options:
+      - "pass"
+      - "merit"
+      - "pass and merit"
+      - "fail"
+    answer: 0
+    explanation: "Only the first true branch runs. 85 >= 50 is checked first, so the merit branch is never reached; put the stricter test first."
+    difficulty: 4
+  - id: dangling-if
+    kind: mcq
+    prompt: "A grading rule is: under 40 fail, 40 to 69 pass, 70 or more distinction. Which chain is correct for every whole-number score?"
+    options:
+      - "if s >= 70: D  elif s >= 40: P  else: F"
+      - "if s >= 40: P  elif s >= 70: D  else: F"
+      - "if s < 70: P  elif s < 40: F  else: D"
+      - "if s > 40: P  elif s > 70: D  else: F"
+    answer: 0
+    explanation: "Test the highest band first so each score lands in exactly one band; the other chains misplace 70+ or 40."
+    difficulty: 5
+problems: [grade-letter, max-of-three, museum-ticket]
 practice_links:
   - title: Watermelon
     url: https://codeforces.com/problemset/problem/4/A

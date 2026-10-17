@@ -44,8 +44,8 @@ def test_record_counts_match_the_catalog(rows):
     counts = Counter(r["asset_type"] for r in rows)
     assert counts["course"] == 3
     assert counts["lesson"] == 61
-    assert counts["quiz"] == 234
-    assert counts["native_problem"] == 85
+    assert counts["quiz"] == 284
+    assert counts["native_problem"] == 112
     assert counts["external_problem"] == 13889
     assert len({r["record_id"] for r in rows}) == len(rows)
 
