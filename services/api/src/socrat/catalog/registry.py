@@ -80,6 +80,7 @@ class Catalog:
     projects: dict[str, "Project"] = field(default_factory=dict)
     pattern_atoms: dict[str, PatternAtomPack] = field(default_factory=dict)
     quiz_root: Path | None = None  # content/quiz: families, generators, verified manifest
+    misconceptions: set[str] = field(default_factory=set)  # controlled misconception IDs
 
     def course(self, course_id: str) -> Course:
         try:
@@ -187,6 +188,7 @@ def load(root: Path = CONTENT_ROOT, tests_root: Path | None = TESTS_ROOT) -> Cat
     from socrat.catalog import patterns, projects, quizbank
 
     taxonomy = atoms.load_taxonomy(root.parent / "atoms")
+    catalog.misconceptions = taxonomy
     catalog.quiz_root = root.parent / "quiz"
     catalog.quiz_families = quizbank.load(catalog.quiz_root, catalog, taxonomy)
     catalog.patterns = patterns.load(

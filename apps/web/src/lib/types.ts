@@ -66,7 +66,20 @@ export interface PlacementSummary {
   starting_concept: string | null;
 }
 
-export type ActivityKind = 'lesson' | 'quiz' | 'problem' | 'checkpoint' | 'review' | 'remedial';
+export type ActivityKind =
+  | 'lesson'
+  | 'quiz'
+  | 'problem'
+  | 'checkpoint'
+  | 'review'
+  | 'remedial'
+  | 'probe'
+  | 'testout'
+  | 'moduletest'
+  | 'example'
+  | 'explain'
+  | 'checkin'
+  | 'stretch';
 
 export interface Activity {
   id: string;
@@ -84,6 +97,94 @@ export interface Revision {
   projected_finish: string;
   remaining_minutes: number;
   at: number;
+  /** What this revision added to or removed from your queue. */
+  changes?: { added?: string[]; removed?: string[] };
+}
+
+export type PathStyle = 'thorough' | 'balanced' | 'fast_track' | 'goal_focused';
+
+/** A roadmap change Socrat suggests. Nothing changes until the learner accepts it. */
+export interface Proposal {
+  id: string;
+  kind: string;
+  title: string;
+  reason: string;
+  payload: Record<string, unknown>;
+  group: string;
+  source: 'planner' | 'tutor' | 'review';
+  status: 'pending' | 'accepted' | 'declined' | 'expired' | 'superseded';
+  created_at: number;
+  decided_at: number | null;
+}
+
+export interface ProposalsView {
+  pending: Proposal[];
+  recent: Proposal[];
+  overrides: {
+    defer?: string[];
+    skip?: string[];
+    priority?: string[];
+    stretch?: boolean;
+    feel?: Record<string, 'easy' | 'hard'>;
+  };
+  style: PathStyle;
+}
+
+export interface Forecast {
+  planned_finish: string;
+  realistic_finish: string;
+  adherence: number;
+  weekly_minutes: number;
+  target_date: string | null;
+  on_track: boolean | null;
+}
+
+export interface Milestone {
+  week: number;
+  ends: string;
+  concepts: { concept: string; title: string }[];
+  outcome: string;
+}
+
+export interface Nudge {
+  kind: string;
+  severity: 'low' | 'medium' | 'high';
+  title: string;
+  body: string;
+  href: string;
+}
+
+export interface PathOption {
+  style: PathStyle;
+  label: string;
+  description: string;
+  current: boolean;
+  remaining_minutes: number;
+  finish: string;
+  concepts: number;
+  optional: number;
+}
+
+export interface PathOptions {
+  current: PathStyle;
+  focus: 'foundations' | 'interview' | 'contest';
+  options: PathOption[];
+}
+
+export interface WeeklyReview {
+  week_start: string;
+  week_end: string;
+  minutes: { done: number; planned: number };
+  study_days: number;
+  evidence: number;
+  wins: string[];
+  improved: string[];
+  slipping: { concept: string; title: string; href: string }[];
+  stuck: { concept: string; title: string; summary: string; href: string }[];
+  forecast: Forecast;
+  next_milestone: Milestone | null;
+  proposals: Proposal[];
+  seen: boolean;
 }
 
 export interface Streak {
@@ -122,6 +223,11 @@ export interface Today {
   reviews_due: number;
   progress: ProgressNumbers;
   projected_finish: string;
+  forecast: Forecast;
+  checkin: { message: string; first: Activity | null } | null;
+  nudges: Nudge[];
+  proposals: Proposal[];
+  milestone: Milestone | null;
 }
 
 export interface RoadmapItem {
@@ -132,11 +238,24 @@ export interface RoadmapItem {
   concept: string;
   title: string;
   module: string;
-  status: 'mastered' | 'assumed' | 'practiced' | 'in_progress' | 'upcoming' | 'locked';
+  status:
+    | 'mastered'
+    | 'assumed'
+    | 'practiced'
+    | 'in_progress'
+    | 'upcoming'
+    | 'locked'
+    | 'optional'
+    | 'skipped';
   locked_by?: string;
   mastery: number;
   confidence: number;
   minutes: number;
+  relevance: number;
+  priority: boolean;
+  deferred: boolean;
+  /** Why this concept sits where it does, or how it is being taught right now. */
+  why?: string;
 }
 
 export interface PlanView {
@@ -160,6 +279,12 @@ export interface PlanView {
   reasons: string[];
   revisions: Revision[];
   progress: ProgressNumbers;
+  style: PathStyle;
+  focus: 'foundations' | 'interview' | 'contest';
+  forecast: Forecast;
+  milestones: Milestone[];
+  proposals: ProposalsView;
+  weekly_review_ready: boolean;
 }
 
 export interface Achievement {
@@ -324,6 +449,8 @@ export interface QuizSession {
   score: number | null;
   feedback: 'immediate' | 'at_end';
   gate?: Gate;
+  /** Test-outs: whether the learner proved it and skipped ahead. */
+  testout?: { passed: boolean; score: number | null };
 }
 
 /** A checkpoint that unlocks the next module: an adaptive staircase graded at the end. */
@@ -463,4 +590,23 @@ export interface Contest {
   start: number;
   duration_minutes: number;
   url: string;
+}
+
+/** How Socrat models the learner: one profile per concept plus a single practice level. */
+export interface LearnerProfile {
+  level: { rating: number; library: number; quiz: number | null; codeforces: number | null };
+  review_scale: number;
+  adherence: number;
+  concepts: {
+    concept: string;
+    title: string;
+    band: Band;
+    mastery: number;
+    trend: number | null;
+    speed: number | null;
+    hint_dependence: number;
+    attempts: number;
+    misconceptions: Record<string, number>;
+    stuck: { summary: string; severity: number; failure_mode: string } | null;
+  }[];
 }

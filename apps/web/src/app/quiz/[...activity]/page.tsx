@@ -195,7 +195,17 @@ export default function Quiz() {
             {percent >= 80 ? <span className="mb-4 grid size-12 place-items-center rounded-full bg-proof text-proof-foreground" aria-hidden="true"><svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span> : null}
             <p className={cn('text-[15px]', percent >= 80 ? 'text-(--card-muted)' : 'text-muted-foreground')}>{title} complete</p>
             <h1 className="type-display-l mt-2">{right} of {total} correct</h1>
-            <p className={cn('mt-3 text-base', percent >= 80 ? 'text-(--card-muted)' : 'text-muted-foreground')}>{percent >= 80 ? 'Your plan moves you forward.' : 'Your plan adds a refresher and more practice where it helps.'}</p>
+            <p className={cn('mt-3 text-base', percent >= 80 ? 'text-(--card-muted)' : 'text-muted-foreground')}>
+              {session.testout
+                ? session.testout.passed
+                  ? 'Test-out passed: you skip straight past this on your plan.'
+                  : 'Not this time, and nothing is lost. Your plan carries on as normal.'
+                : kind === 'probe'
+                  ? 'Socrat uses this to find the real gap and may suggest a refresher. You decide.'
+                  : percent >= 80
+                    ? 'Your plan moves you forward.'
+                    : 'More practice is on its way. If a refresher would help, Socrat will ask you first.'}
+            </p>
           </section>
         )}
         {topics.length ? (

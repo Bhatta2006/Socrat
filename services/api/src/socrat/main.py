@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import StaleDataError
 from starlette.middleware.sessions import SessionMiddleware
 
+from socrat.adaptive.routes import router as adaptive_router
 from socrat.admin.routes import router as admin_router
 from socrat.assessments.routes import router as assessments_router
 from socrat.auth import COOKIE, establish_session, require_csrf, require_session
@@ -65,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.settings = settings
     app.include_router(learner_router)
+    app.include_router(adaptive_router)
     app.include_router(explainer_router)
     app.include_router(adaptive_quiz_router)
     app.include_router(session_router)

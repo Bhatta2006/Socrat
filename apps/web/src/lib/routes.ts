@@ -5,8 +5,13 @@ export function activityHref(id: string): string {
   const [kind, ...rest] = id.split(':');
   if (kind === 'lesson') return `/learn/${rest.join('/')}`;
   if (kind === 'problem') return `/problems/${rest.join('/')}`;
+  // Support steps live on the concept's lesson page, which shows the step on top.
+  if (SUPPORT_STEPS.includes(kind)) return `/learn/${rest.join('/')}?step=${kind}`;
   return `/quiz/${kind}/${rest.join('/')}`;
 }
+
+/** Activities that open on the lesson page and that the learner marks done themselves. */
+export const SUPPORT_STEPS = ['example', 'explain', 'checkin', 'stretch'];
 
 export function conceptHref(qualified: string): string {
   return `/learn/${qualified.split(':').join('/')}`;
@@ -63,7 +68,21 @@ export const KIND_LABEL: Record<ActivityKind, string> = {
   checkpoint: 'Checkpoint',
   review: 'Review',
   remedial: 'Refresher',
+  probe: 'Foundations check',
+  testout: 'Test-out',
+  moduletest: 'Module test-out',
+  example: 'Worked example',
+  explain: 'Another explanation',
+  checkin: 'Talk it through',
+  stretch: 'Stretch',
 };
+
+export const STYLE_LABEL = {
+  thorough: 'Thorough',
+  balanced: 'Balanced',
+  fast_track: 'Fast track',
+  goal_focused: 'Goal focused',
+} as const;
 
 export const LANGUAGE_LABEL = { python: 'Python', cpp: 'C++', java: 'Java' } as const;
 

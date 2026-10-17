@@ -262,6 +262,9 @@ def start(
             allow_drafts,
             last,
         )
+        # How often the pattern planner serves vs. falls back, for rollout monitoring.
+        outcome = "served" if pattern_plan is not None else "fallback"
+        record_event(db, user.id, f"learning.pattern_plan_{outcome}")
     if pattern_plan is not None:
         focus, blocks = pattern_plan.concept, pattern_plan.blocks
     else:

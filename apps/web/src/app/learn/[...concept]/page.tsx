@@ -17,6 +17,8 @@ import { Level, PlatformTag, ProblemName, StatusControl } from '@/components/pra
 import { Illustration, Soc } from '@/components/socrat/illustration';
 import { StatusIcon, StatusLabel, statusFromBand, type Status } from '@/components/socrat/status';
 import { LockedState } from '@/components/socrat/states';
+import { FeelControls, SupportStep } from '@/components/socrat/support-step';
+import { SUPPORT_STEPS } from '@/lib/routes';
 import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -148,7 +150,14 @@ export default function Lesson() {
   const [explaining, setExplaining] = useState('');
   const [completing, setCompleting] = useState(false);
   const [askSoc, setAskSoc] = useState(0);
+  const [step, setStep] = useState('');
   const active = profile?.enrollment?.status === 'active';
+
+  // A support step from the plan (?step=example|explain|checkin|stretch) shows on top.
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get('step') ?? '';
+    setStep(SUPPORT_STEPS.includes(value) ? value : '');
+  }, [qualified]);
 
   const load = useCallback(() => {
     setError('');
@@ -242,7 +251,13 @@ export default function Lesson() {
             </div>
           ) : null}
 
+          {step && active && !concept.locked ? (
+            <SupportStep step={step} concept={qualified} language={concept.language} onAsk={() => setAskSoc(n => n + 1)} />
+          ) : null}
+
           <Markdown source={concept.lesson} language={concept.language} />
+
+          {canCheck ? <FeelControls concept={qualified} /> : null}
 
           {/* Explain it differently. */}
           <section className="mt-10 max-w-[68ch]" aria-labelledby="reexplain-heading">

@@ -28,7 +28,7 @@ from socrat.models import (
 )
 from socrat.models import ConceptState as ConceptRow
 from socrat.planner import gates
-from socrat.planner.engine import Plan, build_plan, concept_activities
+from socrat.planner.engine import Adaptive, Plan, build_plan, concept_activities
 
 MAX_ACTIVITY_SECONDS = 90 * 60
 
@@ -118,9 +118,12 @@ def record_evidence(
     expected_seconds: int = 0,
     details: dict | None = None,
 ) -> mastery.ConceptState:
+    from socrat.adaptive import service as adaptive
+
     row = db.get(ConceptRow, (enrollment.id, concept))
     before = mastery.ConceptState.from_dict(row.state if row else None)
-    after = mastery.apply(before, kind, score, now, assistance)
+    scale = adaptive.review_scale_for(db, enrollment)
+    after = mastery.apply(before, kind, score, now, assistance, interval_scale=scale)
     user = db.get(User, enrollment.user_id)
     learning_session = (
         db.scalar(
@@ -187,8 +190,12 @@ def expected_seconds(catalog: Catalog, activity_id: str, enrollment: Enrollment)
     kind, _, target = activity_id.partition(":")
     if kind in {"review", "remedial"}:
         return 5 * 60 if kind == "review" else 15 * 60
-    if kind == "checkpoint":
+    if kind in {"checkpoint", "moduletest"}:
         return 15 * 60
+    if kind in {"probe", "testout"}:
+        return 10 * 60
+    if kind in {"example", "explain", "checkin", "stretch"}:
+        return {"checkin": 5, "stretch": 20}.get(kind, 10) * 60
     if kind == "problem":
         course_id, problem = catalog.problems[target]
         concept = f"{course_id}:{problem.concepts[0]}"
@@ -330,27 +337,35 @@ def plan_for(
     now: int,
     record: bool = True,
 ) -> Plan:
-    """The learner's plan; with `record`, a changed plan is logged as a PlanRevision.
+    """The learner's plan; with `record`, a changed plan is logged as a PlanRevision and
+    new roadmap suggestions are stored as pending proposals for the learner to decide.
 
     Pure readers (tutor tools, recommendations) pass record=False so they never write.
     """
-    plan = build_plan(
+    from socrat.adaptive import service as adaptive_service
+
+    states = states_for(db, enrollment)
+    today = local_day(user, now)
+    plan, adaptive = build_for(db, catalog, user, enrollment, now, states)
+    if not record or enrollment.status != "active":
+        return plan
+    adaptive_service.sync_suggestions(
+        db,
         catalog,
-        catalog.course_concepts(enrollment.course_id),
-        states_for(db, enrollment),
-        completed_for(db, enrollment),
-        history_for(db, enrollment),
-        local_day(user, now),
+        enrollment,
+        plan,
+        adaptive,
+        states,
+        today,
+        days_away(db, user, enrollment, now),
         now,
-        set(enrollment.weekdays),
-        enrollment.minutes_per_day,
-        course_id=enrollment.course_id,
-        cooldowns=gate_cooldowns(db, enrollment),
     )
     signature = hashlib.sha256(
-        json.dumps([plan.pace, [a.id for a in plan.queue[:12]]], sort_keys=True).encode()
+        json.dumps(
+            [plan.pace, plan.style, [a.id for a in plan.queue[:12]]], sort_keys=True
+        ).encode()
     ).hexdigest()
-    if record and signature != enrollment.plan_signature and _claim(db, enrollment, signature):
+    if signature != enrollment.plan_signature and _claim(db, enrollment, signature):
         previous = db.scalar(
             select(PlanRevision)
             .where(PlanRevision.enrollment_id == enrollment.id)
@@ -361,6 +376,7 @@ def plan_for(
             reasons = ["Your personalised path is ready.", *reasons]
         elif previous.pace != plan.pace:
             reasons = [plan.pace_reason, *reasons]
+        snapshot = [[a.id, a.title] for a in plan.queue]
         db.add(
             PlanRevision(
                 enrollment_id=enrollment.id,
@@ -369,9 +385,99 @@ def plan_for(
                 remaining_minutes=plan.remaining_minutes,
                 projected_finish=plan.projected_finish,
                 created_at=now,
+                snapshot=snapshot,
+                changes=plan_changes(
+                    previous.snapshot if previous else None,
+                    snapshot,
+                    completed_for(db, enrollment),
+                ),
             )
         )
     return plan
+
+
+def build_for(
+    db: Session,
+    catalog: Catalog,
+    user: User,
+    enrollment: Enrollment,
+    now: int,
+    states: dict[str, mastery.ConceptState] | None = None,
+    style: str | None = None,
+) -> tuple[Plan, Adaptive]:
+    """Build the plan without recording anything; ``style`` previews another path style."""
+    from dataclasses import replace
+
+    from socrat.adaptive import service as adaptive_service
+
+    states = states if states is not None else states_for(db, enrollment)
+    today = local_day(user, now)
+    adaptive = adaptive_service.inputs(db, catalog, enrollment, states, today, now)
+    if style is not None:
+        adaptive = replace(adaptive, style=style)
+    plan = build_plan(
+        catalog,
+        catalog.course_concepts(enrollment.course_id),
+        states,
+        completed_for(db, enrollment),
+        history_for(db, enrollment),
+        today,
+        now,
+        set(enrollment.weekdays),
+        enrollment.minutes_per_day,
+        course_id=enrollment.course_id,
+        cooldowns=gate_cooldowns(db, enrollment),
+        adaptive=adaptive,
+    )
+    return plan, adaptive
+
+
+def plan_changes(before: list | None, after: list, completed: set[str]) -> dict:
+    """What a revision added to or removed from the queue (E4). Finished work leaving the
+    queue and reviews coming and going are progress, not changes."""
+    if not before:
+        return {}
+
+    def keep(activity_id: str) -> bool:
+        return not activity_id.startswith("review:") and activity_id not in completed
+
+    old = {a: t for a, t in before if keep(a)}
+    new = {a: t for a, t in after if keep(a)}
+    return dict(
+        added=[t for a, t in new.items() if a not in old][:12],
+        removed=[t for a, t in old.items() if a not in new][:12],
+    )
+
+
+def revise(
+    db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int, reason: str
+) -> PlanRevision | None:
+    """Re-plan now and log the revision with ``reason`` first (a learner decision)."""
+    if enrollment.status != "active":
+        return None
+    earlier = dict(
+        db.execute(
+            select(PlanRevision.id, PlanRevision.created_at).where(
+                PlanRevision.enrollment_id == enrollment.id
+            )
+        ).all()
+    )
+    enrollment.plan_signature = ""  # Force a fresh, explained revision.
+    plan_for(db, catalog, user, enrollment, now)
+    db.flush()
+    revision = db.scalar(
+        select(PlanRevision).where(
+            PlanRevision.enrollment_id == enrollment.id,
+            PlanRevision.id.not_in(list(earlier)),
+        )
+    )
+    if revision is not None:
+        # Revisions sort by whole seconds; keep this one strictly latest.
+        revision.created_at = max([revision.created_at, *(t + 1 for t in earlier.values())])
+        revision.reasons = [reason] + [
+            r for r in revision.reasons if r != "Your personalised path is ready."
+        ]
+    return revision
 
 
 def _claim(db: Session, enrollment: Enrollment, signature: str) -> bool:
@@ -411,6 +517,7 @@ def latest_revisions(db: Session, enrollment: Enrollment, limit: int = 5) -> lis
             projected_finish=row.projected_finish,
             remaining_minutes=row.remaining_minutes,
             at=row.created_at,
+            changes=row.changes or {},
         )
         for row in rows
     ]

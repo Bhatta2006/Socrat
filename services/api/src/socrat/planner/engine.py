@@ -2,6 +2,12 @@
 
 Pure function of its inputs: identical inputs always produce the identical plan,
 so every adaptation can be replayed and explained.
+
+The roadmap adapts on its own only in how a concept is taught: pace, which problems,
+spaced reviews, and support steps (a worked example, a simpler explanation, a tutor
+check-in) when the learner is stuck. Changes to the roadmap itself — repairing a
+prerequisite, test-outs, setting concepts aside, trimming for a deadline — arrive here
+only as ``Adaptive.overrides`` the learner has already approved (``socrat.adaptive``).
 """
 
 import math
@@ -9,30 +15,69 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Literal
 
+from socrat.adaptive.stuck import Stuck, next_rung
 from socrat.catalog.registry import Catalog
 from socrat.mastery.model import DAY, ConceptState
-from socrat.planner import gates
+from socrat.planner import gates, goals
 
 Pace = Literal["support", "steady", "fast"]
 PACE_FACTOR: dict[str, float] = {"support": 1.3, "steady": 1.0, "fast": 0.7}
+STYLE_FACTOR: dict[str, float] = {
+    "thorough": 1.15,
+    "balanced": 1.0,
+    "fast_track": 0.9,
+    "goal_focused": 1.0,
+}
 REVIEW_MINUTES = 5
 CHECKPOINT_MINUTES = 15
+TESTOUT_MINUTES = 10
+SUPPORT_MINUTES = {"example": 10, "explain": 10, "checkin": 5}
 MAX_REVIEWS_PER_DAY = 2
 HORIZON_DAYS = 14
+MILESTONE_WEEKS = 8
 SCORED = {"quiz", "code", "checkpoint", "review"}
+ActivityKind = Literal[
+    "lesson",
+    "quiz",
+    "problem",
+    "checkpoint",
+    "review",
+    "remedial",
+    "probe",
+    "testout",
+    "moduletest",
+    "example",
+    "explain",
+    "checkin",
+    "stretch",
+]
 
 
 @dataclass(frozen=True)
 class Activity:
     id: str
-    kind: Literal["lesson", "quiz", "problem", "checkpoint", "review", "remedial"]
-    concept: str  # qualified concept (module id for checkpoints)
+    kind: ActivityKind
+    concept: str  # qualified concept (module id for checkpoints and module test-outs)
     title: str
     minutes: int
     reason: str = ""
 
     def to_dict(self) -> dict:
         return self.__dict__.copy()
+
+
+@dataclass(frozen=True)
+class Adaptive:
+    """Everything beyond raw evidence that shapes the plan. All of it is learner-owned:
+    the goal and style they chose, and overrides from proposals they accepted."""
+
+    course_id: str = ""
+    goal: dict = field(default_factory=dict)
+    style: str = "balanced"
+    overrides: dict = field(default_factory=dict)
+    stuck: dict[str, Stuck] = field(default_factory=dict)
+    tried: dict[str, frozenset[str]] = field(default_factory=dict)  # rungs used per concept
+    adherence: float = 1.0
 
 
 @dataclass
@@ -45,6 +90,12 @@ class Plan:
     remaining_minutes: int
     projected_finish: str
     reasons: list[str] = field(default_factory=list)
+    style: str = "balanced"
+    focus: str = "foundations"
+    milestones: list[dict] = field(default_factory=list)
+    forecast: dict = field(default_factory=dict)
+    # Signals for suggestions; never applied by the planner itself.
+    needs_repair: dict[str, str] = field(default_factory=dict)  # concept -> weak prerequisite
 
     def to_dict(self) -> dict:
         return {
@@ -56,6 +107,10 @@ class Plan:
             "remaining_minutes": self.remaining_minutes,
             "projected_finish": self.projected_finish,
             "reasons": self.reasons,
+            "style": self.style,
+            "focus": self.focus,
+            "milestones": self.milestones,
+            "forecast": self.forecast,
         }
 
 
@@ -80,12 +135,33 @@ def pace_of(history: list[dict]) -> tuple[Pace, str]:
     return "steady", "You're progressing at a steady pace."
 
 
-def _minutes(value: float, pace: Pace) -> int:
-    return max(3, int(math.ceil(value * PACE_FACTOR[pace] / 5) * 5))
+def concept_pace(
+    qualified: str, history: list[dict], overall: Pace, adaptive: Adaptive
+) -> tuple[Pace, str]:
+    """Pace for one concept (C2): the learner's own say first, then results on it."""
+    feel = adaptive.overrides.get("feel", {}).get(qualified)
+    if feel == "easy":
+        return "fast", "You said this feels easy, so it moves faster."
+    if feel == "hard":
+        return "support", "You said this feels hard, so it gets smaller steps."
+    own = [x for x in history if x.get("concept") == qualified and x.get("kind") in SCORED]
+    if len(own) >= 3:
+        return pace_of(own)
+    return overall, ""
+
+
+def _minutes(value: float, pace: Pace, style: str = "balanced") -> int:
+    return max(3, int(math.ceil(value * PACE_FACTOR[pace] * STYLE_FACTOR[style] / 5) * 5))
 
 
 def concept_activities(
-    catalog: Catalog, qualified: str, state: ConceptState, pace: Pace
+    catalog: Catalog,
+    qualified: str,
+    state: ConceptState,
+    pace: Pace,
+    style: str = "balanced",
+    support: str | None = None,
+    support_reason: str = "",
 ) -> list[Activity]:
     concept = catalog.concept(qualified)
     est = concept.estimated_minutes
@@ -93,26 +169,56 @@ def concept_activities(
     problems = sorted(
         (catalog.problem(p) for p in concept.problems), key=lambda p: (order[p.difficulty], p.id)
     )
-    if pace == "fast" and len(problems) > 1:
+    accelerate = (pace == "fast" or style == "fast_track") and style != "thorough"
+    if accelerate and len(problems) > 1 and state.failures == 0:
         # Strong learners skip the warm-up problem but keep the real challenge.
         problems = [p for p in problems if p.difficulty != "easy"] or problems[-1:]
     elif pace == "support" and len(problems) > 1 and state.failures >= 1:
         problems = [p for p in problems if p.difficulty != "hard"] or problems[:1]
     items = [
         Activity(
-            f"lesson:{qualified}", "lesson", qualified, concept.title, _minutes(est * 0.3, pace)
+            f"lesson:{qualified}",
+            "lesson",
+            qualified,
+            concept.title,
+            _minutes(est * 0.3, pace, style),
+            reason="Learn the idea first.",
         ),
         Activity(
             f"quiz:{qualified}",
             "quiz",
             qualified,
             f"{concept.title} check",
-            _minutes(est * 0.15, pace),
+            _minutes(est * 0.15, pace, style),
+            reason="A quick check that the idea landed.",
         ),
     ]
+    if support:
+        titles = {
+            "example": f"Worked example: {concept.title}",
+            "explain": f"{concept.title}, explained another way",
+            "checkin": f"Talk it through: {concept.title}",
+        }
+        items.append(
+            Activity(
+                f"{support}:{qualified}",
+                support,  # type: ignore[arg-type]
+                qualified,
+                titles[support],
+                SUPPORT_MINUTES[support],
+                reason=support_reason,
+            )
+        )
     share = est * 0.55 / max(1, len(problems))
     items += [
-        Activity(f"problem:{p.id}", "problem", qualified, p.title, _minutes(max(10, share), pace))
+        Activity(
+            f"problem:{p.id}",
+            "problem",
+            qualified,
+            p.title,
+            _minutes(max(10, share), pace, style),
+            reason=f"Practice {concept.title} on your own ({p.difficulty}).",
+        )
         for p in problems
     ]
     return items
@@ -139,6 +245,54 @@ def study_days(start: date, weekdays: set[int], count: int) -> list[date]:
     return days
 
 
+def ordered(catalog: Catalog, path: list[str], score: dict[str, float]) -> list[str]:
+    """Prerequisites first; among concepts free to go next, the higher score wins and the
+    course order breaks ties, so equal scores keep the authored sequence. A concept passes
+    its score down to its prerequisites, so pinning a topic pulls its foundations forward."""
+    index = {c: i for i, c in enumerate(path)}
+    members = set(path)
+    score = dict(score)
+    for concept in reversed(path):
+        for prereq in catalog.prerequisites[concept]:
+            if prereq in members:
+                score[prereq] = max(score.get(prereq, 0.0), score.get(concept, 0.0))
+    placed: list[str] = []
+    done: set[str] = set()
+    remaining = list(path)
+    while remaining:
+        ready = [
+            c
+            for c in remaining
+            if all(p in done or p not in members for p in catalog.prerequisites[c])
+        ] or remaining[:1]
+        best = max(ready, key=lambda c: (score.get(c, 0.0), -index[c]))
+        placed.append(best)
+        done.add(best)
+        remaining.remove(best)
+    return placed
+
+
+def set_aside(catalog: Catalog, path: list[str], candidates: set[str]) -> set[str]:
+    """Candidates no remaining concept depends on; anything needed stays on the path."""
+    aside = set(candidates)
+    changed = True
+    while changed:
+        changed = False
+        for concept in path:
+            if concept in aside:
+                continue
+            for prereq in catalog.prerequisites[concept]:
+                if prereq in aside:
+                    aside.discard(prereq)
+                    changed = True
+    return aside
+
+
+def module_title(catalog: Catalog, module_key: str) -> str:
+    course_id, module_id = module_key.split(":", 1)
+    return next(m.title for m in catalog.course(course_id).modules if m.id == module_id)
+
+
 def build_plan(
     catalog: Catalog,
     targets: list[str],
@@ -151,11 +305,44 @@ def build_plan(
     minutes_per_day: int,
     course_id: str | None = None,
     cooldowns: dict[str, int] | None = None,
+    adaptive: Adaptive | None = None,
 ) -> Plan:
     if not weekdays:
         raise ValueError("at least one study weekday is required")
+    adaptive = adaptive or Adaptive(course_id=course_id or "")
+    overrides = adaptive.overrides
+    style = adaptive.style if adaptive.style in goals.STYLES else "balanced"
     pace, pace_reason = pace_of(history)
+    comeback = overrides.get("comeback") or {}
+    if int(comeback.get("until", 0)) > now:
+        pace, pace_reason = "support", "Welcome back — easing in with shorter steps this week."
+    focus = goals.focus_of(adaptive.course_id or course_id or "", adaptive.goal)
     path = catalog.closure(targets)
+    relevance = {
+        c: goals.relevance(c, adaptive.course_id or course_id or "", adaptive.goal) for c in path
+    }
+    priority = set(overrides.get("priority", []))
+    deferred = set(overrides.get("defer", []))
+    unknown = {c for c in path if not states.get(c, ConceptState()).evidence_count}
+    optional_candidates = (
+        {c for c in path if relevance[c] < goals.OPTIONAL_BELOW and c in unknown}
+        if style == "goal_focused"
+        else set()
+    )
+    skipped_candidates = {c for c in overrides.get("skip", []) if c in path}
+    aside = set_aside(catalog, path, optional_candidates | skipped_candidates)
+    # A deferred concept takes everything built on it along to the back.
+    for member in path:
+        if any(p in deferred for p in catalog.prerequisites[member]):
+            deferred.add(member)
+    if style != "thorough":
+        score: dict[str, float] = {
+            c: goals.tier(relevance[c])
+            + (3 if c in priority else 0)
+            - (10 if c in deferred or c in aside else 0)
+            for c in path
+        }
+        path = ordered(catalog, path, score)
     cooldowns = cooldowns or {}
     gate_targets = (
         gates.locked_modules(catalog, course_id, states, completed, now) if course_id else {}
@@ -164,68 +351,149 @@ def build_plan(
     locked_minutes = 0
     roadmap: list[dict] = []
     queue: list[Activity] = []
+    front: list[Activity] = []
     reasons: list[str] = []
+    needs_repair: dict[str, str] = {}
     seen_modules: dict[str, list[str]] = {}
     for qualified in path:
         module = f"{catalog.owner[qualified]}:{catalog.module_of(qualified)}"
         seen_modules.setdefault(module, []).append(qualified)
     last_of_module = {members[-1]: module for module, members in seen_modules.items()}
+    repairs = {tuple(x) for x in overrides.get("repair", [])}
+    probes = set(overrides.get("probe", [])) | set(comeback.get("concepts", []))
+    for target in overrides.get("testout", []):
+        kind: ActivityKind = "moduletest" if target.startswith("module:") else "testout"
+        key = target.removeprefix("module:")
+        if f"{kind}:{key}" in completed:
+            continue
+        if kind == "testout" and (key in locked or key not in catalog.concepts):
+            continue
+        if kind == "moduletest" and any(c in locked for c in gates.module_concepts(catalog, key)):
+            continue
+        title = module_title(catalog, key) if kind == "moduletest" else catalog.concept(key).title
+        front.append(
+            Activity(
+                f"{kind}:{key}",
+                kind,
+                key,
+                f"Test out: {title}",
+                TESTOUT_MINUTES if kind == "testout" else CHECKPOINT_MINUTES,
+                reason="You chose to prove what you know; passing skips ahead.",
+            )
+        )
+    for probe in sorted(probes):
+        if probe in catalog.concepts and f"probe:{probe}" not in completed:
+            front.append(
+                Activity(
+                    f"probe:{probe}",
+                    "probe",
+                    probe,
+                    f"Quick check: {catalog.concept(probe).title} and its foundations",
+                    TESTOUT_MINUTES,
+                    reason="Finds which building block is the real gap.",
+                )
+            )
     skipped = 0
     for qualified in path:
         state = states.get(qualified, ConceptState())
         concept = catalog.concept(qualified)
+        entry_base = {
+            "concept": qualified,
+            "title": concept.title,
+            "module": module_of(catalog, qualified),
+            "mastery": round(state.effective(now), 3),
+            "confidence": round(state.confidence, 3),
+            "minutes": concept.estimated_minutes,
+            "relevance": relevance[qualified],
+            "priority": qualified in priority,
+            "deferred": qualified in set(overrides.get("defer", [])),
+        }
+        if qualified in aside and not state.mastered(now):
+            why = (
+                "You chose to drop this to make your date."
+                if qualified in skipped_candidates
+                else "Optional for your goal; open it any time."
+            )
+            status = "skipped" if qualified in skipped_candidates else "optional"
+            roadmap.append({**entry_base, "status": status, "why": why})
+            continue
         if qualified in locked:
             # Behind a gate: shown on the roadmap and counted in the forecast, not scheduled.
             locked_minutes += sum(
-                a.minutes for a in concept_activities(catalog, qualified, state, pace)
+                a.minutes for a in concept_activities(catalog, qualified, state, pace, style)
             )
-            roadmap.append(
-                {
-                    "concept": qualified,
-                    "title": concept.title,
-                    "module": module_of(catalog, qualified),
-                    "status": "locked",
-                    "locked_by": locked[qualified],
-                    "mastery": round(state.effective(now), 3),
-                    "confidence": round(state.confidence, 3),
-                    "minutes": concept.estimated_minutes,
-                }
-            )
+            roadmap.append({**entry_base, "status": "locked", "locked_by": locked[qualified]})
             continue
+        why = ""
         if state.mastered(now) or (state.assumed and state.evidence_count == 0):
             status = "mastered" if state.mastered(now) else "assumed"
             skipped += 1
         else:
-            activities = concept_activities(catalog, qualified, state, pace)
+            c_pace, c_reason = concept_pace(qualified, history, pace, adaptive)
+            stuck = adaptive.stuck.get(qualified)
+            support, support_reason = None, ""
+            weak = weakest_prerequisite(catalog, qualified, states, now)
+            if stuck is not None:
+                tried = set(adaptive.tried.get(qualified, ())) | {
+                    k for k in SUPPORT_MINUTES if f"{k}:{qualified}" in completed
+                }
+                rung = next_rung(stuck, tried, weak is not None)
+                if rung and not rung[1]:
+                    support, support_reason = rung[0], stuck.summary
+            activities = concept_activities(
+                catalog, qualified, state, c_pace, style, support, support_reason
+            )
             pending = [a for a in activities if a.id not in completed]
             status = "upcoming"
             if any(a.id in completed for a in activities) or state.evidence_count:
                 status = "in_progress"
             if not pending:
                 status = "practiced"
-            if state.failures >= 2 and state.mean < 0.5:
-                weak = weakest_prerequisite(catalog, qualified, states, now)
-                if weak and f"remedial:{weak}" not in completed:
+            if (state.failures >= 2 and state.mean < 0.5) or stuck is not None:
+                if weak:
+                    needs_repair[qualified] = weak
+            for weak_concept, for_concept in sorted(repairs):
+                if for_concept == qualified and f"remedial:{weak_concept}" not in completed:
                     queue.append(
                         Activity(
-                            f"remedial:{weak}",
+                            f"remedial:{weak_concept}",
                             "remedial",
-                            weak,
-                            f"Refresh: {catalog.concept(weak).title}",
-                            _minutes(15, pace),
-                            reason=f"{concept.title} depends on {catalog.concept(weak).title}.",
+                            weak_concept,
+                            f"Refresh: {catalog.concept(weak_concept).title}",
+                            _minutes(15, c_pace, style),
+                            reason=f"{concept.title} depends on "
+                            f"{catalog.concept(weak_concept).title}; you approved a refresher.",
                         )
                     )
-                    reasons.append(
-                        f"Added a refresher on {catalog.concept(weak).title} before more "
-                        f"{concept.title}."
-                    )
             queue.extend(pending)
+            if overrides.get("stretch") and pending and f"stretch:{qualified}" not in completed:
+                queue.append(
+                    Activity(
+                        f"stretch:{qualified}",
+                        "stretch",
+                        qualified,
+                        f"Stretch: a harder {concept.title} problem",
+                        _minutes(20, c_pace, style),
+                        reason="One problem a step above your level, as you asked.",
+                    )
+                )
+            if stuck is not None:
+                why = stuck.summary
+            elif c_reason:
+                why = c_reason
+            elif qualified in priority:
+                why = "Moved up because you asked to focus on it."
+            elif goals.tier(relevance[qualified]) == 2 and style != "thorough":
+                why = "High value for your goal."
         if qualified in last_of_module:
             module = last_of_module[qualified]
             module_course, module_id = module.split(":", 1)
             members = seen_modules[module]
-            needs = [m for m in members if not states.get(m, ConceptState()).mastered(now)]
+            needs = [
+                m
+                for m in members
+                if not states.get(m, ConceptState()).mastered(now) and m not in aside
+            ]
             check_id = f"checkpoint:{module}"
             gated_next = next((k for k, g in gate_targets.items() if g == check_id), None)
             if (
@@ -269,19 +537,12 @@ def build_plan(
                             reason="Questions get harder as you get them right." + unlocks,
                         )
                     )
-        roadmap.append(
-            {
-                "concept": qualified,
-                "title": concept.title,
-                "module": module_of(catalog, qualified),
-                "status": status,
-                "mastery": round(state.effective(now), 3),
-                "confidence": round(state.confidence, 3),
-                "minutes": concept.estimated_minutes,
-            }
-        )
+        roadmap.append({**entry_base, "status": status, **({"why": why} if why else {})})
+    queue = front + queue
     if skipped:
         reasons.append(f"Skipped {skipped} concept(s) you already know; they'll get quick reviews.")
+    if aside:
+        reasons.append(f"{len(aside)} concept(s) set aside as optional for your goal.")
     if locked:
         first_gate = next(iter(locked.values()))
         reasons.append(
@@ -322,14 +583,77 @@ def build_plan(
             break
     remaining = sum(a.minutes for a in queue) + locked_minutes
     weekly = minutes_per_day * len(weekdays)
+    finish = finish_date(today, remaining, weekly)
+    realistic_weekly = weekly * adaptive.adherence
+    realistic = finish_date(today, remaining, realistic_weekly)
+    target = adaptive.goal.get("target_date")
+    forecast = dict(
+        planned_finish=finish.isoformat(),
+        realistic_finish=realistic.isoformat(),
+        adherence=adaptive.adherence,
+        weekly_minutes=round(realistic_weekly),
+        target_date=target,
+        on_track=None if not target else realistic.isoformat() <= target,
+    )
+    milestones = milestone_weeks(catalog, queue, roadmap, today, realistic_weekly)
+    return Plan(
+        pace,
+        pace_reason,
+        roadmap,
+        queue,
+        days,
+        remaining,
+        finish.isoformat(),
+        reasons,
+        style=style,
+        focus=focus,
+        milestones=milestones,
+        forecast=forecast,
+        needs_repair=needs_repair,
+    )
+
+
+def finish_date(today: date, remaining: int, weekly: float) -> date:
     weeks = remaining / weekly if weekly else 0
-    finish = today + timedelta(days=math.ceil(weeks * 7))
-    return Plan(pace, pace_reason, roadmap, queue, days, remaining, finish.isoformat(), reasons)
+    return today + timedelta(days=math.ceil(weeks * 7))
+
+
+def milestone_weeks(
+    catalog: Catalog, queue: list[Activity], roadmap: list[dict], today: date, weekly: float
+) -> list[dict]:
+    """Week-by-week goals (B3): which concepts each week should finish, and what that unlocks."""
+    if weekly <= 0:
+        return []
+    finish_at: dict[str, float] = {}
+    spent = 0.0
+    for activity in queue:
+        spent += activity.minutes
+        if activity.concept in catalog.concepts:
+            finish_at[activity.concept] = spent
+    for item in roadmap:
+        if item["status"] == "locked":
+            spent += item["minutes"]
+            finish_at[item["concept"]] = spent
+    weeks: dict[int, list[str]] = {}
+    for concept, minutes in finish_at.items():
+        weeks.setdefault(int(minutes // weekly), []).append(concept)
+    out = []
+    for week in sorted(weeks)[:MILESTONE_WEEKS]:
+        concepts = weeks[week]
+        lead = catalog.concept(concepts[-1])
+        out.append(
+            dict(
+                week=week + 1,
+                ends=(today + timedelta(days=7 * (week + 1) - 1)).isoformat(),
+                concepts=[dict(concept=c, title=catalog.concept(c).title) for c in concepts],
+                outcome=f"You'll be able to: {lead.key_points[0].rstrip('.')}.",
+            )
+        )
+    return out
 
 
 def gates_title(catalog: Catalog, module_key: str) -> str:
-    course_id, module_id = module_key.split(":", 1)
-    return next(m.title for m in catalog.course(course_id).modules if m.id == module_id)
+    return module_title(catalog, module_key)
 
 
 def module_of(catalog: Catalog, qualified: str) -> str:

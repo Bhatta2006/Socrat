@@ -67,6 +67,9 @@ class Enrollment(Base):
     placement: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     plan_signature: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+    # Learner-approved roadmap overrides, path style and adaptive bookkeeping
+    # (see socrat.adaptive.proposals). Only an accepted proposal or the learner writes here.
+    adaptive: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class ConceptState(Base):
@@ -164,6 +167,27 @@ class PlanRevision(Base):
     remaining_minutes: Mapped[int] = mapped_column(Integer)
     projected_finish: Mapped[str] = mapped_column(String(10))
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+    snapshot: Mapped[list] = mapped_column(JSON, default=list)  # queued activity ids
+    changes: Mapped[dict] = mapped_column(JSON, default=dict)  # {added, removed} vs previous
+
+
+class PlanProposal(Base):
+    """A roadmap change Socrat wants to make. Nothing changes until the learner accepts it."""
+
+    __tablename__ = "plan_proposals"
+    __table_args__ = (Index("ix_plan_proposals_enrollment_status", "enrollment_id", "status"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(ForeignKey("enrollments.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(String(24))
+    key: Mapped[str] = mapped_column(String(240))  # dedupe key, e.g. "repair:dsa:sorting"
+    group: Mapped[str] = mapped_column(String(64), default="")  # alternatives share a group
+    title: Mapped[str] = mapped_column(String(200))
+    reason: Mapped[str] = mapped_column(String(1000))
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    source: Mapped[str] = mapped_column(String(16))  # planner | tutor | review
+    status: Mapped[str] = mapped_column(String(16), default="pending")
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    decided_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class Draft(Base):

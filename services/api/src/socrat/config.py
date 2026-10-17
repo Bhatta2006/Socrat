@@ -118,9 +118,11 @@ class Settings(DatabaseSettings):
     ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
     ai_tools: bool = True  # let the tutor look up the learner's data and the library
     explainer_enabled: bool = True
-    # Content system pilot (Content Master Plan §8): off until reviewed content exists.
-    adaptive_quiz_enabled: bool = False
-    pattern_planner_enabled: bool = False
+    # Content system (Content Master Plan §8), on for adaptive learning. Safe on thin content:
+    # unreviewed quiz families write no mastery evidence, and a pattern plan that breaks a
+    # placement rule falls back to the classic composer. SOCRAT_*_ENABLED=false turns off.
+    adaptive_quiz_enabled: bool = True
+    pattern_planner_enabled: bool = True
     explainer_model: str = ""
     explainer_chat_template_kwargs: dict = Field(default_factory=dict)
     explainer_daily_messages: int = Field(default=20, ge=1, le=200)

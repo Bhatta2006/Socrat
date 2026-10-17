@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import { ErrorNote, Loading, Page, Reveal, Ring } from '@/components/common';
 import { Level, PlatformTag, ProblemName } from '@/components/practice';
 import Assistant from '@/components/assistant';
+import Markdown from '@/components/markdown';
+import { ProposalList } from '@/components/socrat/proposals';
 import { Illustration, Soc } from '@/components/socrat/illustration';
 import { StatusIcon, statusFromBand, statusFromRoadmap } from '@/components/socrat/status';
 import { SkillGrid } from '@/components/socrat/skill-grid';
@@ -19,8 +21,36 @@ import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
-const VERB: Record<string, string> = { lesson: 'Start lesson', problem: 'Open problem', quiz: 'Take concept check', checkpoint: 'Start checkpoint', review: 'Start review', remedial: 'Start refresher' };
-const CHIP: Record<string, string> = { lesson: 'lesson', problem: 'practice', quiz: 'check', checkpoint: 'check', review: 'review', remedial: 'review' };
+const VERB: Record<string, string> = {
+  lesson: 'Start lesson',
+  problem: 'Open problem',
+  quiz: 'Take concept check',
+  checkpoint: 'Start checkpoint',
+  review: 'Start review',
+  remedial: 'Start refresher',
+  probe: 'Take the check',
+  testout: 'Start test-out',
+  moduletest: 'Start test-out',
+  example: 'See the example',
+  explain: 'Read it another way',
+  checkin: 'Talk it through',
+  stretch: 'Try the stretch',
+};
+const CHIP: Record<string, string> = {
+  lesson: 'lesson',
+  problem: 'practice',
+  quiz: 'check',
+  checkpoint: 'check',
+  review: 'review',
+  remedial: 'review',
+  probe: 'check',
+  testout: 'test-out',
+  moduletest: 'test-out',
+  example: 'lesson',
+  explain: 'lesson',
+  checkin: 'tutor',
+  stretch: 'practice',
+};
 
 function greeting(name: string) {
   const hour = new Date().getHours();
@@ -135,6 +165,51 @@ export default function TodayPage() {
             <p className="font-semibold">Welcome back. Your plan moved forward while you were away.</p>
             <Link href="/plan#why-heading" className="text-[15px] font-semibold underline underline-offset-4">See what changed</Link>
           </div>
+        </Reveal>
+      ) : null}
+
+      {/* Soc opens the day: yesterday's work, today's first step, and anything to decide. */}
+      {today.checkin || today.proposals.length || today.nudges.some(n => n.kind !== 'proposals' && n.kind !== 'away') ? (
+        <Reveal>
+          <Card className="mb-6" aria-labelledby="checkin-heading">
+            <div className="grid gap-4 px-(--card-spacing)">
+              <div className="flex items-start gap-3">
+                <Soc size={40} className="flex-none" />
+                <div className="min-w-0">
+                  <h2 id="checkin-heading" className="sr-only">Check-in from Soc</h2>
+                  {today.checkin ? <Markdown source={today.checkin.message} className="prose-compact text-[15px]" /> : null}
+                  {today.milestone ? (
+                    <p className="mt-1 text-[14px] text-muted-foreground">
+                      This week&apos;s milestone: {today.milestone.concepts.map(c => c.title).join(', ')}.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              {today.nudges.filter(n => n.kind !== 'proposals' && n.kind !== 'away').length ? (
+                <ul className="grid gap-2" aria-label="Things to look at">
+                  {today.nudges.filter(n => n.kind !== 'proposals' && n.kind !== 'away').map(n => (
+                    <li key={n.kind + n.title}>
+                      <Link href={n.href} className={cn('block rounded-[16px] border px-4 py-3 transition-colors hover:bg-raised', n.severity === 'high' && 'border-attention')}>
+                        <span className="font-semibold">{n.title}</span>
+                        <span className="block text-[14px] text-muted-foreground">{n.body}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {today.proposals.length ? (
+                <section aria-labelledby="today-proposals">
+                  <h3 id="today-proposals" className="type-label mb-2 text-muted-foreground">Socrat suggests</h3>
+                  <ProposalList compact proposals={today.proposals.slice(0, 3)} onDecided={load} />
+                  {today.proposals.length > 3 ? (
+                    <Link href="/plan#proposals" className="mt-2 inline-block text-[14px] font-semibold underline underline-offset-4">
+                      See all {today.proposals.length} suggestions
+                    </Link>
+                  ) : null}
+                </section>
+              ) : null}
+            </div>
+          </Card>
         </Reveal>
       ) : null}
 
