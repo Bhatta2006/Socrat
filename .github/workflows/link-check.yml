@@ -20,4 +20,9 @@ jobs:
         with:
           version: "0.12.20"
       - run: uv sync --frozen
-      - run: uv run python scripts/content/check_links.py
+      - run: uv run python scripts/content/link_health.py --live --out .cache/link-health.csv
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: link-health
+          path: .cache/link-health.csv

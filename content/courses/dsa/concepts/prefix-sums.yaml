@@ -178,7 +178,29 @@ quiz:
     answer: 0
     explanation: With negatives, extending a window can decrease the sum, so you cannot decide when to shrink.
     difficulty: 3
-problems: [range-sum-queries, subarray-sum-k]
+  - id: count-k
+    kind: mcq
+    prompt: "Counting subarrays with sum exactly k, why must the map start with {0: 1}?"
+    options:
+      - "Subarrays that start at index 0 need the empty prefix"
+      - "To avoid a KeyError"
+      - "Because k may be 0"
+      - "It is only needed for negative numbers"
+    answer: 0
+    explanation: "A subarray a[0..r] has sum P[r+1] - P[0]; the empty prefix P[0] = 0 must already be counted once."
+    difficulty: 5
+  - id: inclusive-range
+    kind: mcq
+    prompt: "With P[0] = 0 and P[i] = a[0] + … + a[i-1], the sum of a[l..r] (inclusive) is"
+    options:
+      - "P[r + 1] - P[l]"
+      - "P[r] - P[l]"
+      - "P[r] - P[l - 1]"
+      - "P[r + 1] - P[l + 1]"
+    answer: 0
+    explanation: "P[r + 1] covers a[0..r] and P[l] covers a[0..l-1]; their difference is exactly a[l..r]."
+    difficulty: 4
+problems: [range-sum-queries, subarray-sum-k, balance-point, divisible-subarrays]
 practice_links:
   - title: Subarray Sum Equals K
     url: https://leetcode.com/problems/subarray-sum-equals-k/

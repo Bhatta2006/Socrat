@@ -189,7 +189,37 @@ quiz:
     answer: 0
     explanation: Computers do exactly what you write. An unknown name is an error, not a guess.
     difficulty: 2
-problems: [echo-reading]
+  - id: print-sep-end
+    kind: output
+    prompt: "What does this program print?"
+    code:
+      python: |
+        print("a", "b", sep="-", end="!")
+        print("c")
+    options:
+      - "a-b!c"
+      - "a-b!\nc"
+      - "a b!c"
+      - "a-b\n!c"
+    answer: 0
+    explanation: "sep goes between the arguments and end replaces the newline, so the second print continues on the same line: a-b!c."
+    difficulty: 4
+  - id: print-order
+    kind: output
+    prompt: "What is the exact output?"
+    code:
+      python: |
+        x = 3
+        print("x", x, "x" * x)
+    options:
+      - "x 3 xxx"
+      - "3 3 9"
+      - "x3xxx"
+      - "x 3 x3"
+    answer: 0
+    explanation: "print separates arguments with a space; \"x\" * 3 repeats the text three times."
+    difficulty: 5
+problems: [echo-reading, ticket-stub]
 practice_links:
   - title: Hello World (try printing different messages)
     url: https://pythontutor.com/

@@ -203,7 +203,29 @@ quiz:
     answer: 0
     explanation: Types must match the most recent opener, not just the counts.
     difficulty: 2
-problems: [balanced-brackets, next-greater]
+  - id: monotonic-direction
+    kind: mcq
+    prompt: "To find the next *smaller* element to the right for every index, the stack (bottom to top) holds values that are"
+    options:
+      - "increasing"
+      - "decreasing"
+      - "equal"
+      - "sorted by index only"
+    answer: 0
+    explanation: "A new smaller value pops every larger value above it, answering them, so the remaining stack is increasing."
+    difficulty: 4
+  - id: largest-rectangle
+    kind: mcq
+    prompt: "In the largest-rectangle-in-a-histogram stack method, when a bar is popped, its rectangle extends"
+    options:
+      - "from just after the new stack top to just before the current index"
+      - "from index 0 to the current index"
+      - "only over the bar itself"
+      - "to the end of the array"
+    answer: 0
+    explanation: "The new top is the previous smaller bar and the current index is the next smaller bar; the popped bar is the minimum between them."
+    difficulty: 5
+problems: [balanced-brackets, next-greater, next-taller-building]
 practice_links:
   - title: Valid Parentheses
     url: https://leetcode.com/problems/valid-parentheses/

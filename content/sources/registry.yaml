@@ -1,0 +1,396 @@
+# Content source registry (Content Master Plan, Appendix A) as data.
+#
+# license_status: verified only where Appendix A records a confirmation (✔) on a primary or
+# near-primary page during its research (2026-10-15/16), with one unambiguous license.
+# Entries marked ◻ (reported or recalled), conflicting reports and unmarked entries are
+# unverified. Nothing here was re-checked online for this commit; re-verify before relying
+# on an entry, and update last_verified_at/verified_from when you do.
+#
+# action:
+#   adapt              permissive and verified: R2 adaptation with attribution
+#   share-alike-lane   share-alike and verified: isolated, labelled lane; legal sign-off first
+#   link-only          R3 only (NC, ND, all rights reserved, unknown, or copyleft kept out)
+#   per-item           licenses differ per item; register the specific item before adapting
+#   verify             not adaptable until the license is verified on the source's own page
+#
+# The license gate (socrat/catalog/sources.py) only lets `origin: adapted` content cite an
+# entry that is verified and whose action is adapt or share-alike-lane.
+version: 1
+sources:
+  - id: cp-algorithms
+    name: cp-algorithms.com (repo cp-algorithms/cp-algorithms)
+    url: https://cp-algorithms.com/
+    content: Algorithm articles, competitive programming
+    license: CC BY-SA 4.0
+    spdx: [CC-BY-SA-4.0]
+    license_class: share-alike
+    license_status: verified
+    action: share-alike-lane
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A (repo license file); not re-checked here
+  - id: usaco-guide
+    name: USACO Guide
+    url: https://usaco.guide/
+    content: Competitive programming guide
+    license: CC BY-NC-SA 4.0
+    spdx: [CC-BY-NC-SA-4.0]
+    license_class: non-commercial
+    license_status: verified
+    action: link-only
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A (project README); not re-checked here
+  - id: competitive-programmers-handbook
+    name: Competitive Programmer's Handbook (A. Laaksonen)
+    url: https://github.com/pllk/cphb
+    content: Competitive programming book
+    license: CC BY-NC-SA 4.0
+    spdx: [CC-BY-NC-SA-4.0]
+    license_class: non-commercial
+    license_status: verified
+    action: link-only
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A (repo README); not re-checked here
+  - id: cses
+    name: CSES Problem Set
+    url: https://cses.fi/problemset/
+    content: Problems (already indexed as links)
+    license: Site terms
+    license_class: unknown
+    license_status: unverified
+    action: link-only
+  - id: freecodecamp
+    name: freeCodeCamp curriculum
+    url: https://github.com/freeCodeCamp/freeCodeCamp
+    content: Courses and challenges
+    license: CC BY-SA 4.0 (curriculum), BSD-3-Clause (code)
+    spdx: [CC-BY-SA-4.0, BSD-3-Clause]
+    license_class: share-alike
+    license_status: verified
+    action: share-alike-lane
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A (repo license files; "check current repo"); not re-checked here
+  - id: tech-interview-handbook
+    name: Tech Interview Handbook
+    url: https://github.com/yangshun/tech-interview-handbook
+    content: Interview guide, curated lists, cheatsheets
+    license: MIT
+    spdx: [MIT]
+    license_class: permissive
+    license_status: verified
+    action: adapt
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A (repo license); not re-checked here
+  - id: thealgorithms
+    name: TheAlgorithms (Python, C++, Java)
+    url: https://github.com/TheAlgorithms
+    content: Reference code
+    license: MIT (per status report; confirm per repo)
+    spdx: [MIT]
+    license_class: permissive
+    license_status: unverified
+    action: verify
+  - id: exercism
+    name: Exercism
+    url: https://exercism.org/docs/using/licenses
+    content: Exercises
+    license: Track repos MIT; some exercises under CC licenses including NC-SA
+    spdx: []
+    license_class: mixed
+    license_status: verified
+    action: per-item
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A (licenses page); not re-checked here
+  - id: open-data-structures
+    name: Open Data Structures (P. Morin)
+    url: https://opendatastructures.org/
+    content: Data-structure textbook
+    license: Author's editions CC BY; other editions and translations NC-SA or NC-ND
+    spdx: [CC-BY-4.0]
+    license_class: mixed
+    license_status: unverified
+    action: verify
+    notes: Edition to use is not verified.
+  - id: think-cpp
+    name: Think C++ (Runestone)
+    url: https://runestone.academy/
+    content: Beginner C++
+    license: CC BY-NC 4.0
+    spdx: [CC-BY-NC-4.0]
+    license_class: non-commercial
+    license_status: verified
+    action: link-only
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A; not re-checked here
+  - id: how-to-think-like-a-computer-scientist-python
+    name: How to Think Like a Computer Scientist (Python 3)
+    url: https://openbookproject.net/thinkcs/python/english3e/
+    content: Beginner Python
+    license: GFDL 1.3
+    spdx: [GFDL-1.3-only]
+    license_class: share-alike
+    license_status: verified
+    action: link-only
+    last_verified_at: "2026-10-16"
+    verified_from: content.md Appendix A (UCL copy); copyleft kept link-only; not re-checked here
+  - id: python-for-everybody
+    name: Python for Everybody (C. Severance)
+    url: https://www.py4e.com/
+    content: Beginner Python
+    license: Conflicting reports (CC BY-SA 3.0 vs CC BY-NC-SA 3.0)
+    license_class: unknown
+    license_status: unverified
+    action: link-only
+  - id: openstax
+    name: OpenStax textbooks
+    url: https://openstax.org/
+    content: Math and CS texts
+    license: Conflicting reports per title (CC BY 4.0 vs BY-NC-SA)
+    license_class: mixed
+    license_status: unverified
+    action: link-only
+  - id: mit-ocw
+    name: MIT OpenCourseWare
+    url: https://ocw.mit.edu/
+    content: Lectures and notes
+    license: CC BY-NC-SA 4.0 (from earlier research; not marked in Appendix A)
+    spdx: [CC-BY-NC-SA-4.0]
+    license_class: non-commercial
+    license_status: unverified
+    action: link-only
+  - id: python-docs
+    name: Python documentation
+    url: https://docs.python.org/3/
+    content: Docs and tutorial
+    license: PSF License; code examples 0BSD from 3.8.6 (confirm per page)
+    spdx: [PSF-2.0, 0BSD]
+    license_class: permissive
+    license_status: unverified
+    action: verify
+  - id: erickson-algorithms
+    name: Erickson, Algorithms
+    url: https://jeffe.cs.illinois.edu/teaching/algorithms/
+    content: Free textbook
+    license: CC BY 4.0 (reported)
+    spdx: [CC-BY-4.0]
+    license_class: permissive
+    license_status: unverified
+    action: verify
+  - id: atcoder-library
+    name: AtCoder Library
+    url: https://github.com/atcoder/ac-library
+    content: CP library
+    license: CC0 (reported)
+    spdx: [CC0-1.0]
+    license_class: permissive
+    license_status: unverified
+    action: verify
+  - id: kactl
+    name: KACTL
+    url: https://github.com/kth-competitive-programming/kactl
+    content: CP library
+    license: License not recorded
+    license_class: unknown
+    license_status: unverified
+    action: verify
+  - id: cs50
+    name: CS50 (Harvard)
+    url: https://cs50.harvard.edu/
+    content: Intro CS
+    license: CC BY-NC-SA 4.0 (reported)
+    spdx: [CC-BY-NC-SA-4.0]
+    license_class: non-commercial
+    license_status: unverified
+    action: link-only
+  - id: automate-the-boring-stuff
+    name: Automate the Boring Stuff
+    url: https://automatetheboringstuff.com/
+    content: Practical Python
+    license: CC BY-NC-SA (reported)
+    license_class: non-commercial
+    license_status: unverified
+    action: link-only
+  - id: the-odin-project
+    name: The Odin Project
+    url: https://www.theodinproject.com/
+    content: Web development
+    license: CC BY-NC-SA (reported)
+    license_class: non-commercial
+    license_status: unverified
+    action: link-only
+  - id: cppreference
+    name: cppreference
+    url: https://en.cppreference.com/
+    content: C++ reference
+    license: CC BY-SA 3.0 / GFDL (reported)
+    license_class: share-alike
+    license_status: unverified
+    action: link-only
+  - id: mdn
+    name: MDN Web Docs
+    url: https://developer.mozilla.org/
+    content: Reference
+    license: CC BY-SA (reported)
+    license_class: share-alike
+    license_status: unverified
+    action: verify
+  - id: wikipedia
+    name: Wikipedia
+    url: https://en.wikipedia.org/
+    content: Reference
+    license: CC BY-SA (reported; per page)
+    license_class: share-alike
+    license_status: unverified
+    action: verify
+  - id: wikibooks
+    name: Wikibooks
+    url: https://en.wikibooks.org/
+    content: Reference
+    license: CC BY-SA (reported; per page)
+    license_class: share-alike
+    license_status: unverified
+    action: verify
+  - id: opendsa
+    name: OpenDSA
+    url: https://opendsa-server.cs.vt.edu/
+    content: DSA e-book
+    license: License not recorded
+    license_class: unknown
+    license_status: unverified
+    action: verify
+  - id: coding-interview-university
+    name: coding-interview-university
+    url: https://github.com/jwasham/coding-interview-university
+    content: Study plan
+    license: License not recorded
+    license_class: unknown
+    license_status: unverified
+    action: verify
+  - id: system-design-primer
+    name: system-design-primer
+    url: https://github.com/donnemartin/system-design-primer
+    content: Study plan
+    license: License not recorded
+    license_class: unknown
+    license_status: unverified
+    action: verify
+  - id: developer-roadmap
+    name: Developer Roadmap (nilbuild fork)
+    url: https://github.com/nilbuild/developer-roadmap
+    content: Roadmaps (links only in the status report)
+    license: License not recorded
+    license_class: unknown
+    license_status: unverified
+    action: link-only
+  - id: neetcode
+    name: NeetCode
+    url: https://neetcode.io/
+    content: Videos
+    license: All rights reserved
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: errichto
+    name: Errichto
+    url: https://www.youtube.com/@Errichto
+    content: Videos
+    license: All rights reserved
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: williamfiset
+    name: WilliamFiset
+    url: https://www.youtube.com/@WilliamFiset-videos
+    content: Videos
+    license: All rights reserved
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: michael-sambol
+    name: Michael Sambol
+    url: https://www.youtube.com/@MichaelSambol
+    content: Videos
+    license: All rights reserved
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: cs-dojo
+    name: CS Dojo
+    url: https://www.youtube.com/@CSDojo
+    content: Videos
+    license: All rights reserved
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: fireship
+    name: Fireship
+    url: https://www.youtube.com/@Fireship
+    content: Videos
+    license: All rights reserved
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: leetcode
+    name: LeetCode
+    url: https://leetcode.com/
+    content: Problem statements (indexed as links)
+    license: All rights reserved / site terms
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: codeforces
+    name: Codeforces
+    url: https://codeforces.com/
+    content: Problem statements (indexed via the public API)
+    license: All rights reserved / site terms
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: atcoder
+    name: AtCoder
+    url: https://atcoder.jp/
+    content: Problem statements
+    license: All rights reserved / site terms
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: hackerrank
+    name: HackerRank
+    url: https://www.hackerrank.com/
+    content: Problem statements
+    license: All rights reserved / site terms
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: kattis
+    name: Kattis
+    url: https://open.kattis.com/
+    content: Problem statements
+    license: All rights reserved / site terms
+    license_class: all-rights-reserved
+    license_status: unverified
+    action: link-only
+  - id: visualgo
+    name: VisuAlgo
+    url: https://visualgo.net/
+    content: Visualiser
+    license: Site terms
+    license_class: unknown
+    license_status: unverified
+    action: link-only
+  - id: python-tutor
+    name: Python Tutor
+    url: https://pythontutor.com/
+    content: Visualiser
+    license: Site terms
+    license_class: unknown
+    license_status: unverified
+    action: link-only
+  - id: algorithm-visualizer
+    name: algorithm-visualizer
+    url: https://github.com/algorithm-visualizer/algorithm-visualizer
+    content: Visualiser
+    license: MIT code (reported)
+    spdx: [MIT]
+    license_class: permissive
+    license_status: unverified
+    action: verify

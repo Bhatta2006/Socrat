@@ -91,6 +91,12 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
                   <a href="/api/v1/auth/login"><GoogleMark /> Continue with Google</a>
                 </Button>
               ) : null}
+              {features ? (
+                <p className="text-center text-[13px] text-muted-foreground">
+                  By continuing you agree to the <a href="/terms" className="underline underline-offset-4">terms of service</a> and the{' '}
+                  <a href="/privacy" className="underline underline-offset-4">privacy policy</a>. You must be 13 or older.
+                </p>
+              ) : null}
               {features?.dev_login ? (
                 <form onSubmit={devLogin} className="grid gap-4 rounded-card border border-dashed border-border-strong p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">

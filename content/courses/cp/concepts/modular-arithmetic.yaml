@@ -157,7 +157,29 @@ quiz:
     answer: 0
     explanation: An inverse exists exactly when x and m are coprime.
     difficulty: 3
-problems: [mod-expressions]
+  - id: mod-subtraction
+    kind: mcq
+    prompt: "In C++ with values already reduced mod p, how do you compute (a - b) mod p safely?"
+    options:
+      - "((a - b) % p + p) % p"
+      - "(a - b) % p"
+      - "abs(a - b) % p"
+      - "(a % p - b % p)"
+    answer: 0
+    explanation: "% can return a negative result in C++; adding p before the final % brings it into [0, p)."
+    difficulty: 4
+  - id: fermat-inverse
+    kind: mcq
+    prompt: "For a prime p and a not divisible by p, the modular inverse of a is"
+    options:
+      - "a^(p-2) mod p"
+      - "a^(p-1) mod p"
+      - "(p - a) mod p"
+      - "p / a"
+    answer: 0
+    explanation: "By Fermat's little theorem a^(p-1) ≡ 1, so a · a^(p-2) ≡ 1 (mod p)."
+    difficulty: 5
+problems: [mod-expressions, triangular-mod]
 practice_links:
   - title: Exponentiation
     url: https://cses.fi/problemset/task/1095

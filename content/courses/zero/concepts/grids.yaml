@@ -174,7 +174,34 @@ quiz:
     answer: 0
     explanation: 100 × 100 cells × 8 directions = 80,000.
     difficulty: 2
-problems: [minesweeper-counts]
+  - id: grid-trap
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        g = [[0] * 2] * 2
+        g[0][0] = 1
+        print(g)
+    options:
+      - "[[1, 0], [1, 0]]"
+      - "[[1, 0], [0, 0]]"
+      - "[[1, 1], [0, 0]]"
+      - "An error"
+    answer: 0
+    explanation: "[[0] * 2] * 2 repeats the same inner list twice. Build rows separately: [[0] * 2 for _ in range(2)]."
+    difficulty: 4
+  - id: neighbours
+    kind: mcq
+    prompt: "In an r × c grid, which check correctly tests that a neighbour (i + di, j + dj) is inside the grid?"
+    options:
+      - "0 <= i + di < r and 0 <= j + dj < c"
+      - "i + di < r and j + dj < c"
+      - "0 < i + di <= r and 0 < j + dj <= c"
+      - "abs(di) + abs(dj) == 1"
+    answer: 0
+    explanation: "Rows are 0..r-1 and columns 0..c-1, so both lower and upper bounds must be checked."
+    difficulty: 5
+problems: [minesweeper-counts, row-and-column-sums]
 practice_links:
   - title: Number Spiral
     url: https://cses.fi/problemset/task/1071

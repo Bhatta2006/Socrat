@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import shutil
+from typing import Any
 
 import httpx
 import psutil
@@ -134,9 +135,11 @@ async def review(
     # One retry: an unparseable review is a model hiccup, not a finding about the visual.
     for _ in range(2):
         raw = ""
+        # OpenAI-compatible endpoints accept a JSON response format (also through Metered).
+        converse: Any = provider.converse
         reply = (
-            provider.converse(REVIEW, turns, 4096, response_format={"type": "json_object"})
-            if isinstance(provider, OpenAIProvider)
+            converse(REVIEW, turns, 4096, response_format={"type": "json_object"})
+            if isinstance(getattr(provider, "inner", provider), OpenAIProvider)
             else provider.converse(REVIEW, turns, 4096)
         )
         async for event in reply:
@@ -345,6 +348,6 @@ async def generate(provider: Provider, settings: Settings, request: str, languag
                 ),
             ]
         except ProviderError as exc:
-            if str(exc).startswith("playground_"):
+            if str(exc).startswith(("playground_", "ai_")):
                 raise
             raise ProviderError("playground_generation_unavailable") from exc

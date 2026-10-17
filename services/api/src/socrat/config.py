@@ -97,6 +97,12 @@ class Settings(DatabaseSettings):
     execution_profiles: list[dict] = Field(default_factory=list, max_length=3)
     execution_daily_quota: int = Field(default=400, ge=1, le=5000)
     execution_queue_limit: int = Field(default=3, ge=1, le=20)
+    # In-browser execution (Pyodide for Python, Clang/WASI for C++). The learner's browser runs
+    # the code and reports output digests; the server compares them with the expected outputs,
+    # which never leave it. Languages listed here skip the worker queue.
+    browser_runtimes: list[Literal["python", "cpp"]] = Field(
+        default=["python", "cpp"], max_length=2
+    )
 
     # Socrat assistant. Keys may also come from ANTHROPIC_API_KEY / OPENAI_API_KEY,
     # which the official SDKs resolve themselves when these are empty. "openai" covers any
@@ -117,7 +123,25 @@ class Settings(DatabaseSettings):
     ai_daily_messages: int = Field(default=150, ge=1, le=5000)
     ai_reply_tokens: int = Field(default=1500, ge=200, le=8000)
     ai_tools: bool = True  # let the tutor look up the learner's data and the library
+    # LLM cost guardrails. SOCRAT_AI_ENABLED=false is the kill switch: every model call stops
+    # and the tutor answers with curated hints. Budgets are estimated from token counts and
+    # the per-million-token prices below (set them to your provider's prices); 0 = no cap.
+    ai_enabled: bool = True
+    # Error reporting: always stored for /admin; also sent to Sentry/GlitchTip when set.
+    sentry_dsn: str = ""
+    release: str = ""
+    ai_price_input_per_mtok: float = Field(default=3.0, ge=0, le=1000)
+    ai_price_output_per_mtok: float = Field(default=15.0, ge=0, le=1000)
+    ai_user_daily_budget_usd: float = Field(default=0.5, ge=0, le=1000)
+    ai_daily_budget_usd: float = Field(default=25.0, ge=0, le=100_000)
+    ai_monthly_budget_usd: float = Field(default=400.0, ge=0, le=1_000_000)
+    ai_user_calls_per_minute: int = Field(default=12, ge=1, le=600)
     explainer_enabled: bool = True
+    # Content system (Content Master Plan §8), on for adaptive learning. Safe on thin content:
+    # unreviewed quiz families write no mastery evidence, and a pattern plan that breaks a
+    # placement rule falls back to the classic composer. SOCRAT_*_ENABLED=false turns off.
+    adaptive_quiz_enabled: bool = True
+    pattern_planner_enabled: bool = True
     explainer_model: str = ""
     explainer_chat_template_kwargs: dict = Field(default_factory=dict)
     explainer_daily_messages: int = Field(default=20, ge=1, le=200)
@@ -139,12 +163,27 @@ class Settings(DatabaseSettings):
     # Local demo conveniences (seeded sample learners). Rejected outside development/test.
     demo_mode: bool = False
 
+    # Beta community invite shown on the landing page and in the app ("" hides it).
+    community_whatsapp_url: str = Field(
+        default="", max_length=200, pattern=r"^(https://chat\.whatsapp\.com/[A-Za-z0-9]{10,40})?$"
+    )
+
+    # The signed-out "try a problem" tutor on the landing page. It shares the global AI
+    # budgets and has its own daily cap and per-visitor limits.
+    try_tutor_enabled: bool = True
+    try_daily_budget_usd: float = Field(default=3.0, ge=0, le=10_000)
+    try_messages_per_hour: int = Field(default=20, ge=1, le=500)
+
     @property
     def secure(self) -> bool:
         return self.environment in {"staging", "production"}
 
     @property
     def execution_enabled(self) -> bool:
+        return bool(self.execution_profiles or self.browser_runtimes)
+
+    @property
+    def worker_execution_enabled(self) -> bool:
         return bool(self.execution_profiles)
 
     @model_validator(mode="after")

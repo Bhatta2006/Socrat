@@ -153,7 +153,29 @@ quiz:
     answer: 0
     explanation: Three multiplications modulo p.
     difficulty: 1
-problems: [binomial-queries]
+  - id: inclusion-exclusion
+    kind: mcq
+    prompt: "How many numbers from 1 to 100 are divisible by 2 or 3?"
+    options:
+      - "67"
+      - "83"
+      - "50"
+      - "16"
+    answer: 0
+    explanation: "50 + 33 - 16 = 67: add both, then subtract the multiples of 6 counted twice."
+    difficulty: 5
+  - id: share-sweets
+    kind: mcq
+    prompt: "How many ways can 10 identical sweets be shared among 3 children (a child may get none)?"
+    options:
+      - "C(12, 2) = 66"
+      - "C(10, 3) = 120"
+      - "3^10"
+      - "C(13, 3) = 286"
+    answer: 0
+    explanation: "Stars and bars: arrange 10 stars and 2 bars, C(10 + 2, 2) = 66."
+    difficulty: 4
+problems: [binomial-queries, grid-routes-mod]
 practice_links:
   - title: Binomial Coefficients
     url: https://cses.fi/problemset/task/1079

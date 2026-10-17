@@ -1,0 +1,545 @@
+{
+  "$defs": {
+    "BankItem": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "band": {
+          "maximum": 7,
+          "minimum": 1,
+          "title": "Band",
+          "type": "integer"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "mcq",
+                "output_prediction",
+                "trace",
+                "fill_blank",
+                "parsons",
+                "bug_spot",
+                "edge_cases",
+                "complexity",
+                "classify",
+                "counterexample",
+                "short_answer"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "prompt": {
+          "maxLength": 4000,
+          "minLength": 5,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "code": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "enum": [
+              "python",
+              "cpp",
+              "java"
+            ]
+          },
+          "title": "Code",
+          "type": "object"
+        },
+        "options": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 2,
+          "title": "Options",
+          "type": "array"
+        },
+        "answer": {
+          "minimum": 0,
+          "title": "Answer",
+          "type": "integer"
+        },
+        "misconceptions": {
+          "items": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Misconceptions",
+          "type": "array"
+        },
+        "explanation": {
+          "maxLength": 2000,
+          "minLength": 5,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "pool": {
+          "anyOf": [
+            {
+              "enum": [
+                "practice",
+                "assessment"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pool"
+        },
+        "status": {
+          "default": "provisional",
+          "enum": [
+            "provisional",
+            "calibrated",
+            "retired"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "band",
+        "prompt",
+        "options",
+        "answer",
+        "explanation"
+      ],
+      "title": "BankItem",
+      "type": "object"
+    },
+    "DistractorRule": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "maxLength": 300,
+          "minLength": 2,
+          "title": "Rule",
+          "type": "string"
+        },
+        "misconception": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Misconception",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "misconception"
+      ],
+      "title": "DistractorRule",
+      "type": "object"
+    },
+    "GeneratorSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "template": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            }
+          ],
+          "title": "Template"
+        },
+        "params": {
+          "additionalProperties": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Params",
+          "type": "object"
+        },
+        "reference": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Reference",
+          "type": "string"
+        },
+        "seeds": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SeedRange"
+          },
+          "propertyNames": {
+            "enum": [
+              "practice",
+              "assessment"
+            ]
+          },
+          "title": "Seeds",
+          "type": "object"
+        }
+      },
+      "required": [
+        "template",
+        "reference",
+        "seeds"
+      ],
+      "title": "GeneratorSpec",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Who made a record, from what, under which rights. Optional: absent means legacy.\n\n``review`` is only ever written by a human; tooling never fills it in.",
+      "properties": {
+        "origin": {
+          "default": "original",
+          "enum": [
+            "original",
+            "adapted",
+            "linked",
+            "partnered"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "author": {
+          "default": "Socrat Learning",
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "authors_adapted_from": {
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "title": "Authors Adapted From",
+          "type": "array"
+        },
+        "review": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Review"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "rights": {
+          "default": "Socrat original, all rights reserved",
+          "maxLength": 300,
+          "minLength": 2,
+          "title": "Rights",
+          "type": "string"
+        },
+        "attribution_md": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Attribution Md",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "description": "Human sign-off recorded when a drafted problem is approved (item 5 of the backlog).",
+      "properties": {
+        "by": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "By",
+          "type": "string"
+        },
+        "at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "At",
+          "type": "string"
+        },
+        "notes": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "by",
+        "at"
+      ],
+      "title": "Review",
+      "type": "object"
+    },
+    "SeedRange": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        },
+        "stop": {
+          "minimum": 1,
+          "title": "Stop",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "stop"
+      ],
+      "title": "SeedRange",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "description": "One source an adapted record was derived from (Content Master Plan \u00a72.5).",
+      "properties": {
+        "source_id": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Title",
+          "type": "string"
+        },
+        "author": {
+          "maxLength": 200,
+          "minLength": 2,
+          "title": "Author",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "license_spdx": {
+          "maxLength": 64,
+          "minLength": 2,
+          "title": "License Spdx",
+          "type": "string"
+        },
+        "license_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "License Url",
+          "type": "string"
+        },
+        "retrieved_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "changes": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Changes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "title",
+        "author",
+        "url",
+        "license_spdx",
+        "license_url",
+        "retrieved_at",
+        "content_sha256"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^quiz:[a-z][a-z0-9-]{0,63}:[a-z][a-z0-9-]{0,63}:[a-z][a-z0-9-]{0,63}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "family": {
+      "pattern": "^[a-z][a-z0-9-]{0,63}$",
+      "title": "Family",
+      "type": "string"
+    },
+    "concept": {
+      "pattern": "^[a-z][a-z0-9-]{0,63}:[a-z][a-z0-9-]{0,63}$",
+      "title": "Concept",
+      "type": "string"
+    },
+    "pattern": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9-]{0,63}:[a-z][a-z0-9-]{0,63}/[a-z][a-z0-9-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pattern"
+    },
+    "format": {
+      "enum": [
+        "mcq",
+        "output_prediction",
+        "trace",
+        "fill_blank",
+        "parsons",
+        "bug_spot",
+        "edge_cases",
+        "complexity",
+        "classify",
+        "counterexample",
+        "short_answer"
+      ],
+      "title": "Format",
+      "type": "string"
+    },
+    "tracks": {
+      "items": {
+        "enum": [
+          "foundations",
+          "interview",
+          "competitive"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Tracks",
+      "type": "array"
+    },
+    "languages": {
+      "items": {
+        "enum": [
+          "python",
+          "cpp",
+          "java"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Languages",
+      "type": "array"
+    },
+    "generator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GeneratorSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/BankItem"
+      },
+      "maxItems": 200,
+      "title": "Items",
+      "type": "array"
+    },
+    "distractors": {
+      "items": {
+        "$ref": "#/$defs/DistractorRule"
+      },
+      "title": "Distractors",
+      "type": "array"
+    },
+    "hint_ladder": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 5,
+      "title": "Hint Ladder",
+      "type": "array"
+    },
+    "time_limit_s": {
+      "default": 90,
+      "maximum": 1800,
+      "minimum": 10,
+      "title": "Time Limit S",
+      "type": "integer"
+    },
+    "status": {
+      "default": "provisional",
+      "enum": [
+        "provisional",
+        "calibrated",
+        "retired"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    }
+  },
+  "required": [
+    "id",
+    "family",
+    "concept",
+    "format",
+    "tracks",
+    "languages",
+    "provenance"
+  ],
+  "title": "QuizFamily",
+  "type": "object"
+}

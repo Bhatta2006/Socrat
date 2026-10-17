@@ -178,7 +178,37 @@ quiz:
     answer: 0
     explanation: For large lo and hi their sum can exceed 2^31 − 1.
     difficulty: 2
-problems: [lower-bound-queries, koko-speed]
+  - id: midpoint-overflow
+    kind: mcq
+    prompt: "In C++ or Java with int bounds, why write mid = lo + (hi - lo) / 2?"
+    options:
+      - "lo + hi can overflow"
+      - "It rounds up"
+      - "It is required for negatives only"
+      - "It is faster"
+    answer: 0
+    explanation: "lo + hi can exceed the int range for large bounds; lo + (hi - lo) / 2 stays in range."
+    difficulty: 4
+  - id: infinite-search
+    kind: bug
+    prompt: "This search for the last x with ok(x) can loop forever. Why?"
+    code:
+      python: |
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if ok(mid):
+                lo = mid
+            else:
+                hi = mid - 1
+    options:
+      - "When hi = lo + 1 and ok(lo), mid = lo and nothing changes"
+      - "ok must be monotone decreasing"
+      - "hi should start at n"
+      - "// should be /"
+    answer: 0
+    explanation: "Rounding down makes mid = lo; with lo = mid the interval never shrinks. Use mid = (lo + hi + 1) // 2."
+    difficulty: 5
+problems: [lower-bound-queries, koko-speed, whole-square-root]
 practice_links:
   - title: Search in Rotated Sorted Array
     url: https://leetcode.com/problems/search-in-rotated-sorted-array/

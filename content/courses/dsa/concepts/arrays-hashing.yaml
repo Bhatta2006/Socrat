@@ -171,7 +171,29 @@ quiz:
     answer: 0
     explanation: With a fixed small key range, index = letter − 'a' into a 26-slot array.
     difficulty: 2
-problems: [valid-anagram, top-k-frequent]
+  - id: hash-worst-case
+    kind: mcq
+    prompt: "When can a hash-set lookup take O(n) time?"
+    options:
+      - "When many keys collide in the same bucket"
+      - "When the key is a string"
+      - "When the set has been sorted"
+      - "Never; it is always O(1)"
+    answer: 0
+    explanation: "O(1) is the expected cost; with heavy collisions (bad hashing or adversarial keys) a lookup may scan many entries."
+    difficulty: 4
+  - id: two-sum-one-pass
+    kind: mcq
+    prompt: "One-pass pair sum with a hash set: for each x you check whether target - x is in the set, then add x. Why add x only after checking?"
+    options:
+      - "So x is not paired with itself"
+      - "To keep the set sorted"
+      - "Adding first is faster"
+      - "It makes no difference"
+    answer: 0
+    explanation: "If you add x first and target = 2x, the check would wrongly find x as its own partner."
+    difficulty: 5
+problems: [valid-anagram, top-k-frequent, consecutive-run]
 practice_links:
   - title: Two Sum
     url: https://leetcode.com/problems/two-sum/

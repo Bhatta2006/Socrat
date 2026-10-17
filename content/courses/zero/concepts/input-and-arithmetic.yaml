@@ -180,7 +180,32 @@ quiz:
     answer: 0
     explanation: Even numbers leave no remainder when divided by 2.
     difficulty: 1
-problems: [greeting, time-convert]
+  - id: string-plus
+    kind: mcq
+    prompt: "A program reads two numbers with a = input() and b = input() and prints a + b. The user types 2 and 3. What is printed?"
+    options:
+      - "23"
+      - "5"
+      - "An error"
+      - "2 3"
+    answer: 0
+    explanation: "input() returns text, and + joins texts. Convert with int() before adding."
+    difficulty: 4
+  - id: negative-mod
+    kind: output
+    prompt: "What does Python print?"
+    code:
+      python: |
+        print(-7 // 2, -7 % 2)
+    options:
+      - "-4 1"
+      - "-3 -1"
+      - "-3 1"
+      - "-4 -1"
+    answer: 0
+    explanation: "Python's // rounds down (towards minus infinity), so -7 // 2 = -4, and % follows so that (-4)·2 + 1 = -7."
+    difficulty: 5
+problems: [greeting, time-convert, split-the-bill]
 practice_links:
   - title: Watermelon (even split)
     url: https://codeforces.com/problemset/problem/4/A

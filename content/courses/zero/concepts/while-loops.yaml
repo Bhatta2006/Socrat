@@ -221,7 +221,43 @@ quiz:
     answer: 0
     explanation: total absorbs 4 + 3 + 2 + 1 = 10.
     difficulty: 2
-problems: [digit-sum, collatz-steps]
+  - id: loop-count
+    kind: output
+    prompt: "How many times does the body run?"
+    code:
+      python: |
+        n = 100
+        count = 0
+        while n > 1:
+            n //= 2
+            count += 1
+        print(count)
+    options:
+      - "6"
+      - "7"
+      - "50"
+      - "5"
+    answer: 0
+    explanation: "100 → 50 → 25 → 12 → 6 → 3 → 1: six halvings before n > 1 fails."
+    difficulty: 4
+  - id: infinite-loop
+    kind: bug
+    prompt: "This loop is meant to print 10, 8, …, 2. Why does it never stop?"
+    code:
+      python: |
+        n = 10
+        while n != 1:
+            print(n)
+            n -= 2
+    options:
+      - "n goes 10, 8, …, 2, 0, -2 and never equals 1"
+      - "print stops the loop"
+      - "n -= 2 does not change n"
+      - "while needs a counter"
+    answer: 0
+    explanation: "Stepping by 2 from an even start skips 1. Use a condition like n > 0."
+    difficulty: 5
+problems: [digit-sum, collatz-steps, reverse-the-digits]
 practice_links:
   - title: Weird Algorithm
     url: https://cses.fi/problemset/task/1068

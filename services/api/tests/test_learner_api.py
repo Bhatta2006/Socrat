@@ -30,6 +30,7 @@ def client(tmp_path):
         environment="test",
         dev_login_enabled=True,
         execution_profiles=profiles(),
+        browser_runtimes=[],
         execution_signing_secret=SIGNING,
         execution_worker_secret=WORKER,
     )

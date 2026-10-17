@@ -34,9 +34,11 @@ def settings(**extra) -> Settings:
     return Settings(_env_file=None, environment="test", **extra)
 
 
-def collect(stream) -> list[Event]:
+def collect(stream, usage: bool = False) -> list[Event]:
+    """Events of a stream; token-usage events only when asked for."""
+
     async def run():
-        return [event async for event in stream]
+        return [event async for event in stream if usage or event.kind != "usage"]
 
     return asyncio.run(run())
 
@@ -327,3 +329,37 @@ def test_codeforces_fetch_profile_reads_user_and_submissions(monkeypatch):
     )
     with pytest.raises(codeforces.CodeforcesError, match="unavailable"):
         asyncio.run(codeforces.fetch_profile("ada"))
+
+
+def test_providers_report_token_usage_per_round():
+    provider, fake = openai_provider(
+        [
+            [
+                chunk("Hi", finish="stop"),
+                NS(choices=[], usage=NS(prompt_tokens=120, completion_tokens=7)),
+            ]
+        ]
+    )
+    events = collect(provider.converse("sys", [Turn("user", "hi")], 100), usage=True)
+    assert events[-1].kind == "usage"
+    assert events[-1].arguments == {"input_tokens": 120, "output_tokens": 7}
+    assert fake.requests[0]["stream_options"] == {"include_usage": True}
+
+    # Endpoints that report nothing are estimated, so budgets still apply.
+    provider, _ = openai_provider([[chunk("Hello there", finish="stop")]])
+    usage = collect(provider.converse("s" * 400, [Turn("user", "hi")], 100), usage=True)[-1]
+    assert usage.kind == "usage" and usage.arguments["input_tokens"] > 100
+
+    final = NS(
+        stop_reason="end_turn",
+        content=[],
+        usage=NS(
+            input_tokens=100,
+            output_tokens=20,
+            cache_creation_input_tokens=0,
+            cache_read_input_tokens=1000,
+        ),
+    )
+    provider, _ = anthropic_provider([(["Hi"], final)])
+    usage = collect(provider.converse("s", [Turn("user", "x")], 100), usage=True)[-1]
+    assert usage.arguments == {"input_tokens": 200, "output_tokens": 20}

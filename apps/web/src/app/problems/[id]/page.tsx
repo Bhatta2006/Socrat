@@ -6,12 +6,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { ArrowLeft, Check, ChevronDown, Cloud, CloudOff, Loader2, Minus, Play, Plus, RotateCcw, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { api, explain } from '@/lib/api';
+import { ApiError, api, explain } from '@/lib/api';
+import { reportError } from '@/lib/report-error';
 import { useGuard, useSession } from '@/lib/session';
 import { LANGUAGE_LABEL, NAME, activityHref, conceptHref, formatStamp } from '@/lib/routes';
 import type { Case, Language, ProblemView, Submission } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useEditorPrefs } from '@/lib/editor-prefs';
+import { readLocalDraft, writeLocalDraft } from '@/lib/local-drafts';
+import { runInBrowser, warm, type RunnerStage } from '@/lib/runner';
 import CodeEditor from '@/components/code-editor';
 import { parseDiagnostics } from '@/components/code-editor/diagnostics';
 import Markdown from '@/components/markdown';
@@ -45,6 +48,11 @@ const VERDICT: Record<string, { label: string; tone: Tone }> = {
   output_limit: { label: 'Output limit exceeded', tone: 'warning' },
   memory_limit: { label: 'Memory limit exceeded', tone: 'warning' },
   system_error: { label: 'Runner error. This is not your code; try again', tone: 'warning' },
+};
+const STAGE_LABEL: Record<string, string> = {
+  loading: 'Starting the runner in your browser',
+  compiling: 'Compiling in your browser',
+  running: 'Running your code in your browser',
 };
 const TONE_CLASS: Record<Tone, string> = {
   success: 'border-foreground',
@@ -139,6 +147,7 @@ export default function Problem() {
   const [runtimes, setRuntimes] = useState<Record<string, boolean>>({});
   const [result, setResult] = useState<Submission | null>(null);
   const [pending, setPending] = useState<'run' | 'submit' | null>(null);
+  const [stage, setStage] = useState<RunnerStage | null>(null);
   const [customInput, setCustomInput] = useState('');
   const [useCustom, setUseCustom] = useState(false);
   const [saved, setSaved] = useState<'saved' | 'saving' | 'unsaved'>('saved');
@@ -156,10 +165,24 @@ export default function Problem() {
     setError('');
     api
       .get<ProblemView>(`/problems/${problemId}?language=${lang}`)
-      .then(p => { setProblem(p); setSource(p.draft ?? p.starter); setSaved('saved'); })
+      .then(p => {
+        setProblem(p);
+        // Edits that never reached the server (offline, closed tab) win over the server copy.
+        const local = readLocalDraft(problemId, lang);
+        if (local && !local.synced && local.source !== (p.draft ?? p.starter)) {
+          setSource(local.source);
+          latest.current = { source: local.source, language: lang };
+          setSaved('unsaved');
+          saveTimer.current = setTimeout(() => saveDraftRef.current(), 300);
+        } else {
+          setSource(p.draft ?? p.starter);
+          setSaved('saved');
+        }
+      })
       .catch(e => setError(explain(e)));
   }, [problemId, lang]);
   useEffect(() => { if (allowed) load(); }, [allowed, load]);
+  useEffect(() => { if (allowed) void warm(lang); }, [allowed, lang]);
   useEffect(() => {
     if (!allowed) return;
     api.get<{ languages: Record<string, boolean> }>('/runtimes').then(r => setRuntimes(r.languages)).catch(() => undefined);
@@ -171,11 +194,14 @@ export default function Problem() {
     setSaved('saving');
     try {
       await api.put(`/problems/${problemId}/draft`, { source: text, language: l ?? lang });
+      writeLocalDraft(problemId, l ?? lang, text, true);
       setSaved('saved');
     } catch {
       setSaved('unsaved');
     }
   }, [problemId, lang]);
+  const saveDraftRef = useRef(saveDraft);
+  saveDraftRef.current = saveDraft;
 
   const [prefs, setPrefs] = useEditorPrefs();
   const workspace = useRef<HTMLDivElement>(null);
@@ -204,6 +230,7 @@ export default function Problem() {
   function onChange(next: string) {
     setSource(next);
     setSaved('unsaved');
+    writeLocalDraft(problemId, lang, next, false);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(saveDraft, 1500);
   }
@@ -220,7 +247,12 @@ export default function Problem() {
       if (mode === 'run' && useCustom) body.custom_input = customInput;
       let job = await api.post<Submission>(`/problems/${problemId}/${mode}`, body);
       setSaved('saved');
+      writeLocalDraft(problemId, lang, source, true);
       attempted.current = true;
+      if (job.browser) {
+        const cases = await runInBrowser(job.browser, source, setStage);
+        job = await api.post<Submission>(`/submissions/${job.id}/browser-result`, { token: job.browser.token, cases });
+      }
       const started = Date.now();
       while (job.status !== 'done' && Date.now() - started < 90_000) {
         await new Promise(r => setTimeout(r, job.status === 'queued' ? 600 : 400));
@@ -237,9 +269,12 @@ export default function Problem() {
         setProblem(p => p && { ...p, history: [{ id: job.id, mode: job.mode, verdict: job.verdict, status: job.status, passed: job.passed, total: job.total, at: job.created_at }, ...p.history].slice(0, 10) });
       }
     } catch (e) {
+      // Runner failures in the browser (not API refusals) are ours to fix.
+      if (!(e instanceof ApiError)) reportError('runner', e);
       setError(explain(e));
     } finally {
       setPending(null);
+      setStage(null);
     }
   }
 
@@ -459,7 +494,7 @@ export default function Problem() {
           {!features?.code_execution ? (
             <p className="rounded-[16px] border px-4 py-3 text-[15px]">Code execution is turned off on this server. Your drafts still save, and Soc can review your code.</p>
           ) : !runtimeReady ? (
-            <div className="flex items-start gap-3 rounded-[16px] border border-attention px-4 py-3 text-[15px]"><AttentionIcon /> <span>The {LANGUAGE_LABEL[lang]} runner is offline. Start the execution worker, or switch language.</span></div>
+            <div className="flex items-start gap-3 rounded-[16px] border border-attention px-4 py-3 text-[15px]"><AttentionIcon /> <span>{LANGUAGE_LABEL[lang]} needs Socrat's server runner, which is offline right now. Python and C++ run in your browser; switch language to run your code.</span></div>
           ) : null}
           <p className="hidden text-[13px] text-muted-foreground sm:block">
             <kbd className="rounded-md border border-border-strong px-1.5 font-sans">Ctrl Enter</kbd> runs tests. <kbd className="rounded-md border border-border-strong px-1.5 font-sans">Ctrl Shift Enter</kbd> submits.
@@ -471,7 +506,7 @@ export default function Problem() {
           <div aria-live="polite">
             {pending && result?.status !== 'done' ? (
               <p className="flex items-center gap-2 rounded-[16px] border px-4 py-3 text-[15px] text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> {result?.status === 'running' ? 'Running your code' : 'Waiting for a runner'}
+                <Loader2 className="size-4 animate-spin" /> {stage?.startsWith('downloading:') ? `Downloading the C++ compiler to your browser (once): ${stage.split(':')[1]}%` : STAGE_LABEL[stage ?? ''] ?? (result?.status === 'running' ? 'Running your code' : 'Waiting for a runner')}
               </p>
             ) : null}
             {verdict && result ? (

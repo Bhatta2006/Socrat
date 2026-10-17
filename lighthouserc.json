@@ -3,7 +3,7 @@
     "collect": {
       "url": ["http://localhost:3000/", "http://localhost:3000/login"],
       "numberOfRuns": 3,
-      "settings": { "preset": "perf", "formFactor": "mobile", "screenEmulation": { "mobile": true, "width": 390, "height": 844, "deviceScaleFactor": 3 }, "throttlingMethod": "simulate" }
+      "settings": { "preset": "perf", "formFactor": "mobile", "screenEmulation": { "mobile": true, "width": 390, "height": 844, "deviceScaleFactor": 3 }, "throttlingMethod": "devtools" }
     },
     "assert": {
       "assertions": {

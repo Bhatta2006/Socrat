@@ -5,8 +5,13 @@ export function activityHref(id: string): string {
   const [kind, ...rest] = id.split(':');
   if (kind === 'lesson') return `/learn/${rest.join('/')}`;
   if (kind === 'problem') return `/problems/${rest.join('/')}`;
+  // Support steps live on the concept's lesson page, which shows the step on top.
+  if (SUPPORT_STEPS.includes(kind)) return `/learn/${rest.join('/')}?step=${kind}`;
   return `/quiz/${kind}/${rest.join('/')}`;
 }
+
+/** Activities that open on the lesson page and that the learner marks done themselves. */
+export const SUPPORT_STEPS = ['example', 'explain', 'checkin', 'stretch'];
 
 export function conceptHref(qualified: string): string {
   return `/learn/${qualified.split(':').join('/')}`;
@@ -30,6 +35,8 @@ export const NAME = {
   problems: 'Problems',
   companies: 'Company questions',
   sprint: 'Focus sprint',
+  companySprint: 'Company sprint',
+  passport: 'Skill Passport',
   assessment: 'Weekly assessment',
 } as const;
 
@@ -39,16 +46,17 @@ export type NavKey = 'today' | 'skills' | 'practice' | 'playground' | 'evidence'
 export const NAV: { key: NavKey; href: string; label: string; owns: string[] }[] = [
   { key: 'today', href: '/today', label: NAME.today, owns: ['/today'] },
   { key: 'skills', href: '/plan', label: NAME.skills, owns: ['/plan', '/learn', '/quiz'] },
-  { key: 'practice', href: '/library', label: NAME.practice, owns: ['/library', '/companies', '/sprint', '/problems'] },
+  { key: 'practice', href: '/library', label: NAME.practice, owns: ['/library', '/companies', '/company-sprint', '/sprint', '/problems'] },
   { key: 'playground', href: '/playground', label: NAME.playground, owns: ['/playground'] },
   { key: 'evidence', href: '/progress', label: NAME.evidence, owns: ['/progress', '/assessments'] },
   { key: 'settings', href: '/settings', label: NAME.settings, owns: ['/settings'] },
 ];
 
-/** Practice is one place with three views; each segment is a real route. */
+/** Practice is one place with four views; each segment is a real route. */
 export const PRACTICE_SEGMENTS = [
   { href: '/library', label: NAME.problems },
   { href: '/companies', label: NAME.companies },
+  { href: '/company-sprint', label: NAME.companySprint },
   { href: '/sprint', label: NAME.sprint },
 ] as const;
 
@@ -63,7 +71,21 @@ export const KIND_LABEL: Record<ActivityKind, string> = {
   checkpoint: 'Checkpoint',
   review: 'Review',
   remedial: 'Refresher',
+  probe: 'Foundations check',
+  testout: 'Test-out',
+  moduletest: 'Module test-out',
+  example: 'Worked example',
+  explain: 'Another explanation',
+  checkin: 'Talk it through',
+  stretch: 'Stretch',
 };
+
+export const STYLE_LABEL = {
+  thorough: 'Thorough',
+  balanced: 'Balanced',
+  fast_track: 'Fast track',
+  goal_focused: 'Goal focused',
+} as const;
 
 export const LANGUAGE_LABEL = { python: 'Python', cpp: 'C++', java: 'Java' } as const;
 

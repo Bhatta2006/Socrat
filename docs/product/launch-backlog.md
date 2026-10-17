@@ -19,6 +19,15 @@ Priorities:
 
 ## Progress log
 
+- **2026-10-17 — Tier 0 beta blockers:**
+  - **Code runs in the learner's browser** (item 13's execution blocker). Python runs in Pyodide 314 and C++20 in YoWASP Clang 22 compiled to WebAssembly, each in a Web Worker (`apps/web/public/runner/`, `src/lib/runner.ts`). The server sends test inputs only; the browser returns a SHA-256 digest of each normalized output, and the server judges pass or fail against the expected outputs, which never leave it (`judge/service.py`, `POST /submissions/{id}/browser-result`). Time limits are 3× (Python) and 2× (C++) the native limit, enforced by terminating the worker. `bits/stdc++.h` is provided, a 64 MB stack is linked, and C++ exceptions end the program with a clear message (the WASI libc++ has no exception support). Java stays on the server worker: TeaVM's in-browser compiler lacks `Scanner`/`System.setIn`, and CheerpJ needs a commercial licence for teams. Runtimes are copied from `node_modules` into `public/runtimes/<name>-<version>/` before `dev` and `build` (not committed) and served as immutable files; the C++ compiler is about 100 MB, downloaded once per browser with progress shown. Drafts are also kept in `localStorage` and restored when the server never received them. `tests/e2e/browser-runner.spec.ts` covers accept, wrong answer, runtime error, compile error, deep recursion, time limits and offline drafts; it passes on Windows (Edge) against both `next dev` and a production build.
+  - **LLM cost guardrails** (item 9). Every model call goes through `assistant/budget.py`: a kill switch (`SOCRAT_AI_ENABLED`), a per-learner burst limit, per-learner daily, global daily and monthly USD budgets estimated from reported token counts (migration `0013_ai_usage`). A refused call falls back to curated hints. `/admin` shows spend against the budgets, per feature and per learner. Set `SOCRAT_AI_PRICE_*_PER_MTOK` to the provider's real prices.
+  - **Error reporting** (item 13). Server exceptions, browser crashes (`window.onerror`, unhandled rejections, the route error boundary, runner failures) and learner "Report a problem" messages are grouped in `error_reports` (migration `0014_error_reports`) and listed in `/admin` with a resolve action. No third-party script; `SOCRAT_SENTRY_DSN` additionally forwards server exceptions to Sentry or GlitchTip.
+  - **Legal pages:** `/privacy` and `/terms`, linked from the landing footer, login and Settings. Facts live in `apps/web/src/lib/legal.ts`. **Needs owner review:** operator name, contact addresses, the under-18 policy under India's DPDP Act, and the AI provider's training terms.
+  - **e2e database:** Playwright now deletes `socrat.e2e.db` before migrating, so a file from another branch can no longer block the API server.
+  - **Landing LCP:** the hero heading and sample card no longer fade in, and below-the-fold sections use `content-visibility: auto`. With applied mobile throttling, LCP is 2.18 s (landing) and 2.19 s (login); Lighthouse CI now uses applied throttling, as its simulation reported about 3.9 s for the same build.
+  - **Content:** 27 new original judge problems (112 in total), each with a brute force and small and maximum-size generators, passing the strict gates: one more per concept in the first three Zero modules, the first two DSA modules and the first two CP modules. 50 harder concept-check items (difficulty 4 and 5) for the same 25 concepts, so module gates now reach the top bands (284 items in total).
+
 - **2026-10-15 — UI redesign, "Learn it. Then prove it.":**
   - Violet, lilac, cream and ink palette with lime reserved for mastery and review due; new brand mark, Geist display, Figtree body, JetBrains Mono code (fonts vendored).
   - Status system (shape, label, colour) mapped to roadmap status and mastery bands; six-item navigation (Today, Skills, Practice, Playground, Evidence, Settings) with a five-item phone nav.
@@ -93,7 +102,7 @@ Priorities:
 - **2026-10-13 — Item 7 (personalised reading), mechanism:** done.
   - Lessons show 3 resources picked by the learner's band and language, ranked by Bayesian-smoothed community helpfulness and the learner's own history (opened or unhelpful).
   - The rest sit behind "More resources", with helpful and not-helpful feedback (`resource_events`, migration `0005_feedback`).
-  - The weekly `content-link-check` workflow runs `scripts/content/check_links.py`.
+  - The weekly `content-link-check` workflow runs `scripts/content/link_health.py --live` and uploads its CSV report.
   - Remaining: growing the catalogue to 6–10 vetted resources per concept, which needs owner approval of sources.
 - **2026-10-13 — Item 9 (tutor quality), UX part:** done.
   - Thumbs up and down on tutor replies (`assistant_messages.rating`), included in the export.

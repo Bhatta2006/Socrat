@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline · Socrat</title>
+<style>
+  :root { color-scheme: light dark; --bg: #F6F4FA; --fg: #0E0D14; --muted: #5d5a6b; --accent: #7D39EB; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0F0E14; --fg: #F4F2FA; --muted: #a9a6b8; } }
+  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 26rem; padding: 0 16px; text-align: center; }
+  h1 { font-size: 1.75rem; letter-spacing: -0.03em; margin: 1rem 0 0.5rem; }
+  p { color: var(--muted); margin: 0 0 1.5rem; }
+  button { font: inherit; font-weight: 600; min-height: 44px; padding: 0 1.25rem; border-radius: 999px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icons/icon-192.png" width="64" height="64" alt="">
+  <h1>You are offline</h1>
+  <p>Socrat needs a connection to check your work and save evidence. Your drafts are kept on this device.</p>
+  <button type="button" onclick="location.reload()">Try again</button>
+</main>
+</body>
+</html>

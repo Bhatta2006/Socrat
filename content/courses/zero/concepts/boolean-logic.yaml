@@ -164,4 +164,26 @@ quiz:
     answer: 0
     explanation: Because the left side is false, and already knows the answer and never evaluates the right side.
     difficulty: 2
-problems: [leap-year]
+  - id: negate-both
+    kind: mcq
+    prompt: "Which expression is equivalent to not (a and b)?"
+    options:
+      - "(not a) or (not b)"
+      - "(not a) and (not b)"
+      - "not a and b"
+      - "a or b"
+    answer: 0
+    explanation: "De Morgan's law: not (a and b) is true when at least one of a, b is false."
+    difficulty: 4
+  - id: guard-first
+    kind: mcq
+    prompt: "xs may be empty. Which condition is safe to evaluate?"
+    options:
+      - "len(xs) > 0 and xs[0] == 5"
+      - "xs[0] == 5 and len(xs) > 0"
+      - "xs[0] == 5 or len(xs) > 0"
+      - "Both of the first two"
+    answer: 0
+    explanation: "and stops at the first false operand, so the length check must come first to protect xs[0]."
+    difficulty: 5
+problems: [leap-year, club-entry]

@@ -39,8 +39,20 @@ from socrat.models import (
 )
 
 HISTORY_TURNS = 12
+PLANNING_MODE = (
+    "You are building this learner's roadmap with them. Interview them one question at a "
+    "time, in this order, skipping anything the context already answers: what they want "
+    "(job interviews and which role, contests and a target rating, or programming "
+    "foundations); any date they are working toward; what they already know and what feels "
+    "shaky; how much time they can give per day and on which days; and what worries them. "
+    "After at most five questions, summarise the plan in three or four bullets, then call "
+    "propose_goal (and propose_plan_change for schedule or path style when they named one) "
+    "so they can confirm on screen. Never claim the plan changed until they accept."
+)
 LANGUAGE_NAMES = {"python": "Python", "cpp": "C++", "java": "Java"}
-_SCOPE = re.compile(r"^(general|problem:[a-z0-9-]{1,64}|concept:[a-z0-9-]{1,64}:[a-z0-9-]{1,64})$")
+_SCOPE = re.compile(
+    r"^(general|plan|problem:[a-z0-9-]{1,64}|concept:[a-z0-9-]{1,64}:[a-z0-9-]{1,64})$"
+)
 
 
 @dataclass
@@ -173,7 +185,62 @@ def learner_sections(
         "mastery": mastery or "No scored evidence yet.",
         "next_up": "\n".join(upcoming) or "Nothing scheduled.",
         "recent_results": recent_text or "No results yet.",
+        "adaptive": adaptive_section(db, catalog, enrollment, plan, states, now),
     }
+
+
+def adaptive_section(db: Session, catalog: Catalog, enrollment, plan, states, now: int) -> str:
+    """What the planner sees: stuck signals, trends, mistakes, deadline, pending changes."""
+    from socrat.adaptive import proposals
+    from socrat.adaptive import service as adaptive
+
+    if enrollment.status != "active":
+        return ""
+    skill = adaptive.build_profiles(db, catalog, enrollment, states, now)
+    stuck = adaptive.stuck_map(skill, now)
+    lines = [f"Path style: {plan.style}; goal focus: {plan.focus}."]
+    forecast = plan.forecast
+    if forecast.get("target_date"):
+        status = "on track" if forecast.get("on_track") else "BEHIND"
+        lines.append(
+            f"Target date {forecast['target_date']}: {status} (realistic finish "
+            f"{forecast['realistic_finish']}, studies {round(forecast['adherence'] * 100)}% "
+            "of planned time)."
+        )
+    elif forecast.get("adherence", 1) < 0.8:
+        lines.append(f"Studies about {round(forecast['adherence'] * 100)}% of planned time.")
+    for concept, found in list(stuck.items())[:3]:
+        lines.append(f"STUCK on {catalog.concept(concept).title}: {found.summary}")
+    trending = [
+        f"{catalog.concept(p.concept).title} {'up' if p.trend > 0 else 'down'}"
+        for p in skill.values()
+        if p.trend is not None and abs(p.trend) >= 0.2
+    ][:4]
+    if trending:
+        lines.append(f"Trends this week: {', '.join(trending)}.")
+    mistakes = sorted({m for p in skill.values() for m, n in p.misconceptions.items() if n >= 2})[
+        :4
+    ]
+    if mistakes:
+        lines.append(f"Recurring mistakes: {', '.join(mistakes)}.")
+    leaning = [
+        catalog.concept(p.concept).title
+        for p in skill.values()
+        if p.hint_dependence >= 0.6 and p.attempts >= 3
+    ][:3]
+    if leaning:
+        lines.append(f"Relies on hints for: {', '.join(leaning)}.")
+    waiting = proposals.pending(db, enrollment)
+    if waiting:
+        lines.append(
+            "Plan changes waiting for the learner's decision: "
+            + "; ".join(p.title for p in waiting[:4])
+        )
+    if plan.milestones:
+        first = plan.milestones[0]
+        names = ", ".join(c["title"] for c in first["concepts"][:3])
+        lines.append(f"This week's milestone (ends {first['ends']}): {names}.")
+    return "\n".join(lines)
 
 
 def problem_sections(
@@ -319,6 +386,11 @@ def prepare(
         sections["help_policy"] = (
             "ALLOWED_LEVEL: 5 — general concept teaching (not a graded problem)."
         )
+    elif scope == "plan":
+        sections["help_policy"] = (
+            "ALLOWED_LEVEL: 5 — planning conversation about the learner's goal and roadmap."
+        )
+        sections["planning_mode"] = PLANNING_MODE
     else:
         sections["help_policy"] = (
             "ALLOWED_LEVEL: 5 — general questions about learning and the plan."

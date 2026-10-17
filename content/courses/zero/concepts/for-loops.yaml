@@ -189,7 +189,39 @@ quiz:
     answer: 0
     explanation: break exits the loop; continue skips to the next round.
     difficulty: 1
-problems: [fizzbuzz, sum-of-multiples]
+  - id: range-step
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        print(list(range(10, 0, -3)))
+    options:
+      - "[10, 7, 4, 1]"
+      - "[10, 7, 4, 1, -2]"
+      - "[10, 7, 4]"
+      - "[]"
+    answer: 0
+    explanation: "range stops before reaching 0 when stepping by -3: 10, 7, 4, 1."
+    difficulty: 4
+  - id: modify-loop-var
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        total = 0
+        for i in range(3):
+            i = i * 10
+            total += i
+        print(total)
+    options:
+      - "30"
+      - "3"
+      - "0"
+      - "60"
+    answer: 0
+    explanation: "Reassigning i changes this iteration only; range still supplies 0, 1, 2, so total = 0 + 10 + 20."
+    difficulty: 5
+problems: [fizzbuzz, sum-of-multiples, times-table]
 practice_links:
   - title: Way Too Long Words
     url: https://codeforces.com/problemset/problem/71/A

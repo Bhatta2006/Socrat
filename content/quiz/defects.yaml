@@ -1,0 +1,108 @@
+# Defect catalogue for mutation items (Content Master Plan §8.6). Each defect is one
+# controlled change to a correct snippet. Generators supply the concrete line edit per
+# language; the verifier checks the defect is observable on the item's input.
+defects:
+  - id: bs-inclusive-compare
+    kind: wrong-comparison
+    misconception: lower-vs-upper-bound
+    description: Comparing with <= instead of < moves past equal values, so the search finds the upper bound.
+  - id: bs-closed-hi
+    kind: wrong-init
+    misconception: half-open-bound
+    description: hi starts at the last index in a half-open search, so the length is never returned.
+  - id: bs-skip-mid
+    kind: off-by-one
+    misconception: exclude-candidate-mid
+    description: hi = mid - 1 throws mid away even though mid may be the answer.
+  - id: sw-overwrite-best
+    kind: wrong-update
+    misconception: overwrite-best
+    description: best is set to the current window length, so it forgets a longer earlier window.
+  - id: sw-length-off-by-one
+    kind: off-by-one
+    misconception: window-length-off-by-one
+    description: The window length is measured as right - left, one short.
+  - id: sw-drop-wrong-end
+    kind: missing-update
+    misconception: drop-wrong-end
+    description: Shrinking subtracts the entering element instead of the one that leaves.
+  - id: akd-boundary
+    kind: wrong-comparison
+    misconception: k-distinct-boundary
+    description: The window shrinks while at least k values are inside, so it never holds exactly k.
+  - id: ap-strict-predicate
+    kind: wrong-comparison
+    misconception: predicate-boundary
+    description: The feasibility check uses < instead of <=, rejecting an answer that fits exactly.
+  - id: ap-skip-mid
+    kind: off-by-one
+    misconception: exclude-candidate-mid
+    description: A feasible mid is discarded with hi = mid - 1 although it may be the best answer.
+  - id: dp-missing-plus-one
+    kind: wrong-update
+    misconception: dp-missing-plus-one
+    description: The transition forgets to count the coin just used.
+  - id: dp-coin-boundary
+    kind: wrong-comparison
+    misconception: coin-equals-amount
+    description: A coin equal to the amount is never used because the check is c < a.
+  - id: dp-wrong-subproblem
+    kind: wrong-update
+    misconception: dp-wrong-subproblem
+    description: The transition builds on dp[a - 1] instead of dp[a - c].
+  - id: filter-boundary
+    kind: wrong-comparison
+    misconception: filter-boundary
+    description: The test keeps values equal to the limit (>=) although only greater values count.
+  - id: filter-count-not-sum
+    kind: wrong-update
+    misconception: count-not-sum
+    description: The loop adds 1 per passing value instead of the value itself.
+  - id: filter-overwrite
+    kind: wrong-update
+    misconception: overwrite-not-accumulate
+    description: The total is replaced by each passing value instead of growing.
+  - id: freq-overwrite
+    kind: wrong-update
+    misconception: overwrite-not-accumulate
+    description: A letter's counter is set to 1 instead of increased.
+  - id: freq-single-bucket
+    kind: wrong-update
+    misconception: frequency-single-bucket
+    description: Every letter is counted in counts[0] instead of its own counter.
+  - id: diff-end-off-by-one
+    kind: off-by-one
+    misconception: diff-end-off-by-one
+    description: The cancel mark goes at r instead of r + 1, so position r loses the addition.
+  - id: diff-sign-error
+    kind: wrong-update
+    misconception: diff-sign-error
+    description: The mark after the range adds x instead of cancelling it.
+  - id: diff-missing-prefix
+    kind: wrong-update
+    misconception: missing-prefix-sum
+    description: The rebuild copies each mark instead of keeping a running sum.
+  - id: pow-parity
+    kind: wrong-comparison
+    misconception: fast-power-parity
+    description: The power is multiplied in on 0 bits of the exponent instead of 1 bits.
+  - id: pow-base-not-square
+    kind: wrong-update
+    misconception: fast-power-base-not-square
+    description: The result is multiplied by the base instead of the current square.
+  - id: pow-double-not-square
+    kind: wrong-update
+    misconception: square-vs-double
+    description: The running power is doubled instead of squared.
+  - id: subset-too-few-masks
+    kind: off-by-one
+    misconception: subset-count-off-by-one
+    description: The mask loop stops at 2^(n-1), so the last element is never chosen.
+  - id: subset-wrong-bit-test
+    kind: wrong-comparison
+    misconception: bit-test-wrong
+    description: mask & i tests the bits of i instead of bit number i.
+  - id: subset-add-index
+    kind: wrong-update
+    misconception: confuse-index-value
+    description: The subset sum adds the index i instead of the value a[i].

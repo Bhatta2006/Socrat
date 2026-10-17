@@ -23,6 +23,8 @@ EvidenceKind = Literal[
     "retrieval",
     "debug",
     "explanation",
+    "testout",
+    "tutor",
 ]
 WEIGHTS: dict[str, float] = {
     "placement": 1.0,
@@ -30,18 +32,26 @@ WEIGHTS: dict[str, float] = {
     "code": 1.2,
     "checkpoint": 1.6,
     "review": 1.4,
-    "external": 0.3,  # self-reported solve on another site
-    "verified": 0.6,  # accepted on Codeforces, confirmed through its public API
+    "external": 0.4,  # self-reported solve on another site
+    "verified": 0.9,  # accepted on Codeforces, confirmed through its public API
     "guided": 0.25,
     "trace": 0.6,
     "retrieval": 0.6,
     "debug": 0.6,
     "explanation": 0.6,
+    # A passed test-out is strong, deliberate proof: enough on its own to clear a concept.
+    "testout": 8.0,
+    # A tutor observation can only flag a gap (score <= 0.5), never manufacture mastery.
+    "tutor": 0.15,
 }
 # Socratic assistance level 0–5 → how much a success still counts.
 ASSISTANCE = (1.0, 0.85, 0.7, 0.5, 0.3, 0.1)
 REVIEW_DAYS = (1, 3, 7, 14, 30, 60)
 MAX_STEP = 0.15
+# A learner with a clean independent record may move faster (C5), and a test-out further.
+FAST_STEP = 0.25
+TESTOUT_STEP = 0.5
+TUTOR_MAX_SCORE = 0.5
 MASTERED = 0.8
 MIN_CONFIDENCE = 0.55
 PRIOR = 2.0  # alpha + beta of the default prior
@@ -105,9 +115,14 @@ def apply(
     score: float,
     now: int,
     assistance: int = 0,
+    interval_scale: float = 1.0,
 ) -> ConceptState:
+    """Fold one piece of evidence in. ``interval_scale`` stretches or shrinks review spacing
+    to the learner's own forgetting rate (see ``socrat.adaptive.profile.review_scale``)."""
     if not 0 <= score <= 1:
         raise ValueError("score must be within [0, 1]")
+    if kind == "tutor" and score > TUTOR_MAX_SCORE:
+        raise ValueError("tutor observations can only flag gaps")
     if not 0 <= assistance < len(ASSISTANCE):
         raise ValueError("assistance level out of range")
     weight = WEIGHTS[kind] * (ASSISTANCE[assistance] if score >= 0.5 else 1.0)
@@ -115,8 +130,9 @@ def apply(
     beta = state.beta + weight * (1 - score)
     # Cap one event's influence on the estimate.
     before, after = state.mean, alpha / (alpha + beta)
-    if abs(after - before) > MAX_STEP:
-        target = before + math.copysign(MAX_STEP, after - before)
+    cap = step_cap(state, kind, score, assistance)
+    if abs(after - before) > cap:
+        target = before + math.copysign(cap, after - before)
         total = alpha + beta
         alpha, beta = target * total, (1 - target) * total
     success = score >= 0.7
@@ -125,7 +141,8 @@ def apply(
         step = min(state.review_step + 1, len(REVIEW_DAYS))
     else:
         step = 0
-    review_at = now + REVIEW_DAYS[max(0, step - 1)] * DAY
+    scale = min(1.5, max(0.5, interval_scale))
+    review_at = now + int(REVIEW_DAYS[max(0, step - 1)] * DAY * scale)
     return replace(
         state,
         alpha=alpha,
@@ -139,6 +156,15 @@ def apply(
         next_review_at=review_at,
         assumed=state.assumed and success,
     )
+
+
+def step_cap(state: ConceptState, kind: str, score: float, assistance: int) -> float:
+    if kind == "testout":
+        return TESTOUT_STEP
+    clean = state.independent_successes >= 2 and state.failures == 0
+    if clean and score >= 0.7 and assistance == 0:
+        return FAST_STEP
+    return MAX_STEP
 
 
 def band(state: ConceptState, now: int) -> str:

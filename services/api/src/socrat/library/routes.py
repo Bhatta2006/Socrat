@@ -8,10 +8,11 @@ from sqlalchemy.orm import Session
 
 from socrat.catalog import practice
 from socrat.database import record_event
+from socrat.learn import service as learn_service
 from socrat.learn.routes import active, catalog, engine, user_of
-from socrat.library import codeforces, sprints
+from socrat.library import codeforces, company_sprint, sprints
 from socrat.library import service as library
-from socrat.models import FocusSprint, LinkedAccount, now
+from socrat.models import CompanySprint, FocusSprint, LinkedAccount, now
 
 router = APIRouter(prefix="/api/v1/library")
 SYNC_COOLDOWN_SECONDS = 600
@@ -236,3 +237,56 @@ async def contests(request: Request):
     with Session(engine(request)) as db:
         user_of(request, db)
     return {"items": await codeforces.upcoming_contests()}
+
+
+# ---------------------------------------------------------------- company sprints
+
+
+class CompanySprintInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    company: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,79}$")
+    role: Literal["intern", "sde1", "sde2", "senior"] = "sde1"
+    weeks: Literal[4, 6, 8] = 6
+
+
+@router.get("/company-sprints")
+def company_sprint_overview(request: Request, q: str = ""):
+    cat = catalog()
+    with Session(engine(request)) as db:
+        user = user_of(request, db)
+        enrollment = active(db, user)
+        stamp = now()
+        running = company_sprint.active(db, enrollment)
+        scope = learn_service.curriculum(cat, enrollment)
+        return {
+            "current": company_sprint.view(db, cat, user, running, stamp) if running else None,
+            "companies": company_sprint.companies(cat, scope, q[:60]),
+            "roles": [dict(id=k, label=v) for k, v in company_sprint.ROLE_LABEL.items()],
+            "weeks": list(company_sprint.WEEKS),
+        }
+
+
+@router.post("/company-sprints")
+def start_company_sprint(body: CompanySprintInput, request: Request):
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        enrollment = active(db, user)
+        stamp = now()
+        sprint = company_sprint.start(
+            db, cat, user, enrollment, body.company, body.role, body.weeks, stamp
+        )
+        record_event(db, user.id, "company_sprint.started", sprint.id)
+        return company_sprint.view(db, cat, user, sprint, stamp)
+
+
+@router.post("/company-sprints/{sprint_id}/stop")
+def stop_company_sprint(sprint_id: str, request: Request):
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        enrollment = active(db, user)
+        sprint = db.get(CompanySprint, sprint_id)
+        if sprint is None or sprint.enrollment_id != enrollment.id:
+            raise HTTPException(404, "not_found")
+        company_sprint.stop(sprint, now())
+        return {"stopped": True}

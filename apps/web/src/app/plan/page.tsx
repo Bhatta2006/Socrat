@@ -2,11 +2,15 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, MessageCircle } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { KIND_LABEL, NAME, PACE_LABEL, activityHref, conceptHref, formatDate, formatStamp, hours } from '@/lib/routes';
-import type { PlanView } from '@/lib/types';
+import { KIND_LABEL, NAME, PACE_LABEL, STYLE_LABEL, activityHref, conceptHref, formatDate, formatStamp, hours } from '@/lib/routes';
+import type { PlanView, RoadmapItem } from '@/lib/types';
+import Assistant from '@/components/assistant';
+import { Milestones, PathStyles, WeeklyReviewPanel } from '@/components/socrat/plan-adaptive';
+import { ProposalList } from '@/components/socrat/proposals';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ErrorNote, Loading, Page, Reveal } from '@/components/common';
 import { Illustration } from '@/components/socrat/illustration';
@@ -18,6 +22,34 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 const FINISHED = ['mastered', 'assumed', 'practiced'];
+const FOCUS_LABEL = { foundations: 'programming foundations', interview: 'coding interviews', contest: 'contests' } as const;
+
+/** Learner-owned changes to one concept, each with a way to take it back. */
+function OverrideBadges({ item, undo }: { item: RoadmapItem; undo: (kind: string, concept: string) => void }) {
+  const chips: { label: string; kind?: string }[] = [];
+  if (item.status === 'optional') chips.push({ label: 'Optional for your goal' });
+  if (item.status === 'skipped') chips.push({ label: 'Dropped', kind: 'skip' });
+  if (item.priority) chips.push({ label: 'Focus', kind: 'prioritize' });
+  if (item.deferred) chips.push({ label: 'Set aside', kind: 'defer' });
+  return (
+    <>
+      {chips.map(c => (
+        <span key={c.label} className="inline-flex items-center gap-1">
+          <Badge variant="secondary">{c.label}</Badge>
+          {c.kind ? (
+            <button
+              type="button"
+              className="text-[13px] font-semibold underline underline-offset-4"
+              onClick={e => { e.preventDefault(); undo(c.kind!, item.concept); }}
+            >
+              Undo<span className="sr-only"> {c.label.toLowerCase()} for {item.title}</span>
+            </button>
+          ) : null}
+        </span>
+      ))}
+    </>
+  );
+}
 
 /** A native disclosure styled as a card section; keyboard accessible by default. */
 function Disclosure({ id, title, children, defaultOpen = false }: { id: string; title: string; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -37,6 +69,7 @@ export default function PlanPage() {
   const [plan, setPlan] = useState<PlanView | null>(null);
   const [error, setError] = useState('');
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
+  const [planChat, setPlanChat] = useState(0);
 
   // Remember which modules were locked; one that opened since the last visit draws its outline once.
   useEffect(() => {
@@ -59,6 +92,10 @@ export default function PlanPage() {
   }, []);
   useEffect(() => { if (allowed) load(); }, [allowed, load]);
 
+  const undo = useCallback((kind: string, concept: string) => {
+    api.post('/adaptive/overrides/undo', { kind, concept }).then(load).catch(e => setError(explain(e)));
+  }, [load]);
+
   if (!allowed || (!plan && !error)) return <Loading label="Loading your skills" />;
   if (!plan) return <Page><ErrorNote message={error} retry={load} /></Page>;
 
@@ -67,6 +104,10 @@ export default function PlanPage() {
   const guides = plan.modules.flatMap(m => m.concepts).filter(c => c.status !== 'locked' && c.roadmap_resources?.length);
   // The next checkpoint stays in view: the first locked module starts open.
   const firstLocked = plan.modules.find(m => m.locked_by)?.id;
+  const pending = plan.proposals.pending;
+  const behind = plan.forecast.on_track === false;
+  const deadlineOptions = pending.some(p => p.group.startsWith('deadline'));
+  const stretch = plan.proposals.overrides.stretch;
 
   return (
     <Page wide>
@@ -74,12 +115,29 @@ export default function PlanPage() {
         <header className="mb-8">
           <p className="type-label mb-3 text-muted-foreground">{NAME.skills}</p>
           <h1 className="type-display-l">Your skills</h1>
-          <p className="mt-3 max-w-2xl text-base text-muted-foreground">Read, check, then practise. Each skill shows what your evidence supports.</p>
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">
+            Your roadmap for {FOCUS_LABEL[plan.focus]}, on the {STYLE_LABEL[plan.style]} path. It adapts to your results, and Socrat asks before changing it.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setPlanChat(n => n + 1)}><MessageCircle data-icon="inline-start" /> Plan with Soc</Button>
+          </div>
         </header>
       </Reveal>
 
       <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
         <div className="grid min-w-0 content-start gap-4 lg:col-span-8 lg:gap-6">
+          {pending.length ? (
+            <Card id="proposals" aria-labelledby="proposals-heading">
+              <div className="grid gap-3 px-(--card-spacing)">
+                <div>
+                  <h2 id="proposals-heading" className="font-display text-xl font-bold tracking-[-0.03em]">Socrat suggests</h2>
+                  <p className="mt-1 text-[15px] text-muted-foreground">Based on how you&apos;re doing. Nothing changes unless you accept.</p>
+                </div>
+                <ProposalList proposals={pending} onDecided={load} />
+              </div>
+            </Card>
+          ) : null}
+
           {/* Hero: the current module. */}
           {current ? (
             <Reveal index={1}>
@@ -91,9 +149,14 @@ export default function PlanPage() {
                   <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                     <div><dt className="text-sm text-(--card-muted)">Skills done</dt><dd className="type-display-m tabular-nums">{currentDone}/{current.concepts.length}</dd></div>
                     <div><dt className="text-sm text-(--card-muted)">Study left</dt><dd className="font-display text-2xl font-bold tracking-[-0.03em] tabular-nums">{hours(plan.remaining_minutes)}</dd></div>
-                    <div className="col-span-2 sm:col-span-1"><dt className="text-sm text-(--card-muted)">Course finish</dt><dd className="font-display text-2xl font-bold tracking-[-0.03em]" data-visual-mask="">{formatDate(plan.projected_finish, { month: 'short', day: 'numeric', year: 'numeric' })}</dd></div>
+                    <div className="col-span-2 sm:col-span-1"><dt className="text-sm text-(--card-muted)">Likely finish</dt><dd className="font-display text-2xl font-bold tracking-[-0.03em]" data-visual-mask="">{formatDate(plan.forecast.realistic_finish, { month: 'short', day: 'numeric', year: 'numeric' })}</dd></div>
                   </dl>
                   <p className="max-w-lg text-[15px] text-(--card-muted)">{PACE_LABEL[plan.pace]} pace. {plan.pace_reason}</p>
+                  {plan.forecast.adherence < 0.95 ? (
+                    <p className="max-w-lg text-[15px] text-(--card-muted)">
+                      Based on your real rhythm (about {Math.round(plan.forecast.adherence * 100)}% of planned time). At full schedule: {formatDate(plan.forecast.planned_finish)}.
+                    </p>
+                  ) : null}
                   {plan.target_date ? (
                     <div><Badge>{plan.on_track ? 'On track for' : 'Behind your target of'} {formatDate(plan.target_date)}</Badge></div>
                   ) : null}
@@ -101,8 +164,12 @@ export default function PlanPage() {
               </Card>
             </Reveal>
           ) : null}
-          {plan.target_date && plan.on_track === false ? (
-            <p className="text-[15px]">To reach your target, add a study day or more minutes per day in <Link href="/settings" className="font-semibold underline underline-offset-4">{NAME.settings}</Link>.</p>
+          {plan.target_date && behind ? (
+            <p className="text-[15px]">
+              {deadlineOptions
+                ? 'To reach your target, pick one of the options Socrat suggests above.'
+                : <>To reach your target, add a study day or more minutes per day in <Link href="/settings" className="font-semibold underline underline-offset-4">{NAME.settings}</Link>.</>}
+            </p>
           ) : null}
 
           {/* Skill map of the current module, with an equivalent list. */}
@@ -159,13 +226,17 @@ export default function PlanPage() {
                           return (
                             <li key={c.concept}>
                               <Link href={conceptHref(c.concept)} transitionTypes={['nav-forward']} className={cn('flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[20px] bg-raised px-4 py-3.5 transition-colors hover:bg-[color-mix(in_srgb,var(--raised),var(--foreground)_5%)]', here && 'ring-1 ring-primary')}>
-                                <span className="min-w-0 flex-1 basis-48 font-semibold">{c.title}</span>
+                                <span className="min-w-0 flex-1 basis-48">
+                                  <span className="font-semibold">{c.title}</span>
+                                  {c.why ? <span className="block text-[13px] text-muted-foreground">{c.why}</span> : null}
+                                </span>
                                 <StatusLabel status={status} detail={status === 'locked' && module.locked_by ? `Locked until ${module.locked_by.module}` : undefined} className="text-[13px]" />
                                 <span className="flex flex-wrap gap-1.5">
                                   {here ? <Badge>Current</Badge> : null}
                                   {c.review_due ? <Badge>Review due</Badge> : null}
                                   {c.lesson_done ? <Badge variant="secondary">Lesson read</Badge> : null}
                                   {c.quiz_done ? <Badge variant="secondary">Concept check done</Badge> : null}
+                                  <OverrideBadges item={c} undo={undo} />
                                 </span>
                               </Link>
                             </li>
@@ -183,6 +254,23 @@ export default function PlanPage() {
         </div>
 
         <aside className="grid min-w-0 content-start gap-4 lg:col-span-4 lg:gap-6">
+          <div id="review">
+            <Disclosure id="review-heading" title={plan.weekly_review_ready ? 'Your weekly review (new)' : 'Weekly review'} defaultOpen={plan.weekly_review_ready}>
+              <WeeklyReviewPanel onChanged={load} />
+            </Disclosure>
+          </div>
+          <Disclosure id="milestones-heading" title="Weekly milestones" defaultOpen>
+            <Milestones milestones={plan.milestones} />
+          </Disclosure>
+          <Disclosure id="path-heading" title="How you&apos;ll get there">
+            <PathStyles onChanged={load} />
+            {stretch ? (
+              <p className="mt-3 text-[14px]">
+                Weekly stretch problems are on.{' '}
+                <button type="button" className="font-semibold underline underline-offset-4" onClick={() => undo('stretch', '')}>Turn off</button>
+              </p>
+            ) : null}
+          </Disclosure>
           <Disclosure id="schedule-heading" title="Next two weeks" defaultOpen>
             <ol className="grid gap-4">
               {plan.days.map((day, index) => (
@@ -195,7 +283,8 @@ export default function PlanPage() {
                     {day.items.map(item => (
                       <li key={item.id} className="text-[15px]">
                         <Link href={activityHref(item.id)} className="underline-offset-4 hover:underline">{item.title}</Link>
-                        <span className="text-[13px] text-muted-foreground">, {KIND_LABEL[item.kind].toLowerCase()}</span>
+                        <span className="text-[13px] text-muted-foreground">, {(KIND_LABEL[item.kind] ?? item.kind).toLowerCase()}</span>
+                        {item.reason ? <span className="block text-[13px] text-muted-foreground">{item.reason}</span> : null}
                       </li>
                     ))}
                   </ul>
@@ -216,6 +305,8 @@ export default function PlanPage() {
                       <li key={rev.at} className="rounded-[16px] bg-raised p-3">
                         <p className="text-[13px] text-muted-foreground">{formatStamp(rev.at)}. {PACE_LABEL[rev.pace]}. Finish {formatDate(rev.projected_finish)}</p>
                         {rev.reasons.map(r => <p key={r} className="mt-1">{r}</p>)}
+                        {rev.changes?.added?.length ? <p className="mt-1 text-[14px]"><span className="font-semibold">Added:</span> {rev.changes.added.join(', ')}</p> : null}
+                        {rev.changes?.removed?.length ? <p className="mt-1 text-[14px]"><span className="font-semibold">Removed:</span> {rev.changes.removed.join(', ')}</p> : null}
                       </li>
                     ))}
                   </ol>
@@ -240,6 +331,7 @@ export default function PlanPage() {
           ) : null}
         </aside>
       </div>
+      <Assistant scope="plan" title="Plan with Soc" openSignal={planChat} launcher={false} />
     </Page>
   );
 }

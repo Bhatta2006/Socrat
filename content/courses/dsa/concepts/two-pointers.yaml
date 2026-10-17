@@ -173,7 +173,29 @@ quiz:
     answer: 0
     explanation: n choices for the fixed element × an O(n) sweep each.
     difficulty: 2
-problems: [pair-sum-sorted, container-water]
+  - id: dedupe-in-place
+    kind: mcq
+    prompt: "Removing duplicates from a sorted array in place with a slow pointer w and a fast pointer r, when do you write a[r] to a[w]?"
+    options:
+      - "When a[r] differs from a[w - 1] (the last kept value)"
+      - "When a[r] differs from a[r + 1]"
+      - "Every step"
+      - "When r is even"
+    answer: 0
+    explanation: "Keep a value only if it differs from the last value already kept; both pointers move forward, so O(n)."
+    difficulty: 4
+  - id: pointer-invariant
+    kind: mcq
+    prompt: "Pair sum on a sorted array: which invariant justifies the two-pointer scan?"
+    options:
+      - "No valid pair uses an index outside [i, j]"
+      - "a[i] + a[j] only increases"
+      - "i and j always move together"
+      - "The array has no duplicates"
+    answer: 0
+    explanation: "Each move discards an index that provably has no partner left, so a solution, if any, stays inside [i, j]."
+    difficulty: 5
+problems: [pair-sum-sorted, container-water, difference-pairs, sorted-squares]
 practice_links:
   - title: Valid Palindrome
     url: https://leetcode.com/problems/valid-palindrome/

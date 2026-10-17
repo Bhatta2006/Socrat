@@ -1,18 +1,23 @@
 """Tools the tutor can call to personalise a reply. Every tool is scoped to one learner.
 
-Tools only read the learner's own data and the public library, except `save_problems`,
-which adds problems to their practice list. None of them return hidden tutor notes or
-reference solutions for graded problems; those stay with the Socratic ladder.
+Tools read the learner's own data and the public library. The few that write never change
+the roadmap directly: `propose_plan_change` and `propose_goal` only create *pending*
+proposals the learner accepts or declines on screen, `record_observation` can only flag a
+gap (it never raises mastery), and `save_problems` bookmarks problems. None of them return
+hidden tutor notes or reference solutions for graded problems.
 """
 
 import asyncio
 import json
 import re
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from socrat.adaptive import proposals as plan_proposals
+from socrat.adaptive import service as adaptive
+from socrat.adaptive.suggest import Draft
 from socrat.assessments import service as assessments
 from socrat.assistant.gateway import ToolSpec
 from socrat.catalog import practice
@@ -152,6 +157,103 @@ TOOLS: list[ToolSpec] = [
         },
     ),
 ]
+PROPOSAL_KINDS = [
+    "prioritize",
+    "defer",
+    "repair",
+    "probe",
+    "test_out",
+    "skip",
+    "budget",
+    "stretch",
+    "path_style",
+]
+TOOLS += [
+    ToolSpec(
+        "get_learner_profile",
+        "The full adaptive picture: practice level, concepts where the learner is stuck (with "
+        "why and the likely cause), trends, recurring mistakes, hint dependence, speed versus "
+        "plan, deadline forecast and roadmap changes waiting for their decision. Use before "
+        "advising on their plan, and whenever they seem stuck or say it's going well.",
+        {"type": "object", "properties": {}, "required": []},
+    ),
+    ToolSpec(
+        "propose_plan_change",
+        "Propose a change to the learner's roadmap. This changes NOTHING by itself: the learner "
+        "sees Accept and Decline buttons under your reply and decides. Use it when the evidence "
+        "supports a change (stuck, cruising, behind their date) or they ask for one. Kinds: "
+        "prioritize (move a concept up), defer (set a concept aside for later), repair "
+        "(refresh prerequisite `concept` before `for_concept`), probe (a quick check of a "
+        "concept's foundations), test_out (prove a concept and skip it), skip (drop an optional "
+        "concept), budget (minutes_per_day and/or weekdays), stretch (a weekly harder problem), "
+        "path_style (thorough, balanced, fast_track or goal_focused).",
+        {
+            "type": "object",
+            "properties": {
+                "kind": {"type": "string", "enum": PROPOSAL_KINDS},
+                "concept": CONCEPT,
+                "for_concept": {**CONCEPT, "description": "repair only: the concept it unblocks."},
+                "minutes_per_day": {"type": "integer", "enum": [15, 20, 30, 45, 60, 90, 120]},
+                "weekdays": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "description": "0 = Monday ... 6 = Sunday.",
+                },
+                "style": {
+                    "type": "string",
+                    "enum": ["thorough", "balanced", "fast_track", "goal_focused"],
+                },
+                "title": {"type": "string", "description": "Short, e.g. 'Refresh loops first'."},
+                "reason": {
+                    "type": "string",
+                    "description": "One or two sentences to the learner: why this helps.",
+                },
+            },
+            "required": ["kind", "title", "reason"],
+        },
+    ),
+    ToolSpec(
+        "propose_goal",
+        "In a planning conversation, propose the learner's structured goal: role, target date, "
+        "contest rating, up to three focus concepts and motivation. Like every plan change it "
+        "is only a proposal the learner confirms on screen.",
+        {
+            "type": "object",
+            "properties": {
+                "target_role": {
+                    "type": "string",
+                    "enum": ["internship", "new-grad", "mid-level", "senior"],
+                },
+                "target_date": {
+                    "type": "string",
+                    "description": "YYYY-MM-DD, only if the learner gave one.",
+                },
+                "target_rating": {"type": "integer"},
+                "focus": {"type": "array", "items": CONCEPT},
+                "motivation": {"type": "string"},
+                "reason": {"type": "string"},
+            },
+            "required": ["reason"],
+        },
+    ),
+    ToolSpec(
+        "record_observation",
+        "Note a gap you saw in conversation (shaky or missing understanding of a concept) so "
+        "the planner can adapt. It can only lower confidence a little and never marks anything "
+        "as learned. Do not use it for things the learner got right.",
+        {
+            "type": "object",
+            "properties": {
+                "concept": CONCEPT,
+                "understanding": {"type": "string", "enum": ["shaky", "missing"]},
+                "note": {"type": "string", "description": "What you saw, in a few words."},
+            },
+            "required": ["concept", "understanding", "note"],
+        },
+    ),
+]
+WRITE_TOOLS = {"propose_plan_change", "propose_goal"}  # the UI shows their proposal cards
+OBSERVATIONS_PER_DAY = 3
 LABELS = {
     "get_progress": "Checking your progress",
     "get_plan": "Looking at your plan",
@@ -163,6 +265,10 @@ LABELS = {
     "get_codeforces_profile": "Checking your Codeforces profile",
     "save_problems": "Saving to your list",
     "get_weekly_report": "Reading your weekly assessment",
+    "get_learner_profile": "Looking at how you're progressing",
+    "propose_plan_change": "Suggesting a change to your plan",
+    "propose_goal": "Drafting your goal",
+    "record_observation": "Noting that for your plan",
 }
 
 
@@ -546,3 +652,148 @@ class Toolbox:
         if not saved:
             return "Error: none of those ids are in the library."
         return {"saved": saved, "where": "[your practice list](/library?status=bookmarked)"}
+
+    # ------------------------------------------------------------ adaptive
+
+    def _get_learner_profile(self, db, user, enrollment, now):
+        if enrollment is None or enrollment.status != "active":
+            return "Error: the learner has no active plan yet."
+        states = learn.states_for(db, enrollment)
+        skill = adaptive.build_profiles(db, self.catalog, enrollment, states, now)
+        stuck = adaptive.stuck_map(skill, now)
+        plan = learn.plan_for(db, self.catalog, user, enrollment, now, record=False)
+        learner = self._learner(db, user, enrollment, now)
+        active = sorted((p for p in skill.values() if p.attempts), key=lambda p: -p.last_seen_at)
+        return {
+            "level": adaptive.level_for(db, user.id, learner.rating, enrollment),
+            "stuck": [
+                {
+                    "concept": lesson_link(self.catalog, c),
+                    "why": s.summary,
+                    "cause": s.failure_mode,
+                    "severity": s.severity,
+                }
+                for c, s in stuck.items()
+            ],
+            "recent_concepts": [
+                {
+                    "concept": self.catalog.concept(p.concept).title,
+                    "band": BAND_WORDS[p.band],
+                    "trend": p.trend,
+                    "hint_dependence": p.hint_dependence,
+                    "speed_vs_plan": p.speed,
+                    "recurring_mistakes": list(p.misconceptions),
+                }
+                for p in active[:10]
+            ],
+            "pace": plan.pace,
+            "path_style": plan.style,
+            "forecast": plan.forecast,
+            "next_milestone": plan.milestones[0] if plan.milestones else None,
+            "pending_changes": [
+                {"title": p.title, "kind": p.kind} for p in plan_proposals.pending(db, enrollment)
+            ],
+        }
+
+    def _in_course(self, enrollment, value: str) -> str | None:
+        resolved = resolve_concept(self.catalog, value) if value else None
+        if resolved and resolved in learn.curriculum(self.catalog, enrollment):
+            return resolved
+        return None
+
+    def _propose(self, db, enrollment, now, kind, title, reason, payload):
+        try:
+            payload = plan_proposals.validate(self.catalog, enrollment, kind, payload)
+        except Exception:
+            return "Error: that change doesn't fit this learner's course; check the concept."
+        key = f"tutor:{kind}:{json.dumps(payload, sort_keys=True)}"[:240]
+        draft = Draft(kind, key, str(title)[:120], str(reason)[:600], payload)
+        row = plan_proposals.add(db, enrollment, draft, "tutor", now)
+        if row is None:
+            return (
+                "Not proposed: the same change is already waiting, was applied, or the learner "
+                "declined it recently. Do not push it again."
+            )
+        return {
+            "proposal": draft.title,
+            "status": "pending: the learner sees Accept and Decline under your reply",
+            "instruction": "Say what you suggest and why, and that it is their call. "
+            "Never say it is done.",
+        }
+
+    def _propose_plan_change(
+        self,
+        db,
+        user,
+        enrollment,
+        now,
+        kind: str,
+        title: str,
+        reason: str,
+        concept: str = "",
+        for_concept: str = "",
+        minutes_per_day: int | None = None,
+        weekdays: list | None = None,
+        style: str = "",
+    ):
+        if enrollment is None or enrollment.status != "active":
+            return "Error: the learner has no active plan yet."
+        if kind not in PROPOSAL_KINDS:
+            return f"Error: unknown kind {kind!r}."
+        target = self._in_course(enrollment, concept)
+        options: dict[str, dict] = {
+            "prioritize": {"concept": target},
+            "defer": {"concept": target},
+            "probe": {"concept": target},
+            "repair": {"concept": target, "for": self._in_course(enrollment, for_concept)},
+            "test_out": {"target": target},
+            "skip": {"concepts": [target] if target else []},
+            "budget": {"minutes_per_day": minutes_per_day, "weekdays": weekdays},
+            "path_style": {"style": style},
+            "stretch": {},
+        }
+        payload = options[kind]
+        return self._propose(db, enrollment, now, kind, title, reason, payload)
+
+    def _propose_goal(self, db, user, enrollment, now, reason: str = "", **fields):
+        if enrollment is None:
+            return "Error: the learner has not chosen a course yet."
+        focus = [self._in_course(enrollment, str(c)) for c in fields.pop("focus", []) or []]
+        payload = {**fields, "focus": [c for c in focus if c]}
+        return self._propose(db, enrollment, now, "goal", "Set your goal", reason, payload)
+
+    def _record_observation(
+        self, db, user, enrollment, now, concept: str, understanding: str, note: str
+    ):
+        if enrollment is None or enrollment.status != "active":
+            return "Error: the learner has no active plan yet."
+        resolved = self._in_course(enrollment, concept)
+        if resolved is None:
+            return f"Error: no concept in their course matches {concept!r}."
+        recent = db.scalar(
+            select(func.count())
+            .select_from(Evidence)
+            .where(
+                Evidence.enrollment_id == enrollment.id,
+                Evidence.concept == resolved,
+                Evidence.kind == "tutor",
+                Evidence.created_at >= now - DAY,
+            )
+        )
+        if (recent or 0) >= OBSERVATIONS_PER_DAY:
+            return "Already noted enough about this concept today."
+        tag = f"{resolved.split(':', 1)[1]}-repair"
+        learn.record_evidence(
+            db,
+            enrollment,
+            resolved,
+            "tutor",
+            0.5 if understanding == "shaky" else 0.0,
+            "tutor:observation",
+            now,
+            details={
+                "note": str(note)[:200],
+                **({"misconception": tag} if tag in self.catalog.misconceptions else {}),
+            },
+        )
+        return {"noted": self.catalog.concept(resolved).title, "understanding": understanding}

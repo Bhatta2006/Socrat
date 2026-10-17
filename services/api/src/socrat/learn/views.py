@@ -13,8 +13,10 @@ from socrat.library import service as library
 from socrat.mastery.model import ConceptState, band
 from socrat.models import (
     ActivityRecord,
+    AIUsage,
     AssistantMessage,
     AssistantThread,
+    CompanySprint,
     ContentIssue,
     DailyActivity,
     Draft,
@@ -22,8 +24,10 @@ from socrat.models import (
     Evidence,
     LearningSession,
     LinkedAccount,
+    PlanProposal,
     PracticeMark,
     ResourceEvent,
+    SkillPassport,
     Submission,
     User,
     WeeklyAssessment,
@@ -76,17 +80,30 @@ def describe(catalog: Catalog, activity_id: str) -> dict:
         course_id, module_id = target.split(":", 1)
         module = next(m for m in catalog.course(course_id).modules if m.id == module_id)
         return dict(kind=kind, title=f"Checkpoint: {module.title}", concept=target)
+    if kind == "moduletest":
+        course_id, module_id = target.split(":", 1)
+        module = next(m for m in catalog.course(course_id).modules if m.id == module_id)
+        return dict(kind=kind, title=f"Test out: {module.title}", concept=target)
     concept = catalog.concept(target)
     titles = {
         "lesson": concept.title,
         "quiz": f"{concept.title} check",
         "review": f"Review: {concept.title}",
         "remedial": f"Refresh: {concept.title}",
+        "probe": f"Quick check: {concept.title} and its foundations",
+        "testout": f"Test out: {concept.title}",
+        "example": f"Worked example: {concept.title}",
+        "explain": f"{concept.title}, explained another way",
+        "checkin": f"Talk it through: {concept.title}",
+        "stretch": f"Stretch: a harder {concept.title} problem",
     }
     return dict(kind=kind, title=titles.get(kind, concept.title), concept=target)
 
 
 def today_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment, now: int) -> dict:
+    from socrat.adaptive import proposals as adaptive_proposals
+    from socrat.adaptive import views as adaptive_views
+
     plan = learn.plan_for(db, catalog, user, enrollment, now)
     done_ids = learn.completed_today(db, user, enrollment, now)
     done = [dict(id=a, status="done", **describe(catalog, a)) for a in done_ids]
@@ -125,6 +142,11 @@ def today_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment
         reviews_due=sum(1 for p in pending if p["kind"] == "review"),
         progress=progress_numbers(plan),
         projected_finish=plan.projected_finish,
+        forecast=plan.forecast,
+        checkin=adaptive_views.checkin(db, catalog, user, enrollment, plan, now),
+        nudges=adaptive_views.nudges(db, catalog, user, enrollment, plan, now),
+        proposals=[adaptive_proposals.view(p) for p in adaptive_proposals.pending(db, enrollment)],
+        milestone=plan.milestones[0] if plan.milestones else None,
     )
 
 
@@ -177,10 +199,18 @@ def plan_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment,
                     m.title for m in catalog.course(gate_course).modules if m.id == gate_id
                 ),
             )
+    from socrat.adaptive import views as adaptive_views
+
     target = enrollment.goal.get("target_date")
-    on_track = None if not target else plan.projected_finish <= target
+    on_track = plan.forecast.get("on_track")
     current = next((r for r in plan.roadmap if r["status"] in {"in_progress", "upcoming"}), None)
     return dict(
+        style=plan.style,
+        focus=plan.focus,
+        forecast=plan.forecast,
+        milestones=plan.milestones,
+        proposals=adaptive_views.proposals_view(db, enrollment),
+        weekly_review_ready=adaptive_views.weekly_ready(user, enrollment, now),
         pace=plan.pace,
         pace_reason=plan.pace_reason,
         projected_finish=plan.projected_finish,
@@ -430,8 +460,33 @@ def export(db: Session, user: User) -> dict:
                 minutes_per_day=e.minutes_per_day,
                 weekdays=e.weekdays,
                 created_at=e.created_at,
+                adaptive=e.adaptive,
             )
             for e in enrollments
+        ],
+        ai_usage=[
+            dict(
+                feature=u.feature,
+                model=u.model,
+                input_tokens=u.input_tokens,
+                output_tokens=u.output_tokens,
+                at=u.created_at,
+            )
+            for u in db.scalars(select(AIUsage).where(AIUsage.user_id == user.id))
+        ],
+        plan_proposals=[
+            dict(
+                id=p.id,
+                kind=p.kind,
+                title=p.title,
+                reason=p.reason,
+                payload=p.payload,
+                source=p.source,
+                status=p.status,
+                created_at=p.created_at,
+                decided_at=p.decided_at,
+            )
+            for p in db.scalars(select(PlanProposal).where(PlanProposal.enrollment_id.in_(ids)))
         ],
         evidence=[
             dict(
@@ -471,6 +526,25 @@ def export(db: Session, user: User) -> dict:
             for s in db.scalars(
                 select(LearningSession).where(LearningSession.enrollment_id.in_(ids))
             )
+        ],
+        skill_passport=next(
+            (
+                dict(slug=p.slug, public=p.public, created_at=p.created_at, updated_at=p.updated_at)
+                for p in db.scalars(select(SkillPassport).where(SkillPassport.user_id == user.id))
+            ),
+            None,
+        ),
+        company_sprints=[
+            dict(
+                company=c.company_name,
+                role=c.role,
+                weeks=c.weeks,
+                started_on=c.started_on,
+                ends_on=c.ends_on,
+                plan=c.plan,
+                finished_at=c.finished_at,
+            )
+            for c in db.scalars(select(CompanySprint).where(CompanySprint.enrollment_id.in_(ids)))
         ],
         content_issues=[
             dict(

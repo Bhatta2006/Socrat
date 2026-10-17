@@ -67,6 +67,9 @@ class Enrollment(Base):
     placement: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     plan_signature: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+    # Learner-approved roadmap overrides, path style and adaptive bookkeeping
+    # (see socrat.adaptive.proposals). Only an accepted proposal or the learner writes here.
+    adaptive: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class ConceptState(Base):
@@ -164,6 +167,27 @@ class PlanRevision(Base):
     remaining_minutes: Mapped[int] = mapped_column(Integer)
     projected_finish: Mapped[str] = mapped_column(String(10))
     created_at: Mapped[int] = mapped_column(Integer, default=now)
+    snapshot: Mapped[list] = mapped_column(JSON, default=list)  # queued activity ids
+    changes: Mapped[dict] = mapped_column(JSON, default=dict)  # {added, removed} vs previous
+
+
+class PlanProposal(Base):
+    """A roadmap change Socrat wants to make. Nothing changes until the learner accepts it."""
+
+    __tablename__ = "plan_proposals"
+    __table_args__ = (Index("ix_plan_proposals_enrollment_status", "enrollment_id", "status"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(ForeignKey("enrollments.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(String(24))
+    key: Mapped[str] = mapped_column(String(240))  # dedupe key, e.g. "repair:dsa:sorting"
+    group: Mapped[str] = mapped_column(String(64), default="")  # alternatives share a group
+    title: Mapped[str] = mapped_column(String(200))
+    reason: Mapped[str] = mapped_column(String(1000))
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    source: Mapped[str] = mapped_column(String(16))  # planner | tutor | review
+    status: Mapped[str] = mapped_column(String(16), default="pending")
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    decided_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class Draft(Base):
@@ -383,3 +407,167 @@ class WebVital(Base):
     metric: Mapped[str] = mapped_column(String(8))  # LCP | INP | CLS | FCP | TTFB
     value: Mapped[float] = mapped_column(Float)
     device: Mapped[str] = mapped_column(String(8))  # mobile | desktop
+
+
+class AIUsage(Base):
+    """Tokens and estimated cost of one model call: powers the LLM budget and cost dashboard."""
+
+    __tablename__ = "ai_usage"
+    __table_args__ = (
+        Index("ix_ai_usage_day", "day"),
+        Index("ix_ai_usage_user_created", "user_id", "created_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    feature: Mapped[str] = mapped_column(String(24))  # tutor | lesson | playground
+    provider: Mapped[str] = mapped_column(String(16))
+    model: Mapped[str] = mapped_column(String(120))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    day: Mapped[str] = mapped_column(String(10))  # UTC date
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class ErrorReport(Base):
+    """A grouped error (server exception, browser crash) or a learner's problem report."""
+
+    __tablename__ = "error_reports"
+    __table_args__ = (Index("ix_error_reports_status_last", "status", "last_at"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    source: Mapped[str] = mapped_column(String(16))  # server | browser | learner
+    fingerprint: Mapped[str] = mapped_column(String(64), unique=True)
+    message: Mapped[str] = mapped_column(Text)
+    route: Mapped[str] = mapped_column(String(120), default="")
+    detail: Mapped[dict] = mapped_column(JSON, default=dict)  # stack, request id, release
+    # Only learner reports name their author (so the owner can follow up).
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    count: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(12), default="open")  # open | resolved
+    first_at: Mapped[int] = mapped_column(Integer, default=now)
+    last_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+# ---------------------------------------------------------------- adaptive quiz runtime
+# Item definitions live in content files; only runtime state is stored here. Written by the
+# adaptive quiz engine (behind adaptive_quiz_enabled) and the calibration job.
+
+
+class QuizResponse(Base):
+    """One answered quiz item; learner-scoped, erased with the account."""
+
+    __tablename__ = "quiz_responses"
+    __table_args__ = (Index("ix_quiz_responses_enrollment_created", "enrollment_id", "created_at"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(ForeignKey("enrollments.id", ondelete="CASCADE"))
+    item_id: Mapped[str] = mapped_column(String(200), index=True)
+    family: Mapped[str] = mapped_column(String(200), default="")
+    pattern: Mapped[str] = mapped_column(String(200), default="")
+    concept: Mapped[str] = mapped_column(String(160))
+    mode: Mapped[str] = mapped_column(String(24))  # placement | concept_check | review | ...
+    pool: Mapped[str] = mapped_column(String(16))  # practice | assessment
+    session_id: Mapped[str] = mapped_column(String(36), default="")
+    correct: Mapped[bool] = mapped_column(Boolean)
+    score: Mapped[float] = mapped_column(Float)  # 1.0 unassisted ... 0.0 wrong
+    hint_level: Mapped[int] = mapped_column(Integer, default=0)
+    time_s: Mapped[int] = mapped_column(Integer, default=0)
+    seed: Mapped[str] = mapped_column(String(64), default="")
+    choice: Mapped[int | None] = mapped_column(Integer, nullable=True)  # authored option index
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class LearnerAbility(Base):
+    """Elo-style rating per learner and pattern; drives item selection, never mastery."""
+
+    __tablename__ = "learner_abilities"
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), primary_key=True
+    )
+    pattern: Mapped[str] = mapped_column(String(200), primary_key=True)
+    theta: Mapped[float] = mapped_column(Float)
+    n: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class ItemRating(Base):
+    """Current difficulty of a provisional item; frozen once the item is calibrated."""
+
+    __tablename__ = "item_ratings"
+    item_id: Mapped[str] = mapped_column(String(200), primary_key=True)
+    d_current: Mapped[float] = mapped_column(Float)
+    n_responses: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class ItemCalibration(Base):
+    """Item health from the calibration job. approved_by is set only by a named human."""
+
+    __tablename__ = "item_calibrations"
+    item_id: Mapped[str] = mapped_column(String(200), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16))  # provisional | calibrated | retired
+    n_responses: Mapped[int] = mapped_column(Integer, default=0)
+    pct_correct: Mapped[float | None] = mapped_column(Float, nullable=True)
+    discrimination: Mapped[float | None] = mapped_column(Float, nullable=True)
+    distractor_counts: Mapped[dict] = mapped_column(JSON, default=dict)
+    median_time_s: Mapped[float | None] = mapped_column(Float, nullable=True)
+    flags: Mapped[list] = mapped_column(JSON, default=list)
+    computed_at: Mapped[int] = mapped_column(Integer, default=now)
+    approved_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    approved_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class QuizEngineSession(Base):
+    """One adaptive quiz session: scope, served steps and the item awaiting an answer."""
+
+    __tablename__ = "quiz_engine_sessions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), index=True
+    )
+    mode: Mapped[str] = mapped_column(String(24))
+    track: Mapped[str] = mapped_column(String(16))
+    concepts: Mapped[list] = mapped_column(JSON)
+    state: Mapped[dict] = mapped_column(JSON, default=dict)  # steps, pending, micro, stop
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    completed_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class SkillPassport(Base):
+    """A learner's shareable evidence page. Private until the learner turns it on."""
+
+    __tablename__ = "skill_passports"
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    slug: Mapped[str] = mapped_column(String(24), unique=True)
+    public: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class CompanySprint(Base):
+    """A multi-week plan aimed at one company's interviews ("Amazon SDE-1 in 6 weeks").
+
+    ``plan`` is frozen at the start (weekly skills and question ids) so the weeks stay
+    stable; progress is computed live from mastery and solves.
+    """
+
+    __tablename__ = "company_sprints"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), index=True
+    )
+    company: Mapped[str] = mapped_column(String(80))
+    company_name: Mapped[str] = mapped_column(String(120))
+    role: Mapped[str] = mapped_column(String(16))
+    weeks: Mapped[int] = mapped_column(Integer)
+    started_on: Mapped[str] = mapped_column(String(10))
+    ends_on: Mapped[str] = mapped_column(String(10))
+    plan: Mapped[dict] = mapped_column(JSON)
+    proposal_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    finished_at: Mapped[int | None] = mapped_column(Integer, nullable=True)

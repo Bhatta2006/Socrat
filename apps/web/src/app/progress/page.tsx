@@ -9,6 +9,8 @@ import { NAME, PACE_LABEL, conceptHref, formatDate, hours } from '@/lib/routes';
 import type { AssessmentStatus, ProgressView } from '@/lib/types';
 import { ErrorNote, Loading, Page, Ring, StatCard } from '@/components/common';
 import { EmptyState } from '@/components/socrat/states';
+import { LearnerProfileCard } from '@/components/socrat/learner-profile';
+import { PassportSettingsCard } from '@/components/socrat/passport-settings';
 import { STATUS_LABEL, StatusIcon, StatusLabel, StatusLegend, statusFromBand } from '@/components/socrat/status';
 import { Badge } from '@/components/ui/badge';
 import { ArrowCircle, Button } from '@/components/ui/button';
@@ -85,6 +87,8 @@ export default function ProgressPage() {
           <StatCard value={data.solves.independent_solves} label="Problems solved without help" hint={`Accepted with no hints. ${data.solves.assisted_solves} more solved with help.`} />
         </div>
 
+        <PassportSettingsCard />
+
         <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-12 lg:gap-6">
           {/* Mastery comes before activity on every width. */}
           <section aria-labelledby="mastery-heading" className="grid min-w-0 content-start gap-4 lg:col-span-8">
@@ -152,6 +156,8 @@ export default function ProgressPage() {
                 <EmptyState as="h3" illustration={false} title="No results yet" className="mt-4 py-6">Finish a concept check or a problem to see results here.</EmptyState>
               )}
             </section>
+
+            <LearnerProfileCard />
 
             <section className="rounded-card border bg-card p-5 lg:p-6" aria-labelledby="activity-heading">
               <h2 id="activity-heading" className="font-display text-xl font-bold tracking-[-0.03em]">Study activity</h2>

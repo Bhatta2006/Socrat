@@ -24,7 +24,15 @@ KINDS: dict[str, EvidenceKind] = {
     "review": "review",
     "remedial": "quiz",
     "checkpoint": "checkpoint",
+    "probe": "quiz",
+    "testout": "testout",
+    "moduletest": "testout",
 }
+# Test-outs are graded at the end, like checkpoints: no per-question feedback to game.
+TESTOUTS = {"testout", "moduletest"}
+TESTOUT_PASS = 0.8
+TESTOUT_CONCEPT_PASS = 0.75
+PROBE_PREREQS = 3
 
 
 def item(catalog: Catalog, concept: str, item_id: str) -> QuizItem:
@@ -111,6 +119,24 @@ def choose_items(
         quiz = list(catalog.concept(target).quiz)
         rng.shuffle(quiz)
         return [[target, q.id] for q in quiz[: 3 if kind == "review" else 4]]
+    if kind == "probe":
+        # The concept plus its direct prerequisites, two mid-difficulty items each.
+        items = []
+        for concept in [target, *catalog.prerequisites[target][:PROBE_PREREQS]]:
+            quiz = sorted(
+                catalog.concept(concept).quiz, key=lambda q: (abs(q.difficulty - 3), q.id)
+            )
+            items += [[concept, q.id] for q in quiz[:2]]
+        return items
+    if kind == "testout":
+        hardest = sorted(catalog.concept(target).quiz, key=lambda q: (-q.difficulty, q.id))
+        return [[target, q.id] for q in hardest[:4]]
+    if kind == "moduletest":
+        items = []
+        for concept in gates.module_concepts(catalog, target):
+            hardest = sorted(catalog.concept(concept).quiz, key=lambda q: (-q.difficulty, q.id))
+            items += [[concept, q.id] for q in hardest[:2]]
+        return items[: gates.MAX_ITEMS]
     if kind == "checkpoint":
         course_id, module_id = target.split(":", 1)
         course = catalog.course(course_id)
@@ -133,7 +159,16 @@ def open_session(
     if kind not in KINDS:
         raise HTTPException(404, "not_found")
     scope = learn.curriculum(catalog, enrollment)
-    targets = gates.module_concepts(catalog, target) if kind == "checkpoint" else [target]
+    modular = kind in {"checkpoint", "moduletest"}
+    if modular:
+        course_id, _, module_id = target.partition(":")
+        if course_id not in catalog.courses or not any(
+            m.id == module_id for m in catalog.course(course_id).modules
+        ):
+            raise HTTPException(404, "not_found")
+    elif target not in catalog.concepts:
+        raise HTTPException(404, "not_found")
+    targets = gates.module_concepts(catalog, target) if modular else [target]
     if not any(concept in scope for concept in targets):
         raise HTTPException(404, "not_found")
     session = db.scalar(
@@ -166,8 +201,15 @@ def open_session(
             )
             if last is not None:
                 return last
+    elif kind == "moduletest":
+        if targets[0] in learn.locked_concepts(db, catalog, enrollment, now):
+            raise HTTPException(423, "concept_locked")
+        if _finished(db, enrollment, activity_id):
+            return _latest(db, enrollment, activity_id)
     elif target in learn.locked_concepts(db, catalog, enrollment, now):
         raise HTTPException(423, "concept_locked")
+    elif kind in {"testout", "probe"} and _finished(db, enrollment, activity_id):
+        return _latest(db, enrollment, activity_id)
     session = QuizSession(
         enrollment_id=enrollment.id,
         activity_id=activity_id,
@@ -185,6 +227,27 @@ def open_session(
     db.flush()
     learn.start_activity(db, enrollment, activity_id, now)
     return session
+
+
+def _finished(db: Session, enrollment: Enrollment, activity_id: str) -> bool:
+    """A one-off check already taken; it shows its result instead of starting over."""
+    record = db.get(ActivityRecord, (enrollment.id, activity_id))
+    return (
+        record is not None
+        and record.completed_at is not None
+        and _latest(db, enrollment, activity_id) is not None
+    )
+
+
+def _latest(db: Session, enrollment: Enrollment, activity_id: str) -> QuizSession:
+    row = db.scalar(
+        select(QuizSession)
+        .where(QuizSession.enrollment_id == enrollment.id, QuizSession.activity_id == activity_id)
+        .order_by(QuizSession.created_at.desc())
+    )
+    if row is None:
+        raise HTTPException(404, "not_found")
+    return row
 
 
 def gate_view(db: Session, catalog: Catalog, session: QuizSession) -> dict:
@@ -224,8 +287,9 @@ def gates_title(catalog: Catalog, module_key: str) -> str:
 def session_view(
     catalog: Catalog, session: QuizSession, language: str, db: Session | None = None
 ) -> dict:
-    checkpoint = session.activity_id.startswith("checkpoint:")
-    graded = not checkpoint or session.completed_at is not None
+    kind = session.activity_id.partition(":")[0]
+    checkpoint = kind == "checkpoint"
+    graded = (not checkpoint and kind not in TESTOUTS) or session.completed_at is not None
     questions = []
     for concept, item_id in session.items:
         q = item(catalog, concept, item_id)
@@ -254,10 +318,14 @@ def session_view(
         questions=questions,
         completed=session.completed_at is not None,
         score=score_of(catalog, session) if session.completed_at else None,
-        feedback="at_end" if checkpoint else "immediate",
+        feedback="at_end" if checkpoint or kind in TESTOUTS else "immediate",
     )
     if checkpoint and db is not None:
         view["gate"] = gate_view(db, catalog, session)
+    if kind in TESTOUTS and db is not None and session.completed_at is not None:
+        record = db.get(ActivityRecord, (session.enrollment_id, session.activity_id))
+        outcome = (record.outcome or {}) if record else {}
+        view["testout"] = dict(passed=bool(outcome.get("passed")), score=outcome.get("score"))
     return view
 
 
@@ -330,6 +398,8 @@ def finish(
     for concept, item_id in session.items:
         if item_id in session.answers:
             per_concept.setdefault(concept, []).append(bool(session.answers[item_id]["correct"]))
+    if session.activity_id.partition(":")[0] in TESTOUTS:
+        return finish_testout(db, catalog, user, enrollment, session, per_concept, now)
     for concept, results in per_concept.items():
         learn.record_evidence(
             db,
@@ -363,7 +433,7 @@ def finish(
                 "retry_at": now + gates.COOLDOWN_SECONDS,
             }
             learn.bump_daily(db, user, now, minutes=max(1, round(elapsed / 60)))
-    elif session.activity_id.startswith(("quiz:", "remedial:")):
+    elif session.activity_id.startswith(("quiz:", "remedial:", "probe:")):
         learn.complete_activity(
             db,
             user,
@@ -374,3 +444,46 @@ def finish(
         )
     else:  # Reviews recur on a schedule; count the effort without completing them forever.
         learn.bump_daily(db, user, now, minutes=max(1, round(elapsed / 60)))
+
+
+def finish_testout(
+    db: Session,
+    catalog: Catalog,
+    user: User,
+    enrollment: Enrollment,
+    session: QuizSession,
+    per_concept: dict[str, list[bool]],
+    now: int,
+):
+    """Passing proves the concept (or the whole module) and skips it. Missing costs nothing
+    beyond honest quiz evidence, and the normal path carries on."""
+    elapsed = learn.elapsed(db, enrollment, session.activity_id, now)
+    expected = learn.expected_seconds(catalog, session.activity_id, enrollment)
+    score = score_of(catalog, session)
+    fractions = {c: sum(r) / len(r) for c, r in per_concept.items()}
+    passed = (
+        score >= TESTOUT_PASS
+        and bool(fractions)
+        and all(f >= 0.5 for f in fractions.values())
+        and (len(fractions) > 1 or min(fractions.values()) >= TESTOUT_CONCEPT_PASS)
+    )
+    for concept, fraction in fractions.items():
+        proven = passed and fraction >= TESTOUT_CONCEPT_PASS
+        learn.record_evidence(
+            db,
+            enrollment,
+            concept,
+            "testout" if proven else "quiz",
+            1.0 if proven else fraction,
+            session.activity_id,
+            now,
+            elapsed_seconds=elapsed,
+            expected_seconds=expected,
+        )
+    outcome = {"score": score, "passed": passed}
+    learn.complete_activity(db, user, enrollment, session.activity_id, now, outcome=outcome)
+    if passed and session.activity_id.startswith("moduletest:"):
+        gate = gates.gate_id(session.activity_id.removeprefix("moduletest:"))
+        learn.complete_activity(
+            db, user, enrollment, gate, now, outcome={**outcome, "via": "test_out"}
+        )

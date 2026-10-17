@@ -11,6 +11,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from socrat.assistant import budget
 from socrat.assistant import service as assistant
 from socrat.assistant.gateway import make_provider
 from socrat.assistant.tools import Toolbox
@@ -30,7 +31,6 @@ from socrat.models import (
     Draft,
     Enrollment,
     OutboxEvent,
-    PlanRevision,
     Submission,
     User,
     now,
@@ -297,6 +297,52 @@ def delete_me(request: Request):
 # ---------------------------------------------------------------- catalog & enrollment
 
 
+@router.get("/attribution")
+def attribution():
+    """Public: the sources Socrat links to or adapts, and every adapted record."""
+    from socrat.catalog import sources
+
+    registry = sources.load_registry()
+    use = {
+        "adapt": "May be adapted with attribution",
+        "share-alike-lane": "May be adapted in a labelled share-alike section",
+        "link-only": "Linked only; not copied or adapted",
+        "per-item": "License differs per item; linked unless an item is verified",
+        "verify": "Not used until its license is verified",
+    }
+    return {
+        "sources": [
+            dict(
+                id=entry.id,
+                name=entry.name,
+                url=str(entry.url),
+                content=entry.content,
+                license=entry.license,
+                license_status=entry.license_status,
+                use=use[entry.action],
+            )
+            for entry in registry.sources
+        ],
+        "adapted": [
+            dict(
+                record=where,
+                attribution=provenance.attribution_md,
+                sources=[
+                    dict(
+                        title=ref.title,
+                        author=ref.author,
+                        url=str(ref.url),
+                        license=ref.license_spdx,
+                    )
+                    for ref in provenance.authors_adapted_from
+                ],
+            )
+            for where, provenance in sources.provenances(catalog())
+            if provenance.origin == "adapted"
+        ],
+    }
+
+
 @router.get("/courses")
 def courses():
     cat = catalog()
@@ -381,28 +427,9 @@ def update_enrollment(body: ScheduleUpdate, request: Request):
                 goal[key] = value
         enrollment.goal = goal
         if changes and enrollment.status == "active":
-            earlier = dict(
-                db.execute(
-                    select(PlanRevision.id, PlanRevision.created_at).where(
-                        PlanRevision.enrollment_id == enrollment.id
-                    )
-                ).all()
+            learn.revise(
+                db, cat, user, enrollment, now(), f"You updated your plan: {', '.join(changes)}."
             )
-            enrollment.plan_signature = ""  # Force a fresh, explained revision.
-            learn.plan_for(db, cat, user, enrollment, now())
-            db.flush()
-            revision = db.scalar(
-                select(PlanRevision).where(
-                    PlanRevision.enrollment_id == enrollment.id,
-                    PlanRevision.id.not_in(list(earlier)),
-                )
-            )
-            if revision is not None:
-                # Revisions sort by whole seconds; keep this one strictly latest.
-                revision.created_at = max([revision.created_at, *(t + 1 for t in earlier.values())])
-                revision.reasons = [f"You updated your plan: {', '.join(changes)}."] + [
-                    r for r in revision.reasons if r != "Your personalised path is ready."
-                ]
         record_event(db, user.id, "enrollment.updated", enrollment.id)
         session = require_session(request, db)
         return profile_view(db, user, session.csrf_token)
@@ -498,12 +525,30 @@ async def explain(qualified: str, body: ExplainInput, request: Request):
         enrollment = learn.active_enrollment(db, user.id)
         language = enrollment.language if enrollment else "python"
         text, provider = await assistant.lesson_variant(
-            db, make_provider(settings), cat, settings, qualified, language, body.style
+            db,
+            budget.Metered(
+                make_provider(settings),
+                engine(request),
+                settings,
+                user_id=user.id,
+                feature="lesson",
+                db=db,
+            ),
+            cat,
+            settings,
+            qualified,
+            language,
+            body.style,
         )
         return {"content": text, "provider": provider}
 
 
-ACTIVITY = r"^(lesson|quiz|review|remedial|problem|checkpoint):[a-z0-9:-]{1,160}$"
+ACTIVITY = (
+    r"^(lesson|quiz|review|remedial|problem|checkpoint|probe|testout|moduletest"
+    r"|example|explain|checkin|stretch):[a-z0-9:-]{1,160}$"
+)
+# Activities the learner finishes themselves (reading, talking it through, a stretch).
+SELF_COMPLETE = {"lesson", "example", "explain", "checkin", "stretch"}
 
 
 def guard_instruction(db: Session, cat: Catalog, user: User, qualified: str | None = None):
@@ -525,7 +570,7 @@ def guard_instruction(db: Session, cat: Catalog, user: User, qualified: str | No
 
 def activity_concept(cat: Catalog, activity_id: str) -> str | None:
     kind, _, target = activity_id.partition(":")
-    if kind == "checkpoint":
+    if kind in {"checkpoint", "moduletest"}:
         return None  # gates check their own module
     if kind == "problem":
         course_id, problem = cat.problems[target]
@@ -538,14 +583,14 @@ def guard(db: Session, cat: Catalog, enrollment: Enrollment, activity_id: str) -
     concept = activity_concept(cat, activity_id)
     if concept is not None:
         learn.require_unlocked(db, cat, enrollment, concept, now())
-    elif activity_id.startswith("checkpoint:"):
+    elif activity_id.startswith(("checkpoint:", "moduletest:")):
         from socrat.planner import gates
 
-        if not any(
-            c in learn.curriculum(cat, enrollment)
-            for c in gates.module_concepts(cat, activity_id.removeprefix("checkpoint:"))
-        ):
+        members = gates.module_concepts(cat, activity_id.partition(":")[2])
+        if not any(c in learn.curriculum(cat, enrollment) for c in members):
             raise HTTPException(404, "not_found")
+        if activity_id.startswith("moduletest:"):
+            learn.require_unlocked(db, cat, enrollment, members[0], now())
 
 
 def valid_activity(cat: Catalog, activity_id: str) -> str:
@@ -556,7 +601,7 @@ def valid_activity(cat: Catalog, activity_id: str) -> str:
     kind, _, target = activity_id.partition(":")
     if kind == "problem" and target in cat.problems:
         return activity_id
-    if kind == "checkpoint":
+    if kind in {"checkpoint", "moduletest"}:
         course_id, _, module_id = target.partition(":")
         if course_id in cat.courses and any(
             m.id == module_id for m in cat.course(course_id).modules
@@ -586,7 +631,7 @@ def start_activity(activity_id: str, request: Request):
 @router.post("/activities/{activity_id}/complete")
 def complete_lesson(activity_id: str, request: Request):
     cat = catalog()
-    if not activity_id.startswith("lesson:"):
+    if activity_id.partition(":")[0] not in SELF_COMPLETE:
         raise HTTPException(409, "only_lessons_complete_directly")
     with Session(engine(request)) as db, db.begin():
         user = user_of(request, db, write=True)
@@ -848,11 +893,41 @@ def submission(submission_id: str, request: Request):
         return judge.view(job)
 
 
+class BrowserCase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    index: int = Field(ge=0, le=99)
+    status: Literal["executed", "compile_error", "runtime_error", "timeout", "output_limit"]
+    digest: str = Field(default="", pattern=r"^([a-f0-9]{64})?$")
+    wall_ms: int = Field(ge=0, le=120_000)
+    stdout: str = Field(default="", max_length=16_000)
+    stderr: str = Field(default="", max_length=16_000)
+
+
+class BrowserResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    token: str = Field(pattern=r"^[a-f0-9]{64}$")
+    cases: list[BrowserCase] = Field(max_length=100)
+
+
+@router.post("/submissions/{submission_id}/browser-result")
+def browser_result(submission_id: str, body: BrowserResult, request: Request):
+    """The learner's browser reports a local run; the server judges it from digests."""
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        job = db.get(Submission, submission_id, with_for_update=True)
+        if job is None or job.user_id != user.id:
+            raise HTTPException(404, "not_found")
+        if judge.finalize_browser(job, body.token, [c.model_dump() for c in body.cases], now()):
+            on_submission(db, cat, job, now())
+        return judge.view(job)
+
+
 def worker_auth(request: Request):
     settings = request.app.state.settings
     token = settings.execution_worker_secret.get_secret_value()
     if (
-        not settings.execution_enabled
+        not settings.worker_execution_enabled
         or not token
         or not secrets.compare_digest(request.headers.get("authorization", ""), "Bearer " + token)
     ):
@@ -1002,8 +1077,10 @@ async def assistant_message(body: MessageInput, request: Request):
             body.new_attempt,
             now(),
         )
-    provider = make_provider(settings)
     bind = engine(request)
+    provider = budget.Metered(
+        make_provider(settings), bind, settings, user_id=user_id, feature="tutor"
+    )
     toolbox = Toolbox(bind, cat, user_id)
 
     async def events():

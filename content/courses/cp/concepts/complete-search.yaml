@@ -143,7 +143,29 @@ quiz:
     answer: 0
     explanation: Stress testing finds a tiny counterexample you can trace by hand.
     difficulty: 2
-problems: [apple-split]
+  - id: search-bound
+    kind: mcq
+    prompt: "Roughly, what is the largest n for which trying all permutations of n items fits in about 10^8 simple steps?"
+    options:
+      - "n ≈ 11"
+      - "n ≈ 20"
+      - "n ≈ 30"
+      - "n ≈ 100"
+    answer: 0
+    explanation: "11! ≈ 4·10^7 while 12! ≈ 4.8·10^8. Subsets reach n ≈ 25 (2^25 ≈ 3·10^7)."
+    difficulty: 4
+  - id: meet-in-middle
+    kind: mcq
+    prompt: "Subset sum with n = 40 is too big for 2^40. Meet in the middle runs in about"
+    options:
+      - "2^20 · 20 steps"
+      - "2^40 / 2 steps"
+      - "40^2 steps"
+      - "2^39 steps"
+    answer: 0
+    explanation: "Enumerate 2^20 sums of each half, sort one list, and binary search or two-pointer it against the other."
+    difficulty: 5
+problems: [apple-split, closest-subset-sum]
 practice_links:
   - title: Apple Division
     url: https://cses.fi/problemset/task/1623

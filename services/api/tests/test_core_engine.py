@@ -18,7 +18,7 @@ from socrat.catalog.registry import CatalogError, build
 from socrat.catalog.schema import Course
 from socrat.mastery.model import DAY, ConceptState, apply, band, placed
 from socrat.placement import engine as placement
-from socrat.planner.engine import build_plan, pace_of
+from socrat.planner.engine import Adaptive, build_plan, pace_of
 
 NOW = 1_800_000_000
 TODAY = date(2027, 1, 4)  # Monday
@@ -159,13 +159,30 @@ def test_fast_learner_accelerates_and_struggling_learner_gets_support():
     assert "problem:arr-easy" in {a.id for a in steady.queue}
 
 
-def test_repeated_failure_inserts_one_prerequisite_refresher():
+def test_repeated_failure_suggests_a_refresher_and_inserts_it_only_once_approved():
     struggling = ConceptState(alpha=1, beta=4, evidence_count=3, failures=3)
     weak_prerequisite = ConceptState(alpha=1, beta=2, evidence_count=1)
-    result = plan(states={"algo:two-pointers": struggling, "algo:arrays": weak_prerequisite})
-    remedial = [a for a in result.queue if a.kind == "remedial"]
+    states = {"algo:two-pointers": struggling, "algo:arrays": weak_prerequisite}
+    result = plan(states=states)
+    # The planner never changes the roadmap on its own: it only flags the need.
+    assert not [a for a in result.queue if a.kind == "remedial"]
+    assert result.needs_repair == {"algo:two-pointers": "algo:arrays"}
+    cat = catalog()
+    approved = build_plan(
+        cat,
+        cat.course_concepts("algo"),
+        states,
+        set(),
+        [],
+        TODAY,
+        NOW,
+        {0, 2, 4},
+        45,
+        adaptive=Adaptive(overrides={"repair": [["algo:arrays", "algo:two-pointers"]]}),
+    )
+    remedial = [a for a in approved.queue if a.kind == "remedial"]
     assert [a.concept for a in remedial] == ["algo:arrays"]
-    assert any("refresher" in r for r in result.reasons)
+    assert "approved" in remedial[0].reason
 
 
 def test_missed_days_never_create_backlog():

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { api, explain, stream } from '@/lib/api';
-import type { ChatMessage } from '@/lib/types';
+import type { ChatMessage, Proposal, ProposalsView } from '@/lib/types';
+import { ProposalList } from '@/components/socrat/proposals';
 import { Check, Lightbulb, SendHorizontal, ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import { Soc } from '@/components/socrat/illustration';
 import Markdown from './markdown';
@@ -32,6 +33,7 @@ interface Props {
 const LEVEL_TEXT = ['Asking what you tried', 'Guiding question', 'Conceptual nudge', 'Approach', 'Partial plan', 'Full walkthrough'];
 const STARTERS: Record<string, string[]> = {
   general: ['What should I focus on this week?', 'Pick 3 problems for me', 'Where am I weakest right now?'],
+  plan: ['Help me build my plan', 'I have interviews coming up', "I'm stuck. What should change?"],
   concept: ['Explain this with a real example', 'When would I use this?', 'Give me a problem to practise this'],
 };
 
@@ -46,6 +48,8 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   const [error, setError] = useState('');
   const [confirmReveal, setConfirmReveal] = useState(false);
   const [activity, setActivity] = useState<string[]>([]);
+  // Plan changes Soc proposed in chat; they apply only when the learner accepts them here.
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
@@ -75,8 +79,19 @@ export default function Assistant({ scope, title, language, context, onSent, ope
       .catch(e => setError(explain(e)));
   }, [open, loaded, scope]);
   useEffect(() => {
+    if (!open || problem) return;
+    loadProposals();
+  }, [open, problem]);
+  useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
-  }, [messages, open]);
+  }, [messages, open, proposals]);
+
+  function loadProposals() {
+    api
+      .get<ProposalsView>('/adaptive/proposals')
+      .then(v => setProposals(v.pending.filter(p => p.source === 'tutor')))
+      .catch(() => setProposals([]));
+  }
   useEffect(() => {
     if (!open) return;
     input.current?.focus();
@@ -98,13 +113,17 @@ export default function Assistant({ scope, title, language, context, onSent, ope
     setDraft('');
     setActivity([]);
     let reply = '';
+    let proposed = false;
     const update = (content: string, level?: number, id?: string) =>
       setMessages(m => [...m.slice(0, -1), { role: 'assistant', content, level, id }]);
     try {
       for await (const { event, data } of stream('/assistant/messages', {
         scope, message, intent, code: extra.code, new_attempt: extra.newAttempt,
       })) {
-        if (event === 'tool') setActivity(a => (a.includes(String(data.label)) ? a : [...a, String(data.label)]));
+        if (event === 'tool') {
+          if (String(data.name).startsWith('propose_')) proposed = true;
+          setActivity(a => (a.includes(String(data.label)) ? a : [...a, String(data.label)]));
+        }
         else if (event === 'delta') { reply += String(data.text ?? ''); update(reply); }
         else if (event === 'replace') { reply = String(data.text ?? ''); update(reply); }
         else if (event === 'done') {
@@ -116,6 +135,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
           }
         }
       }
+      if (proposed) loadProposals();
       onSent?.();
     } catch (e) {
       setMessages(m => m.slice(0, -2));
@@ -185,10 +205,12 @@ export default function Assistant({ scope, title, language, context, onSent, ope
               ? 'Tell me what you tried and where it breaks. Hints get more specific as you keep working. Run your code or explain your thinking to unlock the next level.'
               : scope === 'general'
                 ? 'I know your plan, your progress and the whole practice library. Ask what to study, which problems to do next, or anything you are stuck on.'
-                : 'Ask about this lesson, an idea that feels fuzzy, or what to focus on next.'}
+                : scope === 'plan'
+                  ? "Let's shape your roadmap together. I'll ask a few questions, then suggest changes you can accept or skip. Nothing changes without your yes."
+                  : 'Ask about this lesson, an idea that feels fuzzy, or what to focus on next.'}
             {!problem ? (
               <div className="mt-4 grid gap-2">
-                {STARTERS[scope === 'general' ? 'general' : 'concept'].map(s => (
+                {STARTERS[scope === 'general' || scope === 'plan' ? scope : 'concept'].map(s => (
                   <Button key={s} type="button" variant="outline" size="sm" className="h-auto min-h-11 justify-start rounded-[16px] py-2.5 text-left font-medium whitespace-normal" disabled={busy || !loaded} onClick={() => send('chat', s)}>
                     {s}
                   </Button>
@@ -244,6 +266,11 @@ export default function Assistant({ scope, title, language, context, onSent, ope
             </div>
           ),
         )}
+        {proposals.length && !busy ? (
+          <div aria-label="Plan changes Soc suggested">
+            <ProposalList compact proposals={proposals} onDecided={v => setProposals(v.pending.filter(p => p.source === 'tutor'))} />
+          </div>
+        ) : null}
       </div>
       {error ? <p role="alert" className="mx-4 mb-2 rounded-[16px] border border-attention px-3 py-2 text-sm">{error}</p> : null}
       {problem ? (

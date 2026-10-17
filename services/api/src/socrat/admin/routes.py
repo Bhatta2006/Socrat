@@ -31,6 +31,38 @@ def overview(request: Request):
         return admin.overview(db, cat, now())
 
 
+@router.get("/ai-costs")
+def ai_costs(request: Request):
+    from socrat.assistant import budget
+
+    with Session(engine(request)) as db:
+        require_admin(request, db)
+        return budget.summary(db, request.app.state.settings, now())
+
+
+@router.get("/errors")
+def error_reports(request: Request):
+    from socrat import errors
+
+    with Session(engine(request)) as db:
+        require_admin(request, db)
+        return {"items": errors.recent(db)}
+
+
+@router.post("/errors/{report_id}/resolve")
+def resolve_error(report_id: str, request: Request):
+    from socrat.models import ErrorReport
+
+    with Session(engine(request)) as db, db.begin():
+        user = require_admin(request, db, write=True)
+        row = db.get(ErrorReport, report_id)
+        if row is None:
+            raise HTTPException(404, "not_found")
+        row.status = "resolved"
+        record_event(db, user.id, "admin.error_resolved", report_id)
+        return {"resolved": True}
+
+
 @router.get("/learning-quality")
 def learning_quality(request: Request):
     """Learning guardrails and closure, without optimizing time spent or reward clicks."""

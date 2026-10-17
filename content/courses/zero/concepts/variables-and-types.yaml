@@ -211,4 +211,32 @@ quiz:
     answer: 0
     explanation: The right side is evaluated using the old total, then the result replaces it.
     difficulty: 1
-problems: [next-counter]
+  - id: int-division-types
+    kind: mcq
+    prompt: "In Python, which expression has the value 2 and type int?"
+    options:
+      - "7 // 3"
+      - "7 / 3"
+      - "6 / 3"
+      - "int(\"2.0\")"
+    answer: 0
+    explanation: "// is whole-number division (int). / always gives a float, and int(\"2.0\") raises an error because the text is not a whole number."
+    difficulty: 4
+  - id: rebinding
+    kind: output
+    prompt: "What does this print?"
+    code:
+      python: |
+        a = 5
+        b = a
+        a = a + 1
+        print(a, b)
+    options:
+      - "6 5"
+      - "6 6"
+      - "5 5"
+      - "5 6"
+    answer: 0
+    explanation: "b = a copies the current value 5 into b; changing a afterwards does not change b."
+    difficulty: 5
+problems: [next-counter, temperature-converter]

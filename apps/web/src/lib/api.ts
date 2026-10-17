@@ -77,6 +77,11 @@ const MESSAGES: Record<string, string> = {
   profile_incomplete: 'Finish your profile first.',
   content_unavailable: 'Course content is not built yet. Run python scripts/content/build.py.',
   assistant_daily_limit: "You've reached today's assistant limit. It resets within 24 hours.",
+  ai_budget_reached: "Soc has used today's AI allowance. Curated hints still work, and the allowance resets tomorrow.",
+  ai_disabled: 'AI features are paused for maintenance. Curated hints still work.',
+  ai_rate_limited: 'That was a lot of requests in a minute. Wait a moment and try again.',
+  execution_lease_expired: 'That run took too long to report back. Run it again.',
+  execution_token_invalid: 'That run could not be matched to your submission. Run it again.',
   execution_unavailable: 'Code execution is turned off on this server.',
   runtime_offline: 'No code runner for this language is online right now. Try again shortly.',
   daily_run_quota: "You've used today's run allowance. It resets tomorrow.",
@@ -111,6 +116,9 @@ const MESSAGES: Record<string, string> = {
   no_active_enrollment: 'Choose a course first.',
   sprint_unavailable: 'Finish a concept check on a topic with practice problems first — sprints use topics you have studied.',
   assessment_done: "You've already finished this week's assessment. A new one opens next week.",
+  try_turns_used: "That's the end of the free preview. Create an account to keep going with Soc.",
+  try_rate_limited: 'The preview is busy from your network. Try again in a little while, or sign up to keep going.',
+  company_not_covered: "That company's questions don't use skills in your course. Pick another company or course.",
   assessment_unavailable: 'Study at least two topics this week to unlock your weekly assessment.',
 };
 
