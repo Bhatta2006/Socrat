@@ -479,3 +479,8 @@ html[data-reduce-motion="true"]::view-transition-old(*), html[data-reduce-motion
   content-visibility: auto;
   contain-intrinsic-size: auto 900px;
 }
+
+/* Soc nods hello when the control he sits in is hovered, focused or pressed. */
+.soc-avatar { transform-origin: 50% 80%; transition: transform 260ms var(--ease-soft, cubic-bezier(0.2, 0.8, 0.2, 1)); }
+:is(button, a):is(:hover, :focus-visible) .soc-avatar { transform: rotate(-7deg) scale(1.06); }
+:is(button, a):active .soc-avatar { transform: rotate(0deg) scale(0.96); }

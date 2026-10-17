@@ -196,7 +196,9 @@ export function TryTutor() {
 
         <div className="flex min-h-[520px] min-w-0 flex-col overflow-hidden rounded-card border bg-card lg:max-h-[760px]">
           <header className="flex items-center gap-3 border-b px-5 py-4">
-            <Soc size={36} />
+            <button type="button" aria-label="Write to Soc" className="flex-none rounded-full" onClick={() => document.getElementById('try-message')?.focus()}>
+              <Soc size={40} />
+            </button>
             <div>
               <p className="font-semibold">Soc, your tutor</p>
               <p className="text-[13px] text-muted-foreground">Asks before it tells. Never writes the answer here.</p>
