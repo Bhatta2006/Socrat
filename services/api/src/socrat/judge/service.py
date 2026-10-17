@@ -3,8 +3,15 @@
 The worker protocol (heartbeat → claim → result) and the signed JobEnvelope are unchanged
 from the original execution plane, so services/execution/src/runner/worker.py runs as-is.
 Hidden test inputs and outputs never leave the server; workers already blank hidden output.
+
+Languages in ``settings.browser_runtimes`` run in the learner's browser instead (Pyodide,
+Clang/WASI). Such a job is created already "running" for the pseudo-worker ``browser``: the
+browser receives the test inputs (never the expected outputs), runs the code locally and
+reports a digest of each normalized output. The server decides pass or fail by comparing
+digests, so a browser can only report "passed" by producing the right output.
 """
 
+import hashlib
 import secrets
 
 from fastapi import HTTPException
@@ -48,9 +55,30 @@ def healthy_images(db: Session, settings: Settings, now: int) -> set[str]:
     return {image for worker in workers for image in worker.images if image in allowed}
 
 
+BROWSER = "browser"
+# Browser runtimes are slower than native ones (WebAssembly, an interpreter compiled to it).
+BROWSER_TIME_FACTOR = {"python": 3, "cpp": 2}
+BROWSER_CLIENT_STATUSES = {"executed", "compile_error", "runtime_error", "timeout", "output_limit"}
+
+
+def in_browser(settings: Settings, language: str) -> bool:
+    return language in settings.browser_runtimes
+
+
 def runtimes(db: Session, settings: Settings, now: int) -> dict[str, bool]:
     healthy = healthy_images(db, settings, now)
-    return {x["language"]: x["image"] in healthy for x in settings.execution_profiles}
+    ready = {x["language"]: x["image"] in healthy for x in settings.execution_profiles}
+    return ready | {language: True for language in settings.browser_runtimes}
+
+
+def normalized(text: str) -> str:
+    """The judge comparison of ``same_output``, as one canonical string."""
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    return "\n".join(line.rstrip() for line in lines).strip("\n")
+
+
+def output_digest(text: str) -> str:
+    return hashlib.sha256(normalized(text).encode()).hexdigest()
 
 
 def create(
@@ -66,9 +94,11 @@ def create(
     assistance: int,
     now: int,
 ) -> Submission:
-    profile = profile_for(settings, language)
-    if profile.image not in healthy_images(db, settings, now):
-        raise HTTPException(503, "runtime_offline")
+    browser = in_browser(settings, language)
+    if not browser:
+        profile = profile_for(settings, language)
+        if profile.image not in healthy_images(db, settings, now):
+            raise HTTPException(503, "runtime_offline")
     if not source.strip():
         raise HTTPException(422, "empty_source")
     today_count = db.scalar(
@@ -102,6 +132,41 @@ def create(
     if not tests:
         raise HTTPException(409, "problem_has_no_tests")
     job_id = identifier()
+    if browser:
+        nonce = secrets.token_hex(32)
+        submission = Submission(
+            id=job_id,
+            user_id=user_id,
+            enrollment_id=enrollment_id,
+            problem_id=problem.id,
+            language=language,
+            mode=mode,
+            source=source,
+            custom_input=custom_input,
+            status="running",
+            total=len(tests),
+            assistance=assistance,
+            manifest=dict(
+                backend=BROWSER,
+                job_id=job_id,
+                nonce=nonce,
+                issued_at=now,
+                expires_at=now + LEASE_SECONDS,
+                language=language,
+                mode="submit" if mode == "submit" else "run",
+                code_hash=hashed(source.encode()),
+                test_digest=hashed(canonical(tests)),
+                time_limit_ms=problem.time_limit_ms * BROWSER_TIME_FACTOR[language],
+            ),
+            signature=hashlib.sha256(nonce.encode()).hexdigest(),
+            tests=tests,
+            worker_id=BROWSER,
+            lease_until=now + LEASE_SECONDS,
+            created_at=now,
+        )
+        db.add(submission)
+        db.flush()
+        return submission
     manifest = JobManifest(
         job_id=job_id,
         attempt_id=identifier(),
@@ -225,27 +290,76 @@ def finalize(db: Session, settings: Settings, worker_id: str, envelope: ResultEn
         return job, True
     if [x.index for x in result.cases] != list(range(len(job.tests))):
         raise HTTPException(409, "execution_result_incomplete")
+    settle(job, [x.model_dump() for x in result.cases])
+    return job, True
+
+
+def settle(job: Submission, results: list[dict]):
+    """Store per-case results (public detail only) and the verdict on a finished job."""
     cases = []
-    for case, test in zip(result.cases, job.tests, strict=True):
+    for case, test in zip(results, job.tests, strict=True):
         public = test["visibility"] == "public"
         cases.append(
             dict(
-                status=case.status,
-                wall_ms=case.wall_ms,
+                status=case["status"],
+                wall_ms=case["wall_ms"],
                 public=public,
                 input=test["input"][:4000] if public else None,
                 expected=(test["expected"] or "")[:4000]
                 if public and test["expected"] is not None
                 else None,
-                stdout=case.stdout[:4000] if public else None,
-                stderr=case.stderr[:4000] if public or case.status == "compile_error" else None,
+                stdout=case["stdout"][:4000] if public else None,
+                stderr=case["stderr"][:4000]
+                if public or case["status"] == "compile_error"
+                else None,
             )
         )
     job.cases = cases
     job.passed = sum(c["status"] == "passed" for c in cases)
     job.verdict = verdict_of(cases, job.mode, job.custom_input is not None)
     job.status = "done"
-    return job, True
+
+
+def browser_task(job: Submission) -> dict | None:
+    """What the learner's browser needs to run a pending browser job: inputs, never outputs."""
+    if job.worker_id != BROWSER or job.status != "running":
+        return None
+    return dict(
+        token=job.manifest["nonce"],
+        language=job.language,
+        time_limit_ms=job.manifest["time_limit_ms"],
+        expires_at=job.manifest["expires_at"],
+        tests=[dict(index=i, input=t["input"]) for i, t in enumerate(job.tests)],
+    )
+
+
+def finalize_browser(job: Submission, token: str, results: list[dict], now: int) -> bool:
+    """Judge a browser job from its reported output digests. False if already finished."""
+    if job.worker_id != BROWSER:
+        raise HTTPException(404, "not_found")
+    if not secrets.compare_digest(token, job.manifest["nonce"]):
+        raise HTTPException(409, "execution_token_invalid")
+    if job.status in {"done", "failed"}:
+        return False  # A retried report: idempotent.
+    if job.lease_until is None or now > job.lease_until:
+        raise HTTPException(409, "execution_lease_expired")
+    if [x["index"] for x in results] != list(range(len(job.tests))):
+        raise HTTPException(409, "execution_result_incomplete")
+    judged = []
+    for case, test in zip(results, job.tests, strict=True):
+        status = case["status"]
+        if status not in BROWSER_CLIENT_STATUSES:
+            raise HTTPException(422, "execution_status_invalid")
+        if status == "executed" and test["expected"] is not None:
+            status = (
+                "passed"
+                if secrets.compare_digest(case["digest"], output_digest(test["expected"]))
+                else "wrong_answer"
+            )
+        judged.append(case | dict(status=status))
+    job.finished_at = now
+    settle(job, judged)
+    return True
 
 
 def view(job: Submission) -> dict:
@@ -265,4 +379,5 @@ def view(job: Submission) -> dict:
         created_at=job.created_at,
         finished_at=job.finished_at,
         learning_feedback=submission_copy(job),
+        browser=browser_task(job),
     )

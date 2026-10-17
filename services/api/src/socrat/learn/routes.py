@@ -11,6 +11,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from socrat.assistant import budget
 from socrat.assistant import service as assistant
 from socrat.assistant.gateway import make_provider
 from socrat.assistant.tools import Toolbox
@@ -524,7 +525,20 @@ async def explain(qualified: str, body: ExplainInput, request: Request):
         enrollment = learn.active_enrollment(db, user.id)
         language = enrollment.language if enrollment else "python"
         text, provider = await assistant.lesson_variant(
-            db, make_provider(settings), cat, settings, qualified, language, body.style
+            db,
+            budget.Metered(
+                make_provider(settings),
+                engine(request),
+                settings,
+                user_id=user.id,
+                feature="lesson",
+                db=db,
+            ),
+            cat,
+            settings,
+            qualified,
+            language,
+            body.style,
         )
         return {"content": text, "provider": provider}
 
@@ -879,11 +893,41 @@ def submission(submission_id: str, request: Request):
         return judge.view(job)
 
 
+class BrowserCase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    index: int = Field(ge=0, le=99)
+    status: Literal["executed", "compile_error", "runtime_error", "timeout", "output_limit"]
+    digest: str = Field(default="", pattern=r"^([a-f0-9]{64})?$")
+    wall_ms: int = Field(ge=0, le=120_000)
+    stdout: str = Field(default="", max_length=16_000)
+    stderr: str = Field(default="", max_length=16_000)
+
+
+class BrowserResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    token: str = Field(pattern=r"^[a-f0-9]{64}$")
+    cases: list[BrowserCase] = Field(max_length=100)
+
+
+@router.post("/submissions/{submission_id}/browser-result")
+def browser_result(submission_id: str, body: BrowserResult, request: Request):
+    """The learner's browser reports a local run; the server judges it from digests."""
+    cat = catalog()
+    with Session(engine(request)) as db, db.begin():
+        user = user_of(request, db, write=True)
+        job = db.get(Submission, submission_id, with_for_update=True)
+        if job is None or job.user_id != user.id:
+            raise HTTPException(404, "not_found")
+        if judge.finalize_browser(job, body.token, [c.model_dump() for c in body.cases], now()):
+            on_submission(db, cat, job, now())
+        return judge.view(job)
+
+
 def worker_auth(request: Request):
     settings = request.app.state.settings
     token = settings.execution_worker_secret.get_secret_value()
     if (
-        not settings.execution_enabled
+        not settings.worker_execution_enabled
         or not token
         or not secrets.compare_digest(request.headers.get("authorization", ""), "Bearer " + token)
     ):
@@ -1033,8 +1077,10 @@ async def assistant_message(body: MessageInput, request: Request):
             body.new_attempt,
             now(),
         )
-    provider = make_provider(settings)
     bind = engine(request)
+    provider = budget.Metered(
+        make_provider(settings), bind, settings, user_id=user_id, feature="tutor"
+    )
     toolbox = Toolbox(bind, cat, user_id)
 
     async def events():

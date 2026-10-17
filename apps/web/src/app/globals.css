@@ -472,3 +472,10 @@ html[data-reduce-motion="true"]::view-transition-old(*), html[data-reduce-motion
 .scroll-row:hover { transform: translateX(8px); }
 /* Solid, not translucent: links over dark sections behind a see-through bar failed contrast. */
 .glass-nav { background: var(--card); }
+
+/* Long pages: sections below the first screen are laid out only when scrolled near, so the
+   first paint does not wait for the whole page's style and layout (landing LCP). */
+.below-fold {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}

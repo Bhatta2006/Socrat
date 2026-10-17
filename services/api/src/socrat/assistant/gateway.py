@@ -32,7 +32,7 @@ class ToolSpec:
 
 @dataclass(frozen=True)
 class Event:
-    kind: str  # "text" | "tool_call" | "tool_result"
+    kind: str  # "text" | "tool_call" | "tool_result" | "usage" (arguments: token counts)
     text: str = ""
     name: str = ""
     arguments: dict = field(default_factory=dict)
@@ -54,6 +54,21 @@ class Provider(Protocol):
         run_tool: ToolRunner | None = None,
         max_rounds: int = 4,
     ) -> AsyncIterator[Event]: ...
+
+
+def usage_event(input_tokens: int, output_tokens: int) -> Event:
+    """Token counts of one model round, for metering. Consumers that only want text skip it."""
+    return Event(
+        "usage",
+        arguments=dict(
+            input_tokens=max(0, int(input_tokens)), output_tokens=max(0, int(output_tokens))
+        ),
+    )
+
+
+def estimated_tokens(text: str) -> int:
+    """About four characters per token, for endpoints that report no usage."""
+    return len(text) // 4 + 1
 
 
 def parse_arguments(raw: str) -> dict | None:
@@ -157,6 +172,17 @@ class AnthropicProvider:
                     async for text in stream.text_stream:
                         yield Event("text", text)
                     final = await stream.get_final_message()
+                used = getattr(final, "usage", None)
+                if used is not None:
+                    yield usage_event(
+                        # Cache writes cost 1.25x and cache reads 0.1x of fresh input.
+                        int(
+                            (used.input_tokens or 0)
+                            + 1.25 * (getattr(used, "cache_creation_input_tokens", 0) or 0)
+                            + 0.1 * (getattr(used, "cache_read_input_tokens", 0) or 0)
+                        ),
+                        used.output_tokens or 0,
+                    )
                 if final.stop_reason == "refusal":
                     raise ProviderError("provider_refusal")
                 calls = [b for b in final.content if b.type == "tool_use"]
@@ -280,6 +306,7 @@ class OpenAIProvider:
                 params: dict[str, Any] = dict(
                     model=self.settings.openai_model,
                     stream=True,
+                    stream_options={"include_usage": True},
                     max_completion_tokens=max_tokens,
                     messages=messages,
                 )
@@ -295,7 +322,10 @@ class OpenAIProvider:
                 text = ""
                 calls: dict[int, dict[str, str]] = {}
                 finish = None
+                usage = None
                 async for chunk in response:
+                    if getattr(chunk, "usage", None):
+                        usage = chunk.usage
                     if not chunk.choices:
                         continue
                     choice = chunk.choices[0]
@@ -317,6 +347,11 @@ class OpenAIProvider:
                 if rest:
                     text += rest
                     yield Event("text", rest)
+                if usage is not None:
+                    yield usage_event(usage.prompt_tokens or 0, usage.completion_tokens or 0)
+                else:
+                    sent = sum(len(str(m.get("content") or "")) for m in messages)
+                    yield usage_event(sent // 4 + 1, estimated_tokens(text))
                 if not calls and not text.strip() and rounds and not retried:
                     # Some open models end a turn after tool results with nothing visible;
                     # ask once more for the answer itself.

@@ -25,7 +25,9 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `${executable('alembic')} upgrade head && ${executable('python')} scripts/content/build.py && ${executable('uvicorn')} socrat.main:create_app --factory --app-dir services/api/src --host 127.0.0.1 --port 8000`,
+      // A fresh database every run: a leftover file from another branch can sit at a schema
+      // revision this branch does not know, and then the server cannot start.
+      command: `${executable('python')} -c "import pathlib; [pathlib.Path('socrat.e2e.db' + s).unlink(missing_ok=True) for s in ('', '-wal', '-shm')]" && ${executable('alembic')} upgrade head && ${executable('python')} scripts/content/build.py && ${executable('uvicorn')} socrat.main:create_app --factory --app-dir services/api/src --host 127.0.0.1 --port 8000`,
       url: 'http://127.0.0.1:8000/api/health/ready',
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,

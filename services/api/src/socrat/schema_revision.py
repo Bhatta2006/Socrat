@@ -1,3 +1,3 @@
 """Supported schema head for readiness and recovery checks."""
 
-SCHEMA_REVISION = "0012_adaptive_roadmap"
+SCHEMA_REVISION = "0014_error_reports"

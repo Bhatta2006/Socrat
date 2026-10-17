@@ -314,6 +314,7 @@ def make_client(tmp_path, enabled):
         environment="test",
         dev_login_enabled=True,
         execution_profiles=profiles(),
+        browser_runtimes=[],
         execution_signing_secret=SIGNING,
         execution_worker_secret=WORKER,
         pattern_planner_enabled=enabled,

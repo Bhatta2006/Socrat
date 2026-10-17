@@ -10,6 +10,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from socrat.assistant import budget
 from socrat.assistant import service as assistant
 from socrat.assistant.gateway import ProviderError, make_provider
 from socrat.database import record_event
@@ -184,8 +185,15 @@ async def create(body: CreateInput, request: Request):
                 if settings.explainer_model:
                     key = "openai_model" if settings.ai_provider == "openai" else "ai_model"
                     provider_settings = settings.model_copy(update={key: settings.explainer_model})
-                provider = make_provider(
-                    provider_settings, chat_template_kwargs=settings.explainer_chat_template_kwargs
+                provider = budget.Metered(
+                    make_provider(
+                        provider_settings,
+                        chat_template_kwargs=settings.explainer_chat_template_kwargs,
+                    ),
+                    engine(request),
+                    provider_settings,
+                    user_id=user_id,
+                    feature="playground",
                 )
                 async for event in generator.generate(
                     provider, provider_settings, body.prompt, language, body.level

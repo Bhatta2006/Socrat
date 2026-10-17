@@ -13,6 +13,7 @@ from socrat.library import service as library
 from socrat.mastery.model import ConceptState, band
 from socrat.models import (
     ActivityRecord,
+    AIUsage,
     AssistantMessage,
     AssistantThread,
     ContentIssue,
@@ -460,6 +461,16 @@ def export(db: Session, user: User) -> dict:
                 adaptive=e.adaptive,
             )
             for e in enrollments
+        ],
+        ai_usage=[
+            dict(
+                feature=u.feature,
+                model=u.model,
+                input_tokens=u.input_tokens,
+                output_tokens=u.output_tokens,
+                at=u.created_at,
+            )
+            for u in db.scalars(select(AIUsage).where(AIUsage.user_id == user.id))
         ],
         plan_proposals=[
             dict(

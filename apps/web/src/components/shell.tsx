@@ -11,6 +11,7 @@ import {
   Flame,
   House,
   LogOut,
+  MessageSquareWarning,
   Monitor,
   Moon,
   PanelLeftClose,
@@ -28,6 +29,7 @@ import { useSession } from '@/lib/session';
 import type { Today } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CommandMenu } from '@/components/command-menu';
+import { ReportProblem, openReportProblem } from '@/components/report-problem';
 import { Tour } from '@/components/tour';
 import { Wordmark } from '@/components/socrat/wordmark';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -96,6 +98,7 @@ function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link href="/settings"><Settings /> Settings</Link></DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => openReportProblem()}><MessageSquareWarning /> Report a problem</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <ThemeItems />
@@ -350,6 +353,7 @@ export default function Shell({ children }: { children: ReactNode }) {
       </div>
       <MobileNav active={active} ready={ready} />
       <Tour />
+      <ReportProblem />
     </div>
   );
 }

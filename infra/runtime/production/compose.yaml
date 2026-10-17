@@ -92,12 +92,24 @@ services:
       SOCRAT_TUTOR_MODEL_ENABLED: "${SOCRAT_TUTOR_MODEL_ENABLED:-false}"
       SOCRAT_TUTOR_ADVISOR_SHADOW_ENABLED: "false"
       SOCRAT_EXECUTION_ENABLED: "false"
+      # Python and C++ run in the learner's browser and are judged here by output digest.
+      SOCRAT_BROWSER_RUNTIMES: '${SOCRAT_BROWSER_RUNTIMES:-["python","cpp"]}'
       # AI provider (any OpenAI-compatible endpoint, or anthropic). The key is a mounted file.
       SOCRAT_AI_PROVIDER: "${SOCRAT_AI_PROVIDER:-openai}"
       SOCRAT_OPENAI_BASE_URL: "${SOCRAT_OPENAI_BASE_URL:-}"
       SOCRAT_OPENAI_MODEL: "${SOCRAT_OPENAI_MODEL:-}"
       SOCRAT_OPENAI_API_KEY_FILE: /run/secrets/ai_api_key
       SOCRAT_AI_TIMEOUT_SECONDS: "${SOCRAT_AI_TIMEOUT_SECONDS:-60}"
+      # LLM cost guardrails: SOCRAT_AI_ENABLED=false is the kill switch. Set the prices to your
+      # provider's per-million-token prices so budgets and the /admin spend card are accurate.
+      SOCRAT_AI_ENABLED: "${SOCRAT_AI_ENABLED:-true}"
+      SOCRAT_SENTRY_DSN: "${SOCRAT_SENTRY_DSN:-}"
+      SOCRAT_RELEASE: "${SOCRAT_RELEASE:-}"
+      SOCRAT_AI_PRICE_INPUT_PER_MTOK: "${SOCRAT_AI_PRICE_INPUT_PER_MTOK:-3}"
+      SOCRAT_AI_PRICE_OUTPUT_PER_MTOK: "${SOCRAT_AI_PRICE_OUTPUT_PER_MTOK:-15}"
+      SOCRAT_AI_USER_DAILY_BUDGET_USD: "${SOCRAT_AI_USER_DAILY_BUDGET_USD:-0.5}"
+      SOCRAT_AI_DAILY_BUDGET_USD: "${SOCRAT_AI_DAILY_BUDGET_USD:-25}"
+      SOCRAT_AI_MONTHLY_BUDGET_USD: "${SOCRAT_AI_MONTHLY_BUDGET_USD:-400}"
       # Playground (AI visual explainer): frames are served from a second, unrelated registrable domain.
       SOCRAT_EXPLAINER_ENABLED: "${SOCRAT_EXPLAINER_ENABLED:-true}"
       SOCRAT_EXPLAINER_MODEL: "${SOCRAT_EXPLAINER_MODEL:-}"

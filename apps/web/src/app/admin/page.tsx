@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { ReviewQueue } from '@/components/review-queue';
 
 interface Overview {
@@ -30,6 +31,104 @@ interface Overview {
     budgets: { LCP: number; INP: number; CLS: number };
     pages: ({ route: string; samples: number } & Partial<Record<'LCP' | 'INP' | 'CLS', { p75: number; ok: boolean }>>)[];
   };
+}
+
+interface AICosts {
+  enabled: boolean;
+  today_usd: number;
+  month_usd: number;
+  daily_budget_usd: number;
+  monthly_budget_usd: number;
+  user_daily_budget_usd: number;
+  learners_this_month: number;
+  per_learner_usd: number;
+  by_feature: Record<string, { calls: number; cost_usd: number; tokens: number }>;
+  prices: { input_per_mtok: number; output_per_mtok: number };
+}
+
+interface ErrorItem { id: string; source: 'server' | 'browser' | 'learner'; message: string; route: string; count: number; first_at: number; last_at: number; request_id?: string; stack: string; reporter: string | null }
+
+const SOURCE_LABEL = { server: 'Server', browser: 'Browser', learner: 'Learner report' } as const;
+
+/** Open errors and learner reports, newest first; resolving hides one until it happens again. */
+function Errors({ items, onResolve }: { items: ErrorItem[] | null; onResolve: (id: string) => void }) {
+  if (!items) return null;
+  return (
+    <Card className="mt-6 gap-0 overflow-hidden pb-0">
+      <CardHeader className="pb-3">
+        <CardTitle>Errors and reports</CardTitle>
+        <CardDescription>Server exceptions, browser crashes and "Report a problem" messages, grouped. A resolved error reopens if it happens again.</CardDescription>
+      </CardHeader>
+      {items.length ? (
+        <ul className="grid divide-y border-t">
+          {items.map(e => (
+            <li key={e.id} className="grid gap-1.5 px-4 py-3 text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="font-semibold">{SOURCE_LABEL[e.source]}{e.count > 1 ? ` · ${e.count} times` : ''}</span>
+                <span className="text-xs text-muted-foreground">{e.route || 'no page'} · last {new Date(e.last_at * 1000).toLocaleString()}</span>
+              </div>
+              <p className="break-words">{e.message}</p>
+              {e.stack ? (
+                <details className="text-xs"><summary className="cursor-pointer text-muted-foreground">Stack{e.request_id ? ` (request ${e.request_id})` : ''}</summary><pre className="io-block mt-2 max-h-60 overflow-auto whitespace-pre-wrap">{e.stack}</pre></details>
+              ) : null}
+              <div><Button size="sm" variant="outline" onClick={() => onResolve(e.id)}>Mark resolved</Button></div>
+            </li>
+          ))}
+        </ul>
+      ) : <CardContent className="pb-6 text-sm text-muted-foreground">No open errors.</CardContent>}
+    </Card>
+  );
+}
+
+const usd = (v: number) => `$${v < 10 ? v.toFixed(2) : Math.round(v).toLocaleString()}`;
+
+/** Spend against the LLM budgets, estimated from token counts and the configured prices. */
+function Costs({ costs }: { costs: AICosts | null }) {
+  if (!costs) return null;
+  const share = (spent: number, budget: number) => (budget ? Math.min(1, spent / budget) : 0);
+  const rows = [
+    { label: 'Today', spent: costs.today_usd, budget: costs.daily_budget_usd },
+    { label: 'This month', spent: costs.month_usd, budget: costs.monthly_budget_usd },
+  ];
+  return (
+    <Card className="mt-6 gap-0 overflow-hidden pb-0">
+      <CardHeader className="pb-3">
+        <CardTitle>AI spend</CardTitle>
+        <CardDescription>
+          {costs.enabled ? 'AI is on.' : 'AI is switched off (SOCRAT_AI_ENABLED=false); learners get curated hints.'} Estimated from tokens at ${costs.prices.input_per_mtok} in / ${costs.prices.output_per_mtok} out per million. Each learner may spend {usd(costs.user_daily_budget_usd)} a day.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-3 pb-4">
+        {rows.map(r => (
+          <div key={r.label} className="grid grid-cols-[110px_minmax(0,1fr)_150px] items-center gap-3 text-sm">
+            <span className="text-muted-foreground">{r.label}</span>
+            <span className="relative h-3 rounded-full bg-muted" role="img" aria-label={`${r.label}: ${usd(r.spent)} of ${r.budget ? usd(r.budget) : 'no cap'}`}>
+              <span className={`absolute inset-y-0 left-0 rounded-full ${share(r.spent, r.budget) >= 0.8 ? 'bg-attention' : 'bg-primary'}`} style={{ width: `${Math.max(1, 100 * share(r.spent, r.budget))}%` }} />
+            </span>
+            <span className="text-right tabular-nums">{usd(r.spent)} of {r.budget ? usd(r.budget) : 'no cap'}</span>
+          </div>
+        ))}
+        <p className="text-sm text-muted-foreground">
+          {costs.learners_this_month} learners used AI this month, {usd(costs.per_learner_usd)} each on average.
+        </p>
+      </CardContent>
+      {Object.keys(costs.by_feature).length ? (
+        <Table>
+          <TableHeader><TableRow><TableHead className="pl-4">Feature</TableHead><TableHead className="text-right">Calls</TableHead><TableHead className="text-right">Tokens</TableHead><TableHead className="pr-4 text-right">Cost this month</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {Object.entries(costs.by_feature).map(([feature, f]) => (
+              <TableRow key={feature}>
+                <TableCell className="pl-4 capitalize">{feature}</TableCell>
+                <TableCell className="text-right tabular-nums">{f.calls.toLocaleString()}</TableCell>
+                <TableCell className="text-right tabular-nums">{f.tokens.toLocaleString()}</TableCell>
+                <TableCell className="pr-4 text-right tabular-nums">{usd(f.cost_usd)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : null}
+    </Card>
+  );
 }
 
 /** p75 against the budget, with a word as well as a colour. */
@@ -74,12 +173,19 @@ export default function Admin() {
   const [data, setData] = useState<Overview | null>(null);
   const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState('');
+  const [costs, setCosts] = useState<AICosts | null>(null);
+  const [errorItems, setErrorItems] = useState<ErrorItem[] | null>(null);
+  const resolve = (id: string) => {
+    api.post(`/admin/errors/${id}/resolve`, {}).then(() => setErrorItems(items => items?.filter(e => e.id !== id) ?? null)).catch(e => setError(explain(e)));
+  };
 
   useEffect(() => {
     if (!allowed) return;
     api.get<Overview>('/admin/overview')
       .then(setData)
       .catch(e => (e instanceof ApiError && e.status === 403 ? setForbidden(true) : setError(explain(e))));
+    api.get<AICosts>('/admin/ai-costs').then(setCosts).catch(() => undefined);
+    api.get<{ items: ErrorItem[] }>('/admin/errors').then(r => setErrorItems(r.items)).catch(() => undefined);
   }, [allowed]);
 
   if (forbidden) {
@@ -175,6 +281,9 @@ export default function Admin() {
           ) : <CardContent className="pb-6 text-sm text-muted-foreground">Nothing flagged yet — items need 20+ answers to judge.</CardContent>}
         </Card>
       </div>
+
+      <Errors items={errorItems} onResolve={resolve} />
+      <Costs costs={costs} />
 
       <Card className="mt-6 gap-0 overflow-hidden pb-0">
         <CardHeader className="pb-3">

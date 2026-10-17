@@ -500,6 +500,16 @@ export interface Submission {
   assistance: number;
   created_at: number;
   finished_at: number | null;
+  /** Present while a browser-run job waits for this browser to run it. */
+  browser?: BrowserTask | null;
+}
+
+export interface BrowserTask {
+  token: string;
+  language: Language;
+  time_limit_ms: number;
+  expires_at: number;
+  tests: { index: number; input: string }[];
 }
 
 export interface ProblemView {

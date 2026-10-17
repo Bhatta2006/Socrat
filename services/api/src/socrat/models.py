@@ -409,6 +409,49 @@ class WebVital(Base):
     device: Mapped[str] = mapped_column(String(8))  # mobile | desktop
 
 
+class AIUsage(Base):
+    """Tokens and estimated cost of one model call: powers the LLM budget and cost dashboard."""
+
+    __tablename__ = "ai_usage"
+    __table_args__ = (
+        Index("ix_ai_usage_day", "day"),
+        Index("ix_ai_usage_user_created", "user_id", "created_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    feature: Mapped[str] = mapped_column(String(24))  # tutor | lesson | playground
+    provider: Mapped[str] = mapped_column(String(16))
+    model: Mapped[str] = mapped_column(String(120))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    day: Mapped[str] = mapped_column(String(10))  # UTC date
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class ErrorReport(Base):
+    """A grouped error (server exception, browser crash) or a learner's problem report."""
+
+    __tablename__ = "error_reports"
+    __table_args__ = (Index("ix_error_reports_status_last", "status", "last_at"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    source: Mapped[str] = mapped_column(String(16))  # server | browser | learner
+    fingerprint: Mapped[str] = mapped_column(String(64), unique=True)
+    message: Mapped[str] = mapped_column(Text)
+    route: Mapped[str] = mapped_column(String(120), default="")
+    detail: Mapped[dict] = mapped_column(JSON, default=dict)  # stack, request id, release
+    # Only learner reports name their author (so the owner can follow up).
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+    )
+    count: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(12), default="open")  # open | resolved
+    first_at: Mapped[int] = mapped_column(Integer, default=now)
+    last_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
 # ---------------------------------------------------------------- adaptive quiz runtime
 # Item definitions live in content files; only runtime state is stored here. Written by the
 # adaptive quiz engine (behind adaptive_quiz_enabled) and the calibration job.

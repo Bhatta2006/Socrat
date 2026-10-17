@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { WebVitals } from '@/components/web-vitals';
+import { ErrorReporter } from '@/components/error-reporter';
 
 // Body and UI (SIL OFL 1.1, vendored in src/fonts). Display uses Geist Sans Bold.
 const figtree = localFont({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <WebVitals />
+        <ErrorReporter />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={200}>
             <SessionProvider>

@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "runtimes": "node scripts/copy-runtimes.mjs",
+    "predev": "node scripts/copy-runtimes.mjs",
     "dev": "next dev --hostname 127.0.0.1",
+    "prebuild": "node scripts/copy-runtimes.mjs",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@bjorn3/browser_wasi_shim": "0.4.2",
     "@codemirror/autocomplete": "6.20.3",
     "@codemirror/commands": "6.11.1",
     "@codemirror/lang-cpp": "6.0.3",
@@ -21,6 +25,7 @@
     "@codemirror/streamparser": "6.0.0",
     "@codemirror/view": "6.43.14",
     "@lezer/highlight": "^1.2.5",
+    "@yowasp/clang": "22.0.0-git20542-10",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
     "cn": "^0.4.0",
@@ -29,6 +34,7 @@
     "motion": "^14.0.0",
     "next": "^16.4.0",
     "next-themes": "^0.4.6",
+    "pyodide": "314.0.7",
     "radix-ui": "^1.7.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -61,3 +61,6 @@ backups/
 content/drafts/**/*.validation.json
 content/drafts/**/*.review.json
 content/drafts/**/*.draft.json
+
+# Browser code runtimes, copied from node_modules by apps/web/scripts/copy-runtimes.mjs
+apps/web/public/runtimes/

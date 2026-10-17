@@ -33,7 +33,7 @@ const THEMES = [
   { id: 'system', label: 'System' },
 ] as const;
 
-function Section({ id, title, description, children, className }: { id: string; title: string; description?: string; children: React.ReactNode; className?: string }) {
+function Section({ id, title, description, children, className }: { id: string; title: string; description?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
     <section aria-labelledby={id} className={cn('rounded-card border bg-card p-5 lg:p-6', className)}>
       <h2 id={id} className="font-display text-xl font-bold tracking-[-0.03em]">{title}</h2>
@@ -261,7 +261,7 @@ export default function Settings() {
 
         <CodeforcesLink />
 
-        <Section id="data-heading" title="Your data" description="Download everything Socrat stores about you: profile, enrollments, results, code submissions and tutor conversations.">
+        <Section id="data-heading" title="Your data" description={<>Download everything Socrat stores about you: profile, enrollments, results, code submissions and tutor conversations. How we use it: <a href="/privacy" className="underline underline-offset-4">privacy policy</a> · <a href="/terms" className="underline underline-offset-4">terms</a>.</>}>
           <div className="flex flex-wrap items-center gap-4">
             <Button variant="outline" onClick={exportData} disabled={exporting === 'busy'} aria-busy={exporting === 'busy'}>
               <Download data-icon="inline-start" /> {exporting === 'busy' ? 'Preparing your export' : 'Download my data'}

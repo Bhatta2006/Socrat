@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import StaleDataError
 from starlette.middleware.sessions import SessionMiddleware
 
+from socrat import errors
 from socrat.adaptive.routes import router as adaptive_router
 from socrat.admin.routes import router as admin_router
 from socrat.assessments.routes import router as assessments_router
@@ -64,6 +65,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url=None if settings.secure else "/api/openapi.json",
     )
     app.state.engine = engine
+    errors.install(engine, settings)
     app.state.settings = settings
     app.include_router(learner_router)
     app.include_router(adaptive_router)
@@ -74,6 +76,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(assessments_router)
     app.include_router(admin_router)
     app.include_router(vitals_router)
+    app.include_router(errors.router)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret.get_secret_value(),
@@ -120,8 +123,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         else:
             try:
                 response = await call_next(request)
-            except Exception:
+            except Exception as exc:
                 logger.exception(json.dumps({"event": "request_failed", "request_id": request_id}))
+                route = getattr(request.scope.get("route"), "path", "unmatched")
+                errors.capture_exception(app.state.engine, exc, route, request_id)
                 response = error("internal_error", 500, request_id)
         response.headers.update(
             {

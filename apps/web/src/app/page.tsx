@@ -159,7 +159,8 @@ export default function Home() {
         {/* Hero */}
         <section aria-labelledby="hero-title" className="mx-auto grid max-w-[1440px] items-center gap-10 px-4 pt-28 pb-16 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:px-10 lg:pt-36 lg:pb-24">
           <div>
-            <Reveal><h1 id="hero-title" className="type-display-xl">Learn it.<br /><Underline>Then prove it.</Underline></h1></Reveal>
+            {/* The heading and the sample card are the largest paints: no fade-in on them (LCP). */}
+            <h1 id="hero-title" className="type-display-xl">Learn it.<br /><Underline>Then prove it.</Underline></h1>
             <Reveal index={1}><p className="type-body-l mt-6 max-w-xl text-muted-foreground">A tutor that asks before it tells, a plan built around your goal, and checks that show what you can do on your own.</p></Reveal>
             <Reveal index={2}>
               <div className="mt-8 flex flex-wrap items-center gap-5">
@@ -168,18 +169,18 @@ export default function Home() {
               </div>
             </Reveal>
           </div>
-          <Parallax className="mx-auto w-full max-w-xl"><Reveal index={2} className="grid w-full gap-3 rounded-card border bg-card p-4 text-card-foreground shadow-floating sm:p-6">
+          <Parallax className="mx-auto w-full max-w-xl"><div className="grid w-full gap-3 rounded-card border bg-card p-4 text-card-foreground shadow-floating sm:p-6">
             <TodaySample />
             <div className="rounded-[20px] border bg-card p-4 text-card-foreground" aria-hidden="true">
               <p className="font-display text-lg font-bold tracking-[-0.02em]">3 of 4 tests passed</p>
               <p className="mt-1 text-sm text-muted-foreground">Edge case: empty array. Tutor hints are recorded.</p>
             </div>
             <ScrollMeter className="rounded-[20px] border bg-card p-4 text-card-foreground" />
-          </Reveal></Parallax>
+          </div></Parallax>
         </section>
 
         {/* How it works: introduces the status system. */}
-        <section id="how" aria-labelledby="how-title" className="mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+        <section id="how" aria-labelledby="how-title" className="below-fold mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <h2 id="how-title" className="type-display-m max-w-2xl">Read. Check. Prove.</h2>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">Every skill shows the difference between reading about it, practising it with help and showing it in a check.</p>
           <ol className="mt-10 lg:mt-14">
@@ -206,7 +207,7 @@ export default function Home() {
         </section>
 
         {/* Product proof: real components with sample data. */}
-        <section aria-labelledby="inside-title" className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+        <section aria-labelledby="inside-title" className="below-fold mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <h2 id="inside-title" className="type-display-m max-w-2xl">Inside Socrat</h2>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">One next step each day, a real editor with judged tests, and visuals you can explore.</p>
           <div className="mt-8 grid gap-4 lg:grid-cols-3 lg:gap-6">
@@ -217,7 +218,7 @@ export default function Home() {
         </section>
 
         {/* Learning paths */}
-        <section id="paths" aria-labelledby="paths-title" className="mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+        <section id="paths" aria-labelledby="paths-title" className="below-fold mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
           <h2 id="paths-title" className="type-display-m">Three ways in</h2>
           <div className="mt-8 grid gap-3 md:grid-cols-3 md:gap-4 lg:gap-6">
             {PATHS.map((path, i) => {
@@ -238,7 +239,7 @@ export default function Home() {
         </section>
 
         {/* FAQ */}
-        <section id="faq" aria-labelledby="faq-title" className="mx-auto grid max-w-[1440px] scroll-mt-20 gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:px-10 lg:py-24">
+        <section id="faq" aria-labelledby="faq-title" className="below-fold mx-auto grid max-w-[1440px] scroll-mt-20 gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:px-10 lg:py-24">
           <h2 id="faq-title" className="type-display-m">Questions</h2>
           <div className="grid gap-3">
             {FAQ.map(([question, answer]) => (
@@ -254,7 +255,7 @@ export default function Home() {
         </section>
 
         {/* Final call to action */}
-        <section aria-labelledby="cta-title" className="mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10 lg:pb-24">
+        <section aria-labelledby="cta-title" className="below-fold mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10 lg:pb-24">
           <InView data-tone="hero" className="flex flex-col items-start gap-6 rounded-card bg-forest p-8 text-forest-foreground lg:flex-row lg:items-end lg:justify-between lg:p-12">
             <ScrubText><h2 id="cta-title" className="type-display-l max-w-[14ch]">Start where you are.</h2></ScrubText>
             <Button asChild variant="ink" size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
@@ -270,6 +271,8 @@ export default function Home() {
             <a href="#paths" className="hover:text-foreground">Paths</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
             <Link href="/login" className="hover:text-foreground">Log in</Link>
+            <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground">Terms</Link>
             <Link href="/attribution" className="hover:text-foreground">Attribution</Link>
           </nav>
           <p className="text-[13px] text-muted-foreground">© {new Date().getFullYear()} Socrat</p>

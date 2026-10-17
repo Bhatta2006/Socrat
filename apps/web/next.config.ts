@@ -11,13 +11,30 @@ const config: NextConfig = {
     return [{ source: '/api/:path*', destination: `${process.env.API_INTERNAL_URL || 'http://127.0.0.1:8000'}/api/:path*` }];
   },
   async headers() {
-    return [{ source: '/:path*', headers: [
+    const common = [
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'Referrer-Policy', value: 'same-origin' },
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-      { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '') + "; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; font-src 'self'; frame-src " + (process.env.NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN || 'http://127.0.0.1:8000') + "; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" },
-    ] }];
+    ];
+    return [
+      // Everything except the code-runner workers, which carry their own policy below.
+      { source: '/((?!runner/).*)', headers: [
+        ...common,
+        { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '') + "; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; font-src 'self'; frame-src " + (process.env.NEXT_PUBLIC_EXPLAINER_SANDBOX_ORIGIN || 'http://127.0.0.1:8000') + "; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" },
+      ] },
+      // Workers compile WebAssembly, and Pyodide evaluates generated glue code. They have no
+      // DOM; the page's own policy is unchanged.
+      { source: '/runner/:path*', headers: [
+        ...common,
+        { key: 'Content-Security-Policy', value: "default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'; connect-src 'self'" },
+        { key: 'Cache-Control', value: 'public, max-age=3600' },
+      ] },
+      // Runtime files live under versioned directories, so they never change in place.
+      { source: '/runtimes/:name/:file+', headers: [
+        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+      ] },
+    ];
   },
 };
 export default config;

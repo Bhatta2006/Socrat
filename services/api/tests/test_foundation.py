@@ -246,7 +246,7 @@ def test_health_flags_and_security_headers(platform):
     assert client.get("/api/health/ready").status_code == 200
     flags = client.get("/api/v1/features").json()
     assert flags["ai_provider"] == "offline"
-    assert flags["code_execution"] is False
+    assert flags["code_execution"] is True  # Python and C++ run in the browser
     response = client.get("/api/v1/me")
     assert response.headers["cache-control"] == "no-store"
     assert response.headers["x-content-type-options"] == "nosniff"
