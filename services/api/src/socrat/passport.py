@@ -10,6 +10,7 @@ nothing else about them.
 import re
 import secrets
 from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
@@ -41,7 +42,7 @@ def month_of(stamp: int) -> str:
 def evidence(db: Session, catalog: Catalog, user: User, stamp: int) -> dict:
     """The public facts. Pure reads; nothing here is stored."""
     enrollment = learn.active_enrollment(db, user.id)
-    base = dict(
+    base: dict[str, Any] = dict(
         name=(user.display_name or "Socrat learner").strip()[:80],
         member_since=month_of(user.created_at),
         course=None,

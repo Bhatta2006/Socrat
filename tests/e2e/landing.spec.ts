@@ -17,8 +17,10 @@ test('landing hero, paths, questions and navigation work on desktop and phone', 
   for (const label of ['Read', 'Practised with help', 'Mastered']) await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
   // Product frames are labelled as sample data.
   await expect(page.getByText('Sample data')).toHaveCount(3);
+  // The chatbot comparison is the main highlight, right after the hero.
+  await expect(page.getByRole('heading', { level: 2 }).first()).toHaveText('Why not just ask ChatGPT?');
   await page.getByText('Can I start without knowing how to code?', { exact: true }).click();
-  await expect(page.locator('.landing-question').first()).toHaveAttribute('open', '');
+  await expect(page.locator('.landing-question', { hasText: 'Can I start without knowing how to code?' })).toHaveAttribute('open', '');
   await expect(page.getByRole('link', { name: /Get started with/ })).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   // The nav floats as a pill just below the top edge.

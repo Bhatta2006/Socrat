@@ -196,6 +196,8 @@ def start(
 
 def view(db: Session, catalog: Catalog, user: User, sprint: CompanySprint, stamp: int) -> dict:
     enrollment = db.get(Enrollment, sprint.enrollment_id)
+    if enrollment is None:  # the sprint row cascades with its enrollment
+        raise HTTPException(404, "not_found")
     states = learn.states_for(db, enrollment)
     learner = library.learner_for(db, catalog, user, enrollment, stamp)
     ready = learner.ready_concepts or set()
