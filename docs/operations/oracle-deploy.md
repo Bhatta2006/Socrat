@@ -15,7 +15,8 @@ push to main ─► continuous-integration (lint, tests, scans, build)
 1. **Two DNS names on two different registrable domains.** `APP_HOST` (the site) and `SANDBOX_HOST` (signed Playground frames), for example `socrat.app` and `socrat-visuals.net`. The API refuses to enable the Playground when both share a registrable domain, because generated visuals must not be able to reach the app's cookies. Both point at the VM's public IP.
 2. **An OIDC provider** (Google, Microsoft, Auth0, …). Production has no developer login. The redirect URI to register is `https://<APP_HOST>/api/v1/auth/callback`.
 3. **An AI provider key** for the tutor and Playground (any OpenAI-compatible endpoint such as Nebius, or Anthropic).
-4. **Code execution is OFF in this runtime** (`SOCRAT_EXECUTION_ENABLED=false`). "Run code" / "Submit" need the gVisor runner host described in `infra/execution/` and `docs/security/`; never enable the `local_process` backend on an internet-facing host.
+4. **Python and C++ run in the learner's browser** (`SOCRAT_BROWSER_RUNTIMES='["python","cpp"]'`, the default); nothing executes on the VM. The web image copies the runtimes (about 115 MB) into `public/runtimes/` at build time, served with immutable caching. If a proxy sits in front of the web container, it must pass `/runner/*` and `/runtimes/*` through unchanged (including their `Content-Security-Policy` and `Cache-Control` headers) and allow responses of about 80 MB. Java needs the gVisor runner host described in `infra/execution/` and `docs/security/`; never enable the `local_process` backend on an internet-facing host.
+5. **LLM budgets:** set `SOCRAT_AI_PRICE_INPUT_PER_MTOK` / `SOCRAT_AI_PRICE_OUTPUT_PER_MTOK` to your provider's prices and adjust the `SOCRAT_AI_*_BUDGET_USD` caps; `SOCRAT_AI_ENABLED=false` switches every model call off. Optional `SOCRAT_SENTRY_DSN` forwards server errors to Sentry or GlitchTip.
 
 ## One-time VM setup
 
