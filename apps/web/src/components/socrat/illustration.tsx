@@ -85,26 +85,23 @@ export function Illustration({ name, className, proof = false }: { name: Illustr
 }
 
 /**
- * Soc, the tutor: an original line drawing of a bearded classical thinker in a suit.
- * Decorative unless `label` is given (only where it acts as a control).
+ * Soc, the tutor: a round, bearded purple face (public/soc, made by scripts/make-soc.mjs).
+ * Decorative unless `label` is given (only where it acts as a control). Inside a button or
+ * link, Soc nods when it is hovered or focused (see .soc-avatar in globals.css).
  */
 export function Soc({ size = 48, className, label }: { size?: number; className?: string; label?: string }) {
+  const source = size <= 48 ? 96 : size <= 96 ? 192 : 384;
   return (
-    <svg viewBox="0 0 48 48" width={size} height={size} className={cn('flex-none', className)} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
-      <circle cx="24" cy="24" r="24" fill="var(--soc-bg, var(--ink))" />
-      <g fill="none" stroke="var(--soc-line, var(--ink-foreground))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        {/* hair and brow */}
-        <path d="M16.5 17.5c0-5 3.4-8 7.5-8s7.5 3 7.5 8" />
-        <path d="M17 14.5c1.6-1.3 3-1.1 4.2-.3M26.8 14.2c1.2-.8 2.6-1 4.2.3" />
-        {/* eyes and nose */}
-        <path d="M20.2 19.2h1.6M26.2 19.2h1.6M24 19.8v3.6l-1.2.6" />
-        {/* beard */}
-        <path d="M16.6 19.5c-.4 6 2.6 11.5 7.4 11.5s7.8-5.5 7.4-11.5" />
-        <path d="M21.2 26c1.8 1 3.8 1 5.6 0M24 28.5v2.5" />
-        {/* suit: shoulders, lapels, tie knot */}
-        <path d="M11 43c.8-5.6 4.2-9 9.5-10.3M37 43c-.8-5.6-4.2-9-9.5-10.3" />
-        <path d="M20.5 32.7 24 39l3.5-6.3M22.6 35.5l1.4 2 1.4-2" />
-      </g>
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element -- a fixed-size local asset; no loader needed
+    <img
+      src={`/soc/soc-${source}.webp`}
+      width={size}
+      height={size}
+      alt={label ?? ''}
+      aria-hidden={label ? undefined : true}
+      draggable={false}
+      decoding="async"
+      className={cn('soc-avatar flex-none select-none', className)}
+    />
   );
 }

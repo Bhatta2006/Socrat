@@ -175,7 +175,9 @@ export default function TodayPage() {
           <Card className="mb-6" aria-labelledby="checkin-heading">
             <div className="grid gap-4 px-(--card-spacing)">
               <div className="flex items-start gap-3">
-                <Soc size={40} className="flex-none" />
+                <button type="button" onClick={() => setAskSoc(n => n + 1)} aria-haspopup="dialog" aria-label="Ask Soc about this check-in" className="flex-none rounded-full">
+                  <Soc size={40} />
+                </button>
                 <div className="min-w-0">
                   <h2 id="checkin-heading" className="sr-only">Check-in from Soc</h2>
                   {today.checkin ? <Markdown source={today.checkin.message} className="prose-compact text-[15px]" /> : null}
@@ -270,7 +272,10 @@ export default function TodayPage() {
                 <h2 id="soc-heading" className="type-display-m">Ask Soc</h2>
                 <p className="mt-3 text-base text-muted-foreground">Get unstuck, ask questions, or request a hint.</p>
               </div>
-              <Soc size={96} className="pointer-events-none absolute top-0 right-(--card-spacing)" />
+              {/* A bigger target for pointer users; keyboard users have the Ask Soc button below. */}
+              <button type="button" tabIndex={-1} aria-hidden="true" onClick={() => setAskSoc(n => n + 1)} className="absolute top-0 right-(--card-spacing) rounded-full">
+                <Soc size={96} />
+              </button>
               <button type="button" data-tour="tutor" onClick={() => setAskSoc(n => n + 1)} className="group/ask mt-auto flex h-14 items-center justify-between gap-3 rounded-full border border-border-strong pr-2 pl-6 text-[17px] font-semibold transition-colors hover:bg-raised" aria-haspopup="dialog">
                 Ask Soc
                 <span className="grid size-10 place-items-center rounded-full bg-foreground text-background transition-transform group-hover/ask:translate-x-0.5"><ArrowRight className="size-5" aria-hidden="true" /></span>
