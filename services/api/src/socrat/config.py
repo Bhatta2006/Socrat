@@ -163,6 +163,17 @@ class Settings(DatabaseSettings):
     # Local demo conveniences (seeded sample learners). Rejected outside development/test.
     demo_mode: bool = False
 
+    # Beta community invite shown on the landing page and in the app ("" hides it).
+    community_whatsapp_url: str = Field(
+        default="", max_length=200, pattern=r"^(https://chat\.whatsapp\.com/[A-Za-z0-9]{10,40})?$"
+    )
+
+    # The signed-out "try a problem" tutor on the landing page. It shares the global AI
+    # budgets and has its own daily cap and per-visitor limits.
+    try_tutor_enabled: bool = True
+    try_daily_budget_usd: float = Field(default=3.0, ge=0, le=10_000)
+    try_messages_per_hour: int = Field(default=20, ge=1, le=500)
+
     @property
     def secure(self) -> bool:
         return self.environment in {"staging", "production"}

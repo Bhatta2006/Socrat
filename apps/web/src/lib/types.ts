@@ -31,6 +31,9 @@ export interface Features {
   code_execution: boolean;
   execution_backend: string;
   demo_mode: boolean;
+  /** WhatsApp community invite for beta learners; null hides it. */
+  community_url?: string | null;
+  try_tutor?: boolean;
 }
 
 export interface Course {
@@ -111,7 +114,7 @@ export interface Proposal {
   reason: string;
   payload: Record<string, unknown>;
   group: string;
-  source: 'planner' | 'tutor' | 'review';
+  source: 'planner' | 'tutor' | 'review' | 'company_sprint';
   status: 'pending' | 'accepted' | 'declined' | 'expired' | 'superseded';
   created_at: number;
   decided_at: number | null;
@@ -619,4 +622,82 @@ export interface LearnerProfile {
     misconceptions: Record<string, number>;
     stuck: { summary: string; severity: number; failure_mode: string } | null;
   }[];
+}
+
+/** Public Skill Passport: verified evidence only, computed live. */
+export interface PassportView {
+  name: string;
+  member_since: string;
+  course: string | null;
+  language: Language | null;
+  mastered: { id: string; title: string; evidence: number }[];
+  practising: { id: string; title: string; evidence: number }[];
+  counts: {
+    unaided_solves: number;
+    judged_solves: number;
+    assisted_solves: number;
+    checks_passed: number;
+    checkpoints: number;
+    weekly_assessments: number;
+    longest_streak: number;
+  };
+  badges: { id: string; title: string; description: string; earned_at: number | null }[];
+  generated_at: number;
+}
+
+export interface PassportSettings {
+  public: boolean;
+  slug: string | null;
+  path: string | null;
+  updated_at: number | null;
+  preview: PassportView;
+}
+
+export interface CompanySprintWeek {
+  number: number;
+  starts: string;
+  ends: string;
+  review: boolean;
+  concepts: { id: string; title: string; band: Band; done: boolean }[];
+  questions: (ExternalProblem & { solved: boolean })[];
+  locked_questions: number;
+}
+
+export interface CompanySprintView {
+  id: string;
+  company: { slug: string; name: string };
+  role: string;
+  role_label: string;
+  title: string;
+  weeks_total: number;
+  started_on: string;
+  ends_on: string;
+  current_week: number;
+  finished: boolean;
+  progress: number;
+  on_track: boolean;
+  counts: { concepts: number; concepts_done: number; questions: number; questions_solved: number; already_known: number };
+  weeks: CompanySprintWeek[];
+  proposal: Proposal | null;
+}
+
+export interface CompanySprintOverview {
+  current: CompanySprintView | null;
+  companies: { slug: string; name: string; questions: number }[];
+  roles: { id: string; label: string }[];
+  weeks: number[];
+}
+
+export interface TryProblem {
+  id: string;
+  title: string;
+  statement: string;
+  input_format: string;
+  output_format: string;
+  constraints: string[];
+  examples: { input: string; output: string; explanation: string }[];
+  starter: string;
+  time_limit_ms: number;
+  tests: { index: number; input: string; expected: string; public: boolean }[];
+  max_turns: number;
 }

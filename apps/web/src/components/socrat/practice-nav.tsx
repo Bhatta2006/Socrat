@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { PRACTICE_SEGMENTS } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-/** Problems | Company questions | Focus sprint. Real route links, so URLs and back work. */
+/** Problems | Company questions | Company sprint | Focus sprint. Real route links, so URLs and back work. */
 export function PracticeNav({ className }: { className?: string }) {
   const pathname = usePathname();
   return (

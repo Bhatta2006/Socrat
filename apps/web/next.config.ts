@@ -30,6 +30,11 @@ const config: NextConfig = {
         { key: 'Content-Security-Policy', value: "default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'; connect-src 'self'" },
         { key: 'Cache-Control', value: 'public, max-age=3600' },
       ] },
+      // The service worker must be re-checked on every load so updates ship promptly.
+      { source: '/sw.js', headers: [
+        { key: 'Cache-Control', value: 'no-cache' },
+        { key: 'Service-Worker-Allowed', value: '/' },
+      ] },
       // Runtime files live under versioned directories, so they never change in place.
       { source: '/runtimes/:name/:file+', headers: [
         { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },

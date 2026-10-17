@@ -16,6 +16,7 @@ from socrat.models import (
     AIUsage,
     AssistantMessage,
     AssistantThread,
+    CompanySprint,
     ContentIssue,
     DailyActivity,
     Draft,
@@ -26,6 +27,7 @@ from socrat.models import (
     PlanProposal,
     PracticeMark,
     ResourceEvent,
+    SkillPassport,
     Submission,
     User,
     WeeklyAssessment,
@@ -524,6 +526,25 @@ def export(db: Session, user: User) -> dict:
             for s in db.scalars(
                 select(LearningSession).where(LearningSession.enrollment_id.in_(ids))
             )
+        ],
+        skill_passport=next(
+            (
+                dict(slug=p.slug, public=p.public, created_at=p.created_at, updated_at=p.updated_at)
+                for p in db.scalars(select(SkillPassport).where(SkillPassport.user_id == user.id))
+            ),
+            None,
+        ),
+        company_sprints=[
+            dict(
+                company=c.company_name,
+                role=c.role,
+                weeks=c.weeks,
+                started_on=c.started_on,
+                ends_on=c.ends_on,
+                plan=c.plan,
+                finished_at=c.finished_at,
+            )
+            for c in db.scalars(select(CompanySprint).where(CompanySprint.enrollment_id.in_(ids)))
         ],
         content_issues=[
             dict(

@@ -8,9 +8,11 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme } from 'next-themes';
 import {
   ChartNoAxesColumn,
+  Download,
   Flame,
   House,
   LogOut,
+  MessageCircle,
   MessageSquareWarning,
   Monitor,
   Moon,
@@ -26,6 +28,8 @@ import {
 import { api } from '@/lib/api';
 import { NAV, navFor, type NavKey } from '@/lib/routes';
 import { useSession } from '@/lib/session';
+import { useInstall } from '@/lib/pwa';
+import { useCommunityUrl } from '@/components/community-link';
 import type { Today } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { CommandMenu } from '@/components/command-menu';
@@ -81,6 +85,8 @@ function ThemeItems() {
 function UserMenu() {
   const { profile, signOut } = useSession();
   const router = useRouter();
+  const { state: installState, install } = useInstall();
+  const community = useCommunityUrl();
   const name = profile?.display_name || 'Learner';
   return (
     <DropdownMenu>
@@ -99,6 +105,10 @@ function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link href="/settings"><Settings /> Settings</Link></DropdownMenuItem>
         <DropdownMenuItem onSelect={() => openReportProblem()}><MessageSquareWarning /> Report a problem</DropdownMenuItem>
+        {community ? (
+          <DropdownMenuItem asChild><a href={community} target="_blank" rel="noopener noreferrer"><MessageCircle /> WhatsApp community</a></DropdownMenuItem>
+        ) : null}
+        {installState === 'prompt' ? <DropdownMenuItem onSelect={() => { install(); }}><Download /> Install the app</DropdownMenuItem> : null}
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <ThemeItems />

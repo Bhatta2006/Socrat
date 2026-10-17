@@ -62,6 +62,14 @@ playground-only code-generation model override.
 Production requires a separate sandbox domain and browser checker service. See the
 [visual playground implementation and deployment notes](docs/implementation/visual-playground.md).
 
+### Beta features
+
+- **Try before signing up.** The landing page runs one judged problem (`max-window-sum`) in the browser with the tutor, no account needed. The tutor uses the same help ladder and leak guard, is capped below pseudocode, and never sees the intended approach or reference. `SOCRAT_TRY_TUTOR_ENABLED`, `SOCRAT_TRY_DAILY_BUDGET_USD` (default 3) and `SOCRAT_TRY_MESSAGES_PER_HOUR` (per visitor, default 20) control it; the global AI budgets still apply. The per-visitor limit is in memory per API process, and it trusts the rightmost `X-Forwarded-For` entry, so the API must sit behind the web server's proxy.
+- **Beta community.** Set `SOCRAT_COMMUNITY_WHATSAPP_URL` to a `https://chat.whatsapp.com/...` invite to show it on the landing page, Today, Settings and the account menu. Empty hides it.
+- **Installable app.** `app/manifest.ts`, `public/sw.js` (offline page only; it never caches API data) and icons from `node scripts/make-icons.mjs` in `apps/web`. The service worker registers in production builds (set `NEXT_PUBLIC_SW_IN_DEV=1` to test it in dev).
+- **Skill Passport.** Learners turn on a public page at `/passport/<random slug>` from Evidence. It is computed live from verified evidence and shows only the display name. Turning it off breaks the link at once.
+- **Company sprints.** `/company-sprint` plans "Amazon SDE-1 in 6 weeks" from the company bank and the course graph, then files a goal proposal (target date, role, focus skills) that the learner accepts or declines.
+
 ### Owner metrics
 
 `/admin` shows the activation funnel, retention, engagement, checkpoint pass rates and content that needs review, computed from learning data. Access is limited to accounts listed in `SOCRAT_ADMIN_SUBJECTS` (a JSON list of OIDC subjects, for example `SOCRAT_ADMIN_SUBJECTS='["your-subject"]'`; with the dev sign-in the subject is your lower-cased name with dashes).

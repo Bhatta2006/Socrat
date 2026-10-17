@@ -10,6 +10,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { WebVitals } from '@/components/web-vitals';
 import { ErrorReporter } from '@/components/error-reporter';
+import { PwaSetup } from '@/components/install-app';
 
 // Body and UI (SIL OFL 1.1, vendored in src/fonts). Display uses Geist Sans Bold.
 const figtree = localFont({
@@ -30,6 +31,9 @@ export const metadata: Metadata = {
   title: { default: 'Socrat', template: '%s · Socrat' },
   description: 'Learn it. Then prove it. A personal programming tutor for learning to code, interview preparation and contests.',
   robots: { index: false, follow: false },
+  applicationName: 'Socrat',
+  appleWebApp: { capable: true, title: 'Socrat', statusBarStyle: 'default' },
+  icons: { apple: '/icons/apple-touch-icon.png' },
 };
 
 export const viewport: Viewport = {
@@ -48,6 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <WebVitals />
         <ErrorReporter />
+        <PwaSetup />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider delayDuration={200}>
             <SessionProvider>

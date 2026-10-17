@@ -10,6 +10,7 @@ import type { AssessmentStatus, ProgressView } from '@/lib/types';
 import { ErrorNote, Loading, Page, Ring, StatCard } from '@/components/common';
 import { EmptyState } from '@/components/socrat/states';
 import { LearnerProfileCard } from '@/components/socrat/learner-profile';
+import { PassportSettingsCard } from '@/components/socrat/passport-settings';
 import { STATUS_LABEL, StatusIcon, StatusLabel, StatusLegend, statusFromBand } from '@/components/socrat/status';
 import { Badge } from '@/components/ui/badge';
 import { ArrowCircle, Button } from '@/components/ui/button';
@@ -85,6 +86,8 @@ export default function ProgressPage() {
           <StatCard value={weak} icon={<StatusIcon status="needs_practice" size={28} />} label="Need practice" hint="Recent results show these are not holding yet." />
           <StatCard value={data.solves.independent_solves} label="Problems solved without help" hint={`Accepted with no hints. ${data.solves.assisted_solves} more solved with help.`} />
         </div>
+
+        <PassportSettingsCard />
 
         <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-12 lg:gap-6">
           {/* Mastery comes before activity on every width. */}

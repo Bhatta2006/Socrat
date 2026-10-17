@@ -534,3 +534,40 @@ class QuizEngineSession(Base):
     state: Mapped[dict] = mapped_column(JSON, default=dict)  # steps, pending, micro, stop
     created_at: Mapped[int] = mapped_column(Integer, default=now)
     completed_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class SkillPassport(Base):
+    """A learner's shareable evidence page. Private until the learner turns it on."""
+
+    __tablename__ = "skill_passports"
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    slug: Mapped[str] = mapped_column(String(24), unique=True)
+    public: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    updated_at: Mapped[int] = mapped_column(Integer, default=now)
+
+
+class CompanySprint(Base):
+    """A multi-week plan aimed at one company's interviews ("Amazon SDE-1 in 6 weeks").
+
+    ``plan`` is frozen at the start (weekly skills and question ids) so the weeks stay
+    stable; progress is computed live from mastery and solves.
+    """
+
+    __tablename__ = "company_sprints"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    enrollment_id: Mapped[str] = mapped_column(
+        ForeignKey("enrollments.id", ondelete="CASCADE"), index=True
+    )
+    company: Mapped[str] = mapped_column(String(80))
+    company_name: Mapped[str] = mapped_column(String(120))
+    role: Mapped[str] = mapped_column(String(16))
+    weeks: Mapped[int] = mapped_column(Integer)
+    started_on: Mapped[str] = mapped_column(String(10))
+    ends_on: Mapped[str] = mapped_column(String(10))
+    plan: Mapped[dict] = mapped_column(JSON)
+    proposal_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[int] = mapped_column(Integer, default=now)
+    finished_at: Mapped[int | None] = mapped_column(Integer, nullable=True)

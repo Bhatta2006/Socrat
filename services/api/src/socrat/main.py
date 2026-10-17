@@ -30,8 +30,10 @@ from socrat.learn.session_routes import router as session_router
 from socrat.library import autosync
 from socrat.library.routes import router as library_router
 from socrat.models import User
+from socrat.passport import router as passport_router
 from socrat.quiz.routes import router as adaptive_quiz_router
 from socrat.schema_revision import SCHEMA_REVISION
+from socrat.trial import router as trial_router
 from socrat.vitals import router as vitals_router
 
 logger = logging.getLogger("socrat.requests")
@@ -76,6 +78,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(assessments_router)
     app.include_router(admin_router)
     app.include_router(vitals_router)
+    app.include_router(passport_router)
+    app.include_router(trial_router)
     app.include_router(errors.router)
     app.add_middleware(
         SessionMiddleware,
@@ -204,6 +208,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "demo_mode": settings.demo_mode,
             "adaptive_quiz": settings.adaptive_quiz_enabled,
             "pattern_planner": settings.pattern_planner_enabled,
+            "community_url": settings.community_whatsapp_url or None,
+            "try_tutor": settings.try_tutor_enabled,
         }
 
     @app.post("/api/v1/auth/dev-login")

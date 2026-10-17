@@ -116,6 +116,9 @@ const MESSAGES: Record<string, string> = {
   no_active_enrollment: 'Choose a course first.',
   sprint_unavailable: 'Finish a concept check on a topic with practice problems first — sprints use topics you have studied.',
   assessment_done: "You've already finished this week's assessment. A new one opens next week.",
+  try_turns_used: "That's the end of the free preview. Create an account to keep going with Soc.",
+  try_rate_limited: 'The preview is busy from your network. Try again in a little while, or sign up to keep going.',
+  company_not_covered: "That company's questions don't use skills in your course. Pick another company or course.",
   assessment_unavailable: 'Study at least two topics this week to unlock your weekly assessment.',
 };
 

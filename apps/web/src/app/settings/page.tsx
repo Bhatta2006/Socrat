@@ -24,6 +24,9 @@ import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
+import { useInstall } from '@/lib/pwa';
+import { CommunityButton, useCommunityUrl } from '@/components/community-link';
+import { InstallAppButton } from '@/components/install-app';
 
 const MINUTES = [15, 20, 30, 45, 60, 90, 120];
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -40,6 +43,22 @@ function Section({ id, title, description, children, className }: { id: string; 
       {description ? <p className="mt-1 text-[15px] text-muted-foreground">{description}</p> : null}
       <div className="mt-5">{children}</div>
     </section>
+  );
+}
+
+/** Install to the home screen and the beta community; hidden when neither applies. */
+function AppSection() {
+  const { state } = useInstall();
+  const community = useCommunityUrl();
+  const installable = state === 'prompt' || state === 'ios';
+  if (!installable && !community) return null;
+  return (
+    <Section id="app-heading" title="App and community" description="Install Socrat on your phone for lessons, checks, reviews and Soc on the go. Writing code works best on a laptop.">
+      <div className="flex flex-wrap gap-3">
+        <InstallAppButton />
+        <CommunityButton />
+      </div>
+    </Section>
   );
 }
 
@@ -260,6 +279,8 @@ export default function Settings() {
         </Section>
 
         <CodeforcesLink />
+
+        <AppSection />
 
         <Section id="data-heading" title="Your data" description={<>Download everything Socrat stores about you: profile, enrollments, results, code submissions and tutor conversations. How we use it: <a href="/privacy" className="underline underline-offset-4">privacy policy</a> · <a href="/terms" className="underline underline-offset-4">terms</a>.</>}>
           <div className="flex flex-wrap items-center gap-4">

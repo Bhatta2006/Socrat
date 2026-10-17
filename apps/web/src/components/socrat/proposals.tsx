@@ -10,6 +10,7 @@ const SOURCE: Record<Proposal['source'], string> = {
   planner: 'Socrat noticed',
   tutor: 'From your chat with Soc',
   review: 'From your weekly review',
+  company_sprint: 'From your company sprint',
 };
 
 /**

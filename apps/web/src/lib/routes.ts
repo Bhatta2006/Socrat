@@ -35,6 +35,8 @@ export const NAME = {
   problems: 'Problems',
   companies: 'Company questions',
   sprint: 'Focus sprint',
+  companySprint: 'Company sprint',
+  passport: 'Skill Passport',
   assessment: 'Weekly assessment',
 } as const;
 
@@ -44,16 +46,17 @@ export type NavKey = 'today' | 'skills' | 'practice' | 'playground' | 'evidence'
 export const NAV: { key: NavKey; href: string; label: string; owns: string[] }[] = [
   { key: 'today', href: '/today', label: NAME.today, owns: ['/today'] },
   { key: 'skills', href: '/plan', label: NAME.skills, owns: ['/plan', '/learn', '/quiz'] },
-  { key: 'practice', href: '/library', label: NAME.practice, owns: ['/library', '/companies', '/sprint', '/problems'] },
+  { key: 'practice', href: '/library', label: NAME.practice, owns: ['/library', '/companies', '/company-sprint', '/sprint', '/problems'] },
   { key: 'playground', href: '/playground', label: NAME.playground, owns: ['/playground'] },
   { key: 'evidence', href: '/progress', label: NAME.evidence, owns: ['/progress', '/assessments'] },
   { key: 'settings', href: '/settings', label: NAME.settings, owns: ['/settings'] },
 ];
 
-/** Practice is one place with three views; each segment is a real route. */
+/** Practice is one place with four views; each segment is a real route. */
 export const PRACTICE_SEGMENTS = [
   { href: '/library', label: NAME.problems },
   { href: '/companies', label: NAME.companies },
+  { href: '/company-sprint', label: NAME.companySprint },
   { href: '/sprint', label: NAME.sprint },
 ] as const;
 

@@ -20,6 +20,7 @@ import { WeekStrip } from '@/components/socrat/week-strip';
 import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { CommunityCard } from '@/components/community-link';
 
 const VERB: Record<string, string> = {
   lesson: 'Start lesson',
@@ -453,6 +454,7 @@ export default function TodayPage() {
           </Link>
         </aside>
       </div>
+      <CommunityCard className="mt-6" />
       <Assistant scope="general" title="Ask Soc" openSignal={askSoc} launcher="phone" />
     </Page>
   );

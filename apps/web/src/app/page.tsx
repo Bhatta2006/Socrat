@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -15,6 +16,15 @@ import { InView } from '@/components/motion';
 import { DrawLine, Parallax, ScrollMeter, ScrubText, Underline } from '@/components/motion-scroll';
 import { Reveal } from '@/components/common';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { WhySocrat } from '@/components/landing/why-socrat';
+import { CommunityButton, CommunityCard } from '@/components/community-link';
+import { InstallAppButton } from '@/components/install-app';
+
+// The demo pulls in the editor and runner; load it after the page is interactive.
+const TryTutor = dynamic(() => import('@/components/landing/try-tutor').then(m => m.TryTutor), {
+  ssr: false,
+  loading: () => <div id="try" className="mx-auto min-h-[720px] max-w-[1440px] scroll-mt-20" aria-hidden="true" />,
+});
 
 const PATHS = [
   { id: 'zero', name: 'Programming from Zero', title: 'Start from the beginning', description: 'Write your first programs in Python, C++ or Java and understand what each line does.', tone: 'grain bg-forest text-forest-foreground', pill: 'ink' as const },
@@ -23,6 +33,8 @@ const PATHS = [
 ];
 
 const FAQ = [
+  ['Why not just use ChatGPT?', 'A chatbot will write the solution for you, and you learn little from pasting it. Socrat asks what you tried, raises help one step at a time after real attempts, blocks solution code until you have earned it, and checks what you can do on your own.'],
+  ['Can I use it on my phone?', 'Yes. Lessons, concept checks, reviews and the tutor work on a phone, and you can install Socrat to your home screen. Writing code is best on a laptop or desktop.'],
   ['Can I start without knowing how to code?', 'Yes. Programming from Zero starts with your first program. You choose Python, C++ or Java, and a short placement check finds the right starting point.'],
   ['How is this different from a problem list?', 'A problem list gives you options. Socrat connects lessons, checks and practice into a plan built from your goal, your time and what you have shown you can do.'],
   ['Will the tutor give me the answer?', 'The tutor starts with a question or a small hint. Help gets more specific as you make real attempts. A full walkthrough is available after you have worked through the problem.'],
@@ -125,7 +137,7 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
-  const links = [['#how', 'How it works'], ['#paths', 'Paths'], ['#faq', 'FAQ']] as const;
+  const links = [['#why', 'Why Socrat'], ['#try', 'Try it'], ['#paths', 'Paths'], ['#faq', 'FAQ']] as const;
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -151,6 +163,7 @@ export default function Home() {
           <nav id="landing-mobile-nav" aria-label="Mobile site" className="mx-auto mt-2 grid max-w-[1100px] rounded-card border bg-background px-4 py-2 shadow-floating md:hidden">
             {links.map(([href, label]) => <a key={href} href={href} onClick={() => setMenu(false)} className="flex min-h-12 items-center text-[17px] font-semibold">{label}</a>)}
             <Link href="/login" className="flex min-h-12 items-center text-[17px] font-semibold">Log in</Link>
+            <InstallAppButton variant="ghost" className="-ml-3 justify-start text-[17px]" />
           </nav>
         ) : null}
       </header>
@@ -161,12 +174,13 @@ export default function Home() {
           <div>
             {/* The heading and the sample card are the largest paints: no fade-in on them (LCP). */}
             <h1 id="hero-title" className="type-display-xl">Learn it.<br /><Underline>Then prove it.</Underline></h1>
-            <Reveal index={1}><p className="type-body-l mt-6 max-w-xl text-muted-foreground">A tutor that asks before it tells, a plan built around your goal, and checks that show what you can do on your own.</p></Reveal>
+            <Reveal index={1}><p className="type-body-l mt-6 max-w-xl text-muted-foreground">The AI tutor that won’t do your homework. It asks before it tells, builds a plan around your goal, and checks what you can do on your own.</p></Reveal>
             <Reveal index={2}>
               <div className="mt-8 flex flex-wrap items-center gap-5">
-                <Button asChild size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
-                <Link href="/login" className="inline-flex min-h-11 items-center text-[17px] font-semibold underline underline-offset-4">Log in</Link>
+                <Button asChild size="lg"><a href="#try">Try a problem now<ArrowCircle /></a></Button>
+                <Link href="/login" className="inline-flex min-h-11 items-center text-[17px] font-semibold underline underline-offset-4">Get started free</Link>
               </div>
+              <p className="mt-3 text-[13px] text-muted-foreground">No sign-up for the first problem. About three minutes.</p>
             </Reveal>
           </div>
           <Parallax className="mx-auto w-full max-w-xl"><div className="grid w-full gap-3 rounded-card border bg-card p-4 text-card-foreground shadow-floating sm:p-6">
@@ -178,6 +192,15 @@ export default function Home() {
             <ScrollMeter className="rounded-[20px] border bg-card p-4 text-card-foreground" />
           </div></Parallax>
         </section>
+
+        {/* The main highlight: why not just a chatbot. */}
+        <WhySocrat
+          skills={courses.reduce((sum, c) => sum + c.concept_count, 0)}
+          problems={courses.reduce((sum, c) => sum + c.problem_count, 0)}
+        />
+
+        {/* First "aha" before sign-up. */}
+        <TryTutor />
 
         {/* How it works: introduces the status system. */}
         <section id="how" aria-labelledby="how-title" className="below-fold mx-auto max-w-[1440px] scroll-mt-20 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
@@ -254,11 +277,17 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Beta community */}
+        <div className="below-fold mx-auto max-w-[1440px] px-4 pb-8 sm:px-6 lg:px-10"><CommunityCard /></div>
+
         {/* Final call to action */}
         <section aria-labelledby="cta-title" className="below-fold mx-auto max-w-[1440px] px-4 pb-16 sm:px-6 lg:px-10 lg:pb-24">
           <InView data-tone="hero" className="flex flex-col items-start gap-6 rounded-card bg-forest p-8 text-forest-foreground lg:flex-row lg:items-end lg:justify-between lg:p-12">
             <ScrubText><h2 id="cta-title" className="type-display-l max-w-[14ch]">Start where you are.</h2></ScrubText>
-            <Button asChild variant="ink" size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild variant="ink" size="lg"><Link href="/login">Get started<ArrowCircle /></Link></Button>
+              <InstallAppButton variant="ink" size="lg" />
+            </div>
           </InView>
         </section>
       </div>
@@ -267,6 +296,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6 lg:px-10">
           <Wordmark size={24} />
           <nav aria-label="Footer" className="flex flex-wrap gap-6 text-[15px] text-muted-foreground">
+            <a href="#why" className="hover:text-foreground">Why Socrat</a>
             <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#paths" className="hover:text-foreground">Paths</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
@@ -275,6 +305,7 @@ export default function Home() {
             <Link href="/terms" className="hover:text-foreground">Terms</Link>
             <Link href="/attribution" className="hover:text-foreground">Attribution</Link>
           </nav>
+          <CommunityButton variant="ghost" size="sm" label="WhatsApp community" />
           <p className="text-[13px] text-muted-foreground">© {new Date().getFullYear()} Socrat</p>
         </div>
       </footer>
