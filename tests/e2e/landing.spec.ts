@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 test('landing hero, paths, questions and navigation work on desktop and phone', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Learn it.Then prove it.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('The tutor that asks back.');
   await expect(page.getByRole('link', { name: 'Get started', exact: true }).first()).toHaveAttribute('href', '/login');
   await expect(page.locator('.path-count')).toHaveText('18 skills, 25 judged problems');
   // How it works introduces the status system with shapes and labels.
