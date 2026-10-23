@@ -141,3 +141,16 @@
 - missing-reset
 - subsets-linear
 - greedy-partition
+- dp-recompute-subproblems
+- dp-memo-not-stored
+- dp-wrong-base-case
+- dp-no-overlap
+- dp-greedy-local-choice
+- dp-compressed-loses-path
+- dp-reconstruct-forward
+- dp-count-vs-exists
+- dp-rolling-update-order
+- sum-instead-of-term
+- pattern-ordered-vs-unordered-ways
+- pattern-dp-vs-greedy
+- pattern-value-vs-choice

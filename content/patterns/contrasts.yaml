@@ -48,3 +48,23 @@ pattern-search-needs-sorted-input:
     Searching an array needs it sorted. Searching on the answer does not: it needs a check
     that is monotone in the answer, such as "can finish within H hours at speed s". The input
     can be in any order.
+pattern-ordered-vs-unordered-ways:
+  title: "Ordered ways or unordered sums?"
+  body: >-
+    Climbing stairs counts orders: 1 + 2 and 2 + 1 are different climbs, so the recurrence adds
+    the last step. Counting sums where order does not matter is coin change II: loop over the
+    pieces in the outer loop so each collection is counted once. Ask whether reordering the
+    pieces gives a new answer.
+pattern-dp-vs-greedy:
+  title: "Greedy or DP?"
+  body: >-
+    Greedy commits to the choice that looks best now and never looks back. That is safe only
+    when you can prove the choice never blocks a better future, as with farthest reach in jump
+    game. If a small counterexample exists, as with stair costs 1 2 100 3, try every choice with
+    DP.
+pattern-value-vs-choice:
+  title: "Best value, or the choices behind it?"
+  body: >-
+    If the output is only the best value, keep as few dp cells as the transition reads. If it
+    must show the path, items or sequence, keep a record of which option won at every cell, then
+    walk back from the answer and reverse.

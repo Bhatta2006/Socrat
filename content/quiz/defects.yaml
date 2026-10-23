@@ -106,3 +106,11 @@ defects:
     kind: wrong-update
     misconception: confuse-index-value
     description: The subset sum adds the index i instead of the value a[i].
+  - id: dp-rolling-update-order
+    kind: wrong-update
+    misconception: dp-rolling-update-order
+    description: A rolling update overwrites prev with the new term before cur has used the old prev.
+  - id: rec-print-next-term
+    kind: wrong-output
+    misconception: loop-bound-off-by-one
+    description: After n steps the code prints cur, which already holds term n + 1, instead of prev.

@@ -1,6 +1,6 @@
 """Module gates: locking order, the compounding staircase, and the API flow end to end."""
 
-from hypothesis import given
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from test_learner_api import client, login, onboard  # noqa: F401  (client is a fixture)
 
@@ -38,6 +38,8 @@ def test_hard_requirement_shrinks_when_a_module_has_few_hard_items():
     assert gates.evaluate(answers, [1, 2, 3], hard_available=1).passed
 
 
+# Pure logic: a GC or scheduler pause during a busy full run must not fail it as "too slow".
+@settings(suppress_health_check=[HealthCheck.too_slow], deadline=None)
 @given(st.lists(st.tuples(st.integers(1, 3), st.booleans()), max_size=20))
 def test_gate_rules_hold_for_any_answer_sequence(answers):
     result = gates.evaluate(answers, [1, 2, 3], hard_available=3)
