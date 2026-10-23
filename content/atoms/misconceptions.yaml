@@ -265,3 +265,12 @@
 - sq-zero-cell-kept
 - histogram-no-reset
 - pattern-square-vs-rectangle
+- rob-alternate-levels
+- rob-take-adds-take
+- rob-skip-forces-take
+- rob-answer-take-only
+- path-skip-blocked-subtree
+- cover-two-states-only
+- cover-leaves-greedy
+- cover-root-uncovered
+- pattern-one-answer-vs-states

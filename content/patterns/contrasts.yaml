@@ -213,3 +213,10 @@ pattern-square-vs-rectangle:
     minimum finds it. A rectangle has two free sides, and no single number per cell describes
     the best one. Build a histogram of consecutive ones for each row and run the
     largest-rectangle stack on it.
+pattern-one-answer-vs-states:
+  title: "One answer per node, or one per state?"
+  body: >-
+    If the parent only needs a number from each child, such as a height or a sum, return that
+    number. If the parent's choice depends on the child's choice, such as whether the child was
+    taken or has a camera, keep one answer per child state and let the parent combine the
+    compatible ones.

@@ -238,3 +238,15 @@ defects:
     kind: wrong-update
     misconception: overwrite-best
     description: best is overwritten by every 1 cell's side instead of keeping the maximum.
+  - id: rob-take-adds-take
+    kind: wrong-update
+    misconception: rob-take-adds-take
+    description: take[x] adds take of the children, so a house and its child are both robbed.
+  - id: rob-skip-forces-take
+    kind: wrong-update
+    misconception: rob-skip-forces-take
+    description: skip[x] adds only take of the children, as if skipping x forced them to be robbed.
+  - id: rob-answer-take-only
+    kind: wrong-output
+    misconception: rob-answer-take-only
+    description: The answer is take of the root only, although the root may also be skipped.
