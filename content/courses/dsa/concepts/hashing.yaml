@@ -1,0 +1,95 @@
+id: hashing
+title: Hashing patterns
+summary: Complement lookups, grouping by a key, prefix sums with a hash map for subarray counts, and set-based
+  sequence problems.
+module: foundations
+prerequisites:
+- arrays-hashing
+- prefix-sums
+difficulty: 3
+estimated_minutes: 60
+status: draft
+lesson: '## Complement lookup
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Group by key
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Prefix sum hashmap
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Set sequences
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+  '

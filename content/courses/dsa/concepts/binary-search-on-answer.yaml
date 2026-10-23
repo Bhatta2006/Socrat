@@ -1,0 +1,73 @@
+id: binary-search-on-answer
+title: Binary search on the answer
+summary: Minimise the maximum or maximise the minimum by binary searching over answers with a monotone
+  yes/no check.
+module: linear-patterns
+prerequisites:
+- binary-search
+difficulty: 4
+estimated_minutes: 60
+status: draft
+lesson: '## Min max split
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Max min distance
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Kth of two sorted
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+  '

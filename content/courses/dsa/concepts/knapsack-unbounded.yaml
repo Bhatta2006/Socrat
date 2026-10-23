@@ -1,0 +1,73 @@
+id: knapsack-unbounded
+title: Unbounded knapsack family
+summary: 'Items you can reuse: unbounded knapsack, rod cutting, fewest coins, and why loop order separates
+  combinations from permutations.'
+module: dynamic-programming
+prerequisites:
+- knapsack-01
+difficulty: 4
+estimated_minutes: 55
+status: draft
+lesson: '## Unbounded knapsack
+
+
+  ### Recognition cues
+
+
+  ### State, transition, base cases, answer, loop order
+
+
+  ### Anchor: recursion → memoization → tabulation → space optimisation
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Coin change min
+
+
+  ### Recognition cues
+
+
+  ### State, transition, base cases, answer, loop order
+
+
+  ### Anchor: recursion → memoization → tabulation → space optimisation
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Combinations vs permutations
+
+
+  ### Recognition cues
+
+
+  ### State, transition, base cases, answer, loop order
+
+
+  ### Anchor: recursion → memoization → tabulation → space optimisation
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+  '

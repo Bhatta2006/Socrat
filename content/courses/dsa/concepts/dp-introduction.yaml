@@ -1,0 +1,74 @@
+id: dp-introduction
+title: 'Dynamic programming: the idea'
+summary: Overlapping subproblems and optimal substructure, Fibonacci four ways, spotting DP, and printing
+  the choices behind an answer.
+module: dynamic-programming
+prerequisites:
+- zero:recursion
+- complexity
+difficulty: 3
+estimated_minutes: 45
+status: draft
+lesson: '## Fibonacci four ways
+
+
+  ### Recognition cues
+
+
+  ### State, transition, base cases, answer, loop order
+
+
+  ### Anchor: recursion → memoization → tabulation → space optimisation
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Identify dp
+
+
+  ### Recognition cues
+
+
+  ### State, transition, base cases, answer, loop order
+
+
+  ### Anchor: recursion → memoization → tabulation → space optimisation
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Reconstruct choice
+
+
+  ### Recognition cues
+
+
+  ### State, transition, base cases, answer, loop order
+
+
+  ### Anchor: recursion → memoization → tabulation → space optimisation
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+  '

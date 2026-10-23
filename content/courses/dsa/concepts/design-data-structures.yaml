@@ -1,0 +1,96 @@
+id: design-data-structures
+title: Designing data structures
+summary: LRU and LFU caches, hash-based designs, ordered designs with binary search, and iterator design.
+module: design-and-practice
+prerequisites:
+- linked-lists
+- hashing
+- heaps
+- binary-search
+difficulty: 4
+estimated_minutes: 70
+status: draft
+lesson: '## Lru lfu
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Design with hashing
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Design with ordering
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+
+  ## Iterator design
+
+
+  ### Recognition cues
+
+
+  ### Template
+
+
+  ### Anchor problem
+
+
+  ### Variants
+
+
+  ### Contrast
+
+
+  ### Common mistakes
+
+  '
