@@ -65,6 +65,8 @@ export default function Start() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[] | null>(null);
   const [step, setStep] = useState<Step>('about');
+  // Each step starts at the top, so the progress bar and Back are always in view.
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [step]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [restored, setRestored] = useState(false);
@@ -254,11 +256,12 @@ export default function Start() {
 
         {step === 'language' && course ? (
           <div className="grid gap-6">
-            <Heading title="Which language?" body="Lessons, examples, checks and your code editor all follow this choice." />
+            <Heading title="Which language?" body="Lessons, examples, checks and your code editor all follow this choice. Not sure? Python reads closest to plain English." />
             <div className="grid gap-3 sm:grid-cols-3">
               {course.languages.map(l => (
                 <Choice key={l} selected={language === l} aria-pressed={language === l} className="min-h-[72px] items-center justify-center" onClick={() => { setLanguage(l); setStep('schedule'); }}>
                   <span className="choice-title block text-center text-lg font-semibold">{LANGUAGE_LABEL[l]}</span>
+                  {l === 'python' ? <span className="mt-0.5 block text-center text-[13px] text-muted-foreground">Easiest to start with</span> : null}
                 </Choice>
               ))}
             </div>
