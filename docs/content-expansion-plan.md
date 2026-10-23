@@ -379,6 +379,14 @@ Splitting into families applies to **every** concept that teaches more than one 
 - **Every live concept needs an entry in `content/learning-resources.json`.** Reuse an existing concept's already-recorded links; never add an unverified URL.
 - **Lessons end with** "Worked walkthrough", "Why this works", "Boundary cases and cost" and "Check your understanding". `test_learning_scope` enforces these for every concept. For Zero, the cost heading is "Things to watch for".
 - **Every new misconception id must be used** by a quiz item, distractor, pitfall or micro atom (`test_quiz_generators`).
+- **Gates that caught authoring slips:** concept quiz item ids are unique across a whole module (`test_gates`); pattern templates are at most 25 lines per language; one generated judge test is at most 2 000 000 characters; YAML options such as `No`, `false` or `6` must be quoted so they stay strings.
+- **New resource URLs** are confirmed with an HTTP 200 and a matching page title before use.
+
+### Phase 2 status (DSA dynamic-programming module)
+
+Live: `dp-introduction`, `knapsack-01`, `knapsack-unbounded`, `dp-lcs`, `dp-edit-distance`, `dp-stocks`, `dp-lis`, `dp-partition`, `dp-advanced-patterns`.
+
+Blocked, still drafts: `dp-squares` needs `monotonic-stack`, and `dp-on-trees` needs `tree-patterns`. Both prerequisites are Phase 3 drafts, and a live concept cannot depend on a draft.
 
 ## 6. Decisions I need from you before Phase 1
 
