@@ -220,3 +220,14 @@
 - boolean-true-only
 - front-greedy-longest
 - pattern-interval-vs-front-partition
+- bitmask-greedy-assign
+- bitmask-check-bit
+- bitmask-worker-index
+- game-greedy-end
+- game-own-score-only
+- state-forgets-rule
+- digit-ignore-tight
+- pattern-bitmask-vs-knapsack
+- pattern-game-greedy-vs-minimax
+- pattern-state-remembers-rules
+- pattern-digit-dp-vs-brute-force

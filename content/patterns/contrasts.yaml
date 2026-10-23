@@ -163,3 +163,28 @@ pattern-interval-vs-front-partition:
     on both, the state is a range i..j, filled by length in O(n³). If only the last piece
     matters once the prefix before it is solved, as with palindrome cuts or word breaks, a
     prefix state is enough and costs O(n²).
+pattern-bitmask-vs-knapsack:
+  title: "Bitmask DP or knapsack?"
+  body: >-
+    If only a total matters, such as a weight or a sum, the state is that number and the item
+    count can be large. If which items are used matters, because they interact like jobs and
+    workers or cities on a route, the state must be the set itself, so n has to be about 20 or
+    less.
+pattern-game-greedy-vs-minimax:
+  title: "Greedy move or minimax?"
+  body: >-
+    Greedy takes the move that looks best now. In a two-player game the opponent then replies
+    with their best move, so value each position for the player to move, as the best score
+    difference, and take the move that leaves the opponent the worst position.
+pattern-state-remembers-rules:
+  title: "What must the state remember?"
+  body: >-
+    Exactly the part of the past that a rule can look back at, such as the last character, the
+    length of the current run, or a count capped at its limit. Remember less and forbidden
+    sequences slip through; remember more and the table only grows.
+pattern-digit-dp-vs-brute-force:
+  title: "Loop over the numbers, or over their digits?"
+  body: >-
+    Up to about ten million numbers, a plain loop is simple and safe. Beyond that, count by
+    digits from the left, with the position, what the property needs so far, and a tight flag
+    that keeps the prefix from exceeding the limit.

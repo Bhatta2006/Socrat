@@ -190,3 +190,15 @@ defects:
     kind: wrong-update
     misconception: dp-wrong-base-case
     description: dp[i][j] starts at 0 before taking the minimum over splits, so every range costs 0.
+  - id: bitmask-check-bit
+    kind: wrong-update
+    misconception: bitmask-check-bit
+    description: The free-job test is inverted, so only jobs already taken are tried.
+  - id: bitmask-worker-index
+    kind: wrong-update
+    misconception: bitmask-worker-index
+    description: Every job is charged at worker 0's cost instead of worker popcount(mask).
+  - id: bitmask-start-zero
+    kind: wrong-update
+    misconception: dp-wrong-base-case
+    description: Every mask starts at 0 instead of infinity, so the minimum stays 0.
