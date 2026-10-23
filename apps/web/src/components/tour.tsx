@@ -44,11 +44,6 @@ const STEPS: Step[] = [
     body: 'Problems from LeetCode, CSES and Codeforces matched to the skills you have unlocked, plus company questions and timed focus sprints.',
   },
   {
-    target: 'playground',
-    title: NAME.playground,
-    body: 'Ask about any concept or confusing step and get an interactive visual you can play, step through and change.',
-  },
-  {
     target: 'evidence',
     title: NAME.evidence,
     body: 'What you have proven so far: skill mastery, your streak and history. Your weekly assessment appears here when it is ready.',
@@ -56,17 +51,7 @@ const STEPS: Step[] = [
   {
     target: 'tutor',
     title: 'Ask Soc, your tutor',
-    body: 'Stuck? Soc nudges you with questions and hints rather than handing over answers, so the learning stays yours.',
-  },
-  {
-    target: 'search',
-    title: 'Search',
-    body: 'Jump to any lesson, problem or page. Press Ctrl K (⌘K on a Mac) from anywhere.',
-  },
-  {
-    target: 'settings',
-    title: NAME.settings,
-    body: 'Change your goal, daily minutes, language, theme and motion. This tour can be replayed from here.',
+    body: 'Stuck? Soc nudges you with questions and hints rather than handing over answers. Press Ctrl K (⌘K on a Mac) any time to search. Settings has your schedule and replays this tour.',
   },
   {
     title: 'You are all set',

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
-import { KIND_LABEL, NAME, conceptHref, formatStamp, joinSegments } from '@/lib/routes';
+import { KIND_LABEL, NAME, QUIZ_KINDS, conceptHref, formatStamp, joinSegments } from '@/lib/routes';
 import type { ActivityKind, Gate, QuizQuestion, QuizSession } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ErrorNote, Loading } from '@/components/common';
@@ -135,7 +135,9 @@ function GateResult({ gate }: { gate: Gate }) {
 export default function Quiz() {
   const allowed = useGuard('active');
   const params = useParams<{ activity: string[] }>();
-  const activityId = joinSegments(params.activity);
+  const path = joinSegments(params.activity);
+  // /quiz/<course>/<skill> is a concept check; the older /quiz/quiz/... form still works.
+  const activityId = path.startsWith('quiz:') || QUIZ_KINDS.includes(path.split(':')[0]) ? path : `quiz:${path}`;
   const kind = activityId.split(':')[0] as ActivityKind;
   const [session, setSession] = useState<QuizSession | null>(null);
   const [index, setIndex] = useState(0);

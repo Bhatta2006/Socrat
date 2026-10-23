@@ -19,7 +19,7 @@ test('a new learner gets the tour once, and can replay it from Settings', async 
   const tour = page.getByRole('dialog', { name: 'Welcome to Socrat' });
   await expect(tour).toBeVisible();
   await page.getByRole('button', { name: 'Show me' }).click();
-  for (const title of ['Today', 'Skills', 'Practice', 'Playground', 'Evidence', 'Ask Soc, your tutor', 'Search', 'Settings']) {
+  for (const title of ['Today', 'Skills', 'Practice', 'Evidence', 'Ask Soc, your tutor']) {
     await expect(page.getByRole('dialog', { name: title })).toBeVisible();
     await page.getByRole('button', { name: 'Next' }).click();
   }

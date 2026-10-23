@@ -324,7 +324,7 @@ export default function Problem() {
         className="workspace"
         style={{ '--split-a': `${prefs.split}fr`, '--split-b': `${1 - prefs.split}fr` } as React.CSSProperties}
       >
-        <Card className="min-w-0 gap-0 py-0" aria-label="Problem statement">
+        <Card className="min-w-0 gap-0 py-0 lg:sticky lg:top-20 lg:self-start" aria-label="Problem statement">
           <Tabs defaultValue="description" className="gap-0">
             <div className="border-b px-4 pt-2">
               <TabsList variant="line" className="h-12">

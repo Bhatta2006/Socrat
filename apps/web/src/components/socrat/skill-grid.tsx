@@ -12,14 +12,15 @@ const COLUMNS = 4;
  */
 export function SkillGrid({ nodes, label }: { nodes: MapNode[]; label: string }) {
   const shown = nodes.slice(0, COLUMNS * 3);
-  const rows = Array.from({ length: Math.ceil(shown.length / COLUMNS) }, (_, r) => shown.slice(r * COLUMNS, (r + 1) * COLUMNS));
+  const columns = Math.max(1, Math.min(COLUMNS, shown.length)); // a short module spreads across the card
+  const rows = Array.from({ length: Math.ceil(shown.length / columns) }, (_, r) => shown.slice(r * columns, (r + 1) * columns));
   const name = (n: MapNode) => `${n.title}: ${n.status === 'locked' ? 'Locked' : STATUS_LABEL[n.status]}${n.reviewDue ? ', review due' : ''}${n.current ? ', current' : ''}`;
   return (
     <div className="flex h-full flex-col">
       <ol className="grid gap-8 py-2" aria-label={`${label}, skill map`}>
         {rows.map((row, r) => (
           <li key={r}>
-            <ol className="grid" style={{ gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }}>
+            <ol className="grid" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
               {row.map((n, i) => (
                 <li key={n.id} className="relative flex flex-col items-center gap-2 px-1">
                   <span className={cn('line-clamp-2 min-h-10 text-center text-sm leading-5 text-muted-foreground', n.current && 'font-bold text-foreground')} aria-hidden="true">{n.title}</span>
