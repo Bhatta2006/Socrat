@@ -142,3 +142,17 @@ pattern-stock-unlimited-vs-limited:
     With unlimited trades and no fee or cooldown, every daily rise can be its own trade, so
     summing the rises is correct. Once trades are limited by a count, a cooldown or a fee,
     merging or skipping rises changes the answer, so run the cash and hold state machine.
+pattern-strict-vs-nondecreasing-lis:
+  title: "Strictly increasing or non-decreasing?"
+  body: >-
+    For a strictly increasing subsequence, compare with < and, in patience sorting, replace the
+    first tail that is at least x (lower bound), so equal values never extend each other. For
+    non-decreasing, use <= and the first tail greater than x (upper bound). Test with repeated
+    values.
+pattern-sort-then-lis:
+  title: "Sort first, or keep the order?"
+  body: >-
+    If the input is a sequence, its order is part of the problem, so never sort; sorting makes
+    every array its own increasing subsequence. If the input is a set of items such as boxes,
+    pairs or numbers to choose, sort by one key so a chain only moves forwards, then run LIS on
+    the other key.

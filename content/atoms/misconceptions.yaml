@@ -203,3 +203,12 @@
 - stock-cooldown-yesterday
 - stock-fee-twice
 - pattern-stock-unlimited-vs-limited
+- lis-greedy-extend
+- lis-answer-last-cell
+- lis-non-strict-compare
+- lis-compare-direction
+- lis-tails-is-sequence
+- lis-upper-vs-lower
+- lis-envelope-tie-order
+- pattern-strict-vs-nondecreasing-lis
+- pattern-sort-then-lis

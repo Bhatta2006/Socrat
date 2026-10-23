@@ -166,3 +166,15 @@ defects:
     kind: wrong-update
     misconception: stock-hold-init-zero
     description: hold starts at 0, so a share can be sold before it was ever bought.
+  - id: lis-non-strict-compare
+    kind: wrong-update
+    misconception: lis-non-strict-compare
+    description: The comparison uses <=, so equal values extend a strictly increasing chain.
+  - id: lis-overwrite-best
+    kind: wrong-update
+    misconception: overwrite-best
+    description: dp[i] is overwritten by dp[j] + 1 for every smaller a[j], so a later shorter chain replaces a longer one.
+  - id: lis-answer-last-cell
+    kind: wrong-output
+    misconception: lis-answer-last-cell
+    description: The answer keeps only the last dp[i] instead of the maximum over all i.

@@ -64,7 +64,7 @@
    "9": "6b8356732a5160f195340a3fce51f384092127e9a9d6ad7ae8675a80657ff3f5"
   },
   "rejected": {},
-  "source": "e98034564ade2ec3f82bc0a171ee2302c3e2f4f19b3a497c40a6c4bd8cbaed42"
+  "source": "54e4d80e3598630d2496a99cfa208361432f1c0e0d0be5681397f6967c278d40"
  },
  "quiz:cp:modular-arithmetic:fast-power": {
   "duplicates": {},
@@ -131,7 +131,7 @@
    "9": "84cc8198d7e707d189313014961bfa1763ab27dfb703392428136cca0e7fb487"
   },
   "rejected": {},
-  "source": "a299faddd661a45b9ff840c0ec8a5974976686c5e7da45d217969c3e03d2f2c5"
+  "source": "7c3071cc8a804edfc26c37e0763634dee4fcb56dfdd6e35cd02deb32a689e73c"
  },
  "quiz:cp:prefix-difference:difference-array": {
   "duplicates": {},
@@ -198,7 +198,7 @@
    "9": "42e7d91572894e9200ed499092d446dce83166c113af638025c39216657610cf"
   },
   "rejected": {},
-  "source": "6fa286836312e308bc049c018b45046776c7c93250d4bd8be99d19fe033df313"
+  "source": "e95fb79e72256b806f637da99d59859c6dd9bcaf64d6edcb1351adaaada383b8"
  },
  "quiz:dsa:binary-search:answer-monotonic-predicate": {
   "duplicates": {},
@@ -265,7 +265,7 @@
    "9": "269cd35d3efc21a144abaea1763454e282f0eec89f6484de9d73e945df0f8361"
   },
   "rejected": {},
-  "source": "4eb59a1f584fee4f3805c1a796898e5f21348e9addbdf02bd0bc089d0adaa436"
+  "source": "18bd8d70b50d981676fc3586bd7720ad5fa8422d9517e2a553e1b4d1f1ce056d"
  },
  "quiz:dsa:binary-search:boundaries": {
   "duplicates": {},
@@ -372,7 +372,7 @@
    "99": "6b4facdb149ed0ab0315a557e9c692f58d3a3fd1ddf0a9484646113e7b2f9d4f"
   },
   "rejected": {},
-  "source": "0147982110e9ecbc1042537dc7c22f358d34d9a748e0e9b3bcc35caeb377fe6b"
+  "source": "fb35a34c6f2b788fbd921e8d2b732735347f2bec263ef5ce9b4849cc1e86f541"
  },
  "quiz:dsa:dp-1d:unbounded-coin-change": {
   "duplicates": {},
@@ -439,7 +439,7 @@
    "9": "03229d8da9bed7cfdc2d0cca5d61e21e142830d4bfcf415151b1450e37e7570d"
   },
   "rejected": {},
-  "source": "81361d6beab5f099ddea596244d46fe229d03d8209a860b373a54f89ae5656e6"
+  "source": "ce7eba9919d868b1d9ed6822d3cba22e37eb08e9c72014e53f4e81dccf4a0639"
  },
  "quiz:dsa:dp-edit-distance:edit-distance": {
   "duplicates": {},
@@ -506,7 +506,7 @@
    "9": "0881c1d4f8dbe045773deb970484a6670b6077f31ea1da133429efb0e6219df0"
   },
   "rejected": {},
-  "source": "cc55ca0f7d5284cb2352d26a625e9600e22988b2db13e60fa5ce1e035d757d8c"
+  "source": "20c863faf2eebe3fc6a721263c87dbc06160ed7ab93ec97db5fbd3c69708ed08"
  },
  "quiz:dsa:dp-introduction:fibonacci-four-ways": {
   "duplicates": {
@@ -574,7 +574,7 @@
    "9": "6396b2140713d5f9e6598a22fa3993ff826a708b782818dd0a9e8793838c82e4"
   },
   "rejected": {},
-  "source": "cc1f91ef78e4e57860edf32fb03440c2a134b2ffce42067f3538140fa584ff6e"
+  "source": "7d2e20b75e20f68690e208eabea8159a2cd0dc388a0017cc7f6ac9e030aac665"
  },
  "quiz:dsa:dp-lcs:lcs": {
   "duplicates": {},
@@ -641,7 +641,74 @@
    "9": "4a2f51c60e091e71599219dc15743db373446950098ef2156cf98120ba28a4ac"
   },
   "rejected": {},
-  "source": "1bcfe17916dfe82c57402e98d4fbca83a2a21612e7356d82d066ea6471e320ec"
+  "source": "d7320f1fd3149bdc505f0d400a3711c6372a4d76575f2dcdc0fba292b3cd689c"
+ },
+ "quiz:dsa:dp-lis:lis-quadratic": {
+  "duplicates": {},
+  "items": {
+   "0": "290d620c71e80d8547c3a346f401dd4802409586f983aa4faeff3419acf04b7f",
+   "1": "da023d509cc9e7caefe30fd3d23536baae9fdfb2afdf54d9f3e6f4c535cfc1fd",
+   "10": "31d5eec07b4107e56330b4595d980a3ded77637c0cc3a4a2209ed3b6be4ded37",
+   "11": "4c86470f3b3f50c7d26c7d6664e70ea67258668d8bbd263abee35186d9f0df5e",
+   "12": "a39015ce90e75df0191dde1d3f7f4867b123a2c5df56714fb8d0b772cb17fc58",
+   "13": "422a36c14d49b2e3e18abd8a10181691bba2976f8d2d9ff91e8c60e02d6a784e",
+   "14": "ce9880b02a493c119baa491b4bfacaadb178338602b3c1980dfd3367a67f63ec",
+   "15": "9d7c1a9079f0bbc1fedf3bf9398a6b3d937364f371a4036dfba8ea84deb97ac8",
+   "16": "8c5a5695594342afccea61b8f1ae6b68b44e1be9206d9b526d9d8d25fac64473",
+   "17": "a5416f8cbf7be470844ee68ef273ef10f98ff32137d53fd54b7e0b7107785456",
+   "18": "905ffe6ee61d40199561308c4ffbba29794e9a855fe3f983f4aa358785cf642f",
+   "19": "a84e82d282e27959b143e6289dffa0db552fee91e11ed24d2948cf8e211c1e17",
+   "2": "5698b9b021788fa647030cbd7aa656c7a22b5a361f3dbf0a5ec6f6d5d0853bf7",
+   "20": "6bb5eb26f3ea6d043bd6f507aeed1bf441d952feaf5c589528878a5a054addba",
+   "21": "bd71b1f520cf52b5e61d31c15a22d0ceaa9b2be13bfa33b9aa4ca378054a472f",
+   "22": "8d943ef5a6016ce71e47050e71bcea5ad54079ae423bca932f66788eba0279e5",
+   "23": "5f118cf307ba51e8aa862a86548de7a0712d157bcaca2795d4532e1fbd6ecf0b",
+   "24": "a7d9fd6e061f7d38fbaaa14148e1edc8c96637d2d3943fbaf037f2003478fcbd",
+   "25": "275479f5c07beaca4f038411d434dd598d462fcde277845ff296af1d788c5873",
+   "26": "be233be678bfe54180909046e43cacd5318f58af274c16bded75eddbc9761fae",
+   "27": "8d98c3662b36447872c1510cb17343ed351d713a5cda08d69be7d63d1e7ce06d",
+   "28": "a85389d9ceaf12b8844c156537ad2e1d54a9fd2493c5d135257758bc19b3efd6",
+   "29": "c6abb139f20b3ecc52d0019a715b96619720e2b935c2ecc574a86d4da0dc0515",
+   "3": "9424fc5b6567e8e7779fda5a62ce61d648f0864e5a374f8ea0bab2c829f5f1db",
+   "30": "6427855234a72a17464f11ebf48f2b64db58a6b107496ad2830d5317f1c2b66e",
+   "31": "b561cab8c9d7cf0dbdd5fefc552fcbb8fc30280cf2e959a7bb51adac95180fa9",
+   "32": "e2cc28cf8e52127ca3e6e00395761517be8ba330a61b4f02aeecc0e591927246",
+   "33": "63f0325e03f29072238391e3328bb65468a29e507609c7a4ac802be84c1cd3dc",
+   "34": "cd574d727b1e1b6b6e112ba8c5212a1bdb3c1434aaaf2be7dd8740d4ab01a752",
+   "35": "9df1da1ba98979203351ba80f311d27439250a2d606f65c7ab1b57345f8a3d41",
+   "36": "658fc56ec68ff227d56963103ee08640b24ead6fff7819b6f14e5be6449d7bab",
+   "37": "63e07c36df139d27eb812984e217eb9dc8cd139140c33979cd72d353beb9e022",
+   "38": "75c6ec3d337aa5fa6ad9f9a313e93bcd9f82bbf32fa51dde8d885a8153412741",
+   "39": "2cae46b28c53a73c38200dcf03e6419fbdf4808396352b459456c1788762312e",
+   "4": "1d74c31a892dcad2220e8a6699a35b29e1b10a774e2fca894a84be604f409f38",
+   "40": "d2d4b21780dbc16d5dd4819d3149fcb77624ef932992303d1181892bb61383d3",
+   "41": "41eddc775f2a3ff480382e1518c76d16d9e874877f73aa3b5e51c6d944fdcdd2",
+   "42": "715f57ef532fc3b39d43dc92e0501b3ca94cde0bdb0236e0eeb151aaa71d7ec9",
+   "43": "22b02d968d82c3d2923c75ed6329296c634f0cda475bb1e375a4c10005d04970",
+   "44": "c83545c8deee5433c71e06a1336368da1fcff51a9f2e6afd66849105d219aec0",
+   "45": "f4e34eb41cbcad9c3974c56ebd904d99c1acb74159a1a6e9a453b217d18af11c",
+   "46": "e651b3fe7f264e96976a40838d332cf184b9c40d9a9037e2719d98d91619ff11",
+   "47": "2227f25065c349dd1d783a1cde043335d6798a275b4451d2522ddfda6d2136a6",
+   "48": "6f1cd366e76ae05f9440d1a9f8e04b3968ec513d210d27baab44f44305f90aeb",
+   "49": "b5142ade57bd958e2df2fd3ca1e854cce086e4bdc6e7693358736558b1b29c3f",
+   "5": "36a30e9440cda7014fdbf0a6b93b4a69d5349669a255a7780295a8c61ec75909",
+   "50": "c9c24330279171b3d5dd14936aff5504e13609a61ffe3b297994f5db6ef1b9bc",
+   "51": "c4db1a2af9e9e67f8e78f26dda768440d5b8bce8eb6e283ac7816a5b6b91c528",
+   "52": "bd01baea6610eeb5adc0e35952bb667d55a1b508fbf58c2d002caaf8ae9e4927",
+   "53": "090dde32f7ccce544667bdbc64accd4f9a8b95f4cbff5d5f4af41412bf61be97",
+   "54": "1186535943f0e206b5e18d0cb5e96e7302d8a5de86bc8eab947d2be71fc50191",
+   "55": "cd09fd972d01de06b0afdee7d9d3dbcfacd45e3d58122e612d9fc0cfc0285005",
+   "56": "7e576467a8fa59d25ddb401192c0cbfa00f22c11d97c9f65e8f3129e8c4325ff",
+   "57": "537ae26dd800fa9ac6c93bb224b95ebdae741a8106e66060fc87eafa2786c140",
+   "58": "2673e0bd43e2bbaecfc356cd3d8137dfbde104748e94be24c3cf1aee094adb53",
+   "59": "938f91b5e0289f23114727e950414c0c4b53245dccde67f633dea9d98d078ea0",
+   "6": "e496fa9c06cd92a69208b63d15aa43e67b8b8cc71dd46afe3bfb138ce6c7a977",
+   "7": "821a1831f447b00b307092a6e436b95057cdf089a7ca20ac5e5dd7fe0dddb3ef",
+   "8": "3412d327f4d0413d4ab31d6db35057d9b2f4157928ef6ff5e229fc8f3b5b69a0",
+   "9": "bbc4f8bf2881c1ffe332f714447c2be92b823e7294e7edd5279fae835657e7e1"
+  },
+  "rejected": {},
+  "source": "e9233b8e09f250ac840e28d8c0cf1af0632fb23f0c3b49fb4222e1a33b549cce"
  },
  "quiz:dsa:dp-stocks:stock-state-machine": {
   "duplicates": {},
@@ -708,7 +775,7 @@
    "9": "bacb8966bda27f0ed6c19272899bee60aa05e6efda65aebe1d0dcbdf92017fca"
   },
   "rejected": {},
-  "source": "22024eda295b9d31e54195f03d26ad5227a4231ec8f9dbf13e89bffa32593b11"
+  "source": "a19dcc274bd49ec371d74bc4666f9abe1658675795a4419b0b6f42a0bd19ca37"
  },
  "quiz:dsa:heaps:top-k": {
   "duplicates": {},
@@ -775,7 +842,7 @@
    "9": "0ce0a26e7da2248e53a8c376d547a6be7402a45f389eaaf1fff4dba16090c279"
   },
   "rejected": {},
-  "source": "56d4d87677d3bda605f8a54228a0373c91edbdd06375430e858a6891a1452ec3"
+  "source": "6a29cfb2ef5f893a13adcf611994d813a87d42913c174e8069fcd7f54e1c26db"
  },
  "quiz:dsa:knapsack-01:knapsack-01": {
   "duplicates": {},
@@ -842,7 +909,7 @@
    "9": "2c46a8e2a13df6815f7f18db5d2a26e61a8d603cd6e8a708358a97250a928fb0"
   },
   "rejected": {},
-  "source": "1d2743ba80a28dfd644a8c949940edf33524a8b6467800af91eff8126492d29e"
+  "source": "8cf9e711c70f6e0d769c5e2218d11a9a7fcfca16e67798039b8819b763b9eb8f"
  },
  "quiz:dsa:knapsack-unbounded:unbounded-knapsack": {
   "duplicates": {},
@@ -909,7 +976,7 @@
    "9": "f389e34ef40d5d55f90293d93b6e4ad226bdb82272c8dfc05c314c189f12e040"
   },
   "rejected": {},
-  "source": "805b00948f928470586de7cd1e8e2ff1ab4a3898691943a405b37d55da1cbc7a"
+  "source": "a64de263c3474fb378ce37859901d7ffda2950d173e2316a406b26365598def1"
  },
  "quiz:dsa:sliding-window:at-most-k-distinct": {
   "duplicates": {},
@@ -976,7 +1043,7 @@
    "9": "6e96aa36a64109396adefe597c78c385beb64b41eca7387f679e00f52cf05adc"
   },
   "rejected": {},
-  "source": "cc2e156c2c6ee1f34bf018c3f902558bb30cd807f6cb7481adf5899931476f22"
+  "source": "83ee03596c9f5ebf2f22299b2c3a62a57cec9908dfa7d2484d63c7ba0efae585"
  },
  "quiz:dsa:sliding-window:fixed-window-sum": {
   "duplicates": {},
@@ -1083,7 +1150,7 @@
    "99": "b1b287ac3886ac25798dd3b0ee68f8c8562413ec33d7ef7116092ee8b2505c67"
   },
   "rejected": {},
-  "source": "741dbfc409ba2023f2365688fc06ca70d46a5b23299ad893ce249115931b99ed"
+  "source": "10732b83cea57681274802eb10de66e280897271c2f92b94d7f964e65ba5304d"
  },
  "quiz:dsa:sliding-window:variable-size": {
   "duplicates": {},
@@ -1150,7 +1217,7 @@
    "9": "75c0b9db2f6464378d9196788a97042ba440677124c9d3dde552fab7438e7e59"
   },
   "rejected": {},
-  "source": "ed7118985bb17f37cb68b84ec9180318e59cec8db6775c02b3b7b1e784dae3de"
+  "source": "5864816b3f07663c1d334442364c2b2968221aa1af46133bc1bb256d5bfa9433"
  },
  "quiz:zero:for-loops:accumulator": {
   "duplicates": {
@@ -1259,7 +1326,7 @@
    "99": "d3e6767e0fec024724b2888a5d41887b86e7b38b73c64544e8def04289d59923"
   },
   "rejected": {},
-  "source": "931f1b65b713fa37a43cfc31d7c4e6ddd995ed87e4314d37e6ff50227e42e237"
+  "source": "b45dbd4d1f53f76b24c4417926d94b6e7fa273f6a75c4225ee6391ae1947db65"
  },
  "quiz:zero:lists:traverse-and-filter": {
   "duplicates": {},
@@ -1326,7 +1393,7 @@
    "9": "ce5ad74bacf36a53701748b8e8e13b43d0b66bf22a0fb41b98596bb176ad7e2e"
   },
   "rejected": {},
-  "source": "ecba92bbad10aea8f1cf203b996883b2197925fd4159035acad72cc5bfe36483"
+  "source": "db7f6b623b12c529a00aad27750fc01fcb3eedb492d17435d8a29e0e2669a758"
  },
  "quiz:zero:strings:frequency-count": {
   "duplicates": {},
@@ -1393,6 +1460,6 @@
    "9": "c444ce77b2b57df9a1df4dda3190e221a9dfaf3677a142a573214fb9885b4027"
   },
   "rejected": {},
-  "source": "4427027ec173ae612f43275042d3ae0f5416e348efb017c8667783d594383461"
+  "source": "e1a891a7ff77ba4c17db01fada806a97c9543fcce2251a77e9aaff3637577de5"
  }
 }
