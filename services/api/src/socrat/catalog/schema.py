@@ -160,14 +160,33 @@ class Concept(Model):
     prerequisites: list[Ref] = Field(default_factory=list)
     difficulty: int = Field(ge=1, le=5)
     estimated_minutes: int = Field(ge=10, le=600)
-    lesson: str = Field(min_length=200)
-    key_points: list[str] = Field(min_length=2, max_length=8)
+    lesson: str = Field(min_length=1)
+    key_points: list[str] = Field(default_factory=list, max_length=8)
     pitfalls: list[str] = Field(default_factory=list, max_length=8)
-    resources: list[Resource] = Field(min_length=2, max_length=8)
-    quiz: list[QuizItem] = Field(min_length=2, max_length=10)
+    resources: list[Resource] = Field(default_factory=list, max_length=8)
+    quiz: list[QuizItem] = Field(default_factory=list, max_length=10)
     problems: list[Slug] = Field(default_factory=list)
     practice_links: list[PracticeLink] = Field(default_factory=list, max_length=10)
     provenance: Provenance | None = None
+    # A draft is being authored: validated and kept in the graph, but never served.
+    status: Literal["draft", "live"] = "live"
+
+    @model_validator(mode="after")
+    def live_is_complete(self):
+        if self.status == "live":
+            missing = [
+                name
+                for name, ok in (
+                    ("a lesson of at least 200 characters", len(self.lesson) >= 200),
+                    ("at least 2 key points", len(self.key_points) >= 2),
+                    ("at least 2 resources", len(self.resources) >= 2),
+                    ("at least 2 quiz items", len(self.quiz) >= 2),
+                )
+                if not ok
+            ]
+            if missing:
+                raise ValueError(f"live concept {self.id} needs {', '.join(missing)}")
+        return self
 
 
 class Example(Model):
