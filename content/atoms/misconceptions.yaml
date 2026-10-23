@@ -231,3 +231,17 @@
 - pattern-game-greedy-vs-minimax
 - pattern-state-remembers-rules
 - pattern-digit-dp-vs-brute-force
+- mono-max-to-the-right
+- mono-strictness
+- mono-wrong-direction
+- mono-neighbour-only
+- mono-top-vs-bottom
+- mono-answer-wrong-element
+- mono-stores-value-not-index
+- histogram-tallest-only
+- histogram-width-off-by-one
+- histogram-no-sentinel
+- contribution-tie-rule
+- deque-no-expiry
+- pattern-next-greater-vs-max-right
+- pattern-stack-vs-deque

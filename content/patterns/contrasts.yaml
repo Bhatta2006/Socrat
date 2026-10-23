@@ -188,3 +188,15 @@ pattern-digit-dp-vs-brute-force:
     Up to about ten million numbers, a plain loop is simple and safe. Beyond that, count by
     digits from the left, with the position, what the property needs so far, and a tight flag
     that keeps the prefix from exceeding the limit.
+pattern-next-greater-vs-max-right:
+  title: "Next greater, or the largest to the right?"
+  body: >-
+    The largest value to the right is one running maximum. The next greater element is the
+    nearest bigger value, which needs every candidate not yet beaten, and that is what the
+    monotonic stack keeps. Read whether the question says first, next or nearest.
+pattern-stack-vs-deque:
+  title: "Monotonic stack or monotonic deque?"
+  body: >-
+    A stack fits when elements only leave because a better element beats them, as in next
+    greater. In a sliding window, elements also leave because they expire, so they must be
+    removed from the front as well. That needs a deque of indexes.

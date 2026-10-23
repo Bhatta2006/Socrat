@@ -202,3 +202,15 @@ defects:
     kind: wrong-update
     misconception: dp-wrong-base-case
     description: Every mask starts at 0 instead of infinity, so the minimum stays 0.
+  - id: mono-non-strict-pop
+    kind: wrong-update
+    misconception: mono-strictness
+    description: The stack pops on <=, so an equal value is recorded as the next greater one.
+  - id: mono-wrong-direction
+    kind: wrong-update
+    misconception: mono-wrong-direction
+    description: The stack pops larger values, so it finds the next smaller element instead.
+  - id: mono-stores-index
+    kind: wrong-output
+    misconception: confuse-index-value
+    description: The answer records the index i instead of the value a[i].
