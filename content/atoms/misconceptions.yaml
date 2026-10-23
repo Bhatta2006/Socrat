@@ -184,3 +184,13 @@
 - pattern-subsequence-vs-substring
 - pattern-two-pointers-vs-lcs
 - pattern-palindrome-subsequence-vs-substring
+- edit-base-zero
+- edit-missing-replace
+- edit-match-costs-one
+- edit-position-compare
+- distinct-subseq-forward-loop
+- wildcard-star-one-char
+- interleave-length-check
+- palindrome-odd-centres-only
+- pattern-edit-vs-lcs-deletions
+- pattern-wildcard-vs-regex-star

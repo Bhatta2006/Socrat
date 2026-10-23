@@ -142,3 +142,15 @@ defects:
     kind: wrong-update
     misconception: dp-missing-plus-one
     description: On a match the cell copies up-left without adding 1 for the matched pair.
+  - id: edit-base-zero
+    kind: wrong-update
+    misconception: edit-base-zero
+    description: The base column stays 0, so erasing a whole prefix of a costs nothing.
+  - id: edit-missing-replace
+    kind: wrong-update
+    misconception: edit-missing-replace
+    description: The mismatch minimum leaves out the diagonal, so a replace costs a delete plus an insert.
+  - id: edit-match-costs-one
+    kind: wrong-update
+    misconception: edit-match-costs-one
+    description: Equal last characters add 1 instead of copying the diagonal for free.

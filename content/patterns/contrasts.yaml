@@ -124,3 +124,15 @@ pattern-palindrome-subsequence-vs-substring:
     A palindromic subsequence may skip characters, so on unequal ends keep the better of
     dropping either end. A palindromic substring must be contiguous, so s[i..j] counts only if
     the ends match and the inside is itself a palindrome; expanding around centres is simpler.
+pattern-edit-vs-lcs-deletions:
+  title: "Edit distance or LCS deletions?"
+  body: >-
+    If replacing a character is allowed, a wrong character costs one step, so take 1 plus the
+    minimum of delete, insert and replace. If only inserts and deletes are allowed, it costs
+    two, and n + m − 2·LCS is exact. Read which operations the statement allows.
+pattern-wildcard-vs-regex-star:
+  title: "Wildcard star or regex star?"
+  body: >-
+    A wildcard star stands alone and matches any sequence, so it either matches nothing (j − 1)
+    or eats one more character (i − 1). A regex star belongs to the character before it, so x*
+    is skipped as a pair (j − 2) or eats one more x.
