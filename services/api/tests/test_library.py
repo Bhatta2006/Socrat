@@ -18,6 +18,12 @@ def strong(now: int = NOW) -> ConceptState:
     return ConceptState(alpha=19, beta=1, evidence_count=10, next_review_at=now + 86400)
 
 
+def test_concepts_outside_the_course_do_not_hold_the_rating_down():
+    states = {c: strong() for _, concepts in ladder.TIERS[:2] for c in concepts}
+    del states["zero:debugging"]  # not part of this learner's course path
+    assert ladder.estimate_rating(states, NOW) == 1200
+
+
 def test_rating_estimate_climbs_the_ladder_tier_by_tier():
     assert ladder.estimate_rating({}, NOW) == 800
     first = {c: strong() for c in ladder.TIERS[0][1]}

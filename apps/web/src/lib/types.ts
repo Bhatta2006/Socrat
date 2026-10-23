@@ -205,6 +205,8 @@ export interface Streak {
 export interface ProgressNumbers {
   total: number;
   finished: number;
+  /** Skills placed as known without evidence; not part of `finished`. */
+  assumed: number;
   percent: number;
 }
 

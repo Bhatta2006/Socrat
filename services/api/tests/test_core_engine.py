@@ -94,7 +94,9 @@ def test_placement_finds_the_frontier(knows):
         right = item.shown(placement.seed_of(state))["answer"]
         placement.answer(cat, state, right if index < knows else (right + 1) % len(item.options))
     known = placement.result(state)
-    assert [known[c] for c in path] == [i < knows for i in range(len(path))]
+    cap = int(len(path) * placement.SKIP_CAP)  # a perfect score still leaves the last stretch to learn
+    assert [known[c] for c in path] == [i < min(knows, cap) for i in range(len(path))]
+    assert not known[path[-1]]
     assert len(state.asked) <= placement.MAX_QUESTIONS
 
 
