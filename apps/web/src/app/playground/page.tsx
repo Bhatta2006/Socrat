@@ -59,6 +59,12 @@ function SavedList({ saved, busy, onOpen }: { saved: Saved[]; busy: boolean; onO
   );
 }
 
+/** Generated text arrives hard-wrapped and indented; rebuild real paragraphs so it reflows. */
+function Transcript({ text, className }: { text: string; className?: string }) {
+  const paragraphs = text.split(/\n\s*\n/).map(p => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean);
+  return <div className={cn('grid gap-3 leading-7', className)}>{paragraphs.map((p, i) => <p key={i}>{p}</p>)}</div>;
+}
+
 export default function PlaygroundPage() {
   const allowed = useGuard('active');
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null);
@@ -120,12 +126,14 @@ export default function PlaygroundPage() {
     return () => clearInterval(timer);
   }, [busy]);
 
+  const abort = useRef<AbortController | null>(null);
   const generate = useCallback(async (request: string, depth: Level) => {
+    abort.current = new AbortController();
     setBusy(true); setArtifact(null); setFailure(null); setNotice(''); setPhase('generating'); setSeen(['generating']); setFromSaved(false);
     setPrompt(request); setLevel(depth);
     try {
       let complete = false;
-      for await (const event of stream('/playground/generate', { prompt: request.trim(), level: depth, request_id: crypto.randomUUID() })) {
+      for await (const event of stream('/playground/generate', { prompt: request.trim(), level: depth, request_id: crypto.randomUUID() }, abort.current.signal)) {
         if (event.event === 'progress') {
           const next = String(event.data.phase);
           setPhase(next);
@@ -140,7 +148,8 @@ export default function PlaygroundPage() {
       }
       if (!complete) throw new Error('Generation ended before the visual was ready');
     } catch (e) {
-      setFailure({ code: e instanceof ApiError ? e.code : '', message: explain(e) });
+      if (e instanceof DOMException && e.name === 'AbortError') setNotice('Cancelled. Your question is still here.');
+      else setFailure({ code: e instanceof ApiError ? e.code : '', message: explain(e) });
     } finally { setBusy(false); }
   }, []);
 
@@ -233,7 +242,7 @@ export default function PlaygroundPage() {
               {panel === 'explanation' ? (
                 <>
                   <h3 className="mb-2 font-display text-lg font-bold tracking-[-0.02em]">Explanation</h3>
-                  <p className="text-[15px] leading-7 whitespace-pre-wrap">{artifact.transcript}</p>
+                  <Transcript text={artifact.transcript} className="text-[15px]" />
                   <p className="mt-4 text-[13px] text-muted-foreground">Exploring does not count as practice or mastery.</p>
                 </>
               ) : <SavedList saved={saved} busy={busy} onOpen={id => void openSaved(id)} />}
@@ -242,7 +251,7 @@ export default function PlaygroundPage() {
           <div className="grid gap-3 lg:hidden">
             <details ref={explanation} className="group rounded-card border bg-card">
               <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-semibold [&::-webkit-details-marker]:hidden">Explanation <ChevronDown className="size-5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
-              <p className="px-5 pb-5 text-[15px] leading-7 whitespace-pre-wrap">{artifact.transcript}</p>
+              <Transcript text={artifact.transcript} className="px-5 pb-5 text-[15px]" />
             </details>
             <details className="group rounded-card border bg-card">
               <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 font-semibold [&::-webkit-details-marker]:hidden">Saved ({saved.length}) <ChevronDown className="size-5 transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
@@ -284,7 +293,8 @@ export default function PlaygroundPage() {
               })}
             </ol>
             <p className="sr-only" role="status" aria-live="polite">{visible.find(([id]) => id === phase)?.[1] ?? 'Building the visual'}</p>
-            <p className="mt-6 text-[15px] text-muted-foreground tabular-nums">This can take a while. {elapsed}s so far. Stay on this page until it is ready.</p>
+            <p className="mt-6 text-[15px] text-muted-foreground tabular-nums">This usually takes a minute or two. {elapsed}s so far.</p>
+            <Button variant="outline" className="mt-4" onClick={() => abort.current?.abort()}>Cancel</Button>
           </div>
         </section>
       </Page>

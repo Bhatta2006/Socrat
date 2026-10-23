@@ -40,12 +40,13 @@ export const api = {
 export type StreamEvent = { event: string; data: Record<string, unknown> };
 
 /** POST that answers with Server-Sent Events; yields each parsed event. */
-export async function* stream(path: string, body: unknown): AsyncGenerator<StreamEvent> {
+export async function* stream(path: string, body: unknown, signal?: AbortSignal): AsyncGenerator<StreamEvent> {
   const response = await fetch(`/api/v1${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf, Accept: 'text/event-stream' },
     credentials: 'same-origin',
     body: JSON.stringify(body),
+    signal,
   });
   if (!response.ok || !response.body) {
     const data = await response.json().catch(() => ({}));
