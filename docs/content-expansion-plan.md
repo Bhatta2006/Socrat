@@ -371,6 +371,15 @@ Splitting into families applies to **every** concept that teaches more than one 
 6. **Resources.** Only URLs I fetch and confirm. Unverified gaps are listed in the report (decision A covers the schema minimum of 2).
 7. **Gate.** Run `build.py`, `validate_atoms.py`, `validate_quiz.py` (writes the manifest), `lint_patterns.py`, `validate_problems.py <new ids>` and `pytest`. Then commit `content(<course>): <concept-id>: <summary>`.
 
+## 5a. Standards settled during Phase 2 (apply to every later concept)
+
+- **Main family** of each concept: a full pattern pack at the CI bar, plus a quiz generator in `content/quiz/generators/`, so its items come from executed code and are verified in all three languages. New mutation defects go into `content/quiz/defects.yaml`.
+- **Secondary families:** a static quiz family with at least 3 items, every distractor tagged with a misconception, and no pattern. These stay unreviewed, so they're practice-only and never count as mastery evidence. `test_quizbank` enforces this split.
+- **Two held-out native judge problems per concept.** The planner only schedules native problems, and the syllabus's unseen check needs problems that can be judged. They are original, never shown in the lesson, and each changes one thing from the families taught. Each must pass every `validate_problems.py` gate: examples, brute force, timing, C++/Java references, originality, difficulty.
+- **Every live concept needs an entry in `content/learning-resources.json`.** Reuse an existing concept's already-recorded links; never add an unverified URL.
+- **Lessons end with** "Worked walkthrough", "Why this works", "Boundary cases and cost" and "Check your understanding". `test_learning_scope` enforces these for every concept. For Zero, the cost heading is "Things to watch for".
+- **Every new misconception id must be used** by a quiz item, distractor, pitfall or micro atom (`test_quiz_generators`).
+
 ## 6. Decisions I need from you before Phase 1
 
 **A. Stubs can't be valid and can't be hidden today.** `Concept` requires ≥2 resources, ≥2 quiz items, ≥2 key points and a 200-character lesson. Any concept in `course.yaml` is immediately in learners' paths, placement and plans. The options:
