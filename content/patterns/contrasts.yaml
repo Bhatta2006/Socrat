@@ -99,3 +99,9 @@ pattern-two-budgets-vs-two-bags:
     Two budgets: every item spends from two limits at once, so the state is both remaining
     budgets. Two bags: each item goes into one of two places or nowhere, a three-way choice. Ask
     whether one item uses two resources, or one resource in one of two places.
+pattern-exact-vs-at-most-capacity:
+  title: "Exactly the budget, or at most?"
+  body: >-
+    "At most W" lets every cell start at 0, because taking nothing always fits. "Exactly W"
+    means only dp[0] starts reachable: every other cell starts at infinity for a minimum, or
+    minus infinity for a maximum, and the answer must be checked for still unreachable.

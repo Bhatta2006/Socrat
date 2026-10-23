@@ -126,3 +126,7 @@ defects:
     kind: wrong-update
     misconception: knapsack-weight-for-value
     description: The take branch adds the item's weight instead of its value.
+  - id: unbounded-backward-loop
+    kind: wrong-update
+    misconception: unbounded-vs-01
+    description: The one-row capacity loop runs downwards, so each reusable item is taken at most once.

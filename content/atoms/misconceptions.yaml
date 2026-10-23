@@ -172,3 +172,7 @@
 - pattern-partition-greedy-vs-dp
 - pattern-count-vs-exists
 - pattern-two-budgets-vs-two-bags
+- unbounded-advance-after-take
+- exact-capacity-zero-init
+- coin-min-zero-init
+- pattern-exact-vs-at-most-capacity
