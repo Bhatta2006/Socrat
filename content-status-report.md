@@ -1,10 +1,10 @@
 # Socrat: current content status and complete inventory
 
-**Snapshot:** 2026-10-15T18:51:30+05:30 (Asia/Calcutta). **Branch:** `content-foundry`. **Inspected commit:** `843a27ce5ea1292f92fa8fa26f1de1748ccbd7ae`.
+**Snapshot:** 2026-10-23T17:33:40+05:30 (Asia/Calcutta). **Branch:** `content/syllabus-expansion`. **Inspected commit:** `150bca7d386878637c2602148a72f77c97aef588`.
 
 This report inventories the checked-out repository and its existing generated test cache. It does not measure a deployed production database, student-generated content, private uploads or external websites. Counts below come from files and the executable catalog schema, not older roadmap totals. No course content was edited or downloaded for this audit.
 
-The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contains **16,824 records**, including every external problem, implementation link, local lesson/quiz/problem/atom, lesson section, book reference, additional resource and company index. These are different record types and include nested sections and link mappings; **do not treat their combined row count as a number of independent lessons**.
+The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contains **16,902 records**, including every external problem, implementation link, local lesson/quiz/problem/atom, lesson section, book reference, additional resource and company index. These are different record types and include nested sections and link mappings; **do not treat their combined row count as a number of independent lessons**.
 
 ## 1. What actually exists
 
@@ -13,15 +13,15 @@ The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contai
 | Courses | 3 | Programming from Zero; DSA for Interviews; Competitive Programming |
 | Modules / subject areas | 19 | Authored groups inside courses |
 | Concepts / taught topics | 61 | One local YAML lesson per concept |
-| Lesson sections / subtopics | 547 | Actual Markdown headings, including recurring walkthrough/check headings; not separate lesson files |
-| Lesson text size | 37,427 whitespace words | Includes code/Markdown tokens; not a pure-prose reading-time estimate |
+| Lesson sections / subtopics | 548 | Actual Markdown headings, including recurring walkthrough/check headings; not separate lesson files |
+| Lesson text size | 37,650 whitespace words | Includes code/Markdown tokens; not a pure-prose reading-time estimate |
 | Prerequisite edges | 91 | Includes cross-course bridges |
-| Local concept quiz items | 234 | One reusable bank; not an additional bank per placement/review/assessment mode |
-| Local judge problems | 85 | Full statements, examples, hints, Python references and generators stored locally |
-| Generated judge test cases | 959 | Cached cases for the 85 problems, not new exercises |
+| Local concept quiz items | 284 | One reusable bank; not an additional bank per placement/review/assessment mode |
+| Local judge problems | 112 | Full statements, examples, hints, Python references and generators stored locally |
+| Generated judge test cases | 1223 | Cached cases for the 112 problems, not new exercises |
 | Released teaching-atom packs | 30 | 30 of 61 concepts; all have recorded release/review metadata |
 | Teaching-atom instances | 279 | 279 instances; repeated/template bodies occur across packs |
-| Checks inside atoms | 107 | Separate authored interactive steps, not added to the 234 concept-quiz count |
+| Checks inside atoms | 107 | Separate authored interactive steps, not added to the 284 concept-quiz count |
 | Curated course-resource mappings | 209 | 152 exact unique URLs; external links, not stored articles/videos |
 | Authored external practice mappings | 142 | 126 exact unique URLs; can overlap the imported practice index |
 | Imported external problem records | 13889 | Metadata/links only; no local statement/editorial/solution corpus |
@@ -31,20 +31,20 @@ The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contai
 | Additional roadmap-link mappings | 100 | Developer Roadmap metadata/links |
 | Additional Python exercise mappings | 34 | Links/guidance; external exercise text not stored here |
 | Handbook references | 47 | One externally linked book, mapped to 39 concepts |
-| Controlled misconception IDs | 31 | Repair taxonomy, not standalone lessons |
+| Controlled misconception IDs | 141 | Repair taxonomy, not standalone lessons |
 | Problem drafts in content/drafts | 0 | Directory currently has its workflow README only |
 
 **Hierarchy used in this report:** course → authored module (subject area) → concept (topic) → lesson heading (subtopic/section). The current schema does not define a separate universal subject/subtopic taxonomy. Python, C++ and Java are supported languages of the same courses; they are not three copies of each curriculum. Course prose is English; no separate translated course tree is present.
 
-**Important distinction:** the active catalog has 85 locally judgeable authored problems and 13,889 external problem links. The links expand practice selection, but do not supply 13,889 local explanations, answer keys, hidden-test suites or independently calibrated assessment items.
+**Important distinction:** the active catalog has 112 locally judgeable authored problems and 13,889 external problem links. The links expand practice selection, but do not supply 13,889 local explanations, answer keys, hidden-test suites or independently calibrated assessment items.
 
 ## 2. Course totals and quantity definitions
 
 | Course | Version | Modules | Concepts | Lesson words | Quiz items | Local problems | Atoms | Atom-pack coverage | External unique mapped | External primary |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Programming from Zero | 1.0.1 | 5 | 18 | 11671 | 74 | 27 | 93 | 10/18 | 1523 | 329 |
-| DSA for Interviews | 1.0.0 | 7 | 23 | 14089 | 93 | 36 | 93 | 10/23 | 6268 | 4575 |
-| Competitive Programming | 1.0.0 | 7 | 20 | 11667 | 67 | 22 | 93 | 10/20 | 11287 | 8985 |
+| Programming from Zero | 1.0.1 | 5 | 18 | 11894 | 98 | 39 | 93 | 10/18 | 1523 | 329 |
+| DSA for Interviews | 1.0.0 | 7 | 23 | 14089 | 107 | 45 | 93 | 10/23 | 6268 | 4575 |
+| Competitive Programming | 1.0.0 | 7 | 20 | 11667 | 79 | 28 | 93 | 10/20 | 11287 | 8985 |
 
 `External unique mapped` counts a problem once within that course if any of its up-to-three concept mappings belongs to the course. `External primary` uses only its first concept and partitions the global bank. External counts across concepts/modules/courses overlap; their sum is not the unique global count. Local problem totals use unique IDs; one concept (`zero:scope-and-mutation`) has no linked native problem.
 
@@ -60,9 +60,9 @@ Estimated learning minutes are authored concept estimates that include learning/
 
 | Course | Lesson words | Quiz-prompt words | Native-statement words | Hint words | Solution-approach words | Atom-body words (instances) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Programming from Zero | 11671 | 788 | 1159 | 1249 | 997 | 1913 |
-| DSA for Interviews | 14089 | 1083 | 1356 | 1937 | 1378 | 2008 |
-| Competitive Programming | 11667 | 760 | 763 | 1208 | 783 | 2009 |
+| Programming from Zero | 11894 | 998 | 1636 | 1847 | 1402 | 1913 |
+| DSA for Interviews | 14089 | 1301 | 1725 | 2473 | 1791 | 2008 |
+| Competitive Programming | 11667 | 944 | 1036 | 1571 | 1033 | 2009 |
 
 These are separate field-level text measurements, not an additive unique-word corpus: atom templates repeat, quizzes can refer to code outside their prompt, and lessons include Markdown/code. Reference/generator code and test input/output bytes are not counted as explanatory prose. Every lesson section below has its own body word count; inclusive counts overlap when headings nest.
 
@@ -71,7 +71,7 @@ These are separate field-level text measurements, not an additive unique-word co
 | Content type | Stored where | Stored body or link? | Source / review evidence |
 | --- | --- | --- | --- |
 | Courses/modules/lessons/quizzes | `content/courses/<course>/course.yaml` and `concepts/*.yaml` | Local curriculum/lesson/code/quiz bodies | No per-lesson/per-quiz author, license or review field in active schema; linked reading is not proof of where the prose originated |
-| Native problems | `content/courses/<course>/problems/*.yaml` | Local statements, examples, hints, references/generators | 2/85 have explicit review blocks; the other 83 have no review block in current files, which does not prove whether review happened elsewhere |
+| Native problems | `content/courses/<course>/problems/*.yaml` | Local statements, examples, hints, references/generators | 2/112 have explicit review blocks; the other 110 have no review block in current files, which does not prove whether review happened elsewhere |
 | Teaching atoms | `content/atoms/<course>/<concept>.yaml` | Local teaching/check/code bodies | All 30 packs declare original Socrat examples, owner Socrat learning content, status released, review by Owner on 2026-10-13; declarations are recorded evidence, not an independent rights audit |
 | Curated reading/video/docs/visualizers | concept.resources | Titles, URLs, type, duration, level/language | Publisher labels exist; item licenses, robots snapshots, fetch timestamps and content hashes do not |
 | External practice index | content/practice/problems.jsonl | Titles/URLs/tags/difficulty/ratings/company metadata | Aggregate source manifest has pinned Git revisions for several imports, but no per-record import timestamp or license evidence |
@@ -79,7 +79,7 @@ These are separate field-level text measurements, not an additive unique-word co
 | Implementation references | content/practice/implementations.jsonl | GitHub code-file links only | TheAlgorithms repository revisions pinned in URLs/manifest; importer describes MIT repos, not per-file proof |
 | Book chapters | content/practice/book.json | External PDF/page links only | CC BY-NC-SA 4.0 (linked, not reproduced) (manifest declaration; not verified online) |
 | Roadmap/exercise supplements | content/learning-resources.json | Metadata/links plus local short guidance | Roadmap URLs pin a revision; Python exercise links point at mutable master |
-| Judge test cache | `.cache/content-tests/<problem>.json` + `.sha256` | Generated input/expected-output cases | 85 current caches match source YAML hashes; correctness was not re-executed in this audit |
+| Judge test cache | `.cache/content-tests/<problem>.json` + `.sha256` | Generated input/expected-output cases | 112 current caches match source YAML hashes; correctness was not re-executed in this audit |
 
 The active loader is [services/api/src/socrat/catalog/registry.py](<D:/Socrat/services/api/src/socrat/catalog/registry.py>); authoring contracts are in [services/api/src/socrat/catalog/schema.py](<D:/Socrat/services/api/src/socrat/catalog/schema.py>) and [services/api/src/socrat/catalog/atoms.py](<D:/Socrat/services/api/src/socrat/catalog/atoms.py>). The report treats repository lessons/problems as stored authoring material; it does not infer that they were scraped from their recommended links. No tracked LICENSE/NOTICE file was found by the audit; that absence is not a legal conclusion about ownership.
 
@@ -158,34 +158,34 @@ A patient, practice-first path for complete beginners. You will learn how progra
 
 | Module / subject area | Topics | Lesson words | Quiz | Native | Atoms | Reading links | External unique mapped |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| First steps | 3 | 1880 | 14 | 4 | 30 | 13 | 675 |
-| Making decisions and repeating | 5 | 3110 | 20 | 9 | 45 | 18 | 0 |
-| Working with data | 4 | 2632 | 16 | 7 | 18 | 17 | 816 |
-| Functions and structure | 3 | 2107 | 12 | 4 | 0 | 11 | 44 |
-| The programmer's craft | 3 | 1942 | 12 | 3 | 0 | 9 | 0 |
+| First steps | 3 | 1989 | 20 | 7 | 30 | 13 | 675 |
+| Making decisions and repeating | 5 | 3145 | 30 | 14 | 45 | 18 | 0 |
+| Working with data | 4 | 2671 | 24 | 11 | 18 | 17 | 816 |
+| Functions and structure | 3 | 2144 | 12 | 4 | 0 | 11 | 44 |
+| The programmer's craft | 3 | 1945 | 12 | 3 | 0 | 9 | 0 |
 
 **Topic-level local coverage**
 
 | Concept ID | Topic | Words | Sections | Quiz | Native | Atom pack / atoms | Estimated minutes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| zero:programs-and-output | Programs and output | 621 | 9 | 4 | 1 | released / 9 | 25 |
-| zero:variables-and-types | Variables and types | 607 | 9 | 5 | 1 | released / 12 | 35 |
-| zero:input-and-arithmetic | Input and arithmetic | 652 | 10 | 5 | 2 | released / 9 | 40 |
-| zero:conditionals | Making decisions with if | 585 | 9 | 4 | 2 | released / 9 | 40 |
-| zero:boolean-logic | Combining conditions | 621 | 10 | 4 | 1 | released / 9 | 35 |
-| zero:while-loops | While loops | 663 | 8 | 4 | 2 | released / 9 | 40 |
-| zero:for-loops | For loops | 642 | 9 | 4 | 2 | released / 9 | 40 |
-| zero:nested-loops | Nested loops | 599 | 9 | 4 | 2 | released / 9 | 40 |
-| zero:lists | Lists and arrays | 648 | 8 | 4 | 2 | released / 9 | 50 |
-| zero:strings | Strings | 669 | 9 | 4 | 2 | released / 9 | 45 |
-| zero:maps | Dictionaries and maps | 591 | 9 | 4 | 2 | missing / 0 | 45 |
-| zero:grids | Grids and 2D lists | 724 | 8 | 4 | 1 | missing / 0 | 45 |
-| zero:functions | Functions | 707 | 9 | 4 | 2 | missing / 0 | 45 |
-| zero:scope-and-mutation | Scope, references and mutation | 690 | 9 | 4 | 0 | missing / 0 | 40 |
-| zero:recursion | Recursion | 710 | 9 | 4 | 2 | missing / 0 | 55 |
+| zero:programs-and-output | Programs and output | 723 | 10 | 6 | 2 | released / 9 | 25 |
+| zero:variables-and-types | Variables and types | 613 | 9 | 7 | 2 | released / 12 | 35 |
+| zero:input-and-arithmetic | Input and arithmetic | 653 | 10 | 7 | 3 | released / 9 | 40 |
+| zero:conditionals | Making decisions with if | 591 | 9 | 6 | 3 | released / 9 | 40 |
+| zero:boolean-logic | Combining conditions | 628 | 10 | 6 | 2 | released / 9 | 35 |
+| zero:while-loops | While loops | 664 | 8 | 6 | 3 | released / 9 | 40 |
+| zero:for-loops | For loops | 655 | 9 | 6 | 3 | released / 9 | 40 |
+| zero:nested-loops | Nested loops | 607 | 9 | 6 | 3 | released / 9 | 40 |
+| zero:lists | Lists and arrays | 661 | 8 | 6 | 3 | released / 9 | 50 |
+| zero:strings | Strings | 681 | 9 | 6 | 3 | released / 9 | 45 |
+| zero:maps | Dictionaries and maps | 600 | 9 | 6 | 3 | missing / 0 | 45 |
+| zero:grids | Grids and 2D lists | 729 | 8 | 6 | 2 | missing / 0 | 45 |
+| zero:functions | Functions | 722 | 9 | 4 | 2 | missing / 0 | 45 |
+| zero:scope-and-mutation | Scope, references and mutation | 695 | 9 | 4 | 0 | missing / 0 | 40 |
+| zero:recursion | Recursion | 727 | 9 | 4 | 2 | missing / 0 | 55 |
 | zero:debugging | Debugging calmly | 632 | 10 | 4 | 1 | missing / 0 | 35 |
 | zero:problem-solving | Solving unfamiliar problems | 662 | 9 | 4 | 1 | missing / 0 | 45 |
-| zero:classes-and-objects | Classes and objects | 648 | 9 | 4 | 1 | missing / 0 | 50 |
+| zero:classes-and-objects | Classes and objects | 651 | 9 | 4 | 1 | missing / 0 | 50 |
 
 **Topic-level external coverage**
 
@@ -221,8 +221,8 @@ What a program is, how it runs, and how it stores and computes values.
 - **Prerequisites:** none
 - **Key points:** A program runs its instructions in order, top to bottom.; Printing shows output; the order of print statements is the order of output.; Quotes make text (a string); without quotes, expressions are calculated.; Comments are ignored by the computer and explain code to people.
 - **Pitfalls:** Forgetting the closing quote or bracket — the program will not run at all.; Expecting the computer to "understand what you meant". It does exactly what you wrote.
-- **Local judge problems:** [Echo a reading](<D:/Socrat/content/courses/zero/problems/echo-reading.yaml>) (`echo-reading`, easy)
-- **Quiz items:** `order-of-output` (output, difficulty 1/5); `quotes-vs-math` (output, difficulty 1/5); `comment-ignored` (mcq, difficulty 1/5); `precise-instructions` (mcq, difficulty 2/5)
+- **Local judge problems:** [Echo a reading](<D:/Socrat/content/courses/zero/problems/echo-reading.yaml>) (`echo-reading`, easy); [Print a ticket stub](<D:/Socrat/content/courses/zero/problems/ticket-stub.yaml>) (`ticket-stub`, easy)
+- **Quiz items:** `order-of-output` (output, difficulty 1/5); `quotes-vs-math` (output, difficulty 1/5); `comment-ignored` (mcq, difficulty 1/5); `precise-instructions` (mcq, difficulty 2/5); `print-sep-end` (output, difficulty 4/5); `print-order` (output, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -231,10 +231,11 @@ What a program is, how it runs, and how it stores and computes values.
 | Your first program | H2 | 80 | 80 |
 | Text versus numbers | H2 | 97 | 97 |
 | How Python, C++ and Java differ here | H2 | 74 | 74 |
+| Several values in one print | H2 | 74 | 74 |
 | Comments | H2 | 24 | 24 |
-| Worked walkthrough | H2 | 66 | 229 |
-| Worked walkthrough > Why this works | H3 | 44 | 44 |
-| Worked walkthrough > Boundary cases and cost | H3 | 46 | 46 |
+| Worked walkthrough | H2 | 93 | 251 |
+| Worked walkthrough > Why this works | H3 | 41 | 41 |
+| Worked walkthrough > Things to watch for | H3 | 44 | 44 |
 | Worked walkthrough > Check your understanding | H3 | 60 | 60 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -259,8 +260,8 @@ What a program is, how it runs, and how it stores and computes values.
 - **Prerequisites:** `zero:programs-and-output`
 - **Key points:** A variable is a named place that stores one value at a time.; `=` evaluates the right side, then stores the result on the left.; Every value has a type (whole number, decimal, text, true/false).; C++ and Java require declaring a variable's type; Python infers it.; Trace code by tracking each variable's value line by line.
 - **Pitfalls:** Reading `x = x + 1` as a false equation instead of an update.; Using a variable before giving it a value.; Mixing text and numbers without converting (e.g. "5" + 3).
-- **Local judge problems:** [One more visitor](<D:/Socrat/content/courses/zero/problems/next-counter.yaml>) (`next-counter`, easy)
-- **Quiz items:** `reassign` (output, difficulty 1/5); `swap-trace` (output, difficulty 2/5); `type-of-text` (mcq, difficulty 1/5); `declared-type` (mcq, difficulty 1/5); `equals-meaning` (mcq, difficulty 1/5)
+- **Local judge problems:** [One more visitor](<D:/Socrat/content/courses/zero/problems/next-counter.yaml>) (`next-counter`, easy); [Celsius to Fahrenheit](<D:/Socrat/content/courses/zero/problems/temperature-converter.yaml>) (`temperature-converter`, easy)
+- **Quiz items:** `reassign` (output, difficulty 1/5); `swap-trace` (output, difficulty 2/5); `type-of-text` (mcq, difficulty 1/5); `declared-type` (mcq, difficulty 1/5); `equals-meaning` (mcq, difficulty 1/5); `int-division-types` (mcq, difficulty 4/5); `rebinding` (output, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral); `trace` (trace, 1 checks, adapters python,cpp,java); `predict` (predict, 1 checks, adapters python,cpp,java); `debug` (debug, 1 checks, adapters python,cpp,java)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -270,9 +271,9 @@ What a program is, how it runs, and how it stores and computes values.
 | Types | H2 | 101 | 101 |
 | Naming | H2 | 27 | 27 |
 | Tracing | H2 | 42 | 42 |
-| Worked walkthrough | H2 | 70 | 218 |
+| Worked walkthrough | H2 | 70 | 224 |
 | Worked walkthrough > Why this works | H3 | 37 | 37 |
-| Worked walkthrough > Boundary cases and cost | H3 | 44 | 44 |
+| Worked walkthrough > Things to watch for | H3 | 50 | 50 |
 | Worked walkthrough > Check your understanding | H3 | 54 | 54 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -295,8 +296,8 @@ What a program is, how it runs, and how it stores and computes values.
 - **Prerequisites:** `zero:variables-and-types`
 - **Key points:** Input arrives as text; convert it before doing arithmetic.; Whole-number division: `//` in Python, `/` between ints in C++ and Java.; `%` gives the remainder: great for even/odd, last digit and unit conversions.; Multiplication and division happen before addition and subtraction.
 - **Pitfalls:** Forgetting to convert input in Python, then adding text instead of numbers.; Using `/` in Python when you wanted a whole number.; Integer overflow in C++/Java when results exceed about 2.1 billion.
-- **Local judge problems:** [Personal greeting](<D:/Socrat/content/courses/zero/problems/greeting.yaml>) (`greeting`, easy); [Minutes to hours](<D:/Socrat/content/courses/zero/problems/time-convert.yaml>) (`time-convert`, easy)
-- **Quiz items:** `int-division` (output, difficulty 1/5); `precedence` (output, difficulty 1/5); `last-digit` (mcq, difficulty 2/5); `input-is-text` (mcq, difficulty 2/5); `even-check` (mcq, difficulty 1/5)
+- **Local judge problems:** [Personal greeting](<D:/Socrat/content/courses/zero/problems/greeting.yaml>) (`greeting`, easy); [Minutes to hours](<D:/Socrat/content/courses/zero/problems/time-convert.yaml>) (`time-convert`, easy); [Split the bill](<D:/Socrat/content/courses/zero/problems/split-the-bill.yaml>) (`split-the-bill`, easy)
+- **Quiz items:** `int-division` (output, difficulty 1/5); `precedence` (output, difficulty 1/5); `last-digit` (mcq, difficulty 2/5); `input-is-text` (mcq, difficulty 2/5); `even-check` (mcq, difficulty 1/5); `string-plus` (mcq, difficulty 4/5); `negative-mod` (output, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -307,9 +308,9 @@ What a program is, how it runs, and how it stores and computes values.
 | Worked example: minutes to hours | H2 | 52 | 52 |
 | Order of operations | H2 | 35 | 35 |
 | Very large numbers | H2 | 30 | 30 |
-| Worked walkthrough | H2 | 65 | 210 |
+| Worked walkthrough | H2 | 65 | 211 |
 | Worked walkthrough > Why this works | H3 | 39 | 39 |
-| Worked walkthrough > Boundary cases and cost | H3 | 47 | 47 |
+| Worked walkthrough > Things to watch for | H3 | 48 | 48 |
 | Worked walkthrough > Check your understanding | H3 | 46 | 46 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -341,8 +342,8 @@ Branches and loops — the two ideas that make programs powerful.
 - **Prerequisites:** `zero:input-and-arithmetic`
 - **Key points:** `if` runs a block only when its condition is true.; In an if / else-if / else chain, only the first true branch runs.; `==` compares; `=` assigns.; Test boundary values — exactly at each threshold.
 - **Pitfalls:** Writing `=` instead of `==` inside a condition.; Putting a broad condition before a narrow one so the narrow branch never runs.; Forgetting braces (C++/Java) or indentation (Python), so the wrong lines are inside the if.
-- **Local judge problems:** [Letter grade](<D:/Socrat/content/courses/zero/problems/grade-letter.yaml>) (`grade-letter`, easy); [Largest of three](<D:/Socrat/content/courses/zero/problems/max-of-three.yaml>) (`max-of-three`, easy)
-- **Quiz items:** `first-true-branch` (output, difficulty 2/5); `equals-operator` (mcq, difficulty 1/5); `boundary` (mcq, difficulty 1/5); `else-meaning` (mcq, difficulty 1/5)
+- **Local judge problems:** [Letter grade](<D:/Socrat/content/courses/zero/problems/grade-letter.yaml>) (`grade-letter`, easy); [Largest of three](<D:/Socrat/content/courses/zero/problems/max-of-three.yaml>) (`max-of-three`, easy); [Museum ticket price](<D:/Socrat/content/courses/zero/problems/museum-ticket.yaml>) (`museum-ticket`, easy)
+- **Quiz items:** `first-true-branch` (output, difficulty 2/5); `equals-operator` (mcq, difficulty 1/5); `boundary` (mcq, difficulty 1/5); `else-meaning` (mcq, difficulty 1/5); `elif-order` (output, difficulty 4/5); `dangling-if` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -352,9 +353,9 @@ Branches and loops — the two ideas that make programs powerful.
 | Comparison operators | H2 | 54 | 54 |
 | Blocks | H2 | 32 | 32 |
 | Worked example: the larger of two numbers | H2 | 83 | 83 |
-| Worked walkthrough | H2 | 58 | 207 |
+| Worked walkthrough | H2 | 58 | 213 |
 | Worked walkthrough > Why this works | H3 | 39 | 39 |
-| Worked walkthrough > Boundary cases and cost | H3 | 51 | 51 |
+| Worked walkthrough > Things to watch for | H3 | 57 | 57 |
 | Worked walkthrough > Check your understanding | H3 | 46 | 46 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -379,8 +380,8 @@ Branches and loops — the two ideas that make programs powerful.
 - **Prerequisites:** `zero:conditionals`
 - **Key points:** and/&& needs both sides true; or/\|\| needs at least one; not/! flips.; Express ranges as two comparisons joined by and.; Short-circuiting skips the right side when the answer is already known.; De Morgan: not (A and B) = not A or not B, and vice versa.
 - **Pitfalls:** Writing `1 <= x <= 10` in C++ or Java.; Negating a compound condition without flipping and/or.; Writing `x == 1 or 2` instead of `x == 1 or x == 2`.
-- **Local judge problems:** [Leap year](<D:/Socrat/content/courses/zero/problems/leap-year.yaml>) (`leap-year`, easy)
-- **Quiz items:** `and-or` (mcq, difficulty 1/5); `de-morgan` (mcq, difficulty 3/5); `range-check` (mcq, difficulty 2/5); `short-circuit` (mcq, difficulty 2/5)
+- **Local judge problems:** [Leap year](<D:/Socrat/content/courses/zero/problems/leap-year.yaml>) (`leap-year`, easy); [Who may join the coding club?](<D:/Socrat/content/courses/zero/problems/club-entry.yaml>) (`club-entry`, easy)
+- **Quiz items:** `and-or` (mcq, difficulty 1/5); `de-morgan` (mcq, difficulty 3/5); `range-check` (mcq, difficulty 2/5); `short-circuit` (mcq, difficulty 2/5); `negate-both` (mcq, difficulty 4/5); `guard-first` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -391,9 +392,9 @@ Branches and loops — the two ideas that make programs powerful.
 | Short-circuiting | H2 | 61 | 61 |
 | De Morgan's laws | H2 | 58 | 58 |
 | Worked example: leap years | H2 | 54 | 54 |
-| Worked walkthrough | H2 | 49 | 204 |
+| Worked walkthrough | H2 | 49 | 211 |
 | Worked walkthrough > Why this works | H3 | 40 | 40 |
-| Worked walkthrough > Boundary cases and cost | H3 | 46 | 46 |
+| Worked walkthrough > Things to watch for | H3 | 53 | 53 |
 | Worked walkthrough > Check your understanding | H3 | 56 | 56 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -416,8 +417,8 @@ Branches and loops — the two ideas that make programs powerful.
 - **Prerequisites:** `zero:boolean-logic`
 - **Key points:** while repeats its body as long as the condition is true, checking before each round.; Every loop needs a start, a condition, and progress toward stopping.; Missing progress causes an infinite loop.; The accumulator pattern builds an answer one round at a time.
 - **Pitfalls:** Forgetting to update the loop variable (infinite loop).; Off-by-one conditions — `>` versus `>=` changes the number of rounds.; Special input like 0 that skips the loop entirely; make sure the answer is still right.
-- **Local judge problems:** [Sum of digits](<D:/Socrat/content/courses/zero/problems/digit-sum.yaml>) (`digit-sum`, easy); [Collatz steps](<D:/Socrat/content/courses/zero/problems/collatz-steps.yaml>) (`collatz-steps`, medium)
-- **Quiz items:** `rounds` (output, difficulty 2/5); `infinite` (mcq, difficulty 1/5); `zero-input` (mcq, difficulty 2/5); `accumulator` (output, difficulty 2/5)
+- **Local judge problems:** [Sum of digits](<D:/Socrat/content/courses/zero/problems/digit-sum.yaml>) (`digit-sum`, easy); [Collatz steps](<D:/Socrat/content/courses/zero/problems/collatz-steps.yaml>) (`collatz-steps`, medium); [Reverse the digits](<D:/Socrat/content/courses/zero/problems/reverse-the-digits.yaml>) (`reverse-the-digits`, easy)
+- **Quiz items:** `rounds` (output, difficulty 2/5); `infinite` (mcq, difficulty 1/5); `zero-input` (mcq, difficulty 2/5); `accumulator` (output, difficulty 2/5); `loop-count` (output, difficulty 4/5); `infinite-loop` (bug, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -426,9 +427,9 @@ Branches and loops — the two ideas that make programs powerful.
 | The three parts of every loop | H2 | 61 | 61 |
 | When to use while | H2 | 42 | 42 |
 | Worked example: sum of digits | H2 | 187 | 187 |
-| Worked walkthrough | H2 | 58 | 224 |
+| Worked walkthrough | H2 | 58 | 225 |
 | Worked walkthrough > Why this works | H3 | 43 | 43 |
-| Worked walkthrough > Boundary cases and cost | H3 | 49 | 49 |
+| Worked walkthrough > Things to watch for | H3 | 50 | 50 |
 | Worked walkthrough > Check your understanding | H3 | 61 | 61 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -452,8 +453,8 @@ Branches and loops — the two ideas that make programs powerful.
 - **Prerequisites:** `zero:while-loops`
 - **Key points:** A for loop bundles start, condition and progress for counting loops.; Python's range(a, b) stops before b; C++/Java conditions decide inclusion explicitly.; Use for when the number of rounds is known, while when it is not.; Trace the first and last round to catch off-by-one errors.
 - **Pitfalls:** Writing range(1, n) when you meant 1..n inclusive.; Modifying the loop counter inside the body.; Using int for sums that can exceed about 2.1 billion in C++/Java.
-- **Local judge problems:** [FizzBuzz](<D:/Socrat/content/courses/zero/problems/fizzbuzz.yaml>) (`fizzbuzz`, easy); [Sum of multiples](<D:/Socrat/content/courses/zero/problems/sum-of-multiples.yaml>) (`sum-of-multiples`, medium)
-- **Quiz items:** `range-end` (mcq, difficulty 1/5); `count-rounds` (output, difficulty 2/5); `for-vs-while` (mcq, difficulty 1/5); `break-meaning` (mcq, difficulty 1/5)
+- **Local judge problems:** [FizzBuzz](<D:/Socrat/content/courses/zero/problems/fizzbuzz.yaml>) (`fizzbuzz`, easy); [Sum of multiples](<D:/Socrat/content/courses/zero/problems/sum-of-multiples.yaml>) (`sum-of-multiples`, medium); [A times table](<D:/Socrat/content/courses/zero/problems/times-table.yaml>) (`times-table`, easy)
+- **Quiz items:** `range-end` (mcq, difficulty 1/5); `count-rounds` (output, difficulty 2/5); `for-vs-while` (mcq, difficulty 1/5); `break-meaning` (mcq, difficulty 1/5); `range-step` (output, difficulty 4/5); `modify-loop-var` (output, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -463,9 +464,9 @@ Branches and loops — the two ideas that make programs powerful.
 | for or while? | H2 | 22 | 22 |
 | Worked example: sum of 1 to n | H2 | 125 | 125 |
 | Skipping and stopping | H2 | 26 | 26 |
-| Worked walkthrough | H2 | 65 | 226 |
+| Worked walkthrough | H2 | 65 | 239 |
 | Worked walkthrough > Why this works | H3 | 47 | 47 |
-| Worked walkthrough > Boundary cases and cost | H3 | 43 | 43 |
+| Worked walkthrough > Things to watch for | H3 | 56 | 56 |
 | Worked walkthrough > Check your understanding | H3 | 58 | 58 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -490,8 +491,8 @@ Branches and loops — the two ideas that make programs powerful.
 - **Prerequisites:** `zero:for-loops`
 - **Key points:** For every outer round, the inner loop runs completely.; Total work is the product of the loop sizes.; Inner bounds may depend on the outer counter (triangles, pairs with i < j).; break exits only the innermost loop.
 - **Pitfalls:** Putting the newline inside the inner loop instead of after it.; Reusing the same counter name for both loops.; Not noticing that nested loops over large inputs are slow.
-- **Local judge problems:** [Right-aligned staircase](<D:/Socrat/content/courses/zero/problems/staircase.yaml>) (`staircase`, easy); [Pairs that sum to a target](<D:/Socrat/content/courses/zero/problems/pair-count.yaml>) (`pair-count`, medium)
-- **Quiz items:** `body-count` (mcq, difficulty 1/5); `triangle` (output, difficulty 2/5); `pairs` (mcq, difficulty 2/5); `break-inner` (mcq, difficulty 2/5)
+- **Local judge problems:** [Right-aligned staircase](<D:/Socrat/content/courses/zero/problems/staircase.yaml>) (`staircase`, easy); [Pairs that sum to a target](<D:/Socrat/content/courses/zero/problems/pair-count.yaml>) (`pair-count`, medium); [Number triangle](<D:/Socrat/content/courses/zero/problems/number-triangle.yaml>) (`number-triangle`, easy)
+- **Quiz items:** `body-count` (mcq, difficulty 1/5); `triangle` (output, difficulty 2/5); `pairs` (mcq, difficulty 2/5); `break-inner` (mcq, difficulty 2/5); `inner-body-runs` (mcq, difficulty 4/5); `break-only-inner` (output, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -501,9 +502,9 @@ Branches and loops — the two ideas that make programs powerful.
 | The inner loop can depend on the outer | H2 | 93 | 93 |
 | Pairs | H2 | 40 | 40 |
 | Tips | H2 | 34 | 34 |
-| Worked walkthrough | H2 | 54 | 209 |
+| Worked walkthrough | H2 | 54 | 217 |
 | Worked walkthrough > Why this works | H3 | 33 | 33 |
-| Worked walkthrough > Boundary cases and cost | H3 | 55 | 55 |
+| Worked walkthrough > Things to watch for | H3 | 63 | 63 |
 | Worked walkthrough > Check your understanding | H3 | 54 | 54 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -533,8 +534,8 @@ Store many values and look them up quickly.
 - **Prerequisites:** `zero:for-loops`
 - **Key points:** Lists keep values in order; indexes run from 0 to n − 1.; Loop over values for items, over indexes when position matters.; Out-of-range indexes are errors (and silent bugs in C++).; Most list problems are accumulators, best-so-far, or neighbour comparisons.
 - **Pitfalls:** Using 1-based indexes and skipping the first element or overrunning the last.; Comparing a[i] with a[i - 1] starting from i = 0.; Changing a list's length while looping over it.
-- **Local judge problems:** [Above the average](<D:/Socrat/content/courses/zero/problems/above-average.yaml>) (`above-average`, easy); [Longest rising streak](<D:/Socrat/content/courses/zero/problems/increasing-steps.yaml>) (`increasing-steps`, medium)
-- **Quiz items:** `last-index` (mcq, difficulty 1/5); `neighbours` (mcq, difficulty 2/5); `list-output` (output, difficulty 1/5); `best-so-far` (mcq, difficulty 2/5)
+- **Local judge problems:** [Above the average](<D:/Socrat/content/courses/zero/problems/above-average.yaml>) (`above-average`, easy); [Longest rising streak](<D:/Socrat/content/courses/zero/problems/increasing-steps.yaml>) (`increasing-steps`, medium); [Runner-up score](<D:/Socrat/content/courses/zero/problems/runner-up-score.yaml>) (`runner-up-score`, easy)
+- **Quiz items:** `last-index` (mcq, difficulty 1/5); `list-neighbours` (mcq, difficulty 2/5); `list-output` (output, difficulty 1/5); `best-so-far` (mcq, difficulty 2/5); `alias` (output, difficulty 4/5); `slice-reverse` (output, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -543,9 +544,9 @@ Store many values and look them up quickly.
 | Looping over a list | H2 | 122 | 122 |
 | Reading a list from input | H2 | 57 | 57 |
 | Classic patterns | H2 | 43 | 43 |
-| Worked walkthrough | H2 | 60 | 227 |
+| Worked walkthrough | H2 | 60 | 240 |
 | Worked walkthrough > Why this works | H3 | 43 | 43 |
-| Worked walkthrough > Boundary cases and cost | H3 | 55 | 55 |
+| Worked walkthrough > Things to watch for | H3 | 68 | 68 |
 | Worked walkthrough > Check your understanding | H3 | 56 | 56 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -574,8 +575,8 @@ Store many values and look them up quickly.
 - **Prerequisites:** `zero:lists`
 - **Key points:** Strings behave like lists of characters with indexes from 0.; Python and Java strings are immutable; build text with join or StringBuilder.; Characters have numeric codes; 'c' - 'a' gives a letter's position.; In Java compare strings with equals, not ==.
 - **Pitfalls:** Using == for strings in Java.; Building long strings with repeated + in a loop (slow in Python/Java).; Forgetting that input lines may carry trailing spaces or newlines.
-- **Local judge problems:** [Count the vowels](<D:/Socrat/content/courses/zero/problems/vowel-count.yaml>) (`vowel-count`, easy); [Caesar cipher](<D:/Socrat/content/courses/zero/problems/caesar-shift.yaml>) (`caesar-shift`, medium)
-- **Quiz items:** `char-math` (mcq, difficulty 2/5); `java-equals` (mcq, difficulty 1/5); `immutability` (mcq, difficulty 2/5); `string-index` (output, difficulty 1/5)
+- **Local judge problems:** [Count the vowels](<D:/Socrat/content/courses/zero/problems/vowel-count.yaml>) (`vowel-count`, easy); [Caesar cipher](<D:/Socrat/content/courses/zero/problems/caesar-shift.yaml>) (`caesar-shift`, medium); [Mirror phrase](<D:/Socrat/content/courses/zero/problems/mirror-phrase.yaml>) (`mirror-phrase`, easy)
+- **Quiz items:** `char-math` (mcq, difficulty 2/5); `java-equals` (mcq, difficulty 1/5); `immutability` (mcq, difficulty 2/5); `string-index` (output, difficulty 1/5); `immutable` (mcq, difficulty 4/5); `split-join` (output, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -585,9 +586,9 @@ Store many values and look them up quickly.
 | Characters are numbers underneath | H2 | 54 | 54 |
 | Comparing strings | H2 | 30 | 30 |
 | Worked example: is it a palindrome? | H2 | 161 | 161 |
-| Worked walkthrough | H2 | 47 | 204 |
+| Worked walkthrough | H2 | 47 | 216 |
 | Worked walkthrough > Why this works | H3 | 37 | 37 |
-| Worked walkthrough > Boundary cases and cost | H3 | 54 | 54 |
+| Worked walkthrough > Things to watch for | H3 | 66 | 66 |
 | Worked walkthrough > Check your understanding | H3 | 53 | 53 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -614,8 +615,8 @@ Store many values and look them up quickly.
 - **Prerequisites:** `zero:strings`
 - **Key points:** Maps store key → value pairs; keys are unique.; Lookup, insert and update by key are fast on average, regardless of size.; Counting occurrences is the classic map pattern.; Hash maps are unordered; use a sorted map or sort keys when order matters.; A set stores unique keys for fast "seen before?" checks.
 - **Pitfalls:** Reading a missing key (Python KeyError; C++ [] silently inserts 0).; Printing results in hash order when sorted order was required.; Using a list and searching it repeatedly when a map would be instant.
-- **Local judge problems:** [Word frequency](<D:/Socrat/content/courses/zero/problems/word-frequency.yaml>) (`word-frequency`, easy); [First repeated number](<D:/Socrat/content/courses/zero/problems/first-repeat.yaml>) (`first-repeat`, medium)
-- **Quiz items:** `unique-keys` (output, difficulty 2/5); `which-structure` (mcq, difficulty 1/5); `set-use` (mcq, difficulty 1/5); `order` (mcq, difficulty 2/5)
+- **Local judge problems:** [Word frequency](<D:/Socrat/content/courses/zero/problems/word-frequency.yaml>) (`word-frequency`, easy); [First repeated number](<D:/Socrat/content/courses/zero/problems/first-repeat.yaml>) (`first-repeat`, medium); [Class election](<D:/Socrat/content/courses/zero/problems/class-election.yaml>) (`class-election`, easy)
+- **Quiz items:** `unique-keys` (output, difficulty 2/5); `which-structure` (mcq, difficulty 1/5); `set-use` (mcq, difficulty 1/5); `order` (mcq, difficulty 2/5); `get-default` (output, difficulty 4/5); `key-types` (mcq, difficulty 5/5)
 
 | Subtopic / section | Heading level | Own words | Including children |
 | --- | --- | --- | --- |
@@ -624,9 +625,9 @@ Store many values and look them up quickly.
 | Ordered vs unordered | H2 | 44 | 44 |
 | Sets | H2 | 22 | 22 |
 | Why it matters | H2 | 35 | 35 |
-| Worked walkthrough | H2 | 50 | 213 |
+| Worked walkthrough | H2 | 50 | 222 |
 | Worked walkthrough > Why this works | H3 | 39 | 39 |
-| Worked walkthrough > Boundary cases and cost | H3 | 55 | 55 |
+| Worked walkthrough > Things to watch for | H3 | 64 | 64 |
 | Worked walkthrough > Check your understanding | H3 | 56 | 56 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -653,8 +654,8 @@ Store many values and look them up quickly.
 - **Prerequisites:** `zero:nested-loops`, `zero:lists`
 - **Key points:** A grid is a list of rows; access cells as grid[row][col].; In Python, build rows in a loop — never multiply a list of lists.; Direction arrays make neighbour loops short and uniform.; Check bounds before touching any neighbour.
 - **Pitfalls:** Swapping row and column (grid[c][r]).; Reading neighbours outside the grid on edge cells.; Python's shared-row bug from [[0] * cols] * rows.
-- **Local judge problems:** [Minesweeper numbers](<D:/Socrat/content/courses/zero/problems/minesweeper-counts.yaml>) (`minesweeper-counts`, medium)
-- **Quiz items:** `index-order` (mcq, difficulty 1/5); `corner-neighbours` (mcq, difficulty 2/5); `python-shared-rows` (mcq, difficulty 3/5); `work` (mcq, difficulty 2/5)
+- **Local judge problems:** [Minesweeper numbers](<D:/Socrat/content/courses/zero/problems/minesweeper-counts.yaml>) (`minesweeper-counts`, medium); [Row and column totals](<D:/Socrat/content/courses/zero/problems/row-and-column-sums.yaml>) (`row-and-column-sums`, easy)
+- **Quiz items:** `index-order` (mcq, difficulty 1/5); `corner-neighbours` (mcq, difficulty 2/5); `python-shared-rows` (mcq, difficulty 3/5); `work` (mcq, difficulty 2/5); `grid-trap` (output, difficulty 4/5); `neighbours` (mcq, difficulty 5/5)
 
 | Subtopic / section | Heading level | Own words | Including children |
 | --- | --- | --- | --- |
@@ -662,9 +663,9 @@ Store many values and look them up quickly.
 | Character grids | H2 | 20 | 20 |
 | Neighbours and bounds | H2 | 224 | 224 |
 | Worked idea: counting around each cell | H2 | 51 | 51 |
-| Worked walkthrough | H2 | 43 | 206 |
+| Worked walkthrough | H2 | 43 | 211 |
 | Worked walkthrough > Why this works | H3 | 38 | 38 |
-| Worked walkthrough > Boundary cases and cost | H3 | 55 | 55 |
+| Worked walkthrough > Things to watch for | H3 | 60 | 60 |
 | Worked walkthrough > Check your understanding | H3 | 57 | 57 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -704,9 +705,9 @@ Break programs into reusable, testable pieces.
 | print versus return | H2 | 46 | 46 |
 | Early return | H2 | 148 | 148 |
 | Designing good functions | H2 | 36 | 36 |
-| Worked walkthrough | H2 | 61 | 232 |
+| Worked walkthrough | H2 | 61 | 247 |
 | Worked walkthrough > Why this works | H3 | 39 | 39 |
-| Worked walkthrough > Boundary cases and cost | H3 | 54 | 54 |
+| Worked walkthrough > Things to watch for | H3 | 69 | 69 |
 | Worked walkthrough > Check your understanding | H3 | 65 | 65 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -742,9 +743,9 @@ Break programs into reusable, testable pieces.
 | Mutation: numbers vs. lists | H2 | 188 | 188 |
 | Aliasing | H2 | 39 | 39 |
 | Rule of thumb | H2 | 26 | 26 |
-| Worked walkthrough | H2 | 61 | 237 |
+| Worked walkthrough | H2 | 61 | 242 |
 | Worked walkthrough > Why this works | H3 | 37 | 37 |
-| Worked walkthrough > Boundary cases and cost | H3 | 65 | 65 |
+| Worked walkthrough > Things to watch for | H3 | 70 | 70 |
 | Worked walkthrough > Check your understanding | H3 | 61 | 61 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -778,9 +779,9 @@ Break programs into reusable, testable pieces.
 | The leap of faith | H2 | 61 | 61 |
 | Branching recursion | H2 | 152 | 152 |
 | When to use recursion | H2 | 32 | 32 |
-| Worked walkthrough | H2 | 48 | 217 |
+| Worked walkthrough | H2 | 48 | 234 |
 | Worked walkthrough > Why this works | H3 | 46 | 46 |
-| Worked walkthrough > Boundary cases and cost | H3 | 55 | 55 |
+| Worked walkthrough > Things to watch for | H3 | 72 | 72 |
 | Worked walkthrough > Check your understanding | H3 | 55 | 55 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -822,7 +823,7 @@ Debug calmly, solve unfamiliar problems, and model the world with objects.
 | Rubber duck | H2 | 48 | 48 |
 | Worked walkthrough | H2 | 53 | 207 |
 | Worked walkthrough > Why this works | H3 | 38 | 38 |
-| Worked walkthrough > Boundary cases and cost | H3 | 53 | 53 |
+| Worked walkthrough > Things to watch for | H3 | 53 | 53 |
 | Worked walkthrough > Check your understanding | H3 | 50 | 50 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -857,7 +858,7 @@ Debug calmly, solve unfamiliar problems, and model the world with objects.
 | Asking for help well | H2 | 30 | 30 |
 | Worked walkthrough | H2 | 50 | 215 |
 | Worked walkthrough > Why this works | H3 | 37 | 37 |
-| Worked walkthrough > Boundary cases and cost | H3 | 58 | 58 |
+| Worked walkthrough > Things to watch for | H3 | 58 | 58 |
 | Worked walkthrough > Check your understanding | H3 | 57 | 57 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -889,9 +890,9 @@ Debug calmly, solve unfamiliar problems, and model the world with objects.
 | Why bother? | H2 | 52 | 52 |
 | In data structures | H2 | 48 | 48 |
 | Keep classes small | H2 | 31 | 31 |
-| Worked walkthrough | H2 | 53 | 217 |
+| Worked walkthrough | H2 | 53 | 220 |
 | Worked walkthrough > Why this works | H3 | 45 | 45 |
-| Worked walkthrough > Boundary cases and cost | H3 | 51 | 51 |
+| Worked walkthrough > Things to watch for | H3 | 54 | 54 |
 | Worked walkthrough > Check your understanding | H3 | 55 | 55 |
 
 | Curated resource | Source | Kind / level | Minutes | Languages |
@@ -915,10 +916,10 @@ The data structures and algorithm patterns that coding interviews actually test,
 
 | Module / subject area | Topics | Lesson words | Quiz | Native | Atoms | Reading links | External unique mapped |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Foundations | 3 | 1904 | 13 | 5 | 30 | 11 | 2415 |
-| Linear patterns | 4 | 2721 | 16 | 8 | 36 | 14 | 1422 |
+| Foundations | 3 | 1904 | 19 | 9 | 30 | 11 | 2415 |
+| Linear patterns | 4 | 2721 | 24 | 13 | 36 | 14 | 1422 |
 | Sorting and greedy | 3 | 1759 | 12 | 5 | 27 | 10 | 1767 |
-| Linked structures and backtracking | 2 | 1202 | 8 | 3 | 0 | 6 | 182 |
+| Linked structures, recursion and backtracking | 2 | 1202 | 8 | 3 | 0 | 6 | 182 |
 | Trees and heaps | 4 | 2242 | 16 | 5 | 0 | 13 | 488 |
 | Graphs | 4 | 2444 | 16 | 5 | 0 | 15 | 1870 |
 | Dynamic programming and bits | 3 | 1817 | 12 | 5 | 0 | 11 | 853 |
@@ -927,13 +928,13 @@ The data structures and algorithm patterns that coding interviews actually test,
 
 | Concept ID | Topic | Words | Sections | Quiz | Native | Atom pack / atoms | Estimated minutes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| dsa:complexity | Time and space complexity | 679 | 9 | 5 | 1 | released / 9 | 45 |
-| dsa:arrays-hashing | Arrays and hashing | 606 | 11 | 4 | 2 | released / 9 | 60 |
-| dsa:prefix-sums | Prefix sums | 619 | 7 | 4 | 2 | released / 12 | 50 |
-| dsa:two-pointers | Two pointers | 637 | 10 | 4 | 2 | released / 9 | 50 |
-| dsa:sliding-window | Sliding window | 694 | 9 | 4 | 2 | released / 9 | 55 |
-| dsa:stacks | Stacks, queues and monotonic stacks | 710 | 8 | 4 | 2 | released / 9 | 55 |
-| dsa:binary-search | Binary search | 680 | 8 | 4 | 2 | released / 9 | 60 |
+| dsa:complexity | Time and space complexity | 679 | 9 | 7 | 2 | released / 9 | 45 |
+| dsa:arrays-hashing | Arrays and hashing | 606 | 11 | 6 | 3 | released / 9 | 60 |
+| dsa:prefix-sums | Prefix sums | 619 | 7 | 6 | 4 | released / 12 | 50 |
+| dsa:two-pointers | Two pointers | 637 | 10 | 6 | 4 | released / 9 | 50 |
+| dsa:sliding-window | Sliding window | 694 | 9 | 6 | 3 | released / 9 | 55 |
+| dsa:stacks | Stacks, queues and monotonic stacks | 710 | 8 | 6 | 3 | released / 9 | 55 |
+| dsa:binary-search | Binary search | 680 | 8 | 6 | 3 | released / 9 | 60 |
 | dsa:sorting | Sorting | 670 | 9 | 4 | 2 | released / 9 | 60 |
 | dsa:intervals | Intervals | 521 | 9 | 4 | 1 | released / 9 | 45 |
 | dsa:greedy | Greedy algorithms | 568 | 10 | 4 | 2 | released / 9 | 55 |
@@ -990,8 +991,8 @@ Measure efficiency and master the array and hash map toolkit.
 - **Prerequisites:** `zero:nested-loops`, `zero:functions`
 - **Key points:** Big-O describes growth with input size, ignoring constants and lower terms.; Sequential code adds, nested loops multiply, halving gives log n.; About 10^8 simple operations per second — check your plan against the constraints.; Trading memory for time (hash sets/maps) is the most common optimisation.; Know the hidden cost of library operations (list membership, slicing, string concat).
 - **Pitfalls:** Calling an O(n) operation (like list membership) inside a loop, making O(n²).; Ignoring recursion depth as a space cost.; Optimising constant factors before fixing the complexity class.
-- **Local judge problems:** [Triangle number queries](<D:/Socrat/content/courses/dsa/problems/sum-queries.yaml>) (`sum-queries`, easy)
-- **Quiz items:** `nested-cost` (mcq, difficulty 1/5); `halving` (mcq, difficulty 2/5); `constraint-fit` (mcq, difficulty 2/5); `hidden-cost` (mcq, difficulty 3/5); `drop-terms` (mcq, difficulty 1/5)
+- **Local judge problems:** [Triangle number queries](<D:/Socrat/content/courses/dsa/problems/sum-queries.yaml>) (`sum-queries`, easy); [Matching sock pairs](<D:/Socrat/content/courses/dsa/problems/matching-pairs.yaml>) (`matching-pairs`, easy)
+- **Quiz items:** `nested-cost` (mcq, difficulty 1/5); `halving` (mcq, difficulty 2/5); `constraint-fit` (mcq, difficulty 2/5); `hidden-cost` (mcq, difficulty 3/5); `drop-terms` (mcq, difficulty 1/5); `halving-loop` (mcq, difficulty 4/5); `amortised` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1029,8 +1030,8 @@ Measure efficiency and master the array and hash map toolkit.
 - **Prerequisites:** `dsa:complexity`, `zero:maps`
 - **Key points:** Hash maps/sets give O(1) average lookup, turning repeated searches into one pass.; Complement lookup — store what you've seen, look for target − x.; Frequency counting solves anagram, majority and top-k style questions.; Canonical keys group equivalent items.; For small known ranges, a counting array beats a hash map.
 - **Pitfalls:** Inserting before checking, and pairing an element with itself.; Forgetting that hash maps are unordered when output order matters.; Using mutable lists as Python dict keys (use tuples or strings).
-- **Local judge problems:** [Anagram check](<D:/Socrat/content/courses/dsa/problems/valid-anagram.yaml>) (`valid-anagram`, easy); [Top K frequent](<D:/Socrat/content/courses/dsa/problems/top-k-frequent.yaml>) (`top-k-frequent`, medium)
-- **Quiz items:** `two-sum-complexity` (mcq, difficulty 1/5); `anagram-key` (mcq, difficulty 2/5); `check-before-insert` (mcq, difficulty 2/5); `counting-array` (mcq, difficulty 2/5)
+- **Local judge problems:** [Anagram check](<D:/Socrat/content/courses/dsa/problems/valid-anagram.yaml>) (`valid-anagram`, easy); [Top K frequent](<D:/Socrat/content/courses/dsa/problems/top-k-frequent.yaml>) (`top-k-frequent`, medium); [Longest unbroken run of values](<D:/Socrat/content/courses/dsa/problems/consecutive-run.yaml>) (`consecutive-run`, medium)
+- **Quiz items:** `two-sum-complexity` (mcq, difficulty 1/5); `anagram-key` (mcq, difficulty 2/5); `check-before-insert` (mcq, difficulty 2/5); `counting-array` (mcq, difficulty 2/5); `hash-worst-case` (mcq, difficulty 4/5); `two-sum-one-pass` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1074,8 +1075,8 @@ Measure efficiency and master the array and hash map toolkit.
 - **Prerequisites:** `dsa:arrays-hashing`
 - **Key points:** p[i] holds the sum of the first i elements; sum(l..r) = p[r+1] − p[l].; One O(n) precomputation makes every range query O(1).; Subarrays summing to k ⇔ earlier prefix equal to current − k; count with a hash map.; Prefix ideas extend to 2D, XOR, counts and difference arrays.
 - **Pitfalls:** Off-by-one between p indexes and array indexes.; Forgetting to seed the map with prefix 0 (count 1).; 32-bit overflow on large sums.
-- **Local judge problems:** [Range sum queries](<D:/Socrat/content/courses/dsa/problems/range-sum-queries.yaml>) (`range-sum-queries`, easy); [Subarrays summing to K](<D:/Socrat/content/courses/dsa/problems/subarray-sum-k.yaml>) (`subarray-sum-k`, medium)
-- **Quiz items:** `range-formula` (mcq, difficulty 2/5); `seed` (mcq, difficulty 3/5); `query-cost` (mcq, difficulty 1/5); `negatives` (mcq, difficulty 3/5)
+- **Local judge problems:** [Range sum queries](<D:/Socrat/content/courses/dsa/problems/range-sum-queries.yaml>) (`range-sum-queries`, easy); [Subarrays summing to K](<D:/Socrat/content/courses/dsa/problems/subarray-sum-k.yaml>) (`subarray-sum-k`, medium); [Balance point](<D:/Socrat/content/courses/dsa/problems/balance-point.yaml>) (`balance-point`, easy); [Profits that split evenly](<D:/Socrat/content/courses/dsa/problems/divisible-subarrays.yaml>) (`divisible-subarrays`, medium)
+- **Quiz items:** `range-formula` (mcq, difficulty 2/5); `seed` (mcq, difficulty 3/5); `query-cost` (mcq, difficulty 1/5); `negatives` (mcq, difficulty 3/5); `count-k` (mcq, difficulty 5/5); `inclusive-range` (mcq, difficulty 4/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral); `trace` (trace, 1 checks, adapters python,cpp,java); `predict` (predict, 1 checks, adapters python,cpp,java); `debug` (debug, 1 checks, adapters python,cpp,java)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1113,8 +1114,8 @@ Two pointers, sliding windows, stacks and binary search.
 - **Prerequisites:** `dsa:arrays-hashing`
 - **Key points:** Two indexes, each moving at most n times, give an O(n) sweep.; Opposite ends on sorted data — move the pointer that cannot be part of an answer.; Read/write pointers filter or partition in place with O(1) space.; Sort, fix one element, two-pointer the rest for triples (3Sum).; Always be able to justify why a discarded element can never be in the answer.
 - **Pitfalls:** Using opposite-end pointers on unsorted data.; Infinite loops when neither pointer moves in some branch.; Producing duplicate triples by not skipping equal values.
-- **Local judge problems:** [Pair sum in a sorted array](<D:/Socrat/content/courses/dsa/problems/pair-sum-sorted.yaml>) (`pair-sum-sorted`, easy); [Container with most water](<D:/Socrat/content/courses/dsa/problems/container-water.yaml>) (`container-water`, medium)
-- **Quiz items:** `which-moves` (mcq, difficulty 1/5); `correctness` (mcq, difficulty 3/5); `container` (mcq, difficulty 2/5); `three-sum` (mcq, difficulty 2/5)
+- **Local judge problems:** [Pair sum in a sorted array](<D:/Socrat/content/courses/dsa/problems/pair-sum-sorted.yaml>) (`pair-sum-sorted`, easy); [Container with most water](<D:/Socrat/content/courses/dsa/problems/container-water.yaml>) (`container-water`, medium); [Pairs with a fixed gap](<D:/Socrat/content/courses/dsa/problems/difference-pairs.yaml>) (`difference-pairs`, medium); [Squares in order](<D:/Socrat/content/courses/dsa/problems/sorted-squares.yaml>) (`sorted-squares`, easy)
+- **Quiz items:** `which-moves` (mcq, difficulty 1/5); `correctness` (mcq, difficulty 3/5); `container` (mcq, difficulty 2/5); `three-sum` (mcq, difficulty 2/5); `dedupe-in-place` (mcq, difficulty 4/5); `pointer-invariant` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1152,8 +1153,8 @@ Two pointers, sliding windows, stacks and binary search.
 - **Prerequisites:** `dsa:two-pointers`
 - **Key points:** A window [left, right] plus a running summary avoids recomputing every subarray.; Fixed-size windows add the entering element and remove the leaving one.; Variable windows expand right, shrink left while invalid, then record.; Requires monotonic validity; with negative sums use prefix sums instead.; Exactly-k counts can be atMost(k) − atMost(k − 1).
 - **Pitfalls:** Applying a window to sums with negative numbers.; Recording the answer before restoring validity.; Moving left past a stale "last seen" position (check last[ch] ≥ left).
-- **Local judge problems:** [Longest substring without repeats](<D:/Socrat/content/courses/dsa/problems/longest-unique-substring.yaml>) (`longest-unique-substring`, medium); [Best k-day streak](<D:/Socrat/content/courses/dsa/problems/max-window-sum.yaml>) (`max-window-sum`, easy)
-- **Quiz items:** `fixed-update` (mcq, difficulty 1/5); `negatives-fail` (mcq, difficulty 3/5); `complexity` (mcq, difficulty 2/5); `unique-trace` (mcq, difficulty 1/5)
+- **Local judge problems:** [Longest substring without repeats](<D:/Socrat/content/courses/dsa/problems/longest-unique-substring.yaml>) (`longest-unique-substring`, medium); [Best k-day streak](<D:/Socrat/content/courses/dsa/problems/max-window-sum.yaml>) (`max-window-sum`, easy); [Shortest stretch to reach a goal](<D:/Socrat/content/courses/dsa/problems/shortest-fundraiser.yaml>) (`shortest-fundraiser`, medium)
+- **Quiz items:** `fixed-update` (mcq, difficulty 1/5); `negatives-fail` (mcq, difficulty 3/5); `complexity` (mcq, difficulty 2/5); `unique-trace` (mcq, difficulty 1/5); `negatives-break` (mcq, difficulty 4/5); `window-complexity` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1189,8 +1190,8 @@ Two pointers, sliding windows, stacks and binary search.
 - **Prerequisites:** `dsa:arrays-hashing`
 - **Key points:** Stack = LIFO, queue = FIFO; both O(1) per operation with the right container.; A stack holds the most recent unfinished item — perfect for matching brackets.; Monotonic stacks answer next/previous greater/smaller in O(n) total.; Amortised analysis — each element is pushed and popped at most once.; Use deque for queues in Python, never list.pop(0).
 - **Pitfalls:** Popping from an empty stack (check first).; Forgetting to check that the stack is empty at the end (unmatched openers).; Storing values instead of indexes when you need positions or distances.
-- **Local judge problems:** [Balanced brackets](<D:/Socrat/content/courses/dsa/problems/balanced-brackets.yaml>) (`balanced-brackets`, easy); [Days until warmer](<D:/Socrat/content/courses/dsa/problems/next-greater.yaml>) (`next-greater`, medium)
-- **Quiz items:** `lifo` (mcq, difficulty 1/5); `queue-structure` (mcq, difficulty 1/5); `amortized` (mcq, difficulty 3/5); `brackets` (mcq, difficulty 2/5)
+- **Local judge problems:** [Balanced brackets](<D:/Socrat/content/courses/dsa/problems/balanced-brackets.yaml>) (`balanced-brackets`, easy); [Days until warmer](<D:/Socrat/content/courses/dsa/problems/next-greater.yaml>) (`next-greater`, medium); [Next taller building](<D:/Socrat/content/courses/dsa/problems/next-taller-building.yaml>) (`next-taller-building`, medium)
+- **Quiz items:** `lifo` (mcq, difficulty 1/5); `queue-structure` (mcq, difficulty 1/5); `amortized` (mcq, difficulty 3/5); `brackets` (mcq, difficulty 2/5); `monotonic-direction` (mcq, difficulty 4/5); `largest-rectangle` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1227,8 +1228,8 @@ Two pointers, sliding windows, stacks and binary search.
 - **Prerequisites:** `dsa:complexity`, `dsa:arrays-hashing`
 - **Key points:** Binary search halves the range each step — O(log n).; Use one template - the first index where a monotonic condition becomes true.; Lower/upper bounds give existence, counts and insertion positions.; Binary search on the answer when feasibility is monotonic.; mid = lo + (hi − lo) / 2 avoids overflow.
 - **Pitfalls:** Infinite loops from lo = mid instead of mid + 1.; Using it on unsorted data, or on a non-monotonic condition.; Forgetting the "not found" case (index n).
-- **Local judge problems:** [Count in range](<D:/Socrat/content/courses/dsa/problems/lower-bound-queries.yaml>) (`lower-bound-queries`, medium); [Minimum reading speed](<D:/Socrat/content/courses/dsa/problems/koko-speed.yaml>) (`koko-speed`, medium)
-- **Quiz items:** `steps` (mcq, difficulty 1/5); `count-x` (mcq, difficulty 2/5); `answer-search` (mcq, difficulty 2/5); `overflow` (mcq, difficulty 2/5)
+- **Local judge problems:** [Count in range](<D:/Socrat/content/courses/dsa/problems/lower-bound-queries.yaml>) (`lower-bound-queries`, medium); [Minimum reading speed](<D:/Socrat/content/courses/dsa/problems/koko-speed.yaml>) (`koko-speed`, medium); [Whole-number square root](<D:/Socrat/content/courses/dsa/problems/whole-square-root.yaml>) (`whole-square-root`, medium)
+- **Quiz items:** `steps` (mcq, difficulty 1/5); `count-x` (mcq, difficulty 2/5); `answer-search` (mcq, difficulty 2/5); `overflow` (mcq, difficulty 2/5); `midpoint-overflow` (mcq, difficulty 4/5); `infinite-search` (bug, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 4 checks, adapters neutral); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1377,9 +1378,9 @@ Sort to reveal structure, then make provably safe greedy choices.
 - Roadmap — [Greedy Algorithms](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/greedy-algorithms@qUlqyTjk3XKF9DEm6Lsgb.md>)
 - Handbook §6, printed page 57 — [Greedy algorithms](<https://cses.fi/book/book.pdf#page=67>)
 
-#### Linked structures and backtracking — `recursive-structures`
+#### Linked structures, recursion and backtracking — `recursive-structures`
 
-Pointers, nodes and exhaustive search done cleanly.
+Pointers and nodes, recursion patterns, and exhaustive search done cleanly.
 
 ##### Linked lists — `dsa:linked-lists`
 
@@ -1693,7 +1694,7 @@ Traverse, order, connect and find shortest paths.
 - **Key points:** DSU keeps groups as trees; the root identifies the group.; Path compression + union by size give near-constant amortised operations.; union returns whether a merge happened — that detects cycles.; Track component count by decrementing on successful unions.; Kruskal's MST = sorted edges + DSU.
 - **Pitfalls:** Comparing elements instead of their roots.; Skipping both optimisations, leading to O(n) chains.; Expecting DSU to support splitting groups.
 - **Local judge problems:** [Growing friend groups](<D:/Socrat/content/courses/dsa/problems/online-components.yaml>) (`online-components`, medium)
-- **Quiz items:** `same-group` (mcq, difficulty 1/5); `cycle` (mcq, difficulty 2/5); `components` (mcq, difficulty 1/5); `optimisations` (mcq, difficulty 2/5)
+- **Quiz items:** `same-group` (mcq, difficulty 1/5); `cycle` (mcq, difficulty 2/5); `union-components` (mcq, difficulty 1/5); `optimisations` (mcq, difficulty 2/5)
 
 | Subtopic / section | Heading level | Own words | Including children |
 | --- | --- | --- | --- |
@@ -1887,8 +1888,8 @@ A contest-focused path from your first accepted solution to the data structures 
 
 | Module / subject area | Topics | Lesson words | Quiz | Native | Atoms | Reading links | External unique mapped |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Contest fundamentals | 3 | 1615 | 11 | 3 | 27 | 8 | 3649 |
-| Contest math | 3 | 1848 | 12 | 3 | 30 | 9 | 3465 |
+| Contest fundamentals | 3 | 1615 | 17 | 6 | 27 | 8 | 3649 |
+| Contest math | 3 | 1848 | 18 | 6 | 30 | 9 | 3465 |
 | Core techniques | 4 | 2157 | 12 | 4 | 36 | 12 | 5116 |
 | Dynamic programming for contests | 2 | 1215 | 7 | 3 | 0 | 7 | 2412 |
 | Graphs and trees | 4 | 2356 | 13 | 5 | 0 | 12 | 1796 |
@@ -1899,12 +1900,12 @@ A contest-focused path from your first accepted solution to the data structures 
 
 | Concept ID | Topic | Words | Sections | Quiz | Native | Atom pack / atoms | Estimated minutes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| cp:fast-io | Fast I/O, overflow and operation budgets | 603 | 10 | 4 | 1 | released / 9 | 40 |
-| cp:simulation | Simulation and implementation | 527 | 9 | 3 | 1 | released / 9 | 40 |
-| cp:complete-search | Complete search | 485 | 10 | 4 | 1 | released / 9 | 45 |
-| cp:number-theory | Number theory essentials | 606 | 10 | 4 | 1 | released / 9 | 55 |
-| cp:modular-arithmetic | Modular arithmetic | 559 | 9 | 4 | 1 | released / 9 | 50 |
-| cp:combinatorics | Counting and binomial coefficients | 683 | 7 | 4 | 1 | released / 12 | 50 |
+| cp:fast-io | Fast I/O, overflow and operation budgets | 603 | 10 | 6 | 2 | released / 9 | 40 |
+| cp:simulation | Simulation and implementation | 527 | 9 | 5 | 2 | released / 9 | 40 |
+| cp:complete-search | Complete search | 485 | 10 | 6 | 2 | released / 9 | 45 |
+| cp:number-theory | Number theory essentials | 606 | 10 | 6 | 2 | released / 9 | 55 |
+| cp:modular-arithmetic | Modular arithmetic | 559 | 9 | 6 | 2 | released / 9 | 50 |
+| cp:combinatorics | Counting and binomial coefficients | 683 | 7 | 6 | 2 | released / 12 | 50 |
 | cp:prefix-difference | Prefix sums and difference arrays | 519 | 9 | 3 | 1 | released / 9 | 45 |
 | cp:binary-search-answer | Binary search on the answer | 574 | 10 | 3 | 1 | released / 9 | 50 |
 | cp:greedy-cp | Greedy in contests | 577 | 7 | 3 | 1 | released / 9 | 50 |
@@ -1956,8 +1957,8 @@ Fast I/O, overflow, budgeting operations, simulation and complete search.
 - **Prerequisites:** `zero:input-and-arithmetic`, `dsa:complexity`
 - **Key points:** Read input in bulk and write output once; avoid Scanner (Java) and endl (C++).; Use 64-bit integers for sums and products; cast before multiplying.; Budget ~10^8 simple ops/s in C++, ~10^7 in Python before you code.; With many test cases, reset state per case and rely on the sum-of-n bound.
 - **Pitfalls:** TLE from slow I/O on an otherwise correct solution.; Overflow in int × int before assigning to a 64-bit variable.; Re-allocating large arrays for every test case.
-- **Local judge problems:** [Many test cases](<D:/Socrat/content/courses/cp/problems/sum-big.yaml>) (`sum-big`, easy)
-- **Quiz items:** `overflow-product` (mcq, difficulty 2/5); `budget` (mcq, difficulty 1/5); `java-input` (mcq, difficulty 2/5); `endl` (mcq, difficulty 1/5)
+- **Local judge problems:** [Many test cases](<D:/Socrat/content/courses/cp/problems/sum-big.yaml>) (`sum-big`, easy); [A million additions](<D:/Socrat/content/courses/cp/problems/pairwise-sums.yaml>) (`pairwise-sums`, easy)
+- **Quiz items:** `overflow-product` (mcq, difficulty 2/5); `budget` (mcq, difficulty 1/5); `java-input` (mcq, difficulty 2/5); `endl` (mcq, difficulty 1/5); `sync-off` (mcq, difficulty 4/5); `endl-cost` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -1993,8 +1994,8 @@ Fast I/O, overflow, budgeting operations, simulation and complete search.
 - **Prerequisites:** `cp:fast-io`, `zero:grids`
 - **Key points:** Model the full state, implement one step, then loop.; Direction arrays turn four branches into one formula.; Check the number of steps against the time limit before simulating.; For huge step counts, find a cycle or closed form.
 - **Pitfalls:** Updating state in place when all updates should happen "simultaneously".; Misreading the order of operations in the statement.; Simulating 10^18 steps instead of finding the cycle.
-- **Local judge problems:** [Robot on a grid](<D:/Socrat/content/courses/cp/problems/robot-walk.yaml>) (`robot-walk`, medium)
-- **Quiz items:** `turn-right` (mcq, difficulty 2/5); `simultaneous` (mcq, difficulty 2/5); `huge-steps` (mcq, difficulty 3/5)
+- **Local judge problems:** [Robot on a grid](<D:/Socrat/content/courses/cp/problems/robot-walk.yaml>) (`robot-walk`, medium); [Lift log](<D:/Socrat/content/courses/cp/problems/lift-log.yaml>) (`lift-log`, easy)
+- **Quiz items:** `turn-right` (mcq, difficulty 2/5); `simultaneous` (mcq, difficulty 2/5); `huge-steps` (mcq, difficulty 3/5); `simulate-size` (mcq, difficulty 4/5); `order-of-updates` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -2028,8 +2029,8 @@ Fast I/O, overflow, budgeting operations, simulation and complete search.
 - **Prerequisites:** `cp:simulation`, `dsa:backtracking`
 - **Key points:** Small constraints signal complete search - n ≤ 8 permutations, n ≤ 20 subsets.; Count the work (n! · n, 2^n · n) against the time limit before writing.; Use next_permutation / itertools / bitmasks to enumerate cleanly.; Meet in the middle halves the exponent for n ≈ 40.; Brute force on random small tests is the best way to find bugs in clever solutions.
 - **Pitfalls:** Forgetting to start next_permutation from the sorted order.; Underestimating the constant factor of 2^n · n in Python.; Missing symmetric duplicates that double the work.
-- **Local judge problems:** [Fair split](<D:/Socrat/content/courses/cp/problems/apple-split.yaml>) (`apple-split`, easy)
-- **Quiz items:** `perm-feasible` (mcq, difficulty 2/5); `subset-count` (mcq, difficulty 1/5); `mitm` (mcq, difficulty 3/5); `stress` (mcq, difficulty 2/5)
+- **Local judge problems:** [Fair split](<D:/Socrat/content/courses/cp/problems/apple-split.yaml>) (`apple-split`, easy); [Packing the van](<D:/Socrat/content/courses/cp/problems/closest-subset-sum.yaml>) (`closest-subset-sum`, medium)
+- **Quiz items:** `perm-feasible` (mcq, difficulty 2/5); `subset-count` (mcq, difficulty 1/5); `mitm` (mcq, difficulty 3/5); `stress` (mcq, difficulty 2/5); `search-bound` (mcq, difficulty 4/5); `meet-in-middle` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -2073,8 +2074,8 @@ Number theory, modular arithmetic and counting.
 - **Prerequisites:** `cp:fast-io`, `zero:functions`
 - **Key points:** gcd by Euclid in O(log); lcm = a / gcd · b.; Trial division up to √n tests primality and factorizes.; Divisor count = product of (exponent + 1).; The sieve finds all primes up to N in O(N log log N); spf sieve answers factorization queries fast.
 - **Pitfalls:** Starting the sieve's crossing-out at 2p instead of p² (correct but slower) or overflowing p*p.; Forgetting the leftover prime > √n after trial division.; Computing lcm as a·b/gcd and overflowing.
-- **Local judge problems:** [Primes in a range](<D:/Socrat/content/courses/cp/problems/prime-count-queries.yaml>) (`prime-count-queries`, medium)
-- **Quiz items:** `divisor-count` (mcq, difficulty 2/5); `sieve-start` (mcq, difficulty 3/5); `leftover` (mcq, difficulty 2/5); `gcd-value` (mcq, difficulty 1/5)
+- **Local judge problems:** [Primes in a range](<D:/Socrat/content/courses/cp/problems/prime-count-queries.yaml>) (`prime-count-queries`, medium); [How many divisors?](<D:/Socrat/content/courses/cp/problems/divisor-counts.yaml>) (`divisor-counts`, medium)
+- **Quiz items:** `divisor-count` (mcq, difficulty 2/5); `sieve-start` (mcq, difficulty 3/5); `leftover` (mcq, difficulty 2/5); `gcd-value` (mcq, difficulty 1/5); `sieve-complexity` (mcq, difficulty 4/5); `gcd-lcm` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -2109,8 +2110,8 @@ Number theory, modular arithmetic and counting.
 - **Prerequisites:** `cp:number-theory`
 - **Key points:** Reduce after every addition, subtraction and multiplication.; Subtraction - add m before taking mod to stay non-negative.; Fast exponentiation computes a^b mod m in O(log b).; Division mod a prime = multiplication by x^(p−2) (Fermat).; Use 64-bit integers for products of reduced values.
 - **Pitfalls:** Negative results from % in C++/Java.; Dividing modular values directly.; Overflow from multiplying before reducing.
-- **Local judge problems:** [Modular fractions](<D:/Socrat/content/courses/cp/problems/mod-expressions.yaml>) (`mod-expressions`, medium)
-- **Quiz items:** `subtract` (mcq, difficulty 2/5); `fermat` (mcq, difficulty 2/5); `pow-steps` (mcq, difficulty 2/5); `when-inverse` (mcq, difficulty 3/5)
+- **Local judge problems:** [Modular fractions](<D:/Socrat/content/courses/cp/problems/mod-expressions.yaml>) (`mod-expressions`, medium); [Huge staircase totals](<D:/Socrat/content/courses/cp/problems/triangular-mod.yaml>) (`triangular-mod`, medium)
+- **Quiz items:** `subtract` (mcq, difficulty 2/5); `fermat` (mcq, difficulty 2/5); `pow-steps` (mcq, difficulty 2/5); `when-inverse` (mcq, difficulty 3/5); `mod-subtraction` (mcq, difficulty 4/5); `fermat-inverse` (mcq, difficulty 5/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -2144,8 +2145,8 @@ Number theory, modular arithmetic and counting.
 - **Prerequisites:** `cp:modular-arithmetic`
 - **Key points:** Product rule for independent choices; sum rule for disjoint cases.; C(n, k) = n! / (k!(n − k)!); precompute factorials and inverse factorials for O(1) queries.; Grid paths are C(a + b, a); stars and bars gives C(n + k − 1, k − 1).; Complement counting and inclusion–exclusion simplify "at least one" questions.
 - **Pitfalls:** Returning garbage for k > n or k < 0 instead of 0.; Computing an inverse for every query instead of precomputing.; Using Fermat inverses with a non-prime modulus.
-- **Local judge problems:** [Choosing teams](<D:/Socrat/content/courses/cp/problems/binomial-queries.yaml>) (`binomial-queries`, medium)
-- **Quiz items:** `c-5-2` (mcq, difficulty 1/5); `grid` (mcq, difficulty 2/5); `stars-bars` (mcq, difficulty 3/5); `precompute` (mcq, difficulty 1/5)
+- **Local judge problems:** [Choosing teams](<D:/Socrat/content/courses/cp/problems/binomial-queries.yaml>) (`binomial-queries`, medium); [Routes across the city grid](<D:/Socrat/content/courses/cp/problems/grid-routes-mod.yaml>) (`grid-routes-mod`, medium)
+- **Quiz items:** `c-5-2` (mcq, difficulty 1/5); `grid` (mcq, difficulty 2/5); `stars-bars` (mcq, difficulty 3/5); `precompute` (mcq, difficulty 1/5); `inclusion-exclusion` (mcq, difficulty 5/5); `share-sweets` (mcq, difficulty 4/5)
 - **Atoms:** `hook` (hook, 0 checks, adapters neutral); `concept` (concept, 0 checks, adapters neutral); `worked` (worked, 0 checks, adapters python,cpp,java); `faded` (faded, 1 checks, adapters neutral); `visualizer` (visualizer, 1 checks, adapters python,cpp,java); `micro` (micro, 0 checks, adapters neutral); `syntax-repair` (micro, 0 checks, adapters neutral); `pattern` (pattern, 0 checks, adapters neutral); `explanation` (explanation, 1 checks, adapters neutral); `trace` (trace, 1 checks, adapters python,cpp,java); `predict` (predict, 1 checks, adapters python,cpp,java); `debug` (debug, 1 checks, adapters python,cpp,java)
 
 | Subtopic / section | Heading level | Own words | Including children |
@@ -2701,6 +2702,8 @@ Every row below is a stored native problem. Test counts are from the current loc
 | zero | [Above the average](<D:/Socrat/content/courses/zero/problems/above-average.yaml>) (`above-average`) | lists | easy | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | zero | [Bank ledger](<D:/Socrat/content/courses/zero/problems/bank-ledger.yaml>) (`bank-ledger`) | classes-and-objects | medium | 1 / 3 | 1 / 9 | python | no / no | not recorded |
 | zero | [Caesar cipher](<D:/Socrat/content/courses/zero/problems/caesar-shift.yaml>) (`caesar-shift`) | strings | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
+| zero | [Class election](<D:/Socrat/content/courses/zero/problems/class-election.yaml>) (`class-election`) | maps | easy | 1 / 3 | 1 / 8 | python | yes / yes | not recorded |
+| zero | [Who may join the coding club?](<D:/Socrat/content/courses/zero/problems/club-entry.yaml>) (`club-entry`) | boolean-logic | easy | 1 / 3 | 1 / 6 | python | yes / yes | not recorded |
 | zero | [Collatz steps](<D:/Socrat/content/courses/zero/problems/collatz-steps.yaml>) (`collatz-steps`) | while-loops | medium | 2 / 3 | 2 / 13 | python | no / no | not recorded |
 | zero | [Sum of digits](<D:/Socrat/content/courses/zero/problems/digit-sum.yaml>) (`digit-sum`) | while-loops | easy | 2 / 3 | 2 / 13 | python | no / no | not recorded |
 | zero | [Echo a reading](<D:/Socrat/content/courses/zero/problems/echo-reading.yaml>) (`echo-reading`) | programs-and-output | easy | 1 / 2 | 1 / 4 | python,cpp,java | yes / yes | Owner, 2026-10-13 |
@@ -2714,25 +2717,39 @@ Every row below is a stored native problem. Test counts are from the current loc
 | zero | [Leap year](<D:/Socrat/content/courses/zero/problems/leap-year.yaml>) (`leap-year`) | boolean-logic | easy | 3 / 3 | 3 / 14 | python | no / no | not recorded |
 | zero | [Largest of three](<D:/Socrat/content/courses/zero/problems/max-of-three.yaml>) (`max-of-three`) | conditionals | easy | 2 / 3 | 2 / 13 | python | no / no | not recorded |
 | zero | [Minesweeper numbers](<D:/Socrat/content/courses/zero/problems/minesweeper-counts.yaml>) (`minesweeper-counts`) | grids | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
+| zero | [Mirror phrase](<D:/Socrat/content/courses/zero/problems/mirror-phrase.yaml>) (`mirror-phrase`) | strings | easy | 2 / 3 | 2 / 10 | python | yes / yes | not recorded |
+| zero | [Museum ticket price](<D:/Socrat/content/courses/zero/problems/museum-ticket.yaml>) (`museum-ticket`) | conditionals | easy | 3 / 3 | 3 / 10 | python | yes / yes | not recorded |
 | zero | [One more visitor](<D:/Socrat/content/courses/zero/problems/next-counter.yaml>) (`next-counter`) | variables-and-types | easy | 1 / 2 | 1 / 4 | python,cpp,java | yes / yes | Owner, 2026-10-13 |
+| zero | [Number triangle](<D:/Socrat/content/courses/zero/problems/number-triangle.yaml>) (`number-triangle`) | nested-loops | easy | 1 / 3 | 1 / 9 | python | yes / yes | not recorded |
 | zero | [Pairs that sum to a target](<D:/Socrat/content/courses/zero/problems/pair-count.yaml>) (`pair-count`) | nested-loops | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | zero | [Fast power](<D:/Socrat/content/courses/zero/problems/power-recursive.yaml>) (`power-recursive`) | recursion | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | zero | [Prime or not](<D:/Socrat/content/courses/zero/problems/prime-check.yaml>) (`prime-check`) | functions | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
+| zero | [Reverse the digits](<D:/Socrat/content/courses/zero/problems/reverse-the-digits.yaml>) (`reverse-the-digits`) | while-loops | easy | 2 / 3 | 2 / 12 | python | yes / yes | not recorded |
+| zero | [Row and column totals](<D:/Socrat/content/courses/zero/problems/row-and-column-sums.yaml>) (`row-and-column-sums`) | grids | easy | 1 / 3 | 1 / 8 | python | yes / yes | not recorded |
+| zero | [Runner-up score](<D:/Socrat/content/courses/zero/problems/runner-up-score.yaml>) (`runner-up-score`) | lists | easy | 2 / 3 | 2 / 10 | python | yes / yes | not recorded |
+| zero | [Split the bill](<D:/Socrat/content/courses/zero/problems/split-the-bill.yaml>) (`split-the-bill`) | input-and-arithmetic | easy | 2 / 3 | 2 / 12 | python | yes / yes | not recorded |
 | zero | [Right-aligned staircase](<D:/Socrat/content/courses/zero/problems/staircase.yaml>) (`staircase`) | nested-loops | easy | 2 / 3 | 2 / 7 | python | no / no | not recorded |
 | zero | [Ways to climb](<D:/Socrat/content/courses/zero/problems/stairs-ways.yaml>) (`stairs-ways`) | recursion | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | zero | [Sum of multiples](<D:/Socrat/content/courses/zero/problems/sum-of-multiples.yaml>) (`sum-of-multiples`) | for-loops | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
+| zero | [Celsius to Fahrenheit](<D:/Socrat/content/courses/zero/problems/temperature-converter.yaml>) (`temperature-converter`) | variables-and-types | easy | 2 / 3 | 2 / 12 | python | yes / yes | not recorded |
+| zero | [Print a ticket stub](<D:/Socrat/content/courses/zero/problems/ticket-stub.yaml>) (`ticket-stub`) | programs-and-output | easy | 2 / 3 | 2 / 10 | python | yes / yes | not recorded |
 | zero | [Minutes to hours](<D:/Socrat/content/courses/zero/problems/time-convert.yaml>) (`time-convert`) | input-and-arithmetic | easy | 2 / 3 | 2 / 14 | python | no / no | not recorded |
+| zero | [A times table](<D:/Socrat/content/courses/zero/problems/times-table.yaml>) (`times-table`) | for-loops | easy | 1 / 3 | 1 / 11 | python | yes / yes | not recorded |
 | zero | [Does a pair exist?](<D:/Socrat/content/courses/zero/problems/two-sum-exists.yaml>) (`two-sum-exists`) | problem-solving | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | zero | [Count the vowels](<D:/Socrat/content/courses/zero/problems/vowel-count.yaml>) (`vowel-count`) | strings | easy | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | zero | [Word frequency](<D:/Socrat/content/courses/zero/problems/word-frequency.yaml>) (`word-frequency`) | maps | easy | 2 / 3 | 2 / 9 | python | no / no | not recorded |
+| dsa | [Balance point](<D:/Socrat/content/courses/dsa/problems/balance-point.yaml>) (`balance-point`) | prefix-sums | easy | 2 / 3 | 2 / 10 | python | yes / yes | not recorded |
 | dsa | [Balanced brackets](<D:/Socrat/content/courses/dsa/problems/balanced-brackets.yaml>) (`balanced-brackets`) | stacks | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
 | dsa | [Validate a BST](<D:/Socrat/content/courses/dsa/problems/bst-validate.yaml>) (`bst-validate`) | bst | medium | 1 / 3 | 1 / 4 | python | no / no | not recorded |
 | dsa | [Jump to the end](<D:/Socrat/content/courses/dsa/problems/can-reach-end.yaml>) (`can-reach-end`) | greedy | medium | 2 / 3 | 2 / 12 | python | no / no | not recorded |
 | dsa | [Cheapest routes](<D:/Socrat/content/courses/dsa/problems/cheapest-routes.yaml>) (`cheapest-routes`) | shortest-paths | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
+| dsa | [Longest unbroken run of values](<D:/Socrat/content/courses/dsa/problems/consecutive-run.yaml>) (`consecutive-run`) | arrays-hashing | medium | 1 / 3 | 1 / 9 | python | yes / yes | not recorded |
 | dsa | [Container with most water](<D:/Socrat/content/courses/dsa/problems/container-water.yaml>) (`container-water`) | two-pointers | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Count inversions](<D:/Socrat/content/courses/dsa/problems/count-inversions.yaml>) (`count-inversions`) | sorting | hard | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Count the islands](<D:/Socrat/content/courses/dsa/problems/count-islands.yaml>) (`count-islands`) | graph-traversal | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Course order](<D:/Socrat/content/courses/dsa/problems/course-order.yaml>) (`course-order`) | topological-sort | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
+| dsa | [Pairs with a fixed gap](<D:/Socrat/content/courses/dsa/problems/difference-pairs.yaml>) (`difference-pairs`) | two-pointers | medium | 2 / 3 | 2 / 9 | python | yes / yes | not recorded |
+| dsa | [Profits that split evenly](<D:/Socrat/content/courses/dsa/problems/divisible-subarrays.yaml>) (`divisible-subarrays`) | prefix-sums | medium | 1 / 3 | 1 / 9 | python | yes / yes | not recorded |
 | dsa | [Fewest hops](<D:/Socrat/content/courses/dsa/problems/fewest-hops.yaml>) (`fewest-hops`) | graph-traversal | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Grid paths with obstacles](<D:/Socrat/content/courses/dsa/problems/grid-paths.yaml>) (`grid-paths`) | dp-2d | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Non-adjacent picks](<D:/Socrat/content/courses/dsa/problems/house-robber.yaml>) (`house-robber`) | dp-1d | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
@@ -2741,19 +2758,23 @@ Every row below is a stored native problem. Test counts are from the current loc
 | dsa | [Longest common subsequence](<D:/Socrat/content/courses/dsa/problems/lcs-length.yaml>) (`lcs-length`) | dp-2d | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Longest substring without repeats](<D:/Socrat/content/courses/dsa/problems/longest-unique-substring.yaml>) (`longest-unique-substring`) | sliding-window | medium | 3 / 3 | 3 / 11 | python | no / no | not recorded |
 | dsa | [Count in range](<D:/Socrat/content/courses/dsa/problems/lower-bound-queries.yaml>) (`lower-bound-queries`) | binary-search | medium | 1 / 3 | 1 / 8 | python | no / no | not recorded |
+| dsa | [Matching sock pairs](<D:/Socrat/content/courses/dsa/problems/matching-pairs.yaml>) (`matching-pairs`) | complexity | easy | 1 / 3 | 1 / 9 | python | yes / yes | not recorded |
 | dsa | [Most mentoring sessions](<D:/Socrat/content/courses/dsa/problems/max-meetings.yaml>) (`max-meetings`) | greedy | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Best k-day streak](<D:/Socrat/content/courses/dsa/problems/max-window-sum.yaml>) (`max-window-sum`) | sliding-window | easy | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Merge study sessions](<D:/Socrat/content/courses/dsa/problems/merge-intervals.yaml>) (`merge-intervals`) | intervals | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Fewest coins](<D:/Socrat/content/courses/dsa/problems/min-coins.yaml>) (`min-coins`) | dp-1d | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [N-Queens](<D:/Socrat/content/courses/dsa/problems/n-queens-count.yaml>) (`n-queens-count`) | backtracking | hard | 2 / 3 | 2 / 9 | python | no / no | not recorded |
 | dsa | [Days until warmer](<D:/Socrat/content/courses/dsa/problems/next-greater.yaml>) (`next-greater`) | stacks | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
+| dsa | [Next taller building](<D:/Socrat/content/courses/dsa/problems/next-taller-building.yaml>) (`next-taller-building`) | stacks | medium | 1 / 3 | 1 / 9 | python | yes / yes | not recorded |
 | dsa | [Growing friend groups](<D:/Socrat/content/courses/dsa/problems/online-components.yaml>) (`online-components`) | union-find | medium | 1 / 3 | 1 / 10 | python | no / no | not recorded |
 | dsa | [Pair sum in a sorted array](<D:/Socrat/content/courses/dsa/problems/pair-sum-sorted.yaml>) (`pair-sum-sorted`) | two-pointers | easy | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Playlist editor](<D:/Socrat/content/courses/dsa/problems/playlist-editor.yaml>) (`playlist-editor`) | linked-lists | medium | 1 / 3 | 1 / 10 | python | no / no | not recorded |
 | dsa | [Autocomplete counts](<D:/Socrat/content/courses/dsa/problems/prefix-counts.yaml>) (`prefix-counts`) | tries | medium | 1 / 3 | 1 / 9 | python | no / no | not recorded |
 | dsa | [Range sum queries](<D:/Socrat/content/courses/dsa/problems/range-sum-queries.yaml>) (`range-sum-queries`) | prefix-sums | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
 | dsa | [Leaderboard](<D:/Socrat/content/courses/dsa/problems/rank-students.yaml>) (`rank-students`) | sorting | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
+| dsa | [Shortest stretch to reach a goal](<D:/Socrat/content/courses/dsa/problems/shortest-fundraiser.yaml>) (`shortest-fundraiser`) | sliding-window | medium | 2 / 3 | 2 / 9 | python | yes / yes | not recorded |
 | dsa | [The unpaired badge](<D:/Socrat/content/courses/dsa/problems/single-number.yaml>) (`single-number`) | bit-manipulation | easy | 2 / 3 | 2 / 9 | python | no / no | not recorded |
+| dsa | [Squares in order](<D:/Socrat/content/courses/dsa/problems/sorted-squares.yaml>) (`sorted-squares`) | two-pointers | easy | 1 / 3 | 1 / 8 | python | yes / yes | not recorded |
 | dsa | [Subarrays summing to K](<D:/Socrat/content/courses/dsa/problems/subarray-sum-k.yaml>) (`subarray-sum-k`) | prefix-sums | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Subsets with target sum](<D:/Socrat/content/courses/dsa/problems/subset-sum-count.yaml>) (`subset-sum-count`) | backtracking | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Triangle number queries](<D:/Socrat/content/courses/dsa/problems/sum-queries.yaml>) (`sum-queries`) | complexity | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
@@ -2761,14 +2782,20 @@ Every row below is a stored native problem. Test counts are from the current loc
 | dsa | [Binary tree diameter](<D:/Socrat/content/courses/dsa/problems/tree-diameter.yaml>) (`tree-diameter`) | binary-trees | medium | 2 / 3 | 2 / 8 | python | no / no | not recorded |
 | dsa | [Level sums](<D:/Socrat/content/courses/dsa/problems/tree-levels.yaml>) (`tree-levels`) | binary-trees | easy | 1 / 3 | 1 / 9 | python | no / no | not recorded |
 | dsa | [Anagram check](<D:/Socrat/content/courses/dsa/problems/valid-anagram.yaml>) (`valid-anagram`) | arrays-hashing | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
+| dsa | [Whole-number square root](<D:/Socrat/content/courses/dsa/problems/whole-square-root.yaml>) (`whole-square-root`) | binary-search | medium | 1 / 3 | 1 / 3 | python | yes / yes | not recorded |
 | cp | [Fair split](<D:/Socrat/content/courses/cp/problems/apple-split.yaml>) (`apple-split`) | complete-search | easy | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | cp | [Choosing teams](<D:/Socrat/content/courses/cp/problems/binomial-queries.yaml>) (`binomial-queries`) | combinatorics | medium | 1 / 3 | 1 / 8 | python | no / no | not recorded |
 | cp | [Book shop](<D:/Socrat/content/courses/cp/problems/book-shop.yaml>) (`book-shop`) | dp-classics | medium | 1 / 3 | 1 / 9 | python | no / no | not recorded |
+| cp | [Packing the van](<D:/Socrat/content/courses/cp/problems/closest-subset-sum.yaml>) (`closest-subset-sum`) | complete-search | medium | 2 / 3 | 2 / 9 | python | yes / yes | not recorded |
+| cp | [How many divisors?](<D:/Socrat/content/courses/cp/problems/divisor-counts.yaml>) (`divisor-counts`) | number-theory | medium | 1 / 3 | 1 / 6 | python | yes / yes | not recorded |
 | cp | [Dynamic range sums](<D:/Socrat/content/courses/cp/problems/dynamic-range-sum.yaml>) (`dynamic-range-sum`) | fenwick-tree | medium | 1 / 3 | 1 / 8 | python | no / no | not recorded |
 | cp | [Factory machines](<D:/Socrat/content/courses/cp/problems/factory-time.yaml>) (`factory-time`) | binary-search-answer | medium | 1 / 3 | 1 / 10 | python | no / no | not recorded |
+| cp | [Routes across the city grid](<D:/Socrat/content/courses/cp/problems/grid-routes-mod.yaml>) (`grid-routes-mod`) | combinatorics | medium | 1 / 3 | 1 / 3 | python | yes / yes | not recorded |
+| cp | [Lift log](<D:/Socrat/content/courses/cp/problems/lift-log.yaml>) (`lift-log`) | simulation | easy | 1 / 3 | 1 / 7 | python | yes / yes | not recorded |
 | cp | [Longest increasing subsequence](<D:/Socrat/content/courses/cp/problems/lis-length.yaml>) (`lis-length`) | dp-classics | medium | 1 / 3 | 1 / 10 | python | no / no | not recorded |
 | cp | [Modular fractions](<D:/Socrat/content/courses/cp/problems/mod-expressions.yaml>) (`mod-expressions`) | modular-arithmetic | medium | 1 / 3 | 1 / 8 | python | no / no | not recorded |
 | cp | [Distance to the nearest exit](<D:/Socrat/content/courses/cp/problems/nearest-exit.yaml>) (`nearest-exit`) | graph-techniques | medium | 1 / 3 | 1 / 9 | python | no / no | not recorded |
+| cp | [A million additions](<D:/Socrat/content/courses/cp/problems/pairwise-sums.yaml>) (`pairwise-sums`) | fast-io | easy | 1 / 3 | 1 / 3 | python | yes / yes | not recorded |
 | cp | [Pattern occurrences](<D:/Socrat/content/courses/cp/problems/pattern-count.yaml>) (`pattern-count`) | kmp | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | cp | [Primes in a range](<D:/Socrat/content/courses/cp/problems/prime-count-queries.yaml>) (`prime-count-queries`) | number-theory | medium | 1 / 3 | 1 / 8 | python | no / no | not recorded |
 | cp | [Range additions](<D:/Socrat/content/courses/cp/problems/range-add.yaml>) (`range-add`) | prefix-difference | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
@@ -2782,9 +2809,10 @@ Every row below is a stored native problem. Test counts are from the current loc
 | cp | [Sum of distances](<D:/Socrat/content/courses/cp/problems/sum-of-distances.yaml>) (`sum-of-distances`) | tree-techniques | hard | 1 / 3 | 1 / 9 | python | no / no | not recorded |
 | cp | [Ticket desk](<D:/Socrat/content/courses/cp/problems/ticket-matching.yaml>) (`ticket-matching`) | greedy-cp | hard | 1 / 3 | 1 / 9 | python | no / no | not recorded |
 | cp | [Distance queries](<D:/Socrat/content/courses/cp/problems/tree-distance-queries.yaml>) (`tree-distance-queries`) | lca | hard | 1 / 3 | 1 / 9 | python | no / no | not recorded |
+| cp | [Huge staircase totals](<D:/Socrat/content/courses/cp/problems/triangular-mod.yaml>) (`triangular-mod`) | modular-arithmetic | medium | 1 / 3 | 1 / 4 | python | yes / yes | not recorded |
 | cp | [Subarrays with XOR k](<D:/Socrat/content/courses/cp/problems/xor-subarrays.yaml>) (`xor-subarrays`) | bitmasks | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 
-**Native bank totals:** 85 problems; 137 sample examples; 253 hints; 137 public and 822 hidden cached tests. Every problem has a Python reference and input generator. Only 2 have a brute/small-generator pair and C++/Java authored references. Only 4 have explicit per-language starters; the runtime otherwise supplies generic starters. Two problems record Owner review on 2026-10-13: `echo-reading` and `next-counter`. Other review status is unestablished by these YAMLs.
+**Native bank totals:** 112 problems; 176 sample examples; 334 hints; 176 public and 1047 hidden cached tests. Every problem has a Python reference and input generator. Only 29 have a brute/small-generator pair and C++/Java authored references. Only 4 have explicit per-language starters; the runtime otherwise supplies generic starters. Two problems record Owner review on 2026-10-13: `echo-reading` and `next-counter`. Other review status is unestablished by these YAMLs.
 
 ## 6. External practice bank: sources, subjects and raw tags
 
@@ -3035,7 +3063,7 @@ The handbook is [Competitive Programmer's Handbook](<https://cses.fi/book/book.p
 
 ## 7. Teaching atoms, language coverage and content depth
 
-Controlled misconception IDs: `syntax-delimiters`; `programs-and-output-repair`; `variables-and-types-repair`; `input-and-arithmetic-repair`; `conditionals-repair`; `boolean-logic-repair`; `while-loops-repair`; `for-loops-repair`; `nested-loops-repair`; `lists-repair`; `strings-repair`; `complexity-repair`; `arrays-hashing-repair`; `prefix-sums-repair`; `two-pointers-repair`; `sliding-window-repair`; `stacks-repair`; `binary-search-repair`; `sorting-repair`; `intervals-repair`; `greedy-repair`; `fast-io-repair`; `simulation-repair`; `complete-search-repair`; `number-theory-repair`; `modular-arithmetic-repair`; `combinatorics-repair`; `prefix-difference-repair`; `binary-search-answer-repair`; `greedy-cp-repair`; `bitmasks-repair`.
+Controlled misconception IDs: `syntax-delimiters`; `programs-and-output-repair`; `variables-and-types-repair`; `input-and-arithmetic-repair`; `conditionals-repair`; `boolean-logic-repair`; `while-loops-repair`; `for-loops-repair`; `nested-loops-repair`; `lists-repair`; `strings-repair`; `complexity-repair`; `arrays-hashing-repair`; `prefix-sums-repair`; `two-pointers-repair`; `sliding-window-repair`; `stacks-repair`; `binary-search-repair`; `sorting-repair`; `intervals-repair`; `greedy-repair`; `fast-io-repair`; `simulation-repair`; `complete-search-repair`; `number-theory-repair`; `modular-arithmetic-repair`; `combinatorics-repair`; `prefix-difference-repair`; `binary-search-answer-repair`; `greedy-cp-repair`; `bitmasks-repair`; `window-off-by-one`; `stop-after-first`; `confuse-index-value`; `lower-vs-upper-bound`; `half-open-bound`; `exclude-candidate-mid`; `lo-hi-confusion`; `off-by-one-output`; `overwrite-not-accumulate`; `count-not-sum`; `bound-instead-of-variable`; `product-not-sum`; `accumulator-init-one`; `accumulator-starts-at-first`; `accumulator-starts-at-bound`; `loop-bound-off-by-one`; `trace-step-slip`; `shrink-with-if`; `window-length-off-by-one`; `stale-window-summary`; `window-sum-not-length`; `window-rule-boundary`; `drop-wrong-end`; `reset-instead-of-shrink`; `overwrite-best`; `skip-first-element`; `window-with-negatives`; `pattern-fixed-vs-variable-window`; `pattern-window-vs-prefix-sums`; `pattern-window-vs-two-pointers`; `pattern-window-for-single-item`; `pattern-brute-force-default`; `pattern-sort-breaks-order`; `pattern-search-vs-scan`; `stale-zero-count`; `k-distinct-boundary`; `exactly-vs-at-most`; `distinct-count-not-length`; `shrink-too-far`; `predicate-boundary`; `predicate-inverted`; `predicate-wrong-variable`; `predicate-not-monotone`; `predicate-average-shortcut`; `answer-max-not-min`; `ceil-vs-floor`; `rate-inverted`; `search-range-confusion`; `pattern-search-needs-sorted-input`; `greedy-coin-change`; `count-vs-min`; `dp-missing-plus-one`; `dp-wrong-subproblem`; `count-vs-sum`; `coin-equals-amount`; `dp-overwrite-min`; `min-vs-max`; `missing-unreachable-check`; `dp-vague-state`; `dp-loop-order`; `unbounded-vs-01`; `top-k-direction`; `top-k-returns-max`; `heap-size-off-by-one`; `heap-negation-confusion`; `heap-size-vs-input-size`; `top-k-distinct-confusion`; `filter-boundary`; `filter-ignored`; `filter-inverted`; `filter-wrong-test`; `reset-inside-loop`; `filter-empty-crash`; `filter-running-average`; `distinct-vs-frequency`; `count-all-not-each`; `first-char-only`; `frequency-single-bucket`; `double-count`; `case-insensitive-assumption`; `tie-break-ignored`; `order-matters-assumption`; `frequency-max-only`; `missing-prefix-sum`; `diff-end-off-by-one`; `diff-sign-error`; `diff-missing-end`; `diff-wrong-endpoint`; `diff-online-queries`; `power-as-multiply`; `fast-power-step`; `mod-wrong-modulus`; `fast-power-parity`; `fast-power-wrong-variable`; `fast-power-base-not-square`; `sum-not-product`; `square-vs-double`; `product-init-zero`; `mod-only-at-end`; `power-as-repeat`; `mod-division`; `exact-vs-at-least`; `subset-count-off-by-one`; `subsets-vs-elements`; `skip-empty-subset`; `bit-test-wrong`; `bit-test-missing-and`; `missing-reset`; `subsets-linear`; `greedy-partition`.
 
 | Atom kind | Instances |
 | --- | --- |
@@ -3055,9 +3083,9 @@ The 279 atom instances have 127 distinct normalized body strings. Shared/templat
 
 | Course | Released packs | Topics without packs | Atoms | Atom adapters P/C/J | Concept quizzes mcq/output/bug | Native easy/medium/hard |
 | --- | --- | --- | --- | --- | --- | --- |
-| Programming from Zero | 10 | 8 | 93 | 23/23/23 | 54/20/0 | 15/12/0 |
-| DSA for Interviews | 10 | 13 | 93 | 22/22/22 | 93/0/0 | 9/25/2 |
-| Competitive Programming | 10 | 10 | 93 | 22/22/22 | 67/0/0 | 4/13/5 |
+| Programming from Zero | 10 | 8 | 93 | 23/23/23 | 63/34/1 | 27/12/0 |
+| DSA for Interviews | 10 | 13 | 93 | 22/22/22 | 106/0/1 | 12/31/2 |
+| Competitive Programming | 10 | 10 | 93 | 22/22/22 | 79/0/0 | 6/17/5 |
 
 **No teaching-atom pack yet (standard lessons/quizzes still exist):**
 
@@ -3069,8 +3097,8 @@ The 279 atom instances have 127 distinct normalized body strings. Shared/templat
 
 | Course | Resources available Python/C++/Java | Lessons containing Python/C++/Java code fences | Quiz code records Python/C++/Java |
 | --- | --- | --- | --- |
-| Programming from Zero | 42/39/37 | 17/16/16 | 18/18/18 |
-| DSA for Interviews | 80/80/80 | 23/23/23 | 0/0/0 |
+| Programming from Zero | 42/39/37 | 17/16/16 | 34/18/18 |
+| DSA for Interviews | 80/80/80 | 23/23/23 | 2/0/0 |
 | Competitive Programming | 61/61/61 | 20/20/20 | 0/0/0 |
 
 Language-neutral resource and atom records can serve multiple language choices. Code-fence counts indicate literal examples present, not proof of compiled/correct translations. No stored course-owned PDF, notebook, audio or instructional video file was found in `content/`; videos, books and visualizers in resources are links. Tracked archived demo `.webm` files are product walkthroughs, not course lessons. Learner-requested AI explainers and lesson variants are runtime features; their private/generated database outputs were not queried or counted as an authored corpus.
@@ -3079,22 +3107,18 @@ Language-neutral resource and atom records can serve multiple language choices. 
 
 | Concept | Native problems | External primary | External all matches | Atoms |
 | --- | --- | --- | --- | --- |
-| zero:boolean-logic | 1 | 0 | 0 | 9 |
 | zero:classes-and-objects | 1 | 0 | 0 | 0 |
 | zero:debugging | 1 | 0 | 0 | 0 |
 | zero:functions | 2 | 0 | 0 | 0 |
-| zero:grids | 1 | 24 | 206 | 0 |
-| zero:maps | 2 | 0 | 0 | 0 |
+| zero:grids | 2 | 24 | 206 | 0 |
+| zero:maps | 3 | 0 | 0 | 0 |
 | zero:problem-solving | 1 | 0 | 0 | 0 |
-| zero:programs-and-output | 1 | 0 | 0 | 9 |
 | zero:recursion | 2 | 8 | 44 | 0 |
 | zero:scope-and-mutation | 0 | 0 | 0 | 0 |
-| zero:variables-and-types | 1 | 0 | 0 | 12 |
 | dsa:backtracking | 2 | 81 | 107 | 0 |
 | dsa:binary-trees | 2 | 166 | 236 | 0 |
 | dsa:bit-manipulation | 1 | 90 | 206 | 0 |
 | dsa:bst | 1 | 39 | 40 | 0 |
-| dsa:complexity | 1 | 0 | 0 | 9 |
 | dsa:dp-1d | 2 | 358 | 547 | 0 |
 | dsa:dp-2d | 2 | 90 | 136 | 0 |
 | dsa:graph-traversal | 2 | 367 | 1384 | 0 |
@@ -3108,31 +3132,25 @@ Language-neutral resource and atom records can serve multiple language choices. 
 | cp:binary-search-answer | 1 | 699 | 1243 | 9 |
 | cp:bitmask-dp | 1 | 294 | 349 | 0 |
 | cp:bitmasks | 1 | 349 | 423 | 9 |
-| cp:combinatorics | 1 | 701 | 1090 | 12 |
-| cp:complete-search | 1 | 456 | 1595 | 9 |
 | cp:dp-classics | 2 | 1095 | 2341 | 0 |
-| cp:fast-io | 1 | 0 | 0 | 9 |
 | cp:fenwick-tree | 1 | 9 | 41 | 0 |
 | cp:graph-techniques | 1 | 239 | 936 | 0 |
 | cp:greedy-cp | 1 | 1697 | 3977 | 9 |
 | cp:kmp | 1 | 46 | 54 | 0 |
 | cp:lca | 1 | 15 | 15 | 0 |
-| cp:modular-arithmetic | 1 | 2 | 2 | 9 |
 | cp:mst | 1 | 8 | 8 | 0 |
-| cp:number-theory | 1 | 1051 | 2817 | 9 |
 | cp:prefix-difference | 1 | 3 | 3 | 9 |
 | cp:segment-tree | 1 | 505 | 1419 | 0 |
-| cp:simulation | 1 | 756 | 2448 | 9 |
 | cp:string-hashing | 1 | 263 | 328 | 0 |
 | cp:tree-techniques | 2 | 797 | 976 | 0 |
 
 Other observed limits:
 
 - Only three course manifests exist. There is no active SQL, Git, web-development, data-science or general mathematics course. Contest math is a module of Competitive Programming. Foundry's synthetic SQL/Git test fixtures are not real published courses.
-- Native practice coverage ranges from zero to two concept-linked problems. One topic has zero: zero:scope-and-mutation. 36 concepts have fewer than two. Large external pools do not fill a local unseen/controlled judge-bank requirement automatically.
+- Native practice coverage ranges from zero to two concept-linked problems. One topic has zero: zero:scope-and-mutation. 25 concepts have fewer than two. Large external pools do not fill a local unseen/controlled judge-bank requirement automatically.
 - 31/61 concepts lack atom packs, including most later DSA/CP material. A stored lesson is not equivalent to a complete released sequence of worked/faded/visual/repair teaching atoms.
-- 234 concept quizzes are reused by multiple activity types; there is no distinct authored bug-kind concept quiz (debug atoms are a separate category). No independent psychometric/difficulty calibration or learning-outcome evidence was audited.
-- 83/85 native problems lack an explicit review block and lack authored brute/small-generator and C++/Java reference pairs. Current generated-cache validity does not prove all correctness/maximum-input/multi-language quality gates were run.
+- 284 concept quizzes are reused by multiple activity types; there is no distinct authored bug-kind concept quiz (debug atoms are a separate category). No independent psychometric/difficulty calibration or learning-outcome evidence was audited.
+- 110/112 native problems lack an explicit review block and lack authored brute/small-generator and C++/Java reference pairs. Current generated-cache validity does not prove all correctness/maximum-input/multi-language quality gates were run.
 - 61 lesson files and their quiz items have no per-item source/license/reviewer fields. Resource publisher URLs identify recommended material, not the provenance of local explanation text.
 - External sources are primarily recorded as links/metadata. No general indexed licensed article/book corpus is established by these catalog files. Provider robots/ToS/license validity, link health, video availability and mutable-source freshness remain unverified in this audit.
 - External topic and implementation mappings are heuristic, not per-record instructional review. Company recency/frequency values are snapshot metadata. The full original Striver curriculum, complete Developer Roadmap prose, and book chapter bodies are not imported local courses.
@@ -3147,20 +3165,20 @@ The default `.cache/foundry-snapshots` directory was absent at audit time. No li
 
 ## 10. Validation, reproducibility and inventory file map
 
-Read-only checks passed: authoring schemas, global prerequisite DAG/references, atom-pack schemas/version linkage, runtime catalog loading from existing test caches, source-cache hashes for all 85 problems, external concept references and company problem IDs. The runtime load read 959 cached tests. Reference programs, generators, importers, LLMs and source fetchers were not executed. No frontend files or learning content were edited; no push was performed.
+Read-only checks passed: authoring schemas, global prerequisite DAG/references, atom-pack schemas/version linkage, runtime catalog loading from existing test caches, source-cache hashes for all 112 problems, external concept references and company problem IDs. The runtime load read 1223 cached tests. Reference programs, generators, importers, LLMs and source fetchers were not executed. No frontend files or learning content were edited; no push was performed.
 
-Active `content/` scan: **187 files** (6,775,189 bytes). Composite SHA-256 of sorted path→file-hash mapping: `6df317b118b30482c3b9b804c6b7a5bdfb5d8af700f0c842e2b648ebfa132079`. This fingerprint excludes generated caches, fixtures, code and this report. Word counts split on whitespace and include inline code/Markdown. Atom uniqueness collapses whitespace in `body` only. URL uniqueness uses exact stored/resolved URL strings, not semantic page equivalence.
+Active `content/` scan: **332 files** (7,247,423 bytes). Composite SHA-256 of sorted path→file-hash mapping: `f03a3a44d1bfa16324ef7b707359e8272c14f39fa3961d929e658dc6d47e519d`. This fingerprint excludes generated caches, fixtures, code and this report. Word counts split on whitespace and include inline code/Markdown. Atom uniqueness collapses whitespace in `body` only. URL uniqueness uses exact stored/resolved URL strings, not semantic page equivalence.
 
 | Inventory record type | CSV rows |
 | --- | --- |
 | course | 3 |
 | module | 19 |
 | lesson | 61 |
-| lesson_section | 547 |
-| quiz | 234 |
+| lesson_section | 548 |
+| quiz | 284 |
 | course_resource | 209 |
 | practice_link | 142 |
-| native_problem | 85 |
+| native_problem | 112 |
 | teaching_atom | 279 |
 | roadmap_link | 100 |
 | python_exercise_link | 34 |
@@ -3188,8 +3206,8 @@ CSV fields include stable record ID, asset type, course/module/concept IDs, prim
 
 ### Snapshot history (Git commit metadata, not source-fetch timestamps)
 
-- `content/courses`: c26accd \| 2026-10-14T23:34:41+05:30 \| feat: add AI visual playground and progressive course learning
-- `content/atoms`: a49b910 \| 2026-10-13T23:17:21+05:30 \| feat(content): add learning atoms and evidence-backed sessions
+- `content/courses`: 3469126 \| 2026-10-23T17:32:43+05:30 \| content(cp): skeleton: 30 draft concepts and three appended modules
+- `content/atoms`: 2dc6c81 \| 2026-10-16T15:16:18+05:30 \| feat(content): CP pilot batch: difference array, fast power, subset enumeration
 - `content/practice`: 82a2bd4 \| 2026-10-10T03:13:52+05:30 \| feat(v2): personalised practice library, Codeforces sync and tutor tools
 - `content/learning-resources.json`: c26accd \| 2026-10-14T23:34:41+05:30 \| feat: add AI visual playground and progressive course learning
 
