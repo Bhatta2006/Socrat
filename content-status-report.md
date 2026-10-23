@@ -1,10 +1,10 @@
 # Socrat: current content status and complete inventory
 
-**Snapshot:** 2026-10-23T22:06:36+05:30 (Asia/Calcutta). **Branch:** `content/syllabus-expansion`. **Inspected commit:** `a974e0d82ad95b748bc1eaeda16bc5133bf07194`.
+**Snapshot:** 2026-10-23T23:27:20+05:30 (Asia/Calcutta). **Branch:** `content/syllabus-expansion`. **Inspected commit:** `c2af5b4bd9d12959ec691e7e36b134b6865114d8`.
 
 This report inventories the checked-out repository and its existing generated test cache. It does not measure a deployed production database, student-generated content, private uploads or external websites. Counts below come from files and the executable catalog schema, not older roadmap totals. No course content was edited or downloaded for this audit.
 
-The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contains **17,423 records**, including every external problem, implementation link, local lesson/quiz/problem/atom, lesson section, book reference, additional resource and company index. These are different record types and include nested sections and link mappings; **do not treat their combined row count as a number of independent lessons**.
+The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contains **17,661 records**, including every external problem, implementation link, local lesson/quiz/problem/atom, lesson section, book reference, additional resource and company index. These are different record types and include nested sections and link mappings; **do not treat their combined row count as a number of independent lessons**.
 
 ## 1. What actually exists
 
@@ -12,38 +12,38 @@ The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contai
 | --- | --- | --- |
 | Courses | 3 | Programming from Zero; DSA for Interviews; Competitive Programming |
 | Modules / subject areas | 19 | Authored groups inside courses |
-| Concepts / taught topics | 70 | One local YAML lesson per concept |
-| Lesson sections / subtopics | 848 | Actual Markdown headings, including recurring walkthrough/check headings; not separate lesson files |
-| Lesson text size | 78,815 whitespace words | Includes code/Markdown tokens; not a pure-prose reading-time estimate |
-| Prerequisite edges | 106 | Includes cross-course bridges |
-| Local concept quiz items | 358 | One reusable bank; not an additional bank per placement/review/assessment mode |
-| Local judge problems | 130 | Full statements, examples, hints, Python references and generators stored locally |
-| Generated judge test cases | 1471 | Cached cases for the 130 problems, not new exercises |
-| Released teaching-atom packs | 30 | 30 of 70 concepts; all have recorded release/review metadata |
+| Concepts / taught topics | 74 | One local YAML lesson per concept |
+| Lesson sections / subtopics | 992 | Actual Markdown headings, including recurring walkthrough/check headings; not separate lesson files |
+| Lesson text size | 97,688 whitespace words | Includes code/Markdown tokens; not a pure-prose reading-time estimate |
+| Prerequisite edges | 114 | Includes cross-course bridges |
+| Local concept quiz items | 390 | One reusable bank; not an additional bank per placement/review/assessment mode |
+| Local judge problems | 138 | Full statements, examples, hints, Python references and generators stored locally |
+| Generated judge test cases | 1575 | Cached cases for the 138 problems, not new exercises |
+| Released teaching-atom packs | 30 | 30 of 74 concepts; all have recorded release/review metadata |
 | Teaching-atom instances | 279 | 279 instances; repeated/template bodies occur across packs |
-| Checks inside atoms | 107 | Separate authored interactive steps, not added to the 358 concept-quiz count |
-| Curated course-resource mappings | 238 | 162 exact unique URLs; external links, not stored articles/videos |
-| Authored external practice mappings | 223 | 191 exact unique URLs; can overlap the imported practice index |
+| Checks inside atoms | 107 | Separate authored interactive steps, not added to the 390 concept-quiz count |
+| Curated course-resource mappings | 250 | 165 exact unique URLs; external links, not stored articles/videos |
+| Authored external practice mappings | 255 | 219 exact unique URLs; can overlap the imported practice index |
 | Imported external problem records | 13889 | Metadata/links only; no local statement/editorial/solution corpus |
 | Reference implementation links | 538 | TheAlgorithms links; not 538 locally stored code lessons |
 | Company groups | 637 | Company/problem frequency metadata, not company-authored courses |
 | Company/problem associations | 16933 | Many-to-many; not extra distinct problems |
-| Additional roadmap-link mappings | 109 | Developer Roadmap metadata/links |
+| Additional roadmap-link mappings | 115 | Developer Roadmap metadata/links |
 | Additional Python exercise mappings | 35 | Links/guidance; external exercise text not stored here |
 | Handbook references | 47 | One externally linked book, mapped to 39 concepts |
-| Controlled misconception IDs | 231 | Repair taxonomy, not standalone lessons |
+| Controlled misconception IDs | 274 | Repair taxonomy, not standalone lessons |
 | Problem drafts in content/drafts | 0 | Directory currently has its workflow README only |
 
 **Hierarchy used in this report:** course → authored module (subject area) → concept (topic) → lesson heading (subtopic/section). The current schema does not define a separate universal subject/subtopic taxonomy. Python, C++ and Java are supported languages of the same courses; they are not three copies of each curriculum. Course prose is English; no separate translated course tree is present.
 
-**Important distinction:** the active catalog has 130 locally judgeable authored problems and 13,889 external problem links. The links expand practice selection, but do not supply 13,889 local explanations, answer keys, hidden-test suites or independently calibrated assessment items.
+**Important distinction:** the active catalog has 138 locally judgeable authored problems and 13,889 external problem links. The links expand practice selection, but do not supply 13,889 local explanations, answer keys, hidden-test suites or independently calibrated assessment items.
 
 ## 2. Course totals and quantity definitions
 
 | Course | Version | Modules | Concepts | Lesson words | Quiz items | Local problems | Atoms | Atom-pack coverage | External unique mapped | External primary |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Programming from Zero | 1.0.1 | 5 | 18 | 11894 | 98 | 39 | 93 | 10/18 | 1523 | 329 |
-| DSA for Interviews | 1.0.0 | 7 | 32 | 55254 | 181 | 63 | 93 | 10/32 | 6268 | 4575 |
+| DSA for Interviews | 1.0.0 | 7 | 36 | 74127 | 213 | 71 | 93 | 10/36 | 6268 | 4575 |
 | Competitive Programming | 1.0.0 | 7 | 20 | 11667 | 79 | 28 | 93 | 10/20 | 11287 | 8985 |
 
 `External unique mapped` counts a problem once within that course if any of its up-to-three concept mappings belongs to the course. `External primary` uses only its first concept and partitions the global bank. External counts across concepts/modules/courses overlap; their sum is not the unique global count. Local problem totals use unique IDs; one concept (`zero:scope-and-mutation`) has no linked native problem.
@@ -51,7 +51,7 @@ The companion [complete CSV inventory](<D:/Socrat/content-inventory.csv>) contai
 | Course | Owned estimated learning minutes | Full prerequisite closure | Cross-course concepts in closure | Language support |
 | --- | --- | --- | --- | --- |
 | Programming from Zero | 750 | 18 | none | python, cpp, java |
-| DSA for Interviews | 1970 | 48 | zero: 16 | python, cpp, java |
+| DSA for Interviews | 2285 | 52 | zero: 16 | python, cpp, java |
 | Competitive Programming | 1045 | 55 | dsa: 19, zero: 16 | python, cpp, java |
 
 Estimated learning minutes are authored concept estimates that include learning/practice intent. They are not measured completion times or the runtime planner's promise for any learner. Prerequisite closure adds existing concepts from other courses rather than creating more owned lessons.
@@ -61,7 +61,7 @@ Estimated learning minutes are authored concept estimates that include learning/
 | Course | Lesson words | Quiz-prompt words | Native-statement words | Hint words | Solution-approach words | Atom-body words (instances) |
 | --- | --- | --- | --- | --- | --- | --- |
 | Programming from Zero | 11894 | 998 | 1636 | 1847 | 1402 | 1913 |
-| DSA for Interviews | 55254 | 2265 | 2843 | 3783 | 3052 | 2008 |
+| DSA for Interviews | 74127 | 2674 | 3293 | 4321 | 3620 | 2008 |
 | Competitive Programming | 11667 | 944 | 1036 | 1571 | 1033 | 2009 |
 
 These are separate field-level text measurements, not an additive unique-word corpus: atom templates repeat, quizzes can refer to code outside their prompt, and lessons include Markdown/code. Reference/generator code and test input/output bytes are not counted as explanatory prose. Every lesson section below has its own body word count; inclusive counts overlap when headings nest.
@@ -71,7 +71,7 @@ These are separate field-level text measurements, not an additive unique-word co
 | Content type | Stored where | Stored body or link? | Source / review evidence |
 | --- | --- | --- | --- |
 | Courses/modules/lessons/quizzes | `content/courses/<course>/course.yaml` and `concepts/*.yaml` | Local curriculum/lesson/code/quiz bodies | No per-lesson/per-quiz author, license or review field in active schema; linked reading is not proof of where the prose originated |
-| Native problems | `content/courses/<course>/problems/*.yaml` | Local statements, examples, hints, references/generators | 2/130 have explicit review blocks; the other 128 have no review block in current files, which does not prove whether review happened elsewhere |
+| Native problems | `content/courses/<course>/problems/*.yaml` | Local statements, examples, hints, references/generators | 2/138 have explicit review blocks; the other 136 have no review block in current files, which does not prove whether review happened elsewhere |
 | Teaching atoms | `content/atoms/<course>/<concept>.yaml` | Local teaching/check/code bodies | All 30 packs declare original Socrat examples, owner Socrat learning content, status released, review by Owner on 2026-10-13; declarations are recorded evidence, not an independent rights audit |
 | Curated reading/video/docs/visualizers | concept.resources | Titles, URLs, type, duration, level/language | Publisher labels exist; item licenses, robots snapshots, fetch timestamps and content hashes do not |
 | External practice index | content/practice/problems.jsonl | Titles/URLs/tags/difficulty/ratings/company metadata | Aggregate source manifest has pinned Git revisions for several imports, but no per-record import timestamp or license evidence |
@@ -79,7 +79,7 @@ These are separate field-level text measurements, not an additive unique-word co
 | Implementation references | content/practice/implementations.jsonl | GitHub code-file links only | TheAlgorithms repository revisions pinned in URLs/manifest; importer describes MIT repos, not per-file proof |
 | Book chapters | content/practice/book.json | External PDF/page links only | CC BY-NC-SA 4.0 (linked, not reproduced) (manifest declaration; not verified online) |
 | Roadmap/exercise supplements | content/learning-resources.json | Metadata/links plus local short guidance | Roadmap URLs pin a revision; Python exercise links point at mutable master |
-| Judge test cache | `.cache/content-tests/<problem>.json` + `.sha256` | Generated input/expected-output cases | 130 current caches match source YAML hashes; correctness was not re-executed in this audit |
+| Judge test cache | `.cache/content-tests/<problem>.json` + `.sha256` | Generated input/expected-output cases | 138 current caches match source YAML hashes; correctness was not re-executed in this audit |
 
 The active loader is [services/api/src/socrat/catalog/registry.py](<D:/Socrat/services/api/src/socrat/catalog/registry.py>); authoring contracts are in [services/api/src/socrat/catalog/schema.py](<D:/Socrat/services/api/src/socrat/catalog/schema.py>) and [services/api/src/socrat/catalog/atoms.py](<D:/Socrat/services/api/src/socrat/catalog/atoms.py>). The report treats repository lessons/problems as stored authoring material; it does not infer that they were scraped from their recommended links. No tracked LICENSE/NOTICE file was found by the audit; that absence is not a legal conclusion about ownership.
 
@@ -91,14 +91,14 @@ The active loader is [services/api/src/socrat/catalog/registry.py](<D:/Socrat/se
 
 | Publisher label in YAML | Link mappings | Courses using it |
 | --- | --- | --- |
-| USACO Guide | 31 | cp, dsa, zero |
+| USACO Guide | 33 | cp, dsa, zero |
 | CSES | 28 | cp, dsa |
 | NeetCode | 26 | cp, dsa |
-| CP-Algorithms | 20 | cp, dsa |
-| Tech Interview Handbook | 19 | dsa, zero |
+| Tech Interview Handbook | 23 | dsa, zero |
+| CP-Algorithms | 22 | cp, dsa |
+| Antti Laaksonen | 19 | cp, dsa |
 | VisuAlgo | 18 | cp, dsa, zero |
 | Python docs | 16 | dsa, zero |
-| Antti Laaksonen | 15 | cp, dsa |
 | freeCodeCamp | 11 | cp, dsa, zero |
 | Harvard CS50 | 10 | dsa, zero |
 | LearnCpp | 9 | zero |
@@ -120,12 +120,12 @@ The active loader is [services/api/src/socrat/catalog/registry.py](<D:/Socrat/se
 
 | Resource kind | Mappings |
 | --- | --- |
-| article | 84 |
+| article | 92 |
 | video | 47 |
 | interactive | 28 |
 | docs | 27 |
 | visualizer | 25 |
-| book | 15 |
+| book | 19 |
 | course | 12 |
 
 Publisher names above are stored labels (for example Oracle and Oracle dev.java remain distinct labels). Repeated links are counted as mappings. No resource was fetched, re-licensed or link-health checked for this report.
@@ -918,12 +918,12 @@ The data structures and algorithm patterns that coding interviews actually test,
 | Module / subject area | Topics | Lesson words | Quiz | Native | Atoms | Reading links | External unique mapped |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Foundations | 3 | 1904 | 19 | 9 | 30 | 11 | 2415 |
-| Linear patterns | 4 | 2721 | 24 | 13 | 36 | 14 | 1422 |
+| Linear patterns | 5 | 7385 | 32 | 15 | 36 | 17 | 1422 |
 | Sorting and greedy | 3 | 1759 | 12 | 5 | 27 | 10 | 1767 |
 | Linked structures, recursion and backtracking | 2 | 1202 | 8 | 3 | 0 | 6 | 182 |
-| Trees and heaps | 4 | 2242 | 16 | 5 | 0 | 13 | 488 |
+| Trees and heaps | 5 | 8335 | 25 | 7 | 0 | 16 | 488 |
 | Graphs | 4 | 2444 | 16 | 5 | 0 | 15 | 1870 |
-| Dynamic programming and bits | 12 | 42982 | 86 | 23 | 0 | 40 | 853 |
+| Dynamic programming and bits | 14 | 51098 | 101 | 27 | 0 | 46 | 853 |
 
 **Topic-level local coverage**
 
@@ -935,6 +935,7 @@ The data structures and algorithm patterns that coding interviews actually test,
 | dsa:two-pointers | Two pointers | 637 | 10 | 6 | 4 | released / 9 | 50 |
 | dsa:sliding-window | Sliding window | 694 | 9 | 6 | 3 | released / 9 | 55 |
 | dsa:stacks | Stacks, queues and monotonic stacks | 710 | 8 | 6 | 3 | released / 9 | 55 |
+| dsa:monotonic-stack | Monotonic stack and deque | 4664 | 44 | 8 | 2 | missing / 0 | 90 |
 | dsa:binary-search | Binary search | 680 | 8 | 6 | 3 | released / 9 | 60 |
 | dsa:sorting | Sorting | 670 | 9 | 4 | 2 | released / 9 | 60 |
 | dsa:intervals | Intervals | 521 | 9 | 4 | 1 | released / 9 | 45 |
@@ -942,6 +943,7 @@ The data structures and algorithm patterns that coding interviews actually test,
 | dsa:linked-lists | Linked lists | 622 | 10 | 4 | 1 | missing / 0 | 55 |
 | dsa:backtracking | Backtracking | 580 | 8 | 4 | 2 | missing / 0 | 60 |
 | dsa:binary-trees | Binary trees | 590 | 9 | 4 | 2 | missing / 0 | 60 |
+| dsa:tree-patterns | Binary tree patterns | 6093 | 52 | 9 | 2 | missing / 0 | 90 |
 | dsa:bst | Binary search trees | 537 | 9 | 4 | 1 | missing / 0 | 50 |
 | dsa:heaps | Heaps and priority queues | 520 | 9 | 4 | 1 | missing / 0 | 50 |
 | dsa:tries | Tries (prefix trees) | 595 | 8 | 4 | 1 | missing / 0 | 45 |
@@ -959,6 +961,8 @@ The data structures and algorithm patterns that coding interviews actually test,
 | dsa:dp-stocks | Stock trading DP | 3031 | 12 | 8 | 2 | missing / 0 | 60 |
 | dsa:dp-lis | Longest increasing subsequence family | 3508 | 28 | 8 | 2 | missing / 0 | 75 |
 | dsa:dp-partition | Partition DP (matrix chain) | 4823 | 36 | 9 | 2 | missing / 0 | 90 |
+| dsa:dp-squares | DP on squares and rectangles | 3491 | 20 | 7 | 2 | missing / 0 | 60 |
+| dsa:dp-on-trees | DP on trees | 4625 | 28 | 8 | 2 | missing / 0 | 75 |
 | dsa:bit-manipulation | Bit manipulation | 569 | 9 | 4 | 1 | missing / 0 | 40 |
 | dsa:dp-advanced-patterns | More interview DP patterns | 4847 | 36 | 9 | 2 | missing / 0 | 90 |
 
@@ -972,6 +976,7 @@ The data structures and algorithm patterns that coding interviews actually test,
 | dsa:two-pointers | 3 | 4 | 392 | 839 | 1/0/1 | 1 | 0 | 1 |
 | dsa:sliding-window | 3 | 3 | 130 | 156 | 3/0/3 | 1 | 0 | 1 |
 | dsa:stacks | 4 | 3 | 135 | 204 | 8/5/8 | 1 | 0 | 2 |
+| dsa:monotonic-stack | 3 | 10 | 0 | 0 | 0/0/0 | 1 | 0 | 0 |
 | dsa:binary-search | 4 | 3 | 144 | 355 | 4/3/11 | 1 | 1 | 1 |
 | dsa:sorting | 4 | 3 | 619 | 1478 | 17/19/17 | 1 | 1 | 1 |
 | dsa:intervals | 3 | 4 | 19 | 19 | 0/0/0 | 1 | 0 | 0 |
@@ -979,6 +984,7 @@ The data structures and algorithm patterns that coding interviews actually test,
 | dsa:linked-lists | 3 | 4 | 49 | 75 | 14/12/18 | 1 | 0 | 0 |
 | dsa:backtracking | 3 | 4 | 81 | 107 | 14/5/11 | 1 | 1 | 1 |
 | dsa:binary-trees | 4 | 4 | 166 | 236 | 14/5/8 | 2 | 0 | 1 |
+| dsa:tree-patterns | 3 | 10 | 0 | 0 | 0/0/0 | 2 | 0 | 0 |
 | dsa:bst | 3 | 3 | 39 | 40 | 5/3/3 | 1 | 0 | 0 |
 | dsa:heaps | 3 | 3 | 155 | 201 | 12/2/13 | 1 | 0 | 1 |
 | dsa:tries | 3 | 2 | 56 | 56 | 1/4/2 | 1 | 0 | 1 |
@@ -996,6 +1002,8 @@ The data structures and algorithm patterns that coding interviews actually test,
 | dsa:dp-stocks | 3 | 6 | 0 | 0 | 0/0/0 | 1 | 0 | 0 |
 | dsa:dp-lis | 3 | 10 | 0 | 0 | 0/0/0 | 1 | 0 | 0 |
 | dsa:dp-partition | 3 | 10 | 0 | 0 | 0/0/0 | 1 | 0 | 0 |
+| dsa:dp-squares | 3 | 6 | 0 | 0 | 0/0/0 | 1 | 0 | 0 |
+| dsa:dp-on-trees | 3 | 6 | 0 | 0 | 0/0/0 | 2 | 0 | 0 |
 | dsa:bit-manipulation | 3 | 4 | 90 | 206 | 15/7/19 | 0 | 1 | 1 |
 | dsa:dp-advanced-patterns | 3 | 10 | 0 | 0 | 0/0/0 | 1 | 0 | 0 |
 
@@ -1239,6 +1247,83 @@ Two pointers, sliding windows, stacks and binary search.
 - Roadmap — [Stacks](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/stacks@jvKRykGNy140FlquF2fcK.md>)
 - Handbook §4.5, printed page 42 — [Other structures: stack, queue and deque](<https://cses.fi/book/book.pdf#page=52>)
 - Handbook §8.2, printed page 79 — [Nearest smaller elements](<https://cses.fi/book/book.pdf#page=89>)
+
+##### Monotonic stack and deque — `dsa:monotonic-stack`
+
+- **Scope:** Next greater and smaller elements, spans, histogram areas, contribution counting and the sliding-window maximum deque.
+- **Files:** [lesson/quiz/resources YAML](<D:/Socrat/content/courses/dsa/concepts/monotonic-stack.yaml>); no teaching-atom pack
+- **Prerequisites:** `dsa:stacks`, `dsa:sliding-window`
+- **Key points:** A monotonic stack keeps the indexes still waiting for an answer, in sorted value order.; An element is answered at the moment it is popped; each index is pushed and popped once, so O(n).; Scan direction and pop comparison pick next/previous and greater/smaller.; Store indexes when the answer is a distance or position.; Histogram: pop on a lower bar; area = height × (i − left − 1); end with a 0 bar.; Contribution: Σ a[i] · left[i] · right[i], strict on one side and non-strict on the other.; Monotonic deque: pop worse values from the back, expired ones from the front.
+- **Pitfalls:** Taking the maximum to the right instead of the nearest greater.; Popping on <= versus < without thinking about equal values.; Pushing values when distances or expiry need indexes.; Forgetting the 0 sentinel bar in the histogram.; Using the same tie rule on both sides when counting subarrays.
+- **Local judge problems:** [Nearest taller neighbour](<D:/Socrat/content/courses/dsa/problems/nearest-taller-either-side.yaml>) (`nearest-taller-either-side`, medium); [Peak totals](<D:/Socrat/content/courses/dsa/problems/peak-totals.yaml>) (`peak-totals`, medium)
+- **Quiz items:** `nge-value` (mcq, difficulty 1/5); `amortised` (mcq, difficulty 2/5); `indexes` (mcq, difficulty 2/5); `histogram` (mcq, difficulty 3/5); `sentinel` (mcq, difficulty 3/5); `ties` (mcq, difficulty 4/5); `deque-why` (mcq, difficulty 4/5); `window-output` (output, difficulty 5/5)
+
+| Subtopic / section | Heading level | Own words | Including children |
+| --- | --- | --- | --- |
+| Next greater family | H2 | 0 | 1488 |
+| Next greater family > Recognition cues | H3 | 55 | 55 |
+| Next greater family > State, transition, base cases, answer, loop order | H3 | 128 | 128 |
+| Next greater family > Template | H3 | 294 | 294 |
+| Next greater family > Anchor problem: 2 1 2 4 3 | H3 | 776 | 776 |
+| Next greater family > Variants | H3 | 109 | 109 |
+| Next greater family > Contrast | H3 | 39 | 39 |
+| Next greater family > Common mistakes | H3 | 59 | 59 |
+| Spans and waiting times | H2 | 0 | 562 |
+| Spans and waiting times > Recognition cues | H3 | 47 | 47 |
+| Spans and waiting times > State, transition, base cases, answer, loop order | H3 | 44 | 44 |
+| Spans and waiting times > Template | H3 | 282 | 282 |
+| Spans and waiting times > Anchor problem: temperatures 73 74 75 71 69 72 76 73 | H3 | 51 | 51 |
+| Spans and waiting times > Variants | H3 | 45 | 45 |
+| Spans and waiting times > Contrast | H3 | 28 | 28 |
+| Spans and waiting times > Common mistakes | H3 | 33 | 33 |
+| Histogram area | H2 | 0 | 689 |
+| Histogram area > Recognition cues | H3 | 30 | 30 |
+| Histogram area > State, transition, base cases, answer, loop order | H3 | 75 | 75 |
+| Histogram area > Template | H3 | 328 | 328 |
+| Histogram area > Anchor problem: 2 1 5 6 2 3 | H3 | 83 | 83 |
+| Histogram area > Variants | H3 | 59 | 59 |
+| Histogram area > Contrast | H3 | 44 | 44 |
+| Histogram area > Common mistakes | H3 | 41 | 41 |
+| Contribution technique | H2 | 0 | 716 |
+| Contribution technique > Recognition cues | H3 | 31 | 31 |
+| Contribution technique > State, transition, base cases, answer, loop order | H3 | 78 | 78 |
+| Contribution technique > Template | H3 | 408 | 408 |
+| Contribution technique > Anchor problem: 3 1 2 4 | H3 | 86 | 86 |
+| Contribution technique > Variants | H3 | 29 | 29 |
+| Contribution technique > Contrast | H3 | 36 | 36 |
+| Contribution technique > Common mistakes | H3 | 21 | 21 |
+| Monotonic deque | H2 | 0 | 706 |
+| Monotonic deque > Recognition cues | H3 | 34 | 34 |
+| Monotonic deque > State, transition, base cases, answer, loop order | H3 | 60 | 60 |
+| Monotonic deque > Template | H3 | 314 | 314 |
+| Monotonic deque > Anchor problem: 1 3 −1 −3 5 3 6 7, k = 3 | H3 | 121 | 121 |
+| Monotonic deque > Variants | H3 | 65 | 65 |
+| Monotonic deque > Contrast | H3 | 38 | 38 |
+| Monotonic deque > Common mistakes | H3 | 40 | 40 |
+| Worked walkthrough | H2 | 144 | 355 |
+| Worked walkthrough > Why this works | H3 | 70 | 70 |
+| Worked walkthrough > Boundary cases and cost | H3 | 53 | 53 |
+| Worked walkthrough > Check your understanding | H3 | 75 | 75 |
+
+| Curated resource | Source | Kind / level | Minutes | Languages |
+| --- | --- | --- | --- | --- |
+| [Stack](<https://www.techinterviewhandbook.org/algorithms/stack/>) | Tech Interview Handbook | article / core | 15 | neutral |
+| [Minimum stack / Minimum queue](<https://cp-algorithms.com/data_structures/stack_queue_modification.html>) | CP-Algorithms | article / deep | 20 | neutral |
+| [Competitive Programmer's Handbook, chapter 8: Amortized analysis](<https://cses.fi/book/book.pdf>) | Antti Laaksonen | book / deep | 30 | neutral |
+
+**Other authored/supplemental links**
+
+- Practice — [Next Greater Element II](<https://leetcode.com/problems/next-greater-element-ii/>) (LeetCode, medium)
+- Practice — [Nearest Smaller Values](<https://cses.fi/problemset/task/1645>) (CSES, medium)
+- Practice — [Daily Temperatures](<https://leetcode.com/problems/daily-temperatures/>) (LeetCode, medium)
+- Practice — [Online Stock Span](<https://leetcode.com/problems/online-stock-span/>) (LeetCode, medium)
+- Practice — [Largest Rectangle in Histogram](<https://leetcode.com/problems/largest-rectangle-in-histogram/>) (LeetCode, hard)
+- Practice — [Sum of Subarray Minimums](<https://leetcode.com/problems/sum-of-subarray-minimums/>) (LeetCode, medium)
+- Practice — [Sliding Window Maximum](<https://leetcode.com/problems/sliding-window-maximum/>) (LeetCode, hard)
+- Practice — [Trapping Rain Water](<https://leetcode.com/problems/trapping-rain-water/>) (LeetCode, hard)
+- Practice — [132 Pattern](<https://leetcode.com/problems/132-pattern/>) (LeetCode, medium)
+- Practice — [Remove K Digits](<https://leetcode.com/problems/remove-k-digits/>) (LeetCode, medium)
+- Roadmap — [Stacks](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/stacks@jvKRykGNy140FlquF2fcK.md>)
 
 ##### Binary search — `dsa:binary-search`
 
@@ -1518,11 +1603,97 @@ Recursive data, ordered trees, priority queues and prefix trees.
 - Roadmap — [Tree Traversal](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/tree-traversal@2Od5lNc6fCM6Gyj_axj4n.md>)
 - Handbook §14, printed page 133 — [Tree algorithms](<https://cses.fi/book/book.pdf#page=143>)
 
+##### Binary tree patterns — `dsa:tree-patterns`
+
+- **Scope:** Return information from children, views and columns, root paths, lowest common ancestor, distance K and width.
+- **Files:** [lesson/quiz/resources YAML](<D:/Socrat/content/courses/dsa/concepts/tree-patterns.yaml>); no teaching-atom pack
+- **Prerequisites:** `dsa:binary-trees`
+- **Key points:** Return info: a node returns what its parent can extend and records the full answer in a global.; For path sums, return one branch (val + max(gl, gr)) but record both (val + gl + gr).; Process children before parents with reverse BFS order to avoid deep recursion.; Views and levels: BFS level by level; take the first or last node of each level.; Root paths: pass the running sum, maximum or number down; check at leaves.; LCA: equalise depths, then lift both until they meet.; Distance K and width: add parent edges for BFS; number positions 2p and 2p + 1, renumbered per level.
+- **Pitfalls:** Returning a two-sided path to the parent.; Not dropping negative branches, or starting the best at 0.; Following only right children for the right view.; Treating a node with one child as a leaf.; Lifting both nodes before their depths are equal.; Searching only downwards for distance K.
+- **Local judge problems:** [Balanced splits](<D:/Socrat/content/courses/dsa/problems/balanced-splits.yaml>) (`balanced-splits`, medium); [Shortest walk to a leaf](<D:/Socrat/content/courses/dsa/problems/nearest-leaf.yaml>) (`nearest-leaf`, medium)
+- **Quiz items:** `return-vs-record` (mcq, difficulty 2/5); `bent-path` (mcq, difficulty 3/5); `right-view` (mcq, difficulty 1/5); `leaf` (mcq, difficulty 2/5); `lca-self` (mcq, difficulty 3/5); `lca-lift` (mcq, difficulty 3/5); `distance-up` (mcq, difficulty 4/5); `width` (mcq, difficulty 4/5); `good-nodes` (mcq, difficulty 5/5)
+
+| Subtopic / section | Heading level | Own words | Including children |
+| --- | --- | --- | --- |
+| Return info from children | H2 | 0 | 1982 |
+| Return info from children > Recognition cues | H3 | 64 | 64 |
+| Return info from children > State, transition, base cases, answer, loop order | H3 | 142 | 142 |
+| Return info from children > Template | H3 | 526 | 526 |
+| Return info from children > Anchor problem: values 1 2 3 4 5 | H3 | 1058 | 1058 |
+| Return info from children > Variants | H3 | 76 | 76 |
+| Return info from children > Contrast | H3 | 40 | 40 |
+| Return info from children > Common mistakes | H3 | 47 | 47 |
+| Views and columns | H2 | 0 | 618 |
+| Views and columns > Recognition cues | H3 | 30 | 30 |
+| Views and columns > State, transition, base cases, answer, loop order | H3 | 56 | 56 |
+| Views and columns > Template | H3 | 329 | 329 |
+| Views and columns > Anchor problem: the right side view | H3 | 80 | 80 |
+| Views and columns > Variants | H3 | 45 | 45 |
+| Views and columns > Contrast | H3 | 33 | 33 |
+| Views and columns > Common mistakes | H3 | 18 | 18 |
+| Root paths | H2 | 0 | 714 |
+| Root paths > Recognition cues | H3 | 31 | 31 |
+| Root paths > State, transition, base cases, answer, loop order | H3 | 37 | 37 |
+| Root paths > Template | H3 | 414 | 414 |
+| Root paths > Anchor problem: paths summing to 22 | H3 | 81 | 81 |
+| Root paths > Variants | H3 | 56 | 56 |
+| Root paths > Contrast | H3 | 35 | 35 |
+| Root paths > Common mistakes | H3 | 33 | 33 |
+| Lowest common ancestor | H2 | 0 | 777 |
+| Lowest common ancestor > Recognition cues | H3 | 30 | 30 |
+| Lowest common ancestor > State, transition, base cases, answer, loop order | H3 | 47 | 47 |
+| Lowest common ancestor > Template | H3 | 471 | 471 |
+| Lowest common ancestor > Anchor problem: nodes 4 and 9 | H3 | 102 | 102 |
+| Lowest common ancestor > Variants | H3 | 51 | 51 |
+| Lowest common ancestor > Contrast | H3 | 28 | 28 |
+| Lowest common ancestor > Common mistakes | H3 | 21 | 21 |
+| Distance K | H2 | 0 | 770 |
+| Distance K > Recognition cues | H3 | 30 | 30 |
+| Distance K > State, transition, base cases, answer, loop order | H3 | 31 | 31 |
+| Distance K > Template | H3 | 525 | 525 |
+| Distance K > Anchor problem: target 2, K = 2 | H3 | 64 | 64 |
+| Distance K > Variants | H3 | 41 | 41 |
+| Distance K > Contrast | H3 | 29 | 29 |
+| Distance K > Common mistakes | H3 | 22 | 22 |
+| Width and indexing | H2 | 0 | 640 |
+| Width and indexing > Recognition cues | H3 | 23 | 23 |
+| Width and indexing > State, transition, base cases, answer, loop order | H3 | 57 | 57 |
+| Width and indexing > Template | H3 | 408 | 408 |
+| Width and indexing > Anchor problem: width 4 | H3 | 68 | 68 |
+| Width and indexing > Variants | H3 | 26 | 26 |
+| Width and indexing > Contrast | H3 | 18 | 18 |
+| Width and indexing > Common mistakes | H3 | 15 | 15 |
+| Worked walkthrough | H2 | 117 | 363 |
+| Worked walkthrough > Why this works | H3 | 80 | 80 |
+| Worked walkthrough > Boundary cases and cost | H3 | 54 | 54 |
+| Worked walkthrough > Check your understanding | H3 | 99 | 99 |
+
+| Curated resource | Source | Kind / level | Minutes | Languages |
+| --- | --- | --- | --- | --- |
+| [Tree](<https://www.techinterviewhandbook.org/algorithms/tree/>) | Tech Interview Handbook | article / core | 15 | neutral |
+| [Lowest Common Ancestor](<https://cp-algorithms.com/graph/lca.html>) | CP-Algorithms | article / deep | 25 | neutral |
+| [Competitive Programmer's Handbook, chapter 14: Tree algorithms](<https://cses.fi/book/book.pdf>) | Antti Laaksonen | book / deep | 40 | neutral |
+
+**Other authored/supplemental links**
+
+- Practice — [Binary Tree Maximum Path Sum](<https://leetcode.com/problems/binary-tree-maximum-path-sum/>) (LeetCode, hard)
+- Practice — [Balanced Binary Tree](<https://leetcode.com/problems/balanced-binary-tree/>) (LeetCode, easy)
+- Practice — [Binary Tree Right Side View](<https://leetcode.com/problems/binary-tree-right-side-view/>) (LeetCode, medium)
+- Practice — [Vertical Order Traversal of a Binary Tree](<https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree/>) (LeetCode, hard)
+- Practice — [Path Sum II](<https://leetcode.com/problems/path-sum-ii/>) (LeetCode, medium)
+- Practice — [Count Good Nodes in Binary Tree](<https://leetcode.com/problems/count-good-nodes-in-binary-tree/>) (LeetCode, medium)
+- Practice — [Lowest Common Ancestor of a Binary Tree](<https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/>) (LeetCode, medium)
+- Practice — [All Nodes Distance K in Binary Tree](<https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree/>) (LeetCode, medium)
+- Practice — [Maximum Width of Binary Tree](<https://leetcode.com/problems/maximum-width-of-binary-tree/>) (LeetCode, medium)
+- Practice — [Subordinates](<https://cses.fi/problemset/task/1674>) (CSES, easy)
+- Roadmap — [Binary Trees](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/binary-trees@RPU5CGp2Li5lk0UB-zNHT.md>)
+- Roadmap — [Tree Traversal](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/tree-traversal@2Od5lNc6fCM6Gyj_axj4n.md>)
+
 ##### Binary search trees — `dsa:bst`
 
 - **Scope:** Keep keys ordered in a tree so search, insert and delete follow one root-to-leaf path.
 - **Files:** [lesson/quiz/resources YAML](<D:/Socrat/content/courses/dsa/concepts/bst.yaml>); no teaching-atom pack
-- **Prerequisites:** `dsa:binary-trees`, `dsa:binary-search`
+- **Prerequisites:** `dsa:binary-trees`, `dsa:binary-search`, `dsa:tree-patterns`
 - **Key points:** BST rule - left subtree keys < node < right subtree keys.; Search, insert and delete walk one path, costing O(height).; Inorder traversal of a BST yields sorted keys.; Validate with a (low, high) range passed down, not just parent-child checks.; Unbalanced BSTs degrade to O(n); library ordered sets/maps stay O(log n).
 - **Pitfalls:** Validating only against the immediate parent.; Assuming O(log n) without balance (sorted insertions make a chain).; Mishandling duplicate keys — define where equal keys go.
 - **Local judge problems:** [Validate a BST](<D:/Socrat/content/courses/dsa/problems/bst-validate.yaml>) (`bst-validate`, medium)
@@ -2383,6 +2554,113 @@ Turn exponential search into polynomial tables; use bits as tools.
 - Practice — [Removal Game](<https://cses.fi/problemset/task/1097>) (CSES, medium)
 - Practice — [Rectangle Cutting](<https://cses.fi/problemset/task/1744>) (CSES, medium)
 - Roadmap — [Dynamic Programming](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/dynamic-programming@jKAZNybU9cxufNBdFsqsP.md>)
+
+##### DP on squares and rectangles — `dsa:dp-squares`
+
+- **Scope:** Maximal square, counting all-ones squares and the maximal rectangle built from a histogram per row.
+- **Files:** [lesson/quiz/resources YAML](<D:/Socrat/content/courses/dsa/concepts/dp-squares.yaml>); no teaching-atom pack
+- **Prerequisites:** `dsa:dp-2d`, `dsa:monotonic-stack`
+- **Key points:** dp[i][j] is the side of the largest all-ones square whose bottom-right corner is (i, j).; On a 1 cell, 1 + min(up, left, up-left); on a 0 cell, 0.; The diagonal is the only neighbour that checks the square's far corner.; One row is enough if the old dp[j] is saved as the next diagonal.; The sum of all dp values counts every all-ones square.; Rectangles: build a histogram per row and run the largest-rectangle stack on each.
+- **Pitfalls:** Leaving out the diagonal neighbour.; Printing the side instead of the area.; Not resetting a height or a dp value to 0 on an empty cell.; Trying to store the largest rectangle per cell as one number.
+- **Local judge problems:** [Solar panel plots](<D:/Socrat/content/courses/dsa/problems/solar-squares.yaml>) (`solar-squares`, medium); [Fence around the meadow](<D:/Socrat/content/courses/dsa/problems/meadow-fence.yaml>) (`meadow-fence`, medium)
+- **Quiz items:** `square-state` (mcq, difficulty 1/5); `square-cell` (mcq, difficulty 2/5); `diagonal` (mcq, difficulty 3/5); `count` (mcq, difficulty 3/5); `histogram` (mcq, difficulty 2/5); `rectangle` (mcq, difficulty 4/5); `why-not-dp` (mcq, difficulty 5/5)
+
+| Subtopic / section | Heading level | Own words | Including children |
+| --- | --- | --- | --- |
+| Maximal square | H2 | 0 | 2332 |
+| Maximal square > Recognition cues | H3 | 43 | 43 |
+| Maximal square > State, transition, base cases, answer, loop order | H3 | 141 | 141 |
+| Maximal square > Template | H3 | 370 | 370 |
+| Maximal square > Anchor problem: the largest square | H3 | 1601 | 1601 |
+| Maximal square > Variants | H3 | 62 | 62 |
+| Maximal square > Contrast | H3 | 44 | 44 |
+| Maximal square > Common mistakes | H3 | 45 | 45 |
+| Histogram rectangle | H2 | 0 | 718 |
+| Histogram rectangle > Recognition cues | H3 | 23 | 23 |
+| Histogram rectangle > State, transition, base cases, answer, loop order | H3 | 60 | 60 |
+| Histogram rectangle > Template | H3 | 392 | 392 |
+| Histogram rectangle > Anchor problem: the largest rectangle | H3 | 127 | 127 |
+| Histogram rectangle > Variants | H3 | 30 | 30 |
+| Histogram rectangle > Contrast | H3 | 22 | 22 |
+| Histogram rectangle > Common mistakes | H3 | 38 | 38 |
+| Worked walkthrough | H2 | 106 | 334 |
+| Worked walkthrough > Why this works | H3 | 93 | 93 |
+| Worked walkthrough > Boundary cases and cost | H3 | 52 | 52 |
+| Worked walkthrough > Check your understanding | H3 | 70 | 70 |
+
+| Curated resource | Source | Kind / level | Minutes | Languages |
+| --- | --- | --- | --- | --- |
+| [Introduction to DP](<https://usaco.guide/gold/intro-dp>) | USACO Guide | article / core | 40 | neutral |
+| [Dynamic Programming](<https://www.techinterviewhandbook.org/algorithms/dynamic-programming/>) | Tech Interview Handbook | article / core | 15 | neutral |
+| [Competitive Programmer's Handbook, chapter 7: Dynamic programming](<https://cses.fi/book/book.pdf>) | Antti Laaksonen | book / deep | 45 | neutral |
+
+**Other authored/supplemental links**
+
+- Practice — [Maximal Square](<https://leetcode.com/problems/maximal-square/>) (LeetCode, medium)
+- Practice — [Count Square Submatrices with All Ones](<https://leetcode.com/problems/count-square-submatrices-with-all-ones/>) (LeetCode, medium)
+- Practice — [Largest 1-Bordered Square](<https://leetcode.com/problems/largest-1-bordered-square/>) (LeetCode, medium)
+- Practice — [Maximal Rectangle](<https://leetcode.com/problems/maximal-rectangle/>) (LeetCode, hard)
+- Practice — [Count Submatrices With All Ones](<https://leetcode.com/problems/count-submatrices-with-all-ones/>) (LeetCode, medium)
+- Practice — [Largest Rectangle in Histogram](<https://leetcode.com/problems/largest-rectangle-in-histogram/>) (LeetCode, hard)
+- Roadmap — [Dynamic Programming](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/dynamic-programming@jKAZNybU9cxufNBdFsqsP.md>)
+
+##### DP on trees — `dsa:dp-on-trees`
+
+- **Scope:** Post-order DP over tree nodes: rob or skip, best path through a node and camera-style cover states.
+- **Files:** [lesson/quiz/resources YAML](<D:/Socrat/content/courses/dsa/concepts/dp-on-trees.yaml>); no teaching-atom pack
+- **Prerequisites:** `dsa:dp-1d`, `dsa:tree-patterns`
+- **Key points:** Subproblems are subtrees; fill children before parents (reverse BFS order).; Keep one answer per node state when the parent's choice depends on the child's.; Rob or skip: take = val + Σ skip(children); skip = Σ max(take, skip)(children).; Path through a node: record 1 + two best allowed arms, return 1 + the best arm.; A child that may not join is still solved on its own.; Cover states: camera here, covered by a child, waiting for the parent; the root cannot wait.; O(n) time and memory.
+- **Pitfalls:** Alternating levels instead of deciding per node.; Adding take of a child when the parent is taken.; Dropping a blocked child's subtree in path problems.; Only two states for camera problems.; Deep recursion on long chains.
+- **Local judge problems:** [Watchtowers on the trails](<D:/Socrat/content/courses/dsa/problems/watchtowers.yaml>) (`watchtowers`, medium); [Street lamps on a tree](<D:/Socrat/content/courses/dsa/problems/street-lamps.yaml>) (`street-lamps`, hard)
+- **Quiz items:** `take-skip` (mcq, difficulty 1/5); `levels` (mcq, difficulty 2/5); `order` (mcq, difficulty 2/5); `chain` (mcq, difficulty 3/5); `blocked` (mcq, difficulty 3/5); `three-states` (mcq, difficulty 4/5); `cameras` (mcq, difficulty 4/5); `root` (mcq, difficulty 5/5)
+
+| Subtopic / section | Heading level | Own words | Including children |
+| --- | --- | --- | --- |
+| Rob or skip | H2 | 0 | 2225 |
+| Rob or skip > Recognition cues | H3 | 60 | 60 |
+| Rob or skip > State, transition, base cases, answer, loop order | H3 | 80 | 80 |
+| Rob or skip > Template | H3 | 489 | 489 |
+| Rob or skip > Anchor problem: houses on a tree | H3 | 1427 | 1427 |
+| Rob or skip > Variants | H3 | 57 | 57 |
+| Rob or skip > Contrast | H3 | 41 | 41 |
+| Rob or skip > Common mistakes | H3 | 44 | 44 |
+| Path through a node | H2 | 0 | 900 |
+| Path through a node > Recognition cues | H3 | 40 | 40 |
+| Path through a node > State, transition, base cases, answer, loop order | H3 | 68 | 68 |
+| Path through a node > Template | H3 | 552 | 552 |
+| Path through a node > Anchor problem: neighbours must differ | H3 | 119 | 119 |
+| Path through a node > Variants | H3 | 33 | 33 |
+| Path through a node > Contrast | H3 | 37 | 37 |
+| Path through a node > Common mistakes | H3 | 25 | 25 |
+| Cover states | H2 | 0 | 1041 |
+| Cover states > Recognition cues | H3 | 41 | 41 |
+| Cover states > State, transition, base cases, answer, loop order | H3 | 120 | 120 |
+| Cover states > Template | H3 | 649 | 649 |
+| Cover states > Anchor problem: cameras | H3 | 99 | 99 |
+| Cover states > Variants | H3 | 36 | 36 |
+| Cover states > Contrast | H3 | 40 | 40 |
+| Cover states > Common mistakes | H3 | 32 | 32 |
+| Worked walkthrough | H2 | 122 | 334 |
+| Worked walkthrough > Why this works | H3 | 78 | 78 |
+| Worked walkthrough > Boundary cases and cost | H3 | 52 | 52 |
+| Worked walkthrough > Check your understanding | H3 | 69 | 69 |
+
+| Curated resource | Source | Kind / level | Minutes | Languages |
+| --- | --- | --- | --- | --- |
+| [DP on Trees - Introduction](<https://usaco.guide/gold/dp-trees>) | USACO Guide | article / core | 40 | neutral |
+| [Tree](<https://www.techinterviewhandbook.org/algorithms/tree/>) | Tech Interview Handbook | article / core | 15 | neutral |
+| [Competitive Programmer's Handbook, chapter 14: Tree algorithms](<https://cses.fi/book/book.pdf>) | Antti Laaksonen | book / deep | 40 | neutral |
+
+**Other authored/supplemental links**
+
+- Practice — [House Robber III](<https://leetcode.com/problems/house-robber-iii/>) (LeetCode, medium)
+- Practice — [Tree Matching](<https://cses.fi/problemset/task/1130>) (CSES, medium)
+- Practice — [Binary Tree Cameras](<https://leetcode.com/problems/binary-tree-cameras/>) (LeetCode, hard)
+- Practice — [Longest Univalue Path](<https://leetcode.com/problems/longest-univalue-path/>) (LeetCode, medium)
+- Practice — [Binary Tree Maximum Path Sum](<https://leetcode.com/problems/binary-tree-maximum-path-sum/>) (LeetCode, hard)
+- Practice — [Distribute Coins in Binary Tree](<https://leetcode.com/problems/distribute-coins-in-binary-tree/>) (LeetCode, medium)
+- Roadmap — [Binary Trees](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/binary-trees@RPU5CGp2Li5lk0UB-zNHT.md>)
+- Roadmap — [Tree Traversal](<https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/tree-traversal@2Od5lNc6fCM6Gyj_axj4n.md>)
 
 ##### Bit manipulation — `dsa:bit-manipulation`
 
@@ -3350,6 +3628,7 @@ Every row below is a stored native problem. Test counts are from the current loc
 | zero | [Word frequency](<D:/Socrat/content/courses/zero/problems/word-frequency.yaml>) (`word-frequency`) | maps | easy | 2 / 3 | 2 / 9 | python | no / no | not recorded |
 | dsa | [Balance point](<D:/Socrat/content/courses/dsa/problems/balance-point.yaml>) (`balance-point`) | prefix-sums | easy | 2 / 3 | 2 / 10 | python | yes / yes | not recorded |
 | dsa | [Balanced brackets](<D:/Socrat/content/courses/dsa/problems/balanced-brackets.yaml>) (`balanced-brackets`) | stacks | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
+| dsa | [Balanced splits](<D:/Socrat/content/courses/dsa/problems/balanced-splits.yaml>) (`balanced-splits`) | tree-patterns | medium | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Validate a BST](<D:/Socrat/content/courses/dsa/problems/bst-validate.yaml>) (`bst-validate`) | bst | medium | 1 / 3 | 1 / 4 | python | no / no | not recorded |
 | dsa | [Bundles of stickers](<D:/Socrat/content/courses/dsa/problems/bundle-count.yaml>) (`bundle-count`) | knapsack-unbounded | medium | 2 / 3 | 2 / 12 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Jump to the end](<D:/Socrat/content/courses/dsa/problems/can-reach-end.yaml>) (`can-reach-end`) | greedy | medium | 2 / 3 | 2 / 12 | python | no / no | not recorded |
@@ -3378,14 +3657,18 @@ Every row below is a stored native problem. Test counts are from the current loc
 | dsa | [Matching sock pairs](<D:/Socrat/content/courses/dsa/problems/matching-pairs.yaml>) (`matching-pairs`) | complexity | easy | 1 / 3 | 1 / 9 | python | yes / yes | not recorded |
 | dsa | [Most mentoring sessions](<D:/Socrat/content/courses/dsa/problems/max-meetings.yaml>) (`max-meetings`) | greedy | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Best k-day streak](<D:/Socrat/content/courses/dsa/problems/max-window-sum.yaml>) (`max-window-sum`) | sliding-window | easy | 2 / 3 | 2 / 10 | python | no / no | not recorded |
+| dsa | [Fence around the meadow](<D:/Socrat/content/courses/dsa/problems/meadow-fence.yaml>) (`meadow-fence`) | dp-squares | medium | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Merge study sessions](<D:/Socrat/content/courses/dsa/problems/merge-intervals.yaml>) (`merge-intervals`) | intervals | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 | dsa | [Fewest coins](<D:/Socrat/content/courses/dsa/problems/min-coins.yaml>) (`min-coins`) | dp-1d | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [N-Queens](<D:/Socrat/content/courses/dsa/problems/n-queens-count.yaml>) (`n-queens-count`) | backtracking | hard | 2 / 3 | 2 / 9 | python | no / no | not recorded |
+| dsa | [Shortest walk to a leaf](<D:/Socrat/content/courses/dsa/problems/nearest-leaf.yaml>) (`nearest-leaf`) | tree-patterns | medium | 2 / 3 | 2 / 9 | python,cpp,java | yes / yes | not recorded |
+| dsa | [Nearest taller neighbour](<D:/Socrat/content/courses/dsa/problems/nearest-taller-either-side.yaml>) (`nearest-taller-either-side`) | monotonic-stack | medium | 2 / 3 | 2 / 12 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Days until warmer](<D:/Socrat/content/courses/dsa/problems/next-greater.yaml>) (`next-greater`) | stacks | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Next taller building](<D:/Socrat/content/courses/dsa/problems/next-taller-building.yaml>) (`next-taller-building`) | stacks | medium | 1 / 3 | 1 / 9 | python | yes / yes | not recorded |
 | dsa | [Growing friend groups](<D:/Socrat/content/courses/dsa/problems/online-components.yaml>) (`online-components`) | union-find | medium | 1 / 3 | 1 / 10 | python | no / no | not recorded |
 | dsa | [Pair sum in a sorted array](<D:/Socrat/content/courses/dsa/problems/pair-sum-sorted.yaml>) (`pair-sum-sorted`) | two-pointers | easy | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Palindrome trimming](<D:/Socrat/content/courses/dsa/problems/palindrome-trim.yaml>) (`palindrome-trim`) | dp-lcs | medium | 2 / 3 | 2 / 12 | python,cpp,java | yes / yes | not recorded |
+| dsa | [Peak totals](<D:/Socrat/content/courses/dsa/problems/peak-totals.yaml>) (`peak-totals`) | monotonic-stack | medium | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Playlist editor](<D:/Socrat/content/courses/dsa/problems/playlist-editor.yaml>) (`playlist-editor`) | linked-lists | medium | 1 / 3 | 1 / 10 | python | no / no | not recorded |
 | dsa | [Autocomplete counts](<D:/Socrat/content/courses/dsa/problems/prefix-counts.yaml>) (`prefix-counts`) | tries | medium | 1 / 3 | 1 / 9 | python | no / no | not recorded |
 | dsa | [Range sum queries](<D:/Socrat/content/courses/dsa/problems/range-sum-queries.yaml>) (`range-sum-queries`) | prefix-sums | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
@@ -3395,8 +3678,10 @@ Every row below is a stored native problem. Test counts are from the current loc
 | dsa | [Shortest stretch to reach a goal](<D:/Socrat/content/courses/dsa/problems/shortest-fundraiser.yaml>) (`shortest-fundraiser`) | sliding-window | medium | 2 / 3 | 2 / 9 | python | yes / yes | not recorded |
 | dsa | [Signal splits](<D:/Socrat/content/courses/dsa/problems/signal-splits.yaml>) (`signal-splits`) | dp-partition | medium | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
 | dsa | [The unpaired badge](<D:/Socrat/content/courses/dsa/problems/single-number.yaml>) (`single-number`) | bit-manipulation | easy | 2 / 3 | 2 / 9 | python | no / no | not recorded |
+| dsa | [Solar panel plots](<D:/Socrat/content/courses/dsa/problems/solar-squares.yaml>) (`solar-squares`) | dp-squares | medium | 2 / 3 | 2 / 12 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Squares in order](<D:/Socrat/content/courses/dsa/problems/sorted-squares.yaml>) (`sorted-squares`) | two-pointers | easy | 1 / 3 | 1 / 8 | python | yes / yes | not recorded |
 | dsa | [Stepping stones](<D:/Socrat/content/courses/dsa/problems/stepping-stones-path.yaml>) (`stepping-stones-path`) | dp-introduction | medium | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
+| dsa | [Street lamps on a tree](<D:/Socrat/content/courses/dsa/problems/street-lamps.yaml>) (`street-lamps`) | dp-on-trees | hard | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Subarrays summing to K](<D:/Socrat/content/courses/dsa/problems/subarray-sum-k.yaml>) (`subarray-sum-k`) | prefix-sums | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Subsets with target sum](<D:/Socrat/content/courses/dsa/problems/subset-sum-count.yaml>) (`subset-sum-count`) | backtracking | medium | 2 / 3 | 2 / 11 | python | no / no | not recorded |
 | dsa | [Triangle number queries](<D:/Socrat/content/courses/dsa/problems/sum-queries.yaml>) (`sum-queries`) | complexity | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
@@ -3408,6 +3693,7 @@ Every row below is a stored native problem. Test counts are from the current loc
 | dsa | [Priced typo fixes](<D:/Socrat/content/courses/dsa/problems/typo-costs.yaml>) (`typo-costs`) | dp-edit-distance | medium | 2 / 3 | 2 / 12 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Anagram check](<D:/Socrat/content/courses/dsa/problems/valid-anagram.yaml>) (`valid-anagram`) | arrays-hashing | easy | 1 / 3 | 1 / 8 | python | no / no | not recorded |
 | dsa | [Warehouse trading](<D:/Socrat/content/courses/dsa/problems/warehouse-trading.yaml>) (`warehouse-trading`) | dp-stocks | medium | 2 / 3 | 2 / 12 | python,cpp,java | yes / yes | not recorded |
+| dsa | [Watchtowers on the trails](<D:/Socrat/content/courses/dsa/problems/watchtowers.yaml>) (`watchtowers`) | dp-on-trees | medium | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Shared playlist](<D:/Socrat/content/courses/dsa/problems/weighted-common-playlist.yaml>) (`weighted-common-playlist`) | dp-lcs | medium | 2 / 3 | 2 / 11 | python,cpp,java | yes / yes | not recorded |
 | dsa | [Whole-number square root](<D:/Socrat/content/courses/dsa/problems/whole-square-root.yaml>) (`whole-square-root`) | binary-search | medium | 1 / 3 | 1 / 3 | python | yes / yes | not recorded |
 | dsa | [Wildcard sightings](<D:/Socrat/content/courses/dsa/problems/wildcard-sightings.yaml>) (`wildcard-sightings`) | dp-edit-distance | medium | 2 / 3 | 2 / 12 | python,cpp,java | yes / yes | not recorded |
@@ -3440,7 +3726,7 @@ Every row below is a stored native problem. Test counts are from the current loc
 | cp | [Huge staircase totals](<D:/Socrat/content/courses/cp/problems/triangular-mod.yaml>) (`triangular-mod`) | modular-arithmetic | medium | 1 / 3 | 1 / 4 | python | yes / yes | not recorded |
 | cp | [Subarrays with XOR k](<D:/Socrat/content/courses/cp/problems/xor-subarrays.yaml>) (`xor-subarrays`) | bitmasks | medium | 2 / 3 | 2 / 10 | python | no / no | not recorded |
 
-**Native bank totals:** 130 problems; 214 sample examples; 388 hints; 214 public and 1257 hidden cached tests. Every problem has a Python reference and input generator. Only 47 have a brute/small-generator pair and C++/Java authored references. Only 4 have explicit per-language starters; the runtime otherwise supplies generic starters. Two problems record Owner review on 2026-10-13: `echo-reading` and `next-counter`. Other review status is unestablished by these YAMLs.
+**Native bank totals:** 138 problems; 230 sample examples; 412 hints; 230 public and 1345 hidden cached tests. Every problem has a Python reference and input generator. Only 55 have a brute/small-generator pair and C++/Java authored references. Only 4 have explicit per-language starters; the runtime otherwise supplies generic starters. Two problems record Owner review on 2026-10-13: `echo-reading` and `next-counter`. Other review status is unestablished by these YAMLs.
 
 ## 6. External practice bank: sources, subjects and raw tags
 
@@ -3691,7 +3977,7 @@ The handbook is [Competitive Programmer's Handbook](<https://cses.fi/book/book.p
 
 ## 7. Teaching atoms, language coverage and content depth
 
-Controlled misconception IDs: `syntax-delimiters`; `programs-and-output-repair`; `variables-and-types-repair`; `input-and-arithmetic-repair`; `conditionals-repair`; `boolean-logic-repair`; `while-loops-repair`; `for-loops-repair`; `nested-loops-repair`; `lists-repair`; `strings-repair`; `complexity-repair`; `arrays-hashing-repair`; `prefix-sums-repair`; `two-pointers-repair`; `sliding-window-repair`; `stacks-repair`; `binary-search-repair`; `sorting-repair`; `intervals-repair`; `greedy-repair`; `fast-io-repair`; `simulation-repair`; `complete-search-repair`; `number-theory-repair`; `modular-arithmetic-repair`; `combinatorics-repair`; `prefix-difference-repair`; `binary-search-answer-repair`; `greedy-cp-repair`; `bitmasks-repair`; `window-off-by-one`; `stop-after-first`; `confuse-index-value`; `lower-vs-upper-bound`; `half-open-bound`; `exclude-candidate-mid`; `lo-hi-confusion`; `off-by-one-output`; `overwrite-not-accumulate`; `count-not-sum`; `bound-instead-of-variable`; `product-not-sum`; `accumulator-init-one`; `accumulator-starts-at-first`; `accumulator-starts-at-bound`; `loop-bound-off-by-one`; `trace-step-slip`; `shrink-with-if`; `window-length-off-by-one`; `stale-window-summary`; `window-sum-not-length`; `window-rule-boundary`; `drop-wrong-end`; `reset-instead-of-shrink`; `overwrite-best`; `skip-first-element`; `window-with-negatives`; `pattern-fixed-vs-variable-window`; `pattern-window-vs-prefix-sums`; `pattern-window-vs-two-pointers`; `pattern-window-for-single-item`; `pattern-brute-force-default`; `pattern-sort-breaks-order`; `pattern-search-vs-scan`; `stale-zero-count`; `k-distinct-boundary`; `exactly-vs-at-most`; `distinct-count-not-length`; `shrink-too-far`; `predicate-boundary`; `predicate-inverted`; `predicate-wrong-variable`; `predicate-not-monotone`; `predicate-average-shortcut`; `answer-max-not-min`; `ceil-vs-floor`; `rate-inverted`; `search-range-confusion`; `pattern-search-needs-sorted-input`; `greedy-coin-change`; `count-vs-min`; `dp-missing-plus-one`; `dp-wrong-subproblem`; `count-vs-sum`; `coin-equals-amount`; `dp-overwrite-min`; `min-vs-max`; `missing-unreachable-check`; `dp-vague-state`; `dp-loop-order`; `unbounded-vs-01`; `top-k-direction`; `top-k-returns-max`; `heap-size-off-by-one`; `heap-negation-confusion`; `heap-size-vs-input-size`; `top-k-distinct-confusion`; `filter-boundary`; `filter-ignored`; `filter-inverted`; `filter-wrong-test`; `reset-inside-loop`; `filter-empty-crash`; `filter-running-average`; `distinct-vs-frequency`; `count-all-not-each`; `first-char-only`; `frequency-single-bucket`; `double-count`; `case-insensitive-assumption`; `tie-break-ignored`; `order-matters-assumption`; `frequency-max-only`; `missing-prefix-sum`; `diff-end-off-by-one`; `diff-sign-error`; `diff-missing-end`; `diff-wrong-endpoint`; `diff-online-queries`; `power-as-multiply`; `fast-power-step`; `mod-wrong-modulus`; `fast-power-parity`; `fast-power-wrong-variable`; `fast-power-base-not-square`; `sum-not-product`; `square-vs-double`; `product-init-zero`; `mod-only-at-end`; `power-as-repeat`; `mod-division`; `exact-vs-at-least`; `subset-count-off-by-one`; `subsets-vs-elements`; `skip-empty-subset`; `bit-test-wrong`; `bit-test-missing-and`; `missing-reset`; `subsets-linear`; `greedy-partition`; `dp-recompute-subproblems`; `dp-memo-not-stored`; `dp-wrong-base-case`; `dp-no-overlap`; `dp-greedy-local-choice`; `dp-compressed-loses-path`; `dp-reconstruct-forward`; `dp-count-vs-exists`; `dp-rolling-update-order`; `sum-instead-of-term`; `pattern-ordered-vs-unordered-ways`; `pattern-dp-vs-greedy`; `pattern-value-vs-choice`; `knapsack-forward-capacity-loop`; `knapsack-greedy-ratio`; `knapsack-capacity-boundary`; `knapsack-weight-for-value`; `knapsack-always-take`; `knapsack-ignore-capacity`; `knapsack-single-item`; `knapsack-zero-skipped`; `subset-sum-empty-base`; `partition-odd-total`; `partition-half-not-difference`; `count-target-transform`; `two-capacity-one-loop`; `pattern-01-vs-unbounded-knapsack`; `pattern-subset-vs-subarray`; `pattern-partition-greedy-vs-dp`; `pattern-count-vs-exists`; `pattern-two-budgets-vs-two-bags`; `unbounded-advance-after-take`; `exact-capacity-zero-init`; `coin-min-zero-init`; `pattern-exact-vs-at-most-capacity`; `lcs-greedy-match`; `lcs-mismatch-diagonal`; `lcs-index-offset`; `scs-forget-lcs`; `lps-fill-order`; `pattern-subsequence-vs-substring`; `pattern-two-pointers-vs-lcs`; `pattern-palindrome-subsequence-vs-substring`; `edit-base-zero`; `edit-missing-replace`; `edit-match-costs-one`; `edit-position-compare`; `distinct-subseq-forward-loop`; `wildcard-star-one-char`; `interleave-length-check`; `palindrome-odd-centres-only`; `pattern-edit-vs-lcs-deletions`; `pattern-wildcard-vs-regex-star`; `stock-greedy-runs`; `stock-sell-before-buy`; `stock-unlimited-when-limited`; `stock-buy-wrong-count`; `stock-sell-sign`; `stock-hold-init-zero`; `stock-cooldown-yesterday`; `stock-fee-twice`; `pattern-stock-unlimited-vs-limited`; `lis-greedy-extend`; `lis-answer-last-cell`; `lis-non-strict-compare`; `lis-compare-direction`; `lis-tails-is-sequence`; `lis-upper-vs-lower`; `lis-envelope-tie-order`; `pattern-strict-vs-nondecreasing-lis`; `pattern-sort-then-lis`; `mcm-length-order`; `mcm-cost-index`; `mcm-greedy-order`; `cut-unsorted-positions`; `burst-first-not-last`; `boolean-true-only`; `front-greedy-longest`; `pattern-interval-vs-front-partition`; `bitmask-greedy-assign`; `bitmask-check-bit`; `bitmask-worker-index`; `game-greedy-end`; `game-own-score-only`; `state-forgets-rule`; `digit-ignore-tight`; `pattern-bitmask-vs-knapsack`; `pattern-game-greedy-vs-minimax`; `pattern-state-remembers-rules`; `pattern-digit-dp-vs-brute-force`.
+Controlled misconception IDs: `syntax-delimiters`; `programs-and-output-repair`; `variables-and-types-repair`; `input-and-arithmetic-repair`; `conditionals-repair`; `boolean-logic-repair`; `while-loops-repair`; `for-loops-repair`; `nested-loops-repair`; `lists-repair`; `strings-repair`; `complexity-repair`; `arrays-hashing-repair`; `prefix-sums-repair`; `two-pointers-repair`; `sliding-window-repair`; `stacks-repair`; `binary-search-repair`; `sorting-repair`; `intervals-repair`; `greedy-repair`; `fast-io-repair`; `simulation-repair`; `complete-search-repair`; `number-theory-repair`; `modular-arithmetic-repair`; `combinatorics-repair`; `prefix-difference-repair`; `binary-search-answer-repair`; `greedy-cp-repair`; `bitmasks-repair`; `window-off-by-one`; `stop-after-first`; `confuse-index-value`; `lower-vs-upper-bound`; `half-open-bound`; `exclude-candidate-mid`; `lo-hi-confusion`; `off-by-one-output`; `overwrite-not-accumulate`; `count-not-sum`; `bound-instead-of-variable`; `product-not-sum`; `accumulator-init-one`; `accumulator-starts-at-first`; `accumulator-starts-at-bound`; `loop-bound-off-by-one`; `trace-step-slip`; `shrink-with-if`; `window-length-off-by-one`; `stale-window-summary`; `window-sum-not-length`; `window-rule-boundary`; `drop-wrong-end`; `reset-instead-of-shrink`; `overwrite-best`; `skip-first-element`; `window-with-negatives`; `pattern-fixed-vs-variable-window`; `pattern-window-vs-prefix-sums`; `pattern-window-vs-two-pointers`; `pattern-window-for-single-item`; `pattern-brute-force-default`; `pattern-sort-breaks-order`; `pattern-search-vs-scan`; `stale-zero-count`; `k-distinct-boundary`; `exactly-vs-at-most`; `distinct-count-not-length`; `shrink-too-far`; `predicate-boundary`; `predicate-inverted`; `predicate-wrong-variable`; `predicate-not-monotone`; `predicate-average-shortcut`; `answer-max-not-min`; `ceil-vs-floor`; `rate-inverted`; `search-range-confusion`; `pattern-search-needs-sorted-input`; `greedy-coin-change`; `count-vs-min`; `dp-missing-plus-one`; `dp-wrong-subproblem`; `count-vs-sum`; `coin-equals-amount`; `dp-overwrite-min`; `min-vs-max`; `missing-unreachable-check`; `dp-vague-state`; `dp-loop-order`; `unbounded-vs-01`; `top-k-direction`; `top-k-returns-max`; `heap-size-off-by-one`; `heap-negation-confusion`; `heap-size-vs-input-size`; `top-k-distinct-confusion`; `filter-boundary`; `filter-ignored`; `filter-inverted`; `filter-wrong-test`; `reset-inside-loop`; `filter-empty-crash`; `filter-running-average`; `distinct-vs-frequency`; `count-all-not-each`; `first-char-only`; `frequency-single-bucket`; `double-count`; `case-insensitive-assumption`; `tie-break-ignored`; `order-matters-assumption`; `frequency-max-only`; `missing-prefix-sum`; `diff-end-off-by-one`; `diff-sign-error`; `diff-missing-end`; `diff-wrong-endpoint`; `diff-online-queries`; `power-as-multiply`; `fast-power-step`; `mod-wrong-modulus`; `fast-power-parity`; `fast-power-wrong-variable`; `fast-power-base-not-square`; `sum-not-product`; `square-vs-double`; `product-init-zero`; `mod-only-at-end`; `power-as-repeat`; `mod-division`; `exact-vs-at-least`; `subset-count-off-by-one`; `subsets-vs-elements`; `skip-empty-subset`; `bit-test-wrong`; `bit-test-missing-and`; `missing-reset`; `subsets-linear`; `greedy-partition`; `dp-recompute-subproblems`; `dp-memo-not-stored`; `dp-wrong-base-case`; `dp-no-overlap`; `dp-greedy-local-choice`; `dp-compressed-loses-path`; `dp-reconstruct-forward`; `dp-count-vs-exists`; `dp-rolling-update-order`; `sum-instead-of-term`; `pattern-ordered-vs-unordered-ways`; `pattern-dp-vs-greedy`; `pattern-value-vs-choice`; `knapsack-forward-capacity-loop`; `knapsack-greedy-ratio`; `knapsack-capacity-boundary`; `knapsack-weight-for-value`; `knapsack-always-take`; `knapsack-ignore-capacity`; `knapsack-single-item`; `knapsack-zero-skipped`; `subset-sum-empty-base`; `partition-odd-total`; `partition-half-not-difference`; `count-target-transform`; `two-capacity-one-loop`; `pattern-01-vs-unbounded-knapsack`; `pattern-subset-vs-subarray`; `pattern-partition-greedy-vs-dp`; `pattern-count-vs-exists`; `pattern-two-budgets-vs-two-bags`; `unbounded-advance-after-take`; `exact-capacity-zero-init`; `coin-min-zero-init`; `pattern-exact-vs-at-most-capacity`; `lcs-greedy-match`; `lcs-mismatch-diagonal`; `lcs-index-offset`; `scs-forget-lcs`; `lps-fill-order`; `pattern-subsequence-vs-substring`; `pattern-two-pointers-vs-lcs`; `pattern-palindrome-subsequence-vs-substring`; `edit-base-zero`; `edit-missing-replace`; `edit-match-costs-one`; `edit-position-compare`; `distinct-subseq-forward-loop`; `wildcard-star-one-char`; `interleave-length-check`; `palindrome-odd-centres-only`; `pattern-edit-vs-lcs-deletions`; `pattern-wildcard-vs-regex-star`; `stock-greedy-runs`; `stock-sell-before-buy`; `stock-unlimited-when-limited`; `stock-buy-wrong-count`; `stock-sell-sign`; `stock-hold-init-zero`; `stock-cooldown-yesterday`; `stock-fee-twice`; `pattern-stock-unlimited-vs-limited`; `lis-greedy-extend`; `lis-answer-last-cell`; `lis-non-strict-compare`; `lis-compare-direction`; `lis-tails-is-sequence`; `lis-upper-vs-lower`; `lis-envelope-tie-order`; `pattern-strict-vs-nondecreasing-lis`; `pattern-sort-then-lis`; `mcm-length-order`; `mcm-cost-index`; `mcm-greedy-order`; `cut-unsorted-positions`; `burst-first-not-last`; `boolean-true-only`; `front-greedy-longest`; `pattern-interval-vs-front-partition`; `bitmask-greedy-assign`; `bitmask-check-bit`; `bitmask-worker-index`; `game-greedy-end`; `game-own-score-only`; `state-forgets-rule`; `digit-ignore-tight`; `pattern-bitmask-vs-knapsack`; `pattern-game-greedy-vs-minimax`; `pattern-state-remembers-rules`; `pattern-digit-dp-vs-brute-force`; `mono-max-to-the-right`; `mono-strictness`; `mono-wrong-direction`; `mono-neighbour-only`; `mono-top-vs-bottom`; `mono-answer-wrong-element`; `mono-stores-value-not-index`; `histogram-tallest-only`; `histogram-width-off-by-one`; `histogram-no-sentinel`; `contribution-tie-rule`; `deque-no-expiry`; `pattern-next-greater-vs-max-right`; `pattern-stack-vs-deque`; `tree-return-both-branches`; `tree-negative-branch`; `tree-best-only-downward`; `tree-sum-all`; `tree-only-downward-search`; `tree-view-right-children-only`; `tree-one-child-is-leaf`; `tree-pass-down-vs-return-up`; `lca-not-self`; `lca-lift-before-equal`; `bfs-no-visited`; `tree-width-counts-nodes`; `tree-width-overflow`; `pattern-return-vs-record`; `sq-missing-diagonal`; `sq-side-not-area`; `sq-one-row-left-stale`; `sq-zero-cell-kept`; `histogram-no-reset`; `pattern-square-vs-rectangle`; `rob-alternate-levels`; `rob-take-adds-take`; `rob-skip-forces-take`; `rob-answer-take-only`; `path-skip-blocked-subtree`; `cover-two-states-only`; `cover-leaves-greedy`; `cover-root-uncovered`; `pattern-one-answer-vs-states`.
 
 | Atom kind | Instances |
 | --- | --- |
@@ -3712,13 +3998,13 @@ The 279 atom instances have 127 distinct normalized body strings. Shared/templat
 | Course | Released packs | Topics without packs | Atoms | Atom adapters P/C/J | Concept quizzes mcq/output/bug | Native easy/medium/hard |
 | --- | --- | --- | --- | --- | --- | --- |
 | Programming from Zero | 10 | 8 | 93 | 23/23/23 | 63/34/1 | 27/12/0 |
-| DSA for Interviews | 10 | 22 | 93 | 22/22/22 | 172/7/2 | 12/49/2 |
+| DSA for Interviews | 10 | 26 | 93 | 22/22/22 | 203/8/2 | 12/56/3 |
 | Competitive Programming | 10 | 10 | 93 | 22/22/22 | 79/0/0 | 6/17/5 |
 
 **No teaching-atom pack yet (standard lessons/quizzes still exist):**
 
 - **Programming from Zero:** Classes and objects (`zero:classes-and-objects`); Debugging calmly (`zero:debugging`); Functions (`zero:functions`); Grids and 2D lists (`zero:grids`); Dictionaries and maps (`zero:maps`); Solving unfamiliar problems (`zero:problem-solving`); Recursion (`zero:recursion`); Scope, references and mutation (`zero:scope-and-mutation`)
-- **DSA for Interviews:** Backtracking (`dsa:backtracking`); Binary trees (`dsa:binary-trees`); Bit manipulation (`dsa:bit-manipulation`); Binary search trees (`dsa:bst`); Dynamic programming (1D) (`dsa:dp-1d`); Dynamic programming (2D) (`dsa:dp-2d`); More interview DP patterns (`dsa:dp-advanced-patterns`); Strings DP: edits and matching (`dsa:dp-edit-distance`); Dynamic programming: the idea (`dsa:dp-introduction`); Strings DP: the LCS family (`dsa:dp-lcs`); Longest increasing subsequence family (`dsa:dp-lis`); Partition DP (matrix chain) (`dsa:dp-partition`); Stock trading DP (`dsa:dp-stocks`); Graphs, BFS and DFS (`dsa:graph-traversal`); Heaps and priority queues (`dsa:heaps`); 0/1 knapsack family (`dsa:knapsack-01`); Unbounded knapsack family (`dsa:knapsack-unbounded`); Linked lists (`dsa:linked-lists`); Weighted shortest paths (`dsa:shortest-paths`); Topological sort (`dsa:topological-sort`); Tries (prefix trees) (`dsa:tries`); Union-Find (Disjoint Set Union) (`dsa:union-find`)
+- **DSA for Interviews:** Backtracking (`dsa:backtracking`); Binary trees (`dsa:binary-trees`); Bit manipulation (`dsa:bit-manipulation`); Binary search trees (`dsa:bst`); Dynamic programming (1D) (`dsa:dp-1d`); Dynamic programming (2D) (`dsa:dp-2d`); More interview DP patterns (`dsa:dp-advanced-patterns`); Strings DP: edits and matching (`dsa:dp-edit-distance`); Dynamic programming: the idea (`dsa:dp-introduction`); Strings DP: the LCS family (`dsa:dp-lcs`); Longest increasing subsequence family (`dsa:dp-lis`); DP on trees (`dsa:dp-on-trees`); Partition DP (matrix chain) (`dsa:dp-partition`); DP on squares and rectangles (`dsa:dp-squares`); Stock trading DP (`dsa:dp-stocks`); Graphs, BFS and DFS (`dsa:graph-traversal`); Heaps and priority queues (`dsa:heaps`); 0/1 knapsack family (`dsa:knapsack-01`); Unbounded knapsack family (`dsa:knapsack-unbounded`); Linked lists (`dsa:linked-lists`); Monotonic stack and deque (`dsa:monotonic-stack`); Weighted shortest paths (`dsa:shortest-paths`); Topological sort (`dsa:topological-sort`); Binary tree patterns (`dsa:tree-patterns`); Tries (prefix trees) (`dsa:tries`); Union-Find (Disjoint Set Union) (`dsa:union-find`)
 - **Competitive Programming:** Bitmask DP (`cp:bitmask-dp`); Classic contest DPs (`cp:dp-classics`); Fenwick tree (Binary Indexed Tree) (`cp:fenwick-tree`); Graph techniques for contests (`cp:graph-techniques`); Prefix function and KMP (`cp:kmp`); Lowest common ancestor and binary lifting (`cp:lca`); Minimum spanning trees (`cp:mst`); Segment trees (`cp:segment-tree`); String hashing (`cp:string-hashing`); Tree techniques (`cp:tree-techniques`)
 
 ### Language-specific access
@@ -3726,7 +4012,7 @@ The 279 atom instances have 127 distinct normalized body strings. Shared/templat
 | Course | Resources available Python/C++/Java | Lessons containing Python/C++/Java code fences | Quiz code records Python/C++/Java |
 | --- | --- | --- | --- |
 | Programming from Zero | 42/39/37 | 17/16/16 | 34/18/18 |
-| DSA for Interviews | 109/108/108 | 32/32/32 | 10/8/8 |
+| DSA for Interviews | 121/120/120 | 36/36/36 | 11/9/9 |
 | Competitive Programming | 61/61/61 | 20/20/20 | 0/0/0 |
 
 Language-neutral resource and atom records can serve multiple language choices. Code-fence counts indicate literal examples present, not proof of compiled/correct translations. No stored course-owned PDF, notebook, audio or instructional video file was found in `content/`; videos, books and visualizers in resources are links. Tracked archived demo `.webm` files are product walkthroughs, not course lessons. Learner-requested AI explainers and lesson variants are runtime features; their private/generated database outputs were not queried or counted as an authored corpus.
@@ -3754,7 +4040,9 @@ Language-neutral resource and atom records can serve multiple language choices. 
 | dsa:dp-introduction | 2 | 0 | 0 | 0 |
 | dsa:dp-lcs | 2 | 0 | 0 | 0 |
 | dsa:dp-lis | 2 | 0 | 0 | 0 |
+| dsa:dp-on-trees | 2 | 0 | 0 | 0 |
 | dsa:dp-partition | 2 | 0 | 0 | 0 |
+| dsa:dp-squares | 2 | 0 | 0 | 0 |
 | dsa:dp-stocks | 2 | 0 | 0 | 0 |
 | dsa:graph-traversal | 2 | 367 | 1384 | 0 |
 | dsa:heaps | 1 | 155 | 201 | 0 |
@@ -3762,8 +4050,10 @@ Language-neutral resource and atom records can serve multiple language choices. 
 | dsa:knapsack-01 | 2 | 0 | 0 | 0 |
 | dsa:knapsack-unbounded | 2 | 0 | 0 | 0 |
 | dsa:linked-lists | 1 | 49 | 75 | 0 |
+| dsa:monotonic-stack | 2 | 0 | 0 | 0 |
 | dsa:shortest-paths | 1 | 327 | 331 | 0 |
 | dsa:topological-sort | 1 | 42 | 42 | 0 |
+| dsa:tree-patterns | 2 | 0 | 0 | 0 |
 | dsa:tries | 1 | 56 | 56 | 0 |
 | dsa:union-find | 1 | 402 | 492 | 0 |
 | cp:binary-search-answer | 1 | 699 | 1243 | 9 |
@@ -3785,10 +4075,10 @@ Other observed limits:
 
 - Only three course manifests exist. There is no active SQL, Git, web-development, data-science or general mathematics course. Contest math is a module of Competitive Programming. Foundry's synthetic SQL/Git test fixtures are not real published courses.
 - Native practice coverage ranges from zero to two concept-linked problems. One topic has zero: zero:scope-and-mutation. 25 concepts have fewer than two. Large external pools do not fill a local unseen/controlled judge-bank requirement automatically.
-- 40/70 concepts lack atom packs, including most later DSA/CP material. A stored lesson is not equivalent to a complete released sequence of worked/faded/visual/repair teaching atoms.
-- 358 concept quizzes are reused by multiple activity types; there is no distinct authored bug-kind concept quiz (debug atoms are a separate category). No independent psychometric/difficulty calibration or learning-outcome evidence was audited.
-- 128/130 native problems lack an explicit review block and lack authored brute/small-generator and C++/Java reference pairs. Current generated-cache validity does not prove all correctness/maximum-input/multi-language quality gates were run.
-- 70 lesson files and their quiz items have no per-item source/license/reviewer fields. Resource publisher URLs identify recommended material, not the provenance of local explanation text.
+- 44/74 concepts lack atom packs, including most later DSA/CP material. A stored lesson is not equivalent to a complete released sequence of worked/faded/visual/repair teaching atoms.
+- 390 concept quizzes are reused by multiple activity types; there is no distinct authored bug-kind concept quiz (debug atoms are a separate category). No independent psychometric/difficulty calibration or learning-outcome evidence was audited.
+- 136/138 native problems lack an explicit review block and lack authored brute/small-generator and C++/Java reference pairs. Current generated-cache validity does not prove all correctness/maximum-input/multi-language quality gates were run.
+- 74 lesson files and their quiz items have no per-item source/license/reviewer fields. Resource publisher URLs identify recommended material, not the provenance of local explanation text.
 - External sources are primarily recorded as links/metadata. No general indexed licensed article/book corpus is established by these catalog files. Provider robots/ToS/license validity, link health, video availability and mutable-source freshness remain unverified in this audit.
 - External topic and implementation mappings are heuristic, not per-record instructional review. Company recency/frequency values are snapshot metadata. The full original Striver curriculum, complete Developer Roadmap prose, and book chapter bodies are not imported local courses.
 - The historical launch backlog mentions a different-branch 5,779-record/429-company resource pool under contracts/resource-pool. That path is absent in this checkout; those historical counts are excluded rather than merged with the current bank.
@@ -3802,22 +4092,22 @@ The default `.cache/foundry-snapshots` directory was absent at audit time. No li
 
 ## 10. Validation, reproducibility and inventory file map
 
-Read-only checks passed: authoring schemas, global prerequisite DAG/references, atom-pack schemas/version linkage, runtime catalog loading from existing test caches, source-cache hashes for all 130 problems, external concept references and company problem IDs. The runtime load read 1471 cached tests. Reference programs, generators, importers, LLMs and source fetchers were not executed. No frontend files or learning content were edited; no push was performed.
+Read-only checks passed: authoring schemas, global prerequisite DAG/references, atom-pack schemas/version linkage, runtime catalog loading from existing test caches, source-cache hashes for all 138 problems, external concept references and company problem IDs. The runtime load read 1575 cached tests. Reference programs, generators, importers, LLMs and source fetchers were not executed. No frontend files or learning content were edited; no push was performed.
 
-Active `content/` scan: **410 files** (7,923,685 bytes). Composite SHA-256 of sorted path→file-hash mapping: `ec690113091ab01cf826d665c39742d4ff4c24c928eaeaf6e7b6ffe6631dca9e`. This fingerprint excludes generated caches, fixtures, code and this report. Word counts split on whitespace and include inline code/Markdown. Atom uniqueness collapses whitespace in `body` only. URL uniqueness uses exact stored/resolved URL strings, not semantic page equivalence.
+Active `content/` scan: **446 files** (8,243,452 bytes). Composite SHA-256 of sorted path→file-hash mapping: `df44752d400e12420cb9a15d9d8be21db61df659af1ab338b9e26793c64553ce`. This fingerprint excludes generated caches, fixtures, code and this report. Word counts split on whitespace and include inline code/Markdown. Atom uniqueness collapses whitespace in `body` only. URL uniqueness uses exact stored/resolved URL strings, not semantic page equivalence.
 
 | Inventory record type | CSV rows |
 | --- | --- |
 | course | 3 |
 | module | 19 |
-| lesson | 70 |
-| lesson_section | 848 |
-| quiz | 358 |
-| course_resource | 238 |
-| practice_link | 223 |
-| native_problem | 130 |
+| lesson | 74 |
+| lesson_section | 992 |
+| quiz | 390 |
+| course_resource | 250 |
+| practice_link | 255 |
+| native_problem | 138 |
 | teaching_atom | 279 |
-| roadmap_link | 109 |
+| roadmap_link | 115 |
 | python_exercise_link | 35 |
 | book_chapter_link | 47 |
 | implementation_link | 538 |
@@ -3843,10 +4133,10 @@ CSV fields include stable record ID, asset type, course/module/concept IDs, prim
 
 ### Snapshot history (Git commit metadata, not source-fetch timestamps)
 
-- `content/courses`: a974e0d \| 2026-10-23T22:05:10+05:30 \| content(dsa): dp-advanced-patterns: bitmask subsets, game minimax, state-machine counting, digit DP
-- `content/atoms`: a974e0d \| 2026-10-23T22:05:10+05:30 \| content(dsa): dp-advanced-patterns: bitmask subsets, game minimax, state-machine counting, digit DP
+- `content/courses`: c2af5b4 \| 2026-10-23T23:26:49+05:30 \| content(dsa): dp-on-trees: rob or skip, path through a node, cover states
+- `content/atoms`: c2af5b4 \| 2026-10-23T23:26:49+05:30 \| content(dsa): dp-on-trees: rob or skip, path through a node, cover states
 - `content/practice`: 82a2bd4 \| 2026-10-10T03:13:52+05:30 \| feat(v2): personalised practice library, Codeforces sync and tutor tools
-- `content/learning-resources.json`: a974e0d \| 2026-10-23T22:05:10+05:30 \| content(dsa): dp-advanced-patterns: bitmask subsets, game minimax, state-machine counting, digit DP
+- `content/learning-resources.json`: c2af5b4 \| 2026-10-23T23:26:49+05:30 \| content(dsa): dp-on-trees: rob or skip, path through a node, cover states
 
 ## 11. Suggested structure for your next content instruction
 

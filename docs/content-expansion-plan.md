@@ -384,9 +384,11 @@ Splitting into families applies to **every** concept that teaches more than one 
 
 ### Phase 2 status (DSA dynamic-programming module)
 
-Live: `dp-introduction`, `knapsack-01`, `knapsack-unbounded`, `dp-lcs`, `dp-edit-distance`, `dp-stocks`, `dp-lis`, `dp-partition`, `dp-advanced-patterns`.
+Live, the whole module: `dp-introduction`, `knapsack-01`, `knapsack-unbounded`, `dp-lcs`, `dp-edit-distance`, `dp-stocks`, `dp-lis`, `dp-partition`, `dp-squares`, `dp-on-trees`, `dp-advanced-patterns`.
 
-Blocked, still drafts: `dp-squares` needs `monotonic-stack`, and `dp-on-trees` needs `tree-patterns`. Both prerequisites are Phase 3 drafts, and a live concept cannot depend on a draft.
+Pulled forward from Phase 3 to unblock `dp-squares` and `dp-on-trees`: `monotonic-stack` (D11b) and `tree-patterns` (D16b) are live, and the deferred edge `dsa:bst` ← `tree-patterns` is in place. Phase 3 skips them.
+
+`monotonic-stack` now sits among the DSA course's first ten concepts. The starter-pack test (`test_learning_sessions`) therefore checks only the pre-expansion concepts in that range; new concepts carry draft pattern packs, and a released concept pack needs a human review record.
 
 ## 6. Decisions I need from you before Phase 1
 
