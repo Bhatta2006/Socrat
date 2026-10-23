@@ -8,7 +8,7 @@ import { ChevronDown, Menu, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { destination, useSession } from '@/lib/session';
 import type { Course } from '@/lib/types';
-import { Soc } from '@/components/socrat/illustration';
+import { Illustration, Soc } from '@/components/socrat/illustration';
 import { StatusIcon, StatusLabel } from '@/components/socrat/status';
 import { Wordmark } from '@/components/socrat/wordmark';
 import { ArrowCircle, Button } from '@/components/ui/button';
@@ -59,6 +59,7 @@ function Frame({ title, children, className }: { title: string; children: React.
 function TodaySample() {
   return (
     <div className="relative overflow-hidden rounded-[24px] bg-forest p-5 text-forest-foreground" data-tone="hero">
+      <Illustration name="orbit" className="absolute -top-4 -right-6 size-28 opacity-90" />
       <p className="type-label">Next for you</p>
       <p className="mt-3 max-w-[11ch] font-display text-3xl leading-none font-bold tracking-[-0.035em]">Two-pointer problems</p>
       <p className="mt-2 text-sm">Next in your plan.</p>
