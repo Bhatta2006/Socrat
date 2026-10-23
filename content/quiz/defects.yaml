@@ -178,3 +178,15 @@ defects:
     kind: wrong-output
     misconception: lis-answer-last-cell
     description: The answer keeps only the last dp[i] instead of the maximum over all i.
+  - id: mcm-cost-index
+    kind: wrong-update
+    misconception: mcm-cost-index
+    description: The join cost uses p[i]·p[k]·p[j] instead of p[i]·p[k + 1]·p[j + 1].
+  - id: mcm-keep-last-split
+    kind: wrong-update
+    misconception: overwrite-best
+    description: dp[i][j] is overwritten by each split's cost, so only the last split is kept.
+  - id: mcm-start-zero
+    kind: wrong-update
+    misconception: dp-wrong-base-case
+    description: dp[i][j] starts at 0 before taking the minimum over splits, so every range costs 0.

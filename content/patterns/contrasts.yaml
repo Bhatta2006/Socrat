@@ -156,3 +156,10 @@ pattern-sort-then-lis:
     every array its own increasing subsequence. If the input is a set of items such as boxes,
     pairs or numbers to choose, sort by one key so a chain only moves forwards, then run LIS on
     the other key.
+pattern-interval-vs-front-partition:
+  title: "Interval DP or front partition?"
+  body: >-
+    If a split leaves two pieces that both still need solving, and the cost of joining depends
+    on both, the state is a range i..j, filled by length in O(n³). If only the last piece
+    matters once the prefix before it is solved, as with palindrome cuts or word breaks, a
+    prefix state is enough and costs O(n²).

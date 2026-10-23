@@ -212,3 +212,11 @@
 - lis-envelope-tie-order
 - pattern-strict-vs-nondecreasing-lis
 - pattern-sort-then-lis
+- mcm-length-order
+- mcm-cost-index
+- mcm-greedy-order
+- cut-unsorted-positions
+- burst-first-not-last
+- boolean-true-only
+- front-greedy-longest
+- pattern-interval-vs-front-partition
