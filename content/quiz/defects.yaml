@@ -114,3 +114,15 @@ defects:
     kind: wrong-output
     misconception: loop-bound-off-by-one
     description: After n steps the code prints cur, which already holds term n + 1, instead of prev.
+  - id: knapsack-forward-loop
+    kind: wrong-update
+    misconception: knapsack-forward-capacity-loop
+    description: The one-row capacity loop runs upwards, so an item can be taken more than once.
+  - id: knapsack-capacity-boundary
+    kind: off-by-one
+    misconception: knapsack-capacity-boundary
+    description: The capacity loop stops at c > w, so an item that exactly fills capacity c is never taken.
+  - id: knapsack-weight-for-value
+    kind: wrong-update
+    misconception: knapsack-weight-for-value
+    description: The take branch adds the item's weight instead of its value.

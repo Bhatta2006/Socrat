@@ -68,3 +68,34 @@ pattern-value-vs-choice:
     If the output is only the best value, keep as few dp cells as the transition reads. If it
     must show the path, items or sequence, keep a record of which option won at every cell, then
     walk back from the answer and reverse.
+pattern-01-vs-unbounded-knapsack:
+  title: "Once per item, or unlimited?"
+  body: >-
+    0/1 knapsack: each item exists once, so the one-row loop runs capacity from W down and never
+    reads a cell that already contains the item. Unbounded knapsack: items repeat, so the loop
+    runs upwards on purpose. Fractional knapsack: items can be split, so sort by value per
+    weight and take greedily.
+pattern-subset-vs-subarray:
+  title: "Subset or subarray?"
+  body: >-
+    A subset may skip elements and ignores order: use the subset-sum table. A subarray is a
+    contiguous run: use prefix sums or a sliding window. Look for the word contiguous, or for
+    examples where the chosen numbers are next to each other.
+pattern-partition-greedy-vs-dp:
+  title: "Greedy balancing or reachable sums?"
+  body: >-
+    Putting each number into the lighter pile is fast but can be wrong: 3 3 2 2 2 ends with a
+    difference of 2 when 0 is possible. When the total is small, mark every reachable sum up to
+    half and take the closest one.
+pattern-count-vs-exists:
+  title: "Count, exists, or best?"
+  body: >-
+    The table is identical; only the combine step changes. Use or to ask whether a total is
+    reachable, + to count the ways, and max or min for the best value. A yes/no table cannot be
+    turned into counts afterwards.
+pattern-two-budgets-vs-two-bags:
+  title: "Two budgets or two bags?"
+  body: >-
+    Two budgets: every item spends from two limits at once, so the state is both remaining
+    budgets. Two bags: each item goes into one of two places or nowhere, a three-way choice. Ask
+    whether one item uses two resources, or one resource in one of two places.
