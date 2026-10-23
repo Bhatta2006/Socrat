@@ -181,6 +181,42 @@ This is stricter than the brief's "≥3 quiz items, 3–8 variants". See decisio
 
 Level 3 and every bullet tagged [ADV] (suffix array, Aho–Corasick, flows, HLD, centroid, persistent and Li Chao trees, Lucas, XOR basis, …) wait until Phase 8 and your go-ahead. **Totals: 29 + 46 + 50 = 125 concepts**, against the syllabus's estimate of ≈113.
 
+### 4.3a Phase 1 changes to the tables above (approved layout rule)
+
+**Rule.** A module stays locked until its checkpoint is passed or all its concepts are mastered. A new module inserted mid-course would re-lock later modules for learners already past it, and moving a concept into a later module would lock work they had open. So:
+- new modules are only **appended** at the end of a course;
+- new mid-course concepts join **existing** modules;
+- no existing concept changes module.
+
+What changed from §4.1–4.3:
+- **Zero:**
+  - `math-on-numbers`, `number-systems` and `pattern-printing` → `control-flow`.
+  - `memory-and-references`, `searching-and-sorting` and `complexity-intuition` → `functions-module`.
+  - `exceptions`, `files-and-modules` and `standard-library` → `craft`.
+  - No new Zero modules.
+- **DSA:**
+  - `binary-search` stays in `linear-patterns`, joined there by `monotonic-stack`, `binary-search-on-answer` and `binary-search-2d` (no `searching` module).
+  - `bit-manipulation` stays in `dynamic-programming`.
+  - Appended modules: `math-and-strings` (interview-math, string-algorithms) and `design-and-practice` (design-data-structures, advanced-data-structures, interview-skills).
+  - `recursive-structures` is retitled "Linked structures, recursion and backtracking".
+- **CP:**
+  - `complete-search` stays in `contest-basics`.
+  - `tree-techniques` and `lca` stay in `graph-module`, joined by `rerooting`.
+  - `euler-tour` → `range-structures` (it needs a Fenwick tree).
+  - `dp-data-structures` and `dp-optimisations` go into the appended module `dp-advanced`.
+  - Appended modules: `dp-advanced`, `math-2` and `contest-craft` (no `tree-module`).
+
+**Edges deferred to each concept's go-live commit.** A live concept can't depend on a draft, so these edges are added when the draft goes live:
+- `zero:programs-and-output` ← `how-code-runs`
+- `zero:boolean-logic` ← `operators-and-expressions`
+- `dsa:sliding-window` ← `hashing`
+- `dsa:backtracking` ← `recursion-patterns`
+- `dsa:bst` ← `tree-patterns`
+- `dsa:dp-1d` ← `dp-introduction`
+- `cp:number-theory` ← `math-basics`
+
+The live-to-live edge `dsa:union-find` ← `sorting` is added with union-find's expansion in Phase 3.
+
 ## 4.4 Pattern families per concept, all three tracks
 
 Splitting into families applies to **every** concept that teaches more than one named template, not just DP. Each family below gets the full treatment in §5: recognition cues, a 3-language template, an anchor with a wrong first attempt and a dry-run table, variants, a contrast pair, mistakes and quiz items. Family slugs become `content/patterns/<course>/<concept>/<family>.yaml` and `content/quiz/<course>/<concept>/<family>.yaml`. The 13 existing pattern packs are kept and counted where they fit.
