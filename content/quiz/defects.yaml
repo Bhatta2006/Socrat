@@ -226,3 +226,15 @@ defects:
     kind: wrong-update
     misconception: tree-best-only-downward
     description: The global best records only one branch, so paths bending at their highest node are missed.
+  - id: sq-missing-diagonal
+    kind: wrong-update
+    misconception: sq-missing-diagonal
+    description: The minimum leaves out the up-left neighbour, so a square with an empty inner corner is accepted.
+  - id: sq-side-not-area
+    kind: wrong-output
+    misconception: sq-side-not-area
+    description: The program prints the largest side instead of its square, the area.
+  - id: sq-overwrite-best
+    kind: wrong-update
+    misconception: overwrite-best
+    description: best is overwritten by every 1 cell's side instead of keeping the maximum.

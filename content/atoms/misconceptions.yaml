@@ -259,3 +259,9 @@
 - tree-width-counts-nodes
 - tree-width-overflow
 - pattern-return-vs-record
+- sq-missing-diagonal
+- sq-side-not-area
+- sq-one-row-left-stale
+- sq-zero-cell-kept
+- histogram-no-reset
+- pattern-square-vs-rectangle
