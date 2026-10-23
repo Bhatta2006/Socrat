@@ -64,7 +64,7 @@
    "9": "6b8356732a5160f195340a3fce51f384092127e9a9d6ad7ae8675a80657ff3f5"
   },
   "rejected": {},
-  "source": "43afd19518fd4dd5b0adb77df9cde25f7c0114cf92fad4fcce639063d0c12136"
+  "source": "545fb2735368d8801c331af97bc56b20d34b572130b910f634447fd9142427aa"
  },
  "quiz:cp:modular-arithmetic:fast-power": {
   "duplicates": {},
@@ -131,7 +131,7 @@
    "9": "84cc8198d7e707d189313014961bfa1763ab27dfb703392428136cca0e7fb487"
   },
   "rejected": {},
-  "source": "1f15c31ab81f422686669ff7afac2682d8601bb1af71547869ebd229dfa7e66c"
+  "source": "e0106ce612189400759fbce15e23347c450fc4f3c3bc0f44e8e37c63e7431ffc"
  },
  "quiz:cp:prefix-difference:difference-array": {
   "duplicates": {},
@@ -198,7 +198,7 @@
    "9": "42e7d91572894e9200ed499092d446dce83166c113af638025c39216657610cf"
   },
   "rejected": {},
-  "source": "45ec8c1d76607382aad71c086d546ef92cafe34a236a7a1a290b8797255c882b"
+  "source": "9149383555c5cec4d5dba69e816f3ace36b733b6f769e7abb25b989f80d2ad49"
  },
  "quiz:dsa:binary-search:answer-monotonic-predicate": {
   "duplicates": {},
@@ -265,7 +265,7 @@
    "9": "269cd35d3efc21a144abaea1763454e282f0eec89f6484de9d73e945df0f8361"
   },
   "rejected": {},
-  "source": "2a7f35736e9ccd2a95853133028da034445763bf841acfe9aeb743907126f9a2"
+  "source": "99976b8671646e679ab678318d9d80310ecc1360478516c19a31b73042ed6e21"
  },
  "quiz:dsa:binary-search:boundaries": {
   "duplicates": {},
@@ -372,7 +372,7 @@
    "99": "6b4facdb149ed0ab0315a557e9c692f58d3a3fd1ddf0a9484646113e7b2f9d4f"
   },
   "rejected": {},
-  "source": "3ecf5698e4a5ce0a3620718d5be39f86c939f8350be46eb7017f00a49eea0098"
+  "source": "649d74a5156e7c41b3f4a6fb37f495feea2aba4c321e6340fd1a441648b2766a"
  },
  "quiz:dsa:dp-1d:unbounded-coin-change": {
   "duplicates": {},
@@ -439,7 +439,7 @@
    "9": "03229d8da9bed7cfdc2d0cca5d61e21e142830d4bfcf415151b1450e37e7570d"
   },
   "rejected": {},
-  "source": "647e90b97d6c7a1b0db1059fa6f7d4748b1f26c700a31c828e7153728ce9d03e"
+  "source": "cc8458408090f6f5b3ba53f9ae46cecf1be9034561d90a5ac30e009399a0b21c"
  },
  "quiz:dsa:dp-introduction:fibonacci-four-ways": {
   "duplicates": {
@@ -507,7 +507,74 @@
    "9": "6396b2140713d5f9e6598a22fa3993ff826a708b782818dd0a9e8793838c82e4"
   },
   "rejected": {},
-  "source": "ae0828c341d1b22d230329ac2289bcd950e0fbbc8018aebb7f99b9f4f62ee2df"
+  "source": "b0e96a0c109d70d80b14576bdbd6cc482ec2ff9420dd457e6f2326f779081321"
+ },
+ "quiz:dsa:dp-lcs:lcs": {
+  "duplicates": {},
+  "items": {
+   "0": "212b27c4cc709db13fc44d8f731b7a8464a868edd6fa20b99095d5384496f869",
+   "1": "13461ffc3be8a73ad2513e7db83b2e7bdc97c4c7f4b44806e93576e50f2a81d0",
+   "10": "d80431940ac688d01327e9be34e71491acecb2b9ff063fa01468e535244cb1bb",
+   "11": "7cacf1fb589be12db15a06eb25d9c7e17e7cd9d1595eca16eed46cb50d53106f",
+   "12": "49e38a621fdb49ec91783a150df6011d00487901539eb97b10af4f688376d4fa",
+   "13": "44248f841faae2480fd9114e3dd91e0a626330f23b032f1f434c566e7bc94bb3",
+   "14": "4d90ddfb74560ecdde1d29590c563d45171a3a603d53bb68344fa1e0e8f924ac",
+   "15": "1fb7c99ba065d7b855e0e3cc95a479c2b26b67fa5df7974699e1d1c596d6275c",
+   "16": "b2d0fdb08b8d0fa11657c8c5c2a7e5f29bdc204402a15fc731a2f1127013acb8",
+   "17": "c6ccabf28bd8873694b16e8e83f58ed40ea0a8d6812c23fd4b88827ea7a37222",
+   "18": "995870fd2649418854d360650006844c0b2295ef5e18fa42d8b158483bf2fe42",
+   "19": "dd74cca09b2b8ccdeb0c6c4314ee5b12f105f468926e91f76e90915b52274072",
+   "2": "b19f1f982e4702c12dbdbf9ddc15696d67c4b7a90445a40a0286178732910fa1",
+   "20": "6712decc36b760ef7298ff9c2ac0f475dacbf22657a199fcd7aa58196b598008",
+   "21": "bf13c146f61d79f30064920f33da48f10defcd6ee8f4b1d607e9541d64df23dd",
+   "22": "3649cf178fc1679163bca810d8355d2401bf8898cb5199276d40a7abb3f6cad7",
+   "23": "0f0f7d63ba8b4fe6fd9811d881d779dbbe8811c4746184f716e3b23447cbe3c8",
+   "24": "9f0b6580f122c324395ed909194255424bca0ed463c56715f21b92338d08159f",
+   "25": "2ab0817ecd6a3267a762aa070b8bb4c5961671aa9776aa7ac2cdb9a58e5a1630",
+   "26": "1d5a8970117384d084174236c67cc26878fc85d090a0562fb23c2a94e9aefde3",
+   "27": "b784ef0a980b6d3f0f71feac1ebbc2557e903c7c0408bb81aa19c9af6d9e9548",
+   "28": "f82c271eacadece0cea9b4fd2f065e63381197f189b41ae1bd2a053a4e7e0c78",
+   "29": "88584fb2de00eb99b8347da95af41eb5eaa1fcc27faaa3b8841365526a456cb6",
+   "3": "2e1d44c2d2731eed335e7107fc8ffc2bc9964514cd383f087c6ef22e400a12cc",
+   "30": "04b56e2f160da56d9e09c89c2bd516dfd473878000d24c6b8b8c11aadacf40d7",
+   "31": "2626e6f1f49dcaa9d7dccd3e71ab6a2d39d66df26d6613b4e978d4a2dcb4adc7",
+   "32": "ea01e7d639de8d463baef79ccdc5dcf1ea869c8df90b9458c14abcce1565f24d",
+   "33": "9d97875284e271a29fdbb560e600efa875ea2367291e4c989ded1d99dea6d969",
+   "34": "0ce339480db3871d660d9007913965babfb11c5f02fb3adfa3c8a9d5f52c1015",
+   "35": "f82270161c2f4648297e8bb1a87a2270c8e3ce0f9431b8959e5a96f55418b53e",
+   "36": "dee29c697a9353f47196d183bf4b4a9c18489bcdf3b232992d787541b887a3b5",
+   "37": "87fa8ecd7f474cef5b53303d25e2a86d4b965822b56ad689560f906b9fc59ccc",
+   "38": "bcd0575ef592aa9890f053a2a0467b2b1226bf807baba25dace36d6e33e3d40b",
+   "39": "97dc10db07a95640686bcdb2a9bf3d65c2dfbbd2d28c27e47935ee0ba4faf7a7",
+   "4": "a1e119efd0156f28c78af3f5be22fe4589b970afbb0a482bda45cb4401fbdf4f",
+   "40": "35a0f3a0685a657e54810e421560cbe8c1aa8ffe48d0204000fffd5632077938",
+   "41": "fb6dc67352bb7d514d17a74a95291f6430510e5a94d30943b8af6d12347b8536",
+   "42": "b73bfb4140ef12eb5744841e09574491475fdca985942e947688ab190f41b1c6",
+   "43": "cddd0df2148d6c32fef51b70916421174d72e317ca2565c90c8f4c80949413a2",
+   "44": "31165446486c84551bf6c868be5097abf1c09870f6d308eadb1e0cd89f8622a3",
+   "45": "f1600d9b6538f819dbaef2fa4af6fd24ece28012c551c99611ef57d2ff50b105",
+   "46": "dfe7a2e3c362ba064e49daabf7456b78f55739ae425d839ee3fbc6de6ca48cb6",
+   "47": "b64054f0b629fca93c79feb306e56471145ea7204a8688b03e8dc2286e7484d4",
+   "48": "f59b33678e3453ba120687213cd9777629ba2af13a5d6e1c8cbf9297a2096984",
+   "49": "cf2eec069f6a8f7e6c5f543a7f2489ec05e15a1e6a5437e2dcdb2fd6c7fe4852",
+   "5": "bd2edad33d34a5a79d6172f97915d4add934b739e9a6819768bfb60c19750b52",
+   "50": "a9b0b2584378210d3700abf306552dfac5545e44a0d8b59083f2f9a927d7cf81",
+   "51": "13b4f863fa72e9b4a6c5d7d0efc41d18aa84f14e281a7173b7d5fdf4484c6eb4",
+   "52": "bfa21339fdbda1dc87f2da2434446a0ff73d8eec7496a892e6d111da10b968c9",
+   "53": "6a2a5ea645ebc0de3426d4c78992063cdf183eb07394f2828af30cfe1d53b952",
+   "54": "4275743760354e1f7b7c73de851e3ad68f8f54a194e46a0c2ca8269f65de903c",
+   "55": "15f4fbf13352c24b4f37da2b8fddbc1893ad8c5e9af19c1d2914d1405a58bee0",
+   "56": "69f37e06736a7fbb620d5e893b9de15dfdff8975a391e57e6da829fb6f69a27b",
+   "57": "455b8eb560e420ff8a798b7235d68ccef664b157498e57facb44b45eaed8d724",
+   "58": "e1c404e6f9b2b8fbe9b7ab91d5c0d31615d7b966b5c34fec0838bbda649d4210",
+   "59": "669deaed3cccaa5ce1e3cd2f7b58d2c9c01de47984ba54f42d19e1c46737e475",
+   "6": "a99c718fddc18a6d74f2a5a6bcd266ca0f66eb5300d1f72e2746b2c06b4d0846",
+   "7": "10eebbf4da84aeae83c134f5c77004b65981c4c832cba9c7eb87d7ca1fed7ce9",
+   "8": "ef07ad78d0e4b30c7f223e9e202dbc2f72aa940db00c94ce46f46ae4b638fbe3",
+   "9": "4a2f51c60e091e71599219dc15743db373446950098ef2156cf98120ba28a4ac"
+  },
+  "rejected": {},
+  "source": "9961d0adfbed508d11cd82a4563281c92024e4a7164dfc9920139f3bec9017e8"
  },
  "quiz:dsa:heaps:top-k": {
   "duplicates": {},
@@ -574,7 +641,7 @@
    "9": "0ce0a26e7da2248e53a8c376d547a6be7402a45f389eaaf1fff4dba16090c279"
   },
   "rejected": {},
-  "source": "9a0ddcdcf882cdf37a4906260a6fd9575b61e7e72f41dda14cd2d2d8ebb76894"
+  "source": "7ada6c538a1db182d6145cdee3726a9fdc8349154f81820da2a837aee48c60bb"
  },
  "quiz:dsa:knapsack-01:knapsack-01": {
   "duplicates": {},
@@ -641,7 +708,7 @@
    "9": "2c46a8e2a13df6815f7f18db5d2a26e61a8d603cd6e8a708358a97250a928fb0"
   },
   "rejected": {},
-  "source": "2d5119dd08e30489e4bc7393c27de0bab7d6583225d5e1c5ccf318070e558c99"
+  "source": "2d270b0b28ce7b17c999693e9cbb785ebec4aa08db452eb3bc10fdfcc168e23f"
  },
  "quiz:dsa:knapsack-unbounded:unbounded-knapsack": {
   "duplicates": {},
@@ -708,7 +775,7 @@
    "9": "f389e34ef40d5d55f90293d93b6e4ad226bdb82272c8dfc05c314c189f12e040"
   },
   "rejected": {},
-  "source": "f1b617f79e21789a9c94ab8a53c1f47df466f8cd383bf7194c802353625a270a"
+  "source": "9075ad233f7835a92e6589224668f574834735d339783f3307178f79184b3ad8"
  },
  "quiz:dsa:sliding-window:at-most-k-distinct": {
   "duplicates": {},
@@ -775,7 +842,7 @@
    "9": "6e96aa36a64109396adefe597c78c385beb64b41eca7387f679e00f52cf05adc"
   },
   "rejected": {},
-  "source": "ab2d9c120ff69d3f516e0ff5c4dfaf5ceb7fef838d14594a4005dc9e585a2081"
+  "source": "eef1907a69b6b6dea1694da08ebc84a2b701badf413f47e953a3dd8022355091"
  },
  "quiz:dsa:sliding-window:fixed-window-sum": {
   "duplicates": {},
@@ -882,7 +949,7 @@
    "99": "b1b287ac3886ac25798dd3b0ee68f8c8562413ec33d7ef7116092ee8b2505c67"
   },
   "rejected": {},
-  "source": "f69fb6a39d1e3d530165251a503d10606fb82090ea82c26239653f7b9e6bfcfe"
+  "source": "f7c90d83ca9978534a7d5ea55c86c95cd459212a415ba2aeea1900e5c9bdc0a2"
  },
  "quiz:dsa:sliding-window:variable-size": {
   "duplicates": {},
@@ -949,7 +1016,7 @@
    "9": "75c0b9db2f6464378d9196788a97042ba440677124c9d3dde552fab7438e7e59"
   },
   "rejected": {},
-  "source": "502b4f02d5673919a3a2c111d099484ab58faa2b478d9a1473439bcfd64cebd1"
+  "source": "0c9ec3506adb895852ed257aae04bb4dc70a6dee4a6b0a06020b77e97219c7b9"
  },
  "quiz:zero:for-loops:accumulator": {
   "duplicates": {
@@ -1058,7 +1125,7 @@
    "99": "d3e6767e0fec024724b2888a5d41887b86e7b38b73c64544e8def04289d59923"
   },
   "rejected": {},
-  "source": "c1bff6f94d874a4ddaec4afe449af4beef3832860afdc531dcb2bd5f70d179c6"
+  "source": "f8644adc1aeec28337041e7e45f322af62af92be820d3bba03171392c1b6de92"
  },
  "quiz:zero:lists:traverse-and-filter": {
   "duplicates": {},
@@ -1125,7 +1192,7 @@
    "9": "ce5ad74bacf36a53701748b8e8e13b43d0b66bf22a0fb41b98596bb176ad7e2e"
   },
   "rejected": {},
-  "source": "6098853528c2e547f8572f6b819c92eadf1a7227b07a71f8f9314f5820bbd859"
+  "source": "123cec5363f92f8179f13a6befc1f68e9726d89ede81d4490b691ee2f1cd77f2"
  },
  "quiz:zero:strings:frequency-count": {
   "duplicates": {},
@@ -1192,6 +1259,6 @@
    "9": "c444ce77b2b57df9a1df4dda3190e221a9dfaf3677a142a573214fb9885b4027"
   },
   "rejected": {},
-  "source": "689223c27e3e270e709e3b9f0a3c4571ebab214b418c07b8a8053722fc8c538c"
+  "source": "fb2d753fba37bccb8853dadf9de040da7d4b926f0358e5bb756a0da616cca2d7"
  }
 }

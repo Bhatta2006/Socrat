@@ -105,3 +105,22 @@ pattern-exact-vs-at-most-capacity:
     "At most W" lets every cell start at 0, because taking nothing always fits. "Exactly W"
     means only dp[0] starts reachable: every other cell starts at infinity for a minimum, or
     minus infinity for a maximum, and the answer must be checked for still unreachable.
+pattern-subsequence-vs-substring:
+  title: "Subsequence or substring?"
+  body: >-
+    A subsequence may skip characters, so an LCS cell keeps the better of up and left on a
+    mismatch. A substring is contiguous, so a common-substring cell resets to 0 on a mismatch
+    and the answer is the largest cell anywhere. Look for the words contiguous, consecutive or
+    block.
+pattern-two-pointers-vs-lcs:
+  title: "Two pointers or an LCS table?"
+  body: >-
+    If all of one string must appear in the other, match each character as early as possible
+    with two pointers; there is nothing to choose. If you choose which characters to keep from
+    both strings, an early match can block better ones, so fill the LCS table.
+pattern-palindrome-subsequence-vs-substring:
+  title: "Palindromic subsequence or substring?"
+  body: >-
+    A palindromic subsequence may skip characters, so on unequal ends keep the better of
+    dropping either end. A palindromic substring must be contiguous, so s[i..j] counts only if
+    the ends match and the inside is itself a palindrome; expanding around centres is simpler.

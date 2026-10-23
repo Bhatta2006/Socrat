@@ -176,3 +176,11 @@
 - exact-capacity-zero-init
 - coin-min-zero-init
 - pattern-exact-vs-at-most-capacity
+- lcs-greedy-match
+- lcs-mismatch-diagonal
+- lcs-index-offset
+- scs-forget-lcs
+- lps-fill-order
+- pattern-subsequence-vs-substring
+- pattern-two-pointers-vs-lcs
+- pattern-palindrome-subsequence-vs-substring
