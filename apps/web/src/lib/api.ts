@@ -113,6 +113,7 @@ const MESSAGES: Record<string, string> = {
   playground_idempotency_conflict: 'This request could not be resumed. Please generate it again.',
   playground_artifact_reported: 'This visual was reported and removed. Generate a new one.',
   playground_frame_expired: 'This preview link expired. Reopen the visual from your saved explorations.',
+  not_found: "We couldn't find that. The link may be old, or it may belong to a different course than the one you are on.",
   no_active_enrollment: 'Choose a course first.',
   sprint_unavailable: 'Finish a concept check on a topic with practice problems first — sprints use topics you have studied.',
   assessment_done: "You've already finished this week's assessment. A new one opens next week.",

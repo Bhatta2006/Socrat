@@ -359,7 +359,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             <UserMenu />
           </div>
         </header>
-        <main id="main" tabIndex={-1} className="min-w-0 flex-1 outline-none"><PageTransition>{children}</PageTransition></main>
+        <main id="main" tabIndex={-1} className="min-w-0 flex-1 pb-24 outline-none md:pb-0"><PageTransition>{children}</PageTransition></main>
       </div>
       <MobileNav active={active} ready={ready} />
       <Tour />

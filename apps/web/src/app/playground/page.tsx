@@ -8,7 +8,6 @@ import { useGuard } from '@/lib/session';
 import type { VisualArtifact } from '@/lib/explainer';
 import { cn } from '@/lib/utils';
 import { Loading, Page } from '@/components/common';
-import { Illustration } from '@/components/socrat/illustration';
 import { ErrorState, SuccessLine } from '@/components/socrat/states';
 import { StatusIcon } from '@/components/socrat/status';
 import { ArrowCircle, Button } from '@/components/ui/button';
@@ -93,7 +92,10 @@ export default function PlaygroundPage() {
   useEffect(() => {
     if (!allowed) return;
     let active = true;
-    const concept = new URLSearchParams(window.location.search).get('concept');
+    const params = new URLSearchParams(window.location.search);
+    const concept = params.get('concept');
+    const sample = params.get('prompt'); // a lesson code sample, prefilled but never run for the learner
+    if (sample) setPrompt(p => p || sample.slice(0, 4000));
     Promise.all([
       api.get<{ suggestions: Suggestion[]; concepts?: { id: string; title: string }[] }>('/playground'),
       api.get<{ items: Saved[] }>('/playground/artifacts'),
@@ -356,7 +358,6 @@ export default function PlaygroundPage() {
         </div>
 
         <aside className="grid content-start gap-4" aria-label="About the playground">
-          <Illustration name="orbit" className="mx-auto hidden w-full max-w-[300px] lg:block" />
           <div className="rounded-card bg-raised p-5 text-[15px]">
             Generated visuals can contain mistakes. Compare them with your lesson. Exploring does not count as practice or mastery.
           </div>

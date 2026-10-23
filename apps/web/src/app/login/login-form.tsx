@@ -7,8 +7,8 @@ import { ArrowLeft } from 'lucide-react';
 import { api, explain } from '@/lib/api';
 import { destination, useSession } from '@/lib/session';
 import type { Features } from '@/lib/types';
+import { Soc } from '@/components/socrat/illustration';
 import { ErrorState } from '@/components/socrat/states';
-import { Illustration } from '@/components/socrat/illustration';
 import { Wordmark } from '@/components/socrat/wordmark';
 import { ArrowCircle, Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,12 @@ function GoogleMark() {
   );
 }
 
+/** The page a signed-out visitor first asked for; only same-site paths are honoured. */
+function requestedPath(): string | null {
+  const next = new URLSearchParams(window.location.search).get('next');
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : null;
+}
+
 export function LoginForm({ initialFeatures }: { initialFeatures: Features | null }) {
   const session = useSession();
   const { profile, loading, refresh } = session;
@@ -36,7 +42,7 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!loading && profile) router.replace(destination(profile, 'active') ?? '/today');
+    if (!loading && profile) router.replace(destination(profile, 'active') ?? requestedPath() ?? '/today');
   }, [loading, profile, router]);
 
   async function devLogin(event: React.FormEvent) {
@@ -49,7 +55,7 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
       const subject = display.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 64) || 'learner';
       await api.post('/auth/dev-login', { subject, display_name: display });
       const next = await refresh();
-      router.replace(destination(next, 'active') ?? '/today');
+      router.replace(destination(next, 'active') ?? requestedPath() ?? '/today');
     } catch (e) {
       setError(explain(e));
       setBusy(false);
@@ -69,7 +75,7 @@ export function LoginForm({ initialFeatures }: { initialFeatures: Features | nul
         {/* Phone: the form comes first and this card shrinks to a compact header. */}
         <section aria-labelledby="login-story-title" className="relative order-first flex flex-col justify-between gap-6 overflow-hidden rounded-card bg-secondary p-6 text-secondary-foreground max-lg:min-h-0 lg:order-none lg:p-10">
           <h2 id="login-story-title" className="font-display text-4xl leading-[1.02] font-bold tracking-[-0.035em] lg:type-display-l lg:text-[64px] lg:leading-[60px]">Learn it.<br />Then prove it.</h2>
-          <Illustration name="welcome" proof className="hidden w-full max-w-[420px] self-end lg:block" />
+          <Soc size={240} className="hidden self-center lg:block" />
           <p className="hidden max-w-sm text-[15px] lg:block">A tutor that asks before it tells. A plan that follows your evidence.</p>
         </section>
 

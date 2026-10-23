@@ -128,9 +128,9 @@ export function LevelCard({ level, solved }: { level: Level; solved?: number }) 
   return (
     <div>
       <p className="type-label text-muted-foreground">Practice level</p>
-      <div className="mt-2 flex items-baseline gap-2">
+      <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
         <span className="font-display text-3xl font-bold tracking-[-0.03em]">{level.name}</span>
-        <span className="text-sm font-semibold text-muted-foreground tabular-nums">about {level.rating}</span>
+        <span className="text-sm font-semibold whitespace-nowrap text-muted-foreground tabular-nums">about {level.rating}</span>
       </div>
       {level.next_name ? (
         <>

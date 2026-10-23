@@ -205,6 +205,11 @@ export default function Problem() {
 
   const [prefs, setPrefs] = useEditorPrefs();
   const workspace = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLElement>(null);
+  // The results sit below the editor; bring them into view when a run finishes.
+  useEffect(() => {
+    if (result?.status === 'done') resultsRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [result?.id, result?.status]);
 
   /** Drag (or arrow keys) on the divider resizes the statement and editor panes. */
   function startResize(event: React.PointerEvent<HTMLDivElement>) {
@@ -299,7 +304,7 @@ export default function Problem() {
         <Link href={conceptHref(problem.concept.id)} transitionTypes={['nav-back']} aria-label={`Back to ${problem.concept.title}`} className="grid size-11 flex-none place-items-center rounded-full border border-border-strong transition-colors hover:bg-raised">
           <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
         </Link>
-        <h1 id="problem-title" className="min-w-0 flex-1 truncate font-display text-2xl font-bold tracking-[-0.03em]">{problem.title}</h1>
+        <h1 id="problem-title" className="min-w-0 flex-1 basis-40 font-display sm:truncate text-2xl font-bold tracking-[-0.03em]">{problem.title}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Difficulty level={problem.difficulty} />
           <Badge asChild><Link href={conceptHref(problem.concept.id)}>{problem.concept.title}</Link></Badge>
@@ -510,7 +515,7 @@ export default function Problem() {
               </p>
             ) : null}
             {verdict && result ? (
-              <section className={cn('grid gap-3 rounded-card border bg-card p-4 animate-in fade-in duration-200 lg:p-5', TONE_CLASS[verdict.tone])} aria-label="Results">
+              <section ref={resultsRef} className={cn('grid scroll-mb-24 gap-3 rounded-card border bg-card p-4 animate-in fade-in duration-200 lg:p-5', TONE_CLASS[verdict.tone])} aria-label="Results">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="font-display text-xl font-bold tracking-[-0.03em]">
                     {result.total && result.verdict !== 'ran' && result.verdict !== 'compile_error' ? `${result.passed} of ${result.total} tests passed` : verdict.label}
@@ -524,10 +529,12 @@ export default function Problem() {
                   </div>
                 ) : null}
                 {result.mode === 'submit' && result.verdict === 'accepted' ? (
-                  <p className="text-[15px]">
-                    {result.assistance >= 5 ? 'Solved with the full walkthrough. Try writing it again from memory tomorrow. ' : result.assistance ? 'Solved with hints. Help lowers how much this counts. ' : 'Solved without help. '}
-                    <Link href="/today" className="font-semibold underline underline-offset-4">Back to {NAME.today}</Link>
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-[15px]">
+                      {result.assistance >= 5 ? 'Solved with the full walkthrough. Try writing it again from memory tomorrow.' : result.assistance ? 'Solved. Hints count for a little less, and that is fine while you are learning.' : 'Solved without help. Nice work.'}
+                    </p>
+                    <Button asChild><Link href="/today">Continue to {NAME.today}</Link></Button>
+                  </div>
                 ) : null}
                 <div className="grid gap-2">
                   {result.cases.map((c, i) => (c.public ? <CaseDetail key={i} c={c} index={i} /> : null))}
