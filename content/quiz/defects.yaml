@@ -214,3 +214,15 @@ defects:
     kind: wrong-output
     misconception: confuse-index-value
     description: The answer records the index i instead of the value a[i].
+  - id: tree-return-both-branches
+    kind: wrong-update
+    misconception: tree-return-both-branches
+    description: The node returns val + both branches, so a parent extends a path that already bends.
+  - id: tree-negative-branch
+    kind: wrong-update
+    misconception: tree-negative-branch
+    description: A branch is not clamped at 0, so a negative branch lowers paths that should leave it out.
+  - id: tree-best-only-downward
+    kind: wrong-update
+    misconception: tree-best-only-downward
+    description: The global best records only one branch, so paths bending at their highest node are missed.

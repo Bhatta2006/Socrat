@@ -200,3 +200,9 @@ pattern-stack-vs-deque:
     A stack fits when elements only leave because a better element beats them, as in next
     greater. In a sliding window, elements also leave because they expire, so they must be
     removed from the front as well. That needs a deque of indexes.
+pattern-return-vs-record:
+  title: "What to return, and what to record?"
+  body: >-
+    A parent can only extend a path down one side, so a node returns its best one-sided value. A
+    path anywhere may bend at the node and use both children, so the node records its two-sided
+    value in a global answer. Returning the two-sided value builds paths that no tree contains.
