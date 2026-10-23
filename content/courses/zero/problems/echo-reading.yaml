@@ -3,8 +3,9 @@ title: Echo a reading
 concepts:
 - programs-and-output
 difficulty: easy
-statement: The starter code has already read one sensor reading into n. Your only
-  task is to print that reading unchanged.
+statement: The starter code has already read one sensor reading into n. (input() reads
+  a line that is given to your program and int() turns it into a number; you will meet
+  both properly soon.) Your only task is to print that reading unchanged.
 input_format: One integer n, already read by the starter code.
 output_format: Print the requested integer followed by a newline.
 constraints:

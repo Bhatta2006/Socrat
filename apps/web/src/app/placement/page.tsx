@@ -97,7 +97,7 @@ export default function Placement() {
       {q ? (
         <div key={q.id} className="grid gap-5 animate-in fade-in duration-200">
           <Badge className="w-fit">{q.topic}</Badge>
-          <h1 className="type-title text-balance">{q.prompt}</h1>
+          <h1 className="type-title min-h-[2.4em] text-balance">{q.prompt}</h1>
           {q.code ? <pre className="code-block">{q.code}</pre> : null}
           <div className="grid gap-3" role="radiogroup" aria-label="Answer choices">
             {q.options.map((option, index) => (

@@ -6,6 +6,7 @@ Built offline by scripts/content/import_practice.py; metadata and links only.
 
 import json
 import os
+import re
 from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
@@ -43,6 +44,46 @@ BAND_DIFFICULTIES = {
     "developing": ("easy", "medium"),
     "likely_known": ("medium", "hard"),
     "strong": ("medium", "hard"),
+}
+
+
+# The source data title-cases every company ("Tcs", "Phonepe"); correct the well-known ones.
+COMPANY_NAMES = {
+    "Adp": "ADP",
+    "Amd": "AMD",
+    "Att": "AT&T",
+    "Bcg": "BCG",
+    "Bytedance": "ByteDance",
+    "De Shaw": "D. E. Shaw",
+    "Dji": "DJI",
+    "Doordash": "DoorDash",
+    "Dtcc": "DTCC",
+    "Ebay": "eBay",
+    "Ey": "EY",
+    "Fico": "FICO",
+    "Github": "GitHub",
+    "Hcl": "HCL",
+    "Hp": "HP",
+    "Hpe": "HPE",
+    "Hsbc": "HSBC",
+    "Ibm": "IBM",
+    "Jpmorgan": "JPMorgan",
+    "Linkedin": "LinkedIn",
+    "Lti": "LTI",
+    "Mathworks": "MathWorks",
+    "Mckinsey": "McKinsey",
+    "Nvidia": "NVIDIA",
+    "Paypal": "PayPal",
+    "Phonepe": "PhonePe",
+    "Sap": "SAP",
+    "Servicenow": "ServiceNow",
+    "Tcs": "TCS",
+    "Tiktok": "TikTok",
+    "Ubs": "UBS",
+    "Zomato": "Zomato",
+    "Goto": "GoTo",
+    "Hbo": "HBO",
+    "Htc": "HTC",
 }
 
 
@@ -90,7 +131,7 @@ class PracticeIndex:
         ids: set[str] | None = None,
     ) -> list[dict]:
         """Filter the whole library. Callers sort; this keeps index order (by id)."""
-        words = query.lower().split()
+        words = re.findall(r"[a-z0-9]+", query.lower())
         pool = (
             (self.problems[i] for i in self.by_concept.get(concept, []))
             if concept
@@ -110,8 +151,10 @@ class PracticeIndex:
                 r = rating_of(p)
                 if (rating_min and r < rating_min) or (rating_max and r > rating_max):
                     continue
-            if words and not all(w in p["title"].lower() for w in words):
-                continue
+            if words:  # each query word must start a word in the title ("graph" is not "lexicographically")
+                title_words = re.findall(r"[a-z0-9]+", p["title"].lower())
+                if not all(any(t.startswith(w) for t in title_words) for w in words):
+                    continue
             out.append(p)
         return out
 
@@ -167,6 +210,8 @@ def load(root: Path = PRACTICE_ROOT) -> PracticeIndex:
     companies_path = root / "companies.json"
     if companies_path.exists():
         index.companies = json.loads(companies_path.read_text(encoding="utf-8"))
+        for company in index.companies.values():
+            company["name"] = COMPANY_NAMES.get(company["name"], company["name"])
     implementations_path = root / "implementations.jsonl"
     if implementations_path.exists():
         for line in implementations_path.read_text(encoding="utf-8").splitlines():

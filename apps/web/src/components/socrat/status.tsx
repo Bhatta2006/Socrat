@@ -17,7 +17,7 @@ export const STATUS_LABEL: Record<Status, string> = {
   practised: 'Practised with help',
   mastered: 'Mastered',
   review: 'Review due',
-  needs_practice: 'Needs practice',
+  needs_practice: 'Still building',
 };
 
 export function statusFromBand(band: Band, reviewDue = false): Status {

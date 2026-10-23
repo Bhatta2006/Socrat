@@ -14,6 +14,7 @@ make it reveal them.
 """
 
 import hashlib
+import re
 import time
 from collections import defaultdict, deque
 from typing import Literal
@@ -46,6 +47,7 @@ LEARNER = (
 )
 
 _recent: dict[str, deque[float]] = defaultdict(deque)
+_LOST = re.compile(r"don'?t know|no idea|where to start|not sure how|can'?t start", re.I)
 
 
 class TryTurn(BaseModel):
@@ -141,11 +143,26 @@ def plan_turn(cat: Catalog, body: TryMessage) -> assistant.TurnPlan:
     text = body.message.strip() or (
         "I'd like a hint." if body.intent == "hint" else "Can you help me?"
     )
+    lost = not body.history and bool(_LOST.search(text))
+    if lost:
+        sections["tutor_notes"] += (
+            "\nThe visitor has no idea where to start. Do not name any technique yet: ask them to "
+            "solve the first example by hand and describe the steps in plain words."
+        )
     turns = [Turn(t.role, t.content) for t in body.history[-12:]]
     turns.append(
         Turn("user", f"{render_context(sections)}\n\n<learner_message>\n{text}\n</learner_message>")
     )
     fallback = assistant.offline_reply(f"problem:{PROBLEM_ID}", allowed, problem, cat, "python")
+    if lost and problem.examples:
+        # A first message from someone with no idea how to begin: no technique yet, just the example.
+        example = problem.examples[0]
+        fallback = (
+            "That's a fine place to be. Forget code for a minute and look at the first example:\n\n"
+            f"Input:\n{example.input.strip()}\n\nOutput: {example.output.strip()}\n\n"
+            "Work out by hand how that output comes from that input, then tell me in your own "
+            "words what you did. Even a rough description is a good start."
+        )
     return assistant.TurnPlan("", f"problem:{PROBLEM_ID}", allowed, problem, turns, fallback)
 
 

@@ -75,6 +75,14 @@ lesson: |
   program needs. For now, treat them as the frame around your picture — you will
   understand each part soon.
 
+  In Python, `print` has two optional settings. `sep` is what goes *between* the things you
+  print, and `end` is what goes *after* them (a new line by default):
+
+  ```python
+  print("a", "b", sep="-", end="!")  # prints: a-b!
+  print("c")                         # prints: c   (on the same line, so: a-b!c)
+  ```
+
   ## Comments
 
   Lines starting with `#` (Python) or `//` (C++ and Java) are **comments**. The computer
@@ -86,13 +94,11 @@ lesson: |
 
   ### Why this works
 
-  A program is a sequence of precise instructions. Output is observable behaviour, so a correct calculation with the wrong spaces or an extra debug message can still fail a judge. Separate the value you intend to compute from the text you intend to emit.
+  A program is a sequence of precise instructions. Output is observable behaviour, so a correct calculation with the wrong spaces or an extra debug message can still be marked wrong by the automatic checker. Separate the value you intend to compute from the text you intend to emit.
 
   ### Boundary cases and cost
 
   Test a blank line, a quoted number and a number computed by addition. Quoted digits are text; arithmetic needs numeric values. Keep debugging output separate from required output.
-
-  Writing k characters costs O(k); printing a huge result is work even when the calculation was constant time.
 
   ### Check your understanding
 

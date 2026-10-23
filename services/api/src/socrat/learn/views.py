@@ -152,9 +152,14 @@ def today_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment
 
 def progress_numbers(plan: Plan) -> dict:
     total = len(plan.roadmap)
-    finished = sum(1 for r in plan.roadmap if r["status"] in {"mastered", "assumed", "practiced"})
+    # Assumed-from-placement skills are not evidence, so they stay out of "finished".
+    finished = sum(1 for r in plan.roadmap if r["status"] in {"mastered", "practiced"})
+    assumed = sum(1 for r in plan.roadmap if r["status"] == "assumed")
     return dict(
-        total=total, finished=finished, percent=round(100 * finished / total) if total else 0
+        total=total,
+        finished=finished,
+        assumed=assumed,
+        percent=round(100 * finished / total) if total else 0,
     )
 
 

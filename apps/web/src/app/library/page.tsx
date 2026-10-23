@@ -258,7 +258,7 @@ export default function Library() {
         <PageHeader
           eyebrow={NAME.practice}
           title={NAME.problems}
-          description={unlocked ? `${unlocked.toLocaleString()} problems unlocked from the skills you have finished.` : 'Problems appear as you finish skills.'}
+          description={unlocked ? `${unlocked.toLocaleString()} external problems from LeetCode, CSES and Codeforces. They open on those sites and are not judged here. Socrat's own judged problems are on each skill's lesson page.` : 'Problems appear as you finish skills.'}
         />
       </Reveal>
 
@@ -284,9 +284,10 @@ export default function Library() {
               </div>
             </section>
           ) : (
-            <section className="rounded-card border p-6 lg:col-span-6" aria-labelledby="for-you-heading">
+            <section className="self-start rounded-card border p-6 lg:col-span-6" aria-labelledby="for-you-heading">
               <h2 id="for-you-heading" className="font-display text-xl font-bold tracking-[-0.03em]">Recommended for you</h2>
               <p className="mt-2 text-[15px] text-muted-foreground">Finish your first lesson and recommendations start here.</p>
+              <Button asChild variant="outline" className="mt-4"><Link href="/today">Go to {NAME.today}</Link></Button>
             </section>
           )}
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:col-span-6 lg:gap-6">

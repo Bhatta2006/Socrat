@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { api, explain } from '@/lib/api';
+import { ApiError, api, explain } from '@/lib/api';
 import { useGuard } from '@/lib/session';
 import { NAME, formatStamp } from '@/lib/routes';
 import type { SprintView } from '@/lib/types';
 import { Difficulty, ErrorNote, Loading, Page, PageHeader } from '@/components/common';
+import { ErrorState } from '@/components/socrat/states';
 import { PracticeNav } from '@/components/socrat/practice-nav';
 import { StatusIcon } from '@/components/socrat/status';
 import {
@@ -142,6 +143,7 @@ export default function Sprint() {
   const [view, setView] = useState<SprintView | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [notReady, setNotReady] = useState(false); // a normal precondition, not a failure
 
   const load = useCallback(() => {
     api.get<Overview>('/library/sprints').then(o => { setOverview(o); if (o.current) setView(o.current); }).catch(e => setError(explain(e)));
@@ -154,7 +156,8 @@ export default function Sprint() {
   async function start() {
     setBusy(true);
     setError('');
-    try { setView(await api.post<SprintView>('/library/sprints')); } catch (e) { setError(explain(e)); } finally { setBusy(false); }
+    setNotReady(false);
+    try { setView(await api.post<SprintView>('/library/sprints')); } catch (e) { setError(explain(e)); setNotReady(e instanceof ApiError && e.code === 'sprint_unavailable'); } finally { setBusy(false); }
   }
   async function finish() {
     if (!view) return;
@@ -184,7 +187,9 @@ export default function Sprint() {
           <div><Button variant="ink" size="lg" disabled={busy} aria-busy={busy} onClick={start}>Start sprint<ArrowCircle loading={busy} /></Button></div>
         </section>
       )}
-      {error ? <ErrorNote message={error} /> : null}
+      {error && notReady ? (
+        <ErrorState title="Not ready for a sprint yet" message={error} actions={<Button asChild variant="outline"><Link href="/plan">Open Skills</Link></Button>} />
+      ) : error ? <ErrorNote message={error} /> : null}
       {overview?.history.length ? (
         <section className="mt-10" aria-labelledby="history-heading">
           <h2 id="history-heading" className="mb-3 font-display text-xl font-bold tracking-[-0.03em]">Past sprints</h2>

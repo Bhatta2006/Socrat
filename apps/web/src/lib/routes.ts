@@ -7,8 +7,12 @@ export function activityHref(id: string): string {
   if (kind === 'problem') return `/problems/${rest.join('/')}`;
   // Support steps live on the concept's lesson page, which shows the step on top.
   if (SUPPORT_STEPS.includes(kind)) return `/learn/${rest.join('/')}?step=${kind}`;
+  if (kind === 'quiz') return `/quiz/${rest.join('/')}`; // concept checks: /quiz/zero/programs-and-output
   return `/quiz/${kind}/${rest.join('/')}`;
 }
+
+/** Kinds that appear as the first URL segment under /quiz; anything else is a concept check. */
+export const QUIZ_KINDS = ['checkpoint', 'review', 'remedial', 'probe', 'testout', 'moduletest'];
 
 /** Activities that open on the lesson page and that the learner marks done themselves. */
 export const SUPPORT_STEPS = ['example', 'explain', 'checkin', 'stretch'];
@@ -91,7 +95,7 @@ export const LANGUAGE_LABEL = { python: 'Python', cpp: 'C++', java: 'Java' } as 
 
 export const BAND_LABEL = {
   not_started: 'Not started',
-  needs_practice: 'Needs practice',
+  needs_practice: 'Still building',
   developing: 'Developing',
   likely_known: 'Likely known',
   strong: 'Strong',

@@ -195,7 +195,7 @@ quiz:
     difficulty: 1
   - id: declared-type
     kind: mcq
-    prompt: In C++ or Java you declared `int count`. What can count hold?
+    prompt: In a language where you declare a variable's type, such as `int count`, what can count hold?
     options: ["Only whole numbers", "Any value", "Only text", "Only true or false"]
     answer: 0
     explanation: A declared type is a promise. An int variable can only store whole numbers.

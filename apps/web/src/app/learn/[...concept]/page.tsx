@@ -14,7 +14,7 @@ import Markdown, { outline } from '@/components/markdown';
 import Assistant from '@/components/assistant';
 import { Difficulty, ErrorNote, Loading } from '@/components/common';
 import { Level, PlatformTag, ProblemName, StatusControl } from '@/components/practice';
-import { Illustration, Soc } from '@/components/socrat/illustration';
+import { Soc } from '@/components/socrat/illustration';
 import { StatusIcon, StatusLabel, statusFromBand, type Status } from '@/components/socrat/status';
 import { LockedState } from '@/components/socrat/states';
 import { FeelControls, SupportStep } from '@/components/socrat/support-step';
@@ -220,7 +220,6 @@ export default function Lesson() {
 
       {/* Header card: the one violet element on this reading screen. */}
       <header className="relative mb-6 overflow-hidden rounded-card bg-violet p-6 text-violet-foreground [--card-muted:color-mix(in_srgb,var(--violet-foreground),transparent_8%)] lg:p-8" data-tone="violet">
-        <Illustration name="stack" className="pointer-events-none absolute -right-8 -bottom-10 size-40 opacity-90 lg:right-6 lg:size-52" />
         <div className="relative max-w-[70%] lg:max-w-[75%]">
           <Link href="/plan" transitionTypes={['nav-back']} aria-label={`Back to ${NAME.skills}`} className="mb-5 grid size-11 place-items-center rounded-full bg-ink text-ink-foreground">
             <ArrowLeft className="size-5" strokeWidth={1.5} aria-hidden="true" />
@@ -339,7 +338,11 @@ export default function Lesson() {
                   ))}
                 </ul>
               </Section>
-            ) : null}
+            ) : (
+              <Section id="judged-heading" title="Practice problems">
+                <p className="text-[15px] text-muted-foreground">No judged problems for this skill yet. The concept check shows what you know; for practice, try the <Link href={`/library?concept=${concept.id}`} className="font-semibold underline underline-offset-4">external problems</Link> or ask Soc.</p>
+              </Section>
+            )}
 
             {concept.exercises?.length ? (
               <Section id="builders-heading" title="Python skill builders" collapsible>

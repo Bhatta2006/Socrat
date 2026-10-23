@@ -180,7 +180,7 @@ quiz:
     difficulty: 2
   - id: midpoint-overflow
     kind: mcq
-    prompt: "In C++ or Java with int bounds, why write mid = lo + (hi - lo) / 2?"
+    prompt: "In a language with fixed-size integers (like C++ or Java), why write mid = lo + (hi - lo) / 2?"
     options:
       - "lo + hi can overflow"
       - "It rounds up"

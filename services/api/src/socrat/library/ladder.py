@@ -120,7 +120,9 @@ def estimate_rating(states: dict[str, ConceptState], now: int, linked: int | Non
     """Mastery-based rating; a linked contest rating, when present, is weighted in."""
     rating = FLOOR
     for base, concepts in TIERS:
-        average = sum(_score(states.get(c), now) for c in concepts) / len(concepts)
+        # Concepts outside the learner's course have no state; they must not count as zero.
+        scored = [_score(states[c], now) for c in concepts if c in states]
+        average = sum(scored) / len(scored) if scored else 0.0
         covered = min(1.0, average / COVERED)
         rating = base + round(STEP * covered)
         if covered < 1.0:

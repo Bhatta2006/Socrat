@@ -13,6 +13,7 @@ from socrat.catalog.registry import Catalog
 from socrat.catalog.schema import QuizItem
 
 MAX_QUESTIONS = 12
+SKIP_CAP = 0.85  # most of the path placement may mark as assumed known
 
 
 @dataclass
@@ -37,7 +38,8 @@ class PlacementState:
 
     @property
     def frontier(self) -> int:
-        return self.lo
+        # A short check can't vouch for the whole path: the last stretch always stays to learn.
+        return min(self.lo, int(len(self.path) * SKIP_CAP))
 
 
 def start(
@@ -106,4 +108,4 @@ def answer(catalog: Catalog, state: PlacementState, choice: int) -> bool:
 
 def result(state: PlacementState) -> dict[str, bool]:
     """Concept → believed known. Concepts in an unresolved gap are treated as unknown."""
-    return {concept: index < state.lo for index, concept in enumerate(state.path)}
+    return {concept: index < state.frontier for index, concept in enumerate(state.path)}
