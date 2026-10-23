@@ -136,3 +136,9 @@ pattern-wildcard-vs-regex-star:
     A wildcard star stands alone and matches any sequence, so it either matches nothing (j − 1)
     or eats one more character (i − 1). A regex star belongs to the character before it, so x*
     is skipped as a pair (j − 2) or eats one more x.
+pattern-stock-unlimited-vs-limited:
+  title: "Unlimited trades or limited?"
+  body: >-
+    With unlimited trades and no fee or cooldown, every daily rise can be its own trade, so
+    summing the rises is correct. Once trades are limited by a count, a cooldown or a fee,
+    merging or skipping rises changes the answer, so run the cash and hold state machine.

@@ -154,3 +154,15 @@ defects:
     kind: wrong-update
     misconception: edit-match-costs-one
     description: Equal last characters add 1 instead of copying the diagonal for free.
+  - id: stock-buy-wrong-count
+    kind: wrong-update
+    misconception: stock-buy-wrong-count
+    description: The buy reads cash[t] instead of cash[t - 1], so buying never uses up a transaction.
+  - id: stock-sell-sign
+    kind: wrong-update
+    misconception: stock-sell-sign
+    description: The sell subtracts the price instead of adding it.
+  - id: stock-hold-init-zero
+    kind: wrong-update
+    misconception: stock-hold-init-zero
+    description: hold starts at 0, so a share can be sold before it was ever bought.
