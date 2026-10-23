@@ -82,8 +82,11 @@ export default function Start() {
   const [targetRating, setTargetRating] = useState('');
   const [motivation, setMotivation] = useState('');
 
+  const [runtimes, setRuntimes] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     api.get<{ items: Course[] }>('/courses').then(r => setCourses(r.items)).catch(e => setError(explain(e)));
+    api.get<{ languages: Record<string, boolean> }>('/runtimes').then(r => setRuntimes(r.languages)).catch(() => undefined);
   }, []);
   useEffect(() => {
     if (!profile) return;
@@ -254,13 +257,20 @@ export default function Start() {
 
         {step === 'language' && course ? (
           <div className="grid gap-6">
-            <Heading title="Which language?" body="Lessons, examples, checks and your code editor all follow this choice." />
+            <Heading title="Which language?" body={`Lessons, examples, checks and your code editor all follow this choice.${course.id === 'zero' ? ' Not sure? Python reads closest to plain English.' : ''}`} />
             <div className="grid gap-3 sm:grid-cols-3">
-              {course.languages.map(l => (
-                <Choice key={l} selected={language === l} aria-pressed={language === l} className="min-h-[72px] items-center justify-center" onClick={() => { setLanguage(l); setStep('schedule'); }}>
-                  <span className="choice-title block text-center text-lg font-semibold">{LANGUAGE_LABEL[l]}</span>
-                </Choice>
-              ))}
+              {course.languages.map(l => {
+                // Don't sell a language whose code can't run yet (D-7).
+                const offline = Object.keys(runtimes).length > 0 && !runtimes[l];
+                return (
+                  <Choice key={l} disabled={offline} selected={language === l} aria-pressed={language === l} className="min-h-[72px] items-center justify-center disabled:opacity-60" onClick={() => { setLanguage(l); setStep('schedule'); }}>
+                    <span className="block">
+                      <span className="choice-title block text-center text-lg font-semibold">{LANGUAGE_LABEL[l]}</span>
+                      {offline ? <span className="block text-center text-sm text-muted-foreground">Coming soon: code can't run yet</span> : null}
+                    </span>
+                  </Choice>
+                );
+              })}
             </div>
           </div>
         ) : null}

@@ -216,7 +216,7 @@ export default function PlanPage() {
                     <div className="grid gap-3 px-5 pb-5 lg:px-6 lg:pb-6">
                       {module.locked_by ? (
                         <LockedState title={`Locked until ${module.locked_by.module}`} href={activityHref(module.locked_by.gate)}>
-                          Pass the {module.locked_by.module} checkpoint to unlock practice and checks in this module.
+                          Already know this? Pass the {module.locked_by.module} checkpoint (up to 10 questions) to unlock it now.
                         </LockedState>
                       ) : null}
                       <ul className="grid gap-2">

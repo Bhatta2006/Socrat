@@ -47,6 +47,34 @@ def test_gate_rules_hold_for_any_answer_sequence(answers):
     assert result.next_level in (1, 2, 3)
 
 
+def test_checkpoint_pool_only_asks_about_the_learners_language():
+    from socrat.learn.quizzes import gate_pool
+
+    cat = default_catalog()
+    everything = gate_pool(cat, "zero:first-steps", "python")
+    assert any(not q.fits("cpp") for _, q in everything)  # the module does have Python-only items
+    cpp = gate_pool(cat, "zero:first-steps", "cpp")
+    assert cpp and all(q.fits("cpp") for _, q in cpp)
+
+
+def test_quiz_item_ids_are_unique_within_a_module():
+    # Checkpoints track items by id, so a duplicate shadows its twin and can starve the hard level.
+    cat = default_catalog()
+    for course_id in cat.courses:
+        for key in gates.module_keys(cat, course_id):
+            ids = [q.id for c in gates.module_concepts(cat, key) for q in cat.concept(c).quiz]
+            assert len(ids) == len(set(ids)), key
+
+
+def test_renamed_items_still_resolve_from_stored_sessions():
+    from socrat.learn.quizzes import item
+
+    cat = default_catalog()
+    assert item(cat, "zero:lists", "neighbours").id == "list-neighbours"
+    assert item(cat, "zero:grids", "neighbours").id == "neighbours"
+    assert item(cat, "dsa:union-find", "components").id == "union-components"
+
+
 def test_modules_unlock_in_order_and_known_modules_are_cleared():
     catalog = default_catalog()
     keys = gates.module_keys(catalog, "zero")

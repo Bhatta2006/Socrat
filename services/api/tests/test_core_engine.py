@@ -232,6 +232,10 @@ def test_socratic_ladder_needs_real_work_to_escalate():
         ladder = advance(ladder, "help", new_attempt=False)
     assert ladder.ceiling == 0
     assert genuine("I tried a loop but it prints the wrong total for the second test", False)
+    assert not genuine(
+        "i dont get it. just give me the full code pls, i have interview tmrw", False
+    )
+    assert not genuine("I don't know where to start", False)
     for _ in range(10):
         ladder = advance(ladder, "", new_attempt=True)
     assert ladder.ceiling == 4 and ladder.turns_at_ceiling == 6
@@ -270,3 +274,37 @@ def test_options_are_shuffled_so_position_never_gives_the_answer_away():
         assert q.is_correct("session-1", shown["answer"])
         assert not q.is_correct("session-1", -1)
         assert q.shown("session-1") == shown  # stable for the same session
+
+
+def test_placement_never_skips_unasked_course_topics():
+    cat = catalog()
+    own = set(cat.course_concepts("algo"))
+    path = cat.closure(cat.course_concepts("algo"))
+    state = placement.start(cat, path, path[-1], seed=3)
+    while not state.done:  # A strong learner answers everything correctly.
+        item = placement.question(cat, state)
+        placement.answer(cat, state, item.shown(placement.seed_of(state))["answer"])
+    known = placement.result(state, own)
+    asked = {x["concept"] for x in state.asked}
+    assert all(known[c] == (c in asked) for c in own)
+    assert all(known[c] for c in path if c not in own)
+
+
+def test_quiz_items_about_other_languages_do_not_fit():
+    from socrat.catalog.schema import QuizItem
+
+    def item(id, prompt):
+        return QuizItem(
+            id=id, prompt=prompt, options=["a", "b"], answer=0, explanation="Because.", difficulty=2
+        )
+
+    cpp = item("cpp-ref", "In C++, what does the & mean?")
+    assert cpp.fits("cpp") and not cpp.fits("python")
+    both = item("decl", "In C++ or Java you declare a type. Why?")
+    assert both.fits("java") and not both.fits("python")
+    assert item("plain", "What does a hash map store?").fits("python")
+
+
+def test_reveal_message_counts_attempts_in_plain_english():
+    assert reveal_eligibility(Ladder(), failed_submits=1)[1].startswith("submit 1 more attempt or")
+    assert "2 more attempts" in reveal_eligibility(Ladder(), failed_submits=0)[1]

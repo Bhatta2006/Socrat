@@ -291,7 +291,9 @@ export default function Problem() {
   const runtimeReady = !runtimeKnown || runtimes[lang];
   const canExecute = Boolean(features?.code_execution) && runtimeReady && !problem.locked;
   canExecuteRef.current = canExecute && !pending;
-  const verdict = result?.status === 'done' ? VERDICT[result.verdict] ?? { label: result.verdict, tone: 'info' as Tone } : null;
+  const verdict = result?.status === 'done'
+    ? (result.verdict === 'compile_error' && lang === 'python' ? { label: 'Syntax error', tone: 'error' as Tone } : VERDICT[result.verdict] ?? { label: result.verdict, tone: 'info' as Tone })
+    : null;
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 pb-40 sm:px-6 md:pb-10 lg:px-10">

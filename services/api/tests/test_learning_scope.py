@@ -178,12 +178,9 @@ def test_placement_knowledge_unlocks_topics_without_self_reported_solves(client,
 def test_every_concept_has_deeper_teaching():
     cat = default_catalog()
     for qualified, concept in cat.concepts.items():
-        for heading in [
-            "Worked walkthrough",
-            "Why this works",
-            "Boundary cases and cost",
-            "Check your understanding",
-        ]:
+        # Programming from Zero names the cost section for beginners (no Big-O yet).
+        edge = "Things to watch for" if qualified.startswith("zero:") else "Boundary cases and cost"
+        for heading in ["Worked walkthrough", "Why this works", edge, "Check your understanding"]:
             assert heading in concept.lesson, qualified
     assert sum(len(c.lesson.split()) for c in cat.concepts.values()) > 37000
 
