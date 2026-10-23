@@ -261,7 +261,7 @@ export default function Start() {
               {course.languages.map(l => (
                 <Choice key={l} selected={language === l} aria-pressed={language === l} className="min-h-[72px] items-center justify-center" onClick={() => { setLanguage(l); setStep('schedule'); }}>
                   <span className="choice-title block text-center text-lg font-semibold">{LANGUAGE_LABEL[l]}</span>
-                  {l === 'python' ? <span className="mt-0.5 block text-center text-[13px] text-muted-foreground">Easiest to start with</span> : null}
+                  {l === 'python' ? <span aria-hidden="true" className="mt-0.5 block text-center text-[13px] text-muted-foreground">Easiest to start with</span> : null}
                 </Choice>
               ))}
             </div>

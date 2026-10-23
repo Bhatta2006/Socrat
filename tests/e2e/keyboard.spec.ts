@@ -90,7 +90,7 @@ test('a learner can do a whole session with the keyboard alone', async ({ page }
   await page.keyboard.press('Enter');
   await tabTo(page, page.getByRole('link', { name: 'Take concept check' }), 200);
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/quiz\/quiz\/zero\/programs-and-output$/);
+  await expect(page).toHaveURL(/\/quiz\/zero\/programs-and-output$/);
   await outline(page, 'quiz');
 
   await tabTo(page, page.getByRole('radio').first());
