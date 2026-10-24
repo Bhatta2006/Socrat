@@ -220,3 +220,10 @@ pattern-one-answer-vs-states:
     number. If the parent's choice depends on the child's choice, such as whether the child was
     taken or has a camera, keep one answer per child state and let the parent combine the
     compatible ones.
+pattern-first-vs-last-index:
+  title: "First index or last index?"
+  body: >-
+    The prefix state scan is the same for every question; only the stored value changes. For the
+    longest subarray, keep the first index at which each prefix value appeared, so the start is
+    as early as possible. For the shortest, overwrite it with the latest index. For a count,
+    store how many times it appeared.

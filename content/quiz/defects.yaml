@@ -250,3 +250,15 @@ defects:
     kind: wrong-output
     misconception: rob-answer-take-only
     description: The answer is take of the root only, although the root may also be skipped.
+  - id: prefix-store-last-index
+    kind: wrong-update
+    misconception: prefix-store-last-index
+    description: Every prefix sum overwrites the stored index, so the map keeps the last index and the longest subarray is missed.
+  - id: prefix-missing-empty
+    kind: missing-update
+    misconception: prefix-missing-empty
+    description: The map starts empty, so no subarray that starts at index 0 is found.
+  - id: prefix-seed-index-zero
+    kind: wrong-init
+    misconception: prefix-seed-index-zero
+    description: The empty prefix is stored at index 0 instead of -1, so subarrays from the front are one element short.

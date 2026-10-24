@@ -274,3 +274,11 @@
 - cover-leaves-greedy
 - cover-root-uncovered
 - pattern-one-answer-vs-states
+- prefix-store-last-index
+- prefix-missing-empty
+- prefix-seed-index-zero
+- prefix-count-vs-longest
+- pattern-first-vs-last-index
+- hash-insert-before-lookup
+- hash-key-collision
+- set-walk-every-element
