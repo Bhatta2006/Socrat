@@ -25,7 +25,7 @@ const server = http.createServer(async (request, response) => {
     JSON.parse(raw);
     const child = spawn(process.execPath, [script], {
       cwd: path.resolve(path.dirname(script), '../..'), detached: process.platform !== 'win32',
-      env: Object.fromEntries(Object.entries(process.env).filter(([key]) => ['PATH','HOME','TMPDIR','TEMP','TMP','SYSTEMROOT','SYSTEMDRIVE','WINDIR','LOCALAPPDATA','PROGRAMFILES','PROGRAMFILES(X86)','PROGRAMW6432','PLAYWRIGHT_BROWSERS_PATH','SOCRAT_EXPLAINER_BROWSER_CHANNEL'].includes(key.toUpperCase()))),
+      env: Object.fromEntries(Object.entries(process.env).filter(([key]) => ['PATH','HOME','TMPDIR','TEMP','TMP','SYSTEMROOT','SYSTEMDRIVE','WINDIR','LOCALAPPDATA','PROGRAMFILES','PROGRAMFILES(X86)','PROGRAMW6432','PLAYWRIGHT_BROWSERS_PATH','SOCRAT_EXPLAINER_BROWSER_CHANNEL','SOCRAT_EXPLAINER_NO_SANDBOX'].includes(key.toUpperCase()))),
       stdio: ['pipe','pipe','ignore'],
     });
     const result = await new Promise(resolve => {
