@@ -223,6 +223,9 @@ services:
     shm_size: 256mb
     environment:
       SOCRAT_EXPLAINER_CHECKER_SECRET_FILE: /run/secrets/explainer_checker_secret
+      # Docker's default seccomp profile blocks the user namespaces Chromium's own sandbox needs, so
+      # the browser cannot launch with it on. The container is the boundary here.
+      SOCRAT_EXPLAINER_NO_SANDBOX: "1"
     secrets:
       - explainer_checker_secret
     networks:

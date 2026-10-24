@@ -42,7 +42,10 @@ async function main() {
   inspectScripts(input.scripts);
   const browser = await chromium.launch({
     channel: process.env.SOCRAT_EXPLAINER_BROWSER_CHANNEL || (process.platform === 'win32' ? 'msedge' : undefined),
-    chromiumSandbox: process.platform !== 'win32', args: ['--site-per-process'],
+    // A container's default seccomp profile blocks the user namespaces Chromium's sandbox needs; the
+    // checker container (no egress, non-root, no-new-privileges) sets SOCRAT_EXPLAINER_NO_SANDBOX=1.
+    chromiumSandbox: process.platform !== 'win32' && process.env.SOCRAT_EXPLAINER_NO_SANDBOX !== '1',
+    args: ['--site-per-process'],
   });
   try {
     const context = await browser.newContext({ viewport: { width: 1000, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
