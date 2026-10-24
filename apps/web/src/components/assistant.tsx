@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, explain, stream } from '@/lib/api';
 import type { ChatMessage, Proposal, ProposalsView } from '@/lib/types';
 import { ProposalList } from '@/components/socrat/proposals';
@@ -48,6 +48,8 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmReveal, setConfirmReveal] = useState(false);
+  // Whether the server would show the full solution now, and what is left if not.
+  const [reveal, setReveal] = useState<{ ok: boolean; needs: string } | null>(null);
   const [activity, setActivity] = useState<string[]>([]);
   // Plan changes Soc proposed in chat; they apply only when the learner accepts them here.
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -72,13 +74,22 @@ export default function Assistant({ scope, title, language, context, onSent, ope
 
   useEffect(() => { if (openSignal) setOpen(true); }, [openSignal]);
   useEffect(() => { setLoaded(false); setMessages([]); setLadder({}); }, [scope]);
-  useEffect(() => {
-    if (!open || loaded) return;
+  const refreshReveal = useCallback(() => {
+    if (!problem) return;
     api
-      .get<{ messages: ChatMessage[]; ladder: Ladder }>(`/assistant/thread?scope=${encodeURIComponent(scope)}`)
-      .then(t => { setMessages(t.messages); setLadder(t.ladder ?? {}); setLoaded(true); })
+      .get<{ reveal: { ok: boolean; needs: string } | null }>(`/assistant/thread?scope=${encodeURIComponent(scope)}`)
+      .then(t => setReveal(t.reveal))
+      .catch(() => undefined);
+  }, [problem, scope]);
+  useEffect(() => {
+    if (!open) return;
+    // Submits made on the page since the panel last opened can unlock the solution.
+    if (loaded) { refreshReveal(); return; }
+    api
+      .get<{ messages: ChatMessage[]; ladder: Ladder; reveal: { ok: boolean; needs: string } | null }>(`/assistant/thread?scope=${encodeURIComponent(scope)}`)
+      .then(t => { setMessages(t.messages); setLadder(t.ladder ?? {}); setReveal(t.reveal); setLoaded(true); })
       .catch(e => setError(explain(e)));
-  }, [open, loaded, scope]);
+  }, [open, loaded, scope, refreshReveal]);
   useEffect(() => {
     if (!open || problem) return;
     loadProposals();
@@ -137,6 +148,7 @@ export default function Assistant({ scope, title, language, context, onSent, ope
         }
       }
       if (proposed) loadProposals();
+      refreshReveal();
       onSent?.();
     } catch (e) {
       setMessages(m => m.slice(0, -2));
@@ -287,6 +299,8 @@ export default function Assistant({ scope, title, language, context, onSent, ope
               <Button type="button" size="sm" variant="destructive" disabled={busy} onClick={() => send('reveal_confirmed', '')}>Yes, show it</Button>
               <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmReveal(false)}>Keep trying</Button>
             </span>
+          ) : reveal && !reveal.ok && !ladder.revealed ? (
+            <span className="text-xs text-muted-foreground">Full solution unlocks after you {reveal.needs}.</span>
           ) : level >= 3 ? ( // the walkthrough is offered only once real help has been given
             <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => setConfirmReveal(true)}>Show solution</Button>
           ) : null}

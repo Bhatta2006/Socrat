@@ -16,7 +16,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
 type Turn = { role: 'user' | 'assistant'; content: string };
-type Outcome = { passed: number; total: number; failing: { input: string; expected: string; got: string; error: string } | null };
+type Outcome = { passed: number; total: number; failing: { input: string; expected: string; got: string; error: string; syntax: boolean } | null };
 
 const CODE_KEY = 'socrat.try.code';
 const STARTERS = ["I don't know where to start", 'My code is too slow', 'Why does my answer differ?'];
@@ -91,7 +91,7 @@ export function TryTutor() {
         const test = problem.tests.find(t => t.index === r.index)!;
         const ok = r.status === 'executed' && r.stdout.trim() === test.expected.trim();
         if (ok) passed += 1;
-        else failing ??= { input: test.input.trim(), expected: test.expected.trim(), got: r.status === 'timeout' ? '(ran out of time)' : r.stdout.trim(), error: r.stderr };
+        else failing ??= { input: test.input.trim(), expected: test.expected.trim(), got: r.status === 'timeout' ? '(ran out of time)' : r.stdout.trim(), error: r.stderr, syntax: r.status === 'compile_error' };
       }
       setOutcome({ passed, total: results.length, failing });
       attempted.current = true;
@@ -184,8 +184,11 @@ export function TryTutor() {
                     </p>
                     {outcome.failing ? (
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {outcome.failing.error ? 'Your code raised an error on a test.' : outcome.failing.got === '(ran out of time)' ? 'Correct idea, perhaps, but too slow on a test.' : `Expected ${outcome.failing.expected.slice(0, 40)}, got ${outcome.failing.got.slice(0, 40) || 'nothing'}.`} Ask Soc about it.
+                        {outcome.failing.syntax ? 'Python could not read your code. Check the line below.' : outcome.failing.error ? 'Your code raised an error on a test.' : outcome.failing.got === '(ran out of time)' ? 'Correct idea, perhaps, but too slow on a test.' : `Expected ${outcome.failing.expected.slice(0, 40)}, got ${outcome.failing.got.slice(0, 40) || 'nothing'}.`} Ask Soc about it.
                       </p>
+                    ) : null}
+                    {outcome.failing?.error ? (
+                      <pre className="io-block mt-2 max-h-40 overflow-auto text-xs">{outcome.failing.error.trim().split('\n').slice(-6).join('\n')}</pre>
                     ) : null}
                   </div>
                 ) : null}

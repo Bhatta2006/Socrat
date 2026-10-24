@@ -16,6 +16,7 @@ import { AttentionIcon } from '@/components/socrat/states';
 import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { codeSpans } from '@/components/markdown';
 
 function Options({ q, choice, onChoose, graded }: { q: QuizQuestion; choice: number | null; onChoose(i: number): void; graded: boolean }) {
   return (
@@ -231,7 +232,7 @@ export default function Quiz() {
               {wrong.map(q => (
                 <div key={q.id} className="grid gap-3 rounded-card border bg-card p-5">
                   <Badge className="w-fit">{q.concept_title}</Badge>
-                  <p className="font-semibold">{q.prompt}</p>
+                  <p className="font-semibold">{codeSpans(q.prompt)}</p>
                   {q.code ? <pre className="code-block">{q.code}</pre> : null}
                   <p className="text-[15px]"><span className="font-bold">Correct answer:</span> {q.answer !== undefined ? q.options[q.answer] : ''}</p>
                   {q.explanation ? <p className="text-sm text-muted-foreground">{q.explanation}</p> : null}
@@ -262,7 +263,7 @@ export default function Quiz() {
 
       <div key={q.id} className="grid gap-5 animate-in fade-in duration-200">
         {kind === 'checkpoint' || kind === 'review' ? <Badge className="w-fit">{kind === 'review' ? `Review: ${q.concept_title}` : q.concept_title}</Badge> : null}
-        <h1 className="type-title text-balance">{q.prompt}</h1>
+        <h1 className="type-title text-balance">{codeSpans(q.prompt)}</h1>
         {q.code ? <pre className="code-block">{q.code}</pre> : null}
         <Options q={q} choice={choice} onChoose={setChoice} graded={graded} />
 

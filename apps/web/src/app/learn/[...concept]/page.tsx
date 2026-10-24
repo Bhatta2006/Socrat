@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ChevronDown, ExternalLink, ThumbsDown, ThumbsUp, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
-import { api, explain } from '@/lib/api';
+import { ApiError, api, explain } from '@/lib/api';
 import { useGuard, useSession } from '@/lib/session';
 import { LANGUAGE_LABEL, NAME, activityHref, conceptHref, joinSegments } from '@/lib/routes';
 import type { ConceptView, Resource } from '@/lib/types';
@@ -146,6 +146,7 @@ export default function Lesson() {
   const qualified = joinSegments(params.concept);
   const [concept, setConcept] = useState<ConceptView | null>(null);
   const [error, setError] = useState('');
+  const [locked, setLocked] = useState(false);
   const [variant, setVariant] = useState<{ style: string; content: string } | null>(null);
   const [explaining, setExplaining] = useState('');
   const [completing, setCompleting] = useState(false);
@@ -161,7 +162,10 @@ export default function Lesson() {
 
   const load = useCallback(() => {
     setError('');
-    api.get<ConceptView>(`/concepts/${qualified}`).then(setConcept).catch(e => setError(explain(e)));
+    api.get<ConceptView>(`/concepts/${qualified}`).then(setConcept).catch(e => {
+      setLocked(e instanceof ApiError && e.code === 'concept_locked');
+      setError(explain(e));
+    });
   }, [qualified]);
   useEffect(() => {
     if (!allowed) return;
@@ -199,6 +203,15 @@ export default function Lesson() {
   }
 
   if (!allowed || (!concept && !error)) return <Loading variant="article" label="Loading the lesson" />;
+  if (!concept && locked) {
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <LockedState title="This topic is locked for now" href="/plan" action="See checkpoints">
+          It opens when you pass the checkpoint before it. Already know it? Take that checkpoint to unlock it now.
+        </LockedState>
+      </div>
+    );
+  }
   if (!concept) return <div className="mx-auto max-w-3xl p-6"><ErrorNote message={error} retry={load} /></div>;
 
   const weakPrereqs = concept.prerequisites.filter(p => p.band === 'needs_practice' || p.band === 'not_started');

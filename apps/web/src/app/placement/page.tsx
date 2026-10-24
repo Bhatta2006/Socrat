@@ -11,6 +11,7 @@ import { StatusLabel } from '@/components/socrat/status';
 import { ArrowCircle, Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { codeSpans } from '@/components/markdown';
 
 export default function Placement() {
   const allowed = useGuard('enrolled');
@@ -61,7 +62,7 @@ export default function Placement() {
         <p className="text-[15px] text-muted-foreground">Placement complete. {summary.correct} of {summary.asked} answered correctly.</p>
         <h1 className="type-display-l mt-2">Your plan is ready</h1>
         <p className="mt-3 text-base text-muted-foreground">
-          {summary.starting_concept ? <>You start with <strong className="text-foreground">{summary.starting_concept}</strong>, at the edge of what you know.</> : 'Your plan starts from the beginning.'}
+          {summary.starting_concept ? <>You start with <strong className="text-foreground">{summary.starting_concept}</strong>, at the edge of what you know.</> : 'You answered everything we asked. Reviews will confirm it over the coming days.'}
         </p>
         {summary.known_concepts.length ? (
           <section className="mt-8 rounded-card border bg-card p-5 lg:p-6" aria-labelledby="skip-heading">
@@ -97,7 +98,7 @@ export default function Placement() {
       {q ? (
         <div key={q.id} className="grid gap-5 animate-in fade-in duration-200">
           <Badge className="w-fit">{q.topic}</Badge>
-          <h1 className="type-title min-h-[2.4em] text-balance">{q.prompt}</h1>
+          <h1 className="type-title min-h-[2.4em] text-balance">{codeSpans(q.prompt)}</h1>
           {q.code ? <pre className="code-block">{q.code}</pre> : null}
           <div className="grid gap-3" role="radiogroup" aria-label="Answer choices">
             {q.options.map((option, index) => (
