@@ -282,3 +282,15 @@ defects:
     kind: wrong-output
     misconception: pnp-base-ignores-target
     description: The base case returns 1 for every finished choice, counting all 2^n subsequences.
+  - id: lru-get-no-refresh
+    kind: missing-update
+    misconception: lru-get-no-refresh
+    description: A successful get keeps the key's old last-use time, so a key that was just read can be evicted as if it were stale.
+  - id: lru-evict-most-recent
+    kind: wrong-comparison
+    misconception: lru-evict-most-recent
+    description: Eviction picks the largest last-use time, removing the most recently used key instead of the least.
+  - id: lru-evict-on-update
+    kind: wrong-comparison
+    misconception: lru-evict-on-update
+    description: The full-cache check ignores whether the key is already stored, so updating a key evicts another one.

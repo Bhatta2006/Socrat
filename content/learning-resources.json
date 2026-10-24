@@ -1359,6 +1359,23 @@
         }
       ],
       "exercises": []
+    },
+    "dsa:design-data-structures": {
+      "roadmap": [
+        {
+          "title": "Hash Tables",
+          "url": "https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/hash-tables@kSy-8ubESdmIX4Fyl8TSu.md",
+          "language": null,
+          "source": "Developer Roadmap"
+        },
+        {
+          "title": "Linked Lists",
+          "url": "https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/datastructures-and-algorithms/content/linked-lists@bRu9u8pEAQ1TmKygjIjyI.md",
+          "language": null,
+          "source": "Developer Roadmap"
+        }
+      ],
+      "exercises": []
     }
   }
 }

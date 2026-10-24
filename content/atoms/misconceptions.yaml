@@ -296,3 +296,13 @@
 - josephus-no-shift
 - power-half-twice
 - pattern-filter-vs-valid-prefix
+- lru-fifo-not-lru
+- lru-get-no-refresh
+- lru-evict-most-recent
+- lru-capacity-off-by-one
+- lru-evict-on-update
+- pattern-queue-vs-linked-list
+- design-shift-delete
+- design-stale-index
+- design-latest-only
+- iterator-no-skip
