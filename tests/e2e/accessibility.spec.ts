@@ -52,7 +52,6 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.waitForTimeout(400);
       await audit(page, `${scheme} ${path}`, found);
     }
-    console.log(found.join('\n'));
-    expect(found.length, `${found.length} serious accessibility issues`).toBe(0);
+    expect(found.length, `${found.length} serious accessibility issues\n${found.join('\n')}`).toBe(0);
   });
 }
