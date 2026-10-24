@@ -262,3 +262,11 @@ defects:
     kind: wrong-init
     misconception: prefix-seed-index-zero
     description: The empty prefix is stored at index 0 instead of -1, so subarrays from the front are one element short.
+  - id: split-low-start
+    kind: wrong-init
+    misconception: search-range-confusion
+    description: The cap search starts at 1, below the largest element, where the greedy count still puts that element in a part and accepts a cap that cannot work.
+  - id: split-strict-parts
+    kind: wrong-comparison
+    misconception: predicate-boundary
+    description: A cap is accepted only when it needs fewer than k parts, so using exactly k parts is wrongly rejected.

@@ -282,3 +282,8 @@
 - hash-insert-before-lookup
 - hash-key-collision
 - set-walk-every-element
+- split-average-greedy
+- split-lower-bound-answer
+- maxmin-round-down
+- kth-half-each
+- pattern-first-vs-last-true

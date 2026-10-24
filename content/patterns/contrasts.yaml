@@ -227,3 +227,10 @@ pattern-first-vs-last-index:
     longest subarray, keep the first index at which each prefix value appeared, so the start is
     as early as possible. For the shortest, overwrite it with the latest index. For a count,
     store how many times it appeared.
+pattern-first-vs-last-true:
+  title: "First value that works, or last?"
+  body: >-
+    Minimising a maximum looks for the first value that works: keep hi = mid when mid works and
+    round mid down. Maximising a minimum looks for the last value that works: keep lo = mid when
+    mid works, and round mid up, or the loop can stop moving. Decide which way the check flips
+    before writing the loop.
