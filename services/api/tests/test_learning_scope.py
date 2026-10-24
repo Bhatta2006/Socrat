@@ -101,7 +101,8 @@ def test_course_scope_holds_for_search_direct_urls_and_tutor(client):  # noqa: F
     headers = login(client)
     onboard(client, headers)
     concepts = client.get("/api/v1/library/meta").json()["concepts"]
-    assert len(concepts) == 18 and all(c["id"].startswith("zero:") for c in concepts)
+    zero = default_catalog().course_concepts("zero")
+    assert len(concepts) == len(zero) and all(c["id"].startswith("zero:") for c in concepts)
     for url in [
         "/concepts/dsa:complexity",
         "/quiz/quiz:dsa:complexity",

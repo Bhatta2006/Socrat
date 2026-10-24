@@ -306,3 +306,13 @@
 - design-stale-index
 - design-latest-only
 - iterator-no-skip
+- mod-chain-missing
+- mod-swap-div
+- mod-wrong-divisor
+- python-slash-decimal
+- precedence-left-to-right
+- compound-eq-plus
+- short-circuit-order
+- ceil-plus-one
+- float-sqrt-trust
+- pattern-divide-vs-remainder

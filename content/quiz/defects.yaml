@@ -294,3 +294,15 @@ defects:
     kind: wrong-comparison
     misconception: lru-evict-on-update
     description: The full-cache check ignores whether the key is already stored, so updating a key evicts another one.
+  - id: mod-chain-missing
+    kind: wrong-update
+    misconception: mod-chain-missing
+    description: The minutes are taken from the whole total with t // 60, so the minutes inside the hours are counted again.
+  - id: mod-swap-div
+    kind: wrong-update
+    misconception: mod-swap-div
+    description: The hours use % instead of whole-number division, giving what is left over instead of how many hours fit.
+  - id: mod-wrong-divisor
+    kind: wrong-update
+    misconception: mod-wrong-divisor
+    description: The seconds are taken modulo 3600, which still contains the minutes.

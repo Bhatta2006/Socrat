@@ -2,7 +2,7 @@ id: boolean-logic
 title: Combining conditions
 summary: Use and, or and not to express exact rules, and reason about them precisely.
 module: control-flow
-prerequisites: [conditionals]
+prerequisites: [conditionals, operators-and-expressions]
 difficulty: 2
 estimated_minutes: 35
 lesson: |

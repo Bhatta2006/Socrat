@@ -248,3 +248,9 @@ pattern-queue-vs-linked-list:
     changes after insertion, as in first in, first out. When an access moves an item to the
     front, as in an LRU cache, the item must be removed from the middle of the order. That
     needs a doubly linked list, plus a hash map that finds the item's node in O(1).
+pattern-divide-vs-remainder:
+  title: "Divide, or take the remainder?"
+  body: >-
+    Whole-number division answers "how many whole groups fit?" and the remainder answers "how
+    much is left over?". Splitting a total into several units alternates the two: divide by the
+    biggest unit, keep the remainder, then divide that by the next unit.
