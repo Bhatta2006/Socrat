@@ -316,3 +316,17 @@
 - ceil-plus-one
 - float-sqrt-trust
 - pattern-divide-vs-remainder
+- div-square-twice
+- div-sqrt-bound-strict
+- div-no-partner
+- div-forget-self
+- pattern-root-vs-all
+- mod-operands-swapped
+- digit-count-vs-value
+- digit-loop-stops-early
+- infinite-loop-condition
+- digit-reverse-order
+- digit-fixed-power
+- prime-one-is-prime
+- gcd-vs-lcm
+- seq-update-one-at-a-time

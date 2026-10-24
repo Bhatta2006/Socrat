@@ -254,3 +254,10 @@ pattern-divide-vs-remainder:
     Whole-number division answers "how many whole groups fit?" and the remainder answers "how
     much is left over?". Splitting a total into several units alternates the two: divide by the
     biggest unit, keep the remainder, then divide that by the next unit.
+pattern-root-vs-all:
+  title: "Stop at the square root, or try everything?"
+  body: >-
+    Every divisor larger than the square root of n is the partner n // i of a divisor i smaller
+    than it, so trying i up to the root finds all of them in O(√n) steps. Trying every number up
+    to n finds the same divisors in O(n). Only the root of a perfect square has no separate
+    partner and is counted once.

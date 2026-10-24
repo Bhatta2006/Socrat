@@ -306,3 +306,15 @@ defects:
     kind: wrong-update
     misconception: mod-wrong-divisor
     description: The seconds are taken modulo 3600, which still contains the minutes.
+  - id: div-square-twice
+    kind: wrong-comparison
+    misconception: div-square-twice
+    description: The partner n // i is added whenever i <= n // i, so a perfect square's root is counted twice.
+  - id: div-sqrt-bound-strict
+    kind: off-by-one
+    misconception: div-sqrt-bound-strict
+    description: The loop runs while i * i < n, so the square root of a perfect square is never tried.
+  - id: mod-operands-swapped
+    kind: wrong-comparison
+    misconception: mod-operands-swapped
+    description: The test i % n == 0 asks whether n divides i instead of whether i divides n.
