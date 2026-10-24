@@ -287,3 +287,12 @@
 - maxmin-round-down
 - kth-half-each
 - pattern-first-vs-last-true
+- pnp-stop-at-target
+- pnp-base-ignores-target
+- pnp-take-without-element
+- pnp-forget-skip
+- gen-close-limit-n
+- stack-push-back-on-top
+- josephus-no-shift
+- power-half-twice
+- pattern-filter-vs-valid-prefix

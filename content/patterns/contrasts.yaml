@@ -234,3 +234,10 @@ pattern-first-vs-last-true:
     round mid down. Maximising a minimum looks for the last value that works: keep lo = mid when
     mid works, and round mid up, or the loop can stop moving. Decide which way the check flips
     before writing the loop.
+pattern-filter-vs-valid-prefix:
+  title: "Filter at the end, or extend only valid prefixes?"
+  body: >-
+    Generating everything and filtering finished results is simple, but it explores every
+    candidate, valid or not. If the rule can be checked on a prefix, such as "never more closing
+    brackets than opening ones", check it before each extension, so invalid prefixes are never
+    grown and the work follows the size of the output.

@@ -270,3 +270,15 @@ defects:
     kind: wrong-comparison
     misconception: predicate-boundary
     description: A cap is accepted only when it needs fewer than k parts, so using exactly k parts is wrongly rejected.
+  - id: pnp-forget-skip
+    kind: missing-update
+    misconception: pnp-forget-skip
+    description: The call returns only the take branch, so only the subsequence that takes every element is ever counted.
+  - id: pnp-take-without-element
+    kind: wrong-update
+    misconception: pnp-take-without-element
+    description: The take branch does not add a[i] to the total, so taking and skipping are the same call.
+  - id: pnp-base-ignores-target
+    kind: wrong-output
+    misconception: pnp-base-ignores-target
+    description: The base case returns 1 for every finished choice, counting all 2^n subsequences.
