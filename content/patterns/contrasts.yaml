@@ -261,3 +261,10 @@ pattern-root-vs-all:
     than it, so trying i up to the root finds all of them in O(√n) steps. Trying every number up
     to n finds the same divisors in O(n). Only the root of a perfect square has no separate
     partner and is counted once.
+pattern-bubble-selection-insertion:
+  title: "Bubble, selection or insertion?"
+  body: >-
+    All three simple sorts take about n² / 2 comparisons in the worst case, but they move values
+    differently. Bubble sort swaps out-of-order neighbours in passes, selection sort swaps the
+    smallest remaining value into place, and insertion sort slides each new value left into a
+    sorted front. A trace question depends on which one is running.

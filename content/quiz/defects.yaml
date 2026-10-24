@@ -318,3 +318,15 @@ defects:
     kind: wrong-comparison
     misconception: mod-operands-swapped
     description: The test i % n == 0 asks whether n divides i instead of whether i divides n.
+  - id: sort-wrong-direction
+    kind: wrong-comparison
+    misconception: sort-wrong-direction
+    description: Neighbours are swapped when the left value is smaller, which pushes big values to the front and sorts in descending order.
+  - id: sort-inner-bound-short
+    kind: off-by-one
+    misconception: sort-inner-bound-short
+    description: Each pass stops one pair early, so the last two unsorted values are never compared.
+  - id: sort-overwrite-not-swap
+    kind: wrong-update
+    misconception: sort-overwrite-not-swap
+    description: The swap copies a[j + 1] over a[j], losing a[j], so one value appears twice and another disappears.

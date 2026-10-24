@@ -1440,6 +1440,29 @@
         }
       ],
       "exercises": []
+    },
+    "zero:searching-and-sorting": {
+      "roadmap": [
+        {
+          "title": "Lists",
+          "url": "https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/python/content/lists@UT_SR7G-LYtzqooWrEtF1.md",
+          "language": "python",
+          "source": "Developer Roadmap"
+        },
+        {
+          "title": "Containers",
+          "url": "https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/cpp/content/containers@1pydf-SR0QUfVNuBEyvzc.md",
+          "language": "cpp",
+          "source": "Developer Roadmap"
+        },
+        {
+          "title": "Array Vs Arraylist",
+          "url": "https://github.com/nilbuild/developer-roadmap/blob/8e62a35a8c113d9b52267046941b49f52e3f621e/roadmaps/java/content/array-vs-arraylist@a-EQiBUlSgdZba1mW36op.md",
+          "language": "java",
+          "source": "Developer Roadmap"
+        }
+      ],
+      "exercises": []
     }
   }
 }

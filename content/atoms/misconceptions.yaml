@@ -330,3 +330,11 @@
 - prime-one-is-prime
 - gcd-vs-lcm
 - seq-update-one-at-a-time
+- sort-pass-equals-sorted
+- sort-wrong-direction
+- sort-inner-bound-short
+- sort-overwrite-not-swap
+- sort-confuse-algorithms
+- search-decide-too-early
+- sort-tie-left-to-chance
+- pattern-bubble-selection-insertion
