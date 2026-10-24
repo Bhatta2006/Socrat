@@ -390,6 +390,30 @@ Pulled forward from Phase 3 to unblock `dp-squares` and `dp-on-trees`: `monotoni
 
 `monotonic-stack` now sits among the DSA course's first ten concepts. The starter-pack test (`test_learning_sessions`) therefore checks only the pre-expansion concepts in that range; new concepts carry draft pattern packs, and a released concept pack needs a human review record.
 
+### Core subset status (24 Oct 2026)
+
+Scope was narrowed to the seven concepts with no live coverage that interviews and beginners need most. All seven are live, each at the §5a standard: one full pattern pack with a generator, static families for the rest, and two held-out judge problems.
+
+| Course | Live | Main family (generator) |
+|---|---|---|
+| DSA | `hashing` | prefix-sum-hashmap (`longest_sum_k`) |
+| DSA | `binary-search-on-answer` | min-max-split (`min_max_split`) |
+| DSA | `recursion-patterns` | pick-not-pick (`pick_not_pick`) |
+| DSA | `design-data-structures` | lru-lfu (`lru_behaviour`) |
+| Zero | `operators-and-expressions` | division-and-modulo (`split_units`) |
+| Zero | `math-on-numbers` | divisors-sqrt (`divisor_pairs`) |
+| Zero | `searching-and-sorting` | simple-sorts (`bubble_passes`) |
+
+Deferred edges now in place: `dsa:sliding-window` ← `hashing`, `dsa:backtracking` ← `recursion-patterns`, `zero:boolean-logic` ← `operators-and-expressions`.
+
+Two code changes came with them:
+- **Pattern planner.** It gated patterns only by module locks, so a pattern pack early in an unlocked module (hashing, operators-and-expressions) would have jumped ahead of the concepts it builds on. A pattern now also waits for its same-course prerequisites to be mastered or placed as known (`learn/pattern_sessions.py`).
+- **Tests.** The starter-pack test checks the first ten pre-expansion concepts, and the library-scope test counts Zero's live concepts instead of a fixed 18.
+
+Still drafts, by decision (not blocked): the other 44 concepts. These are DSA `binary-search-2d`, `tree-construction`, `interview-math`, `string-algorithms`, `advanced-data-structures` and `interview-skills`; Zero `how-code-runs`, `pattern-printing`, `number-systems`, `memory-and-references`, `complexity-intuition`, `exceptions`, `files-and-modules` and `standard-library`; and all 30 CP drafts. Drafts are never served. The deferred edges `zero:programs-and-output` ← `how-code-runs` and `cp:number-theory` ← `math-basics` wait with them.
+
+Not fixed here: `mypy services/api/src` reports one error in `learn/views.py:344`, already present before this work.
+
 ## 6. Decisions I need from you before Phase 1
 
 **A. Stubs can't be valid and can't be hidden today.** `Concept` requires ≥2 resources, ≥2 quiz items, ≥2 key points and a 200-character lesson. Any concept in `course.yaml` is immediately in learners' paths, placement and plans. The options:
