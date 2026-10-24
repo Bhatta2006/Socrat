@@ -45,6 +45,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm ci
+      # Needed by the explainer browser-checker tests (services/api), not only by e2e.
+      - run: npx playwright install --with-deps chromium
       - name: Start the CI database
         run: docker compose up --detach --wait postgres
       - run: uv run ruff format --check services/api services/execution
