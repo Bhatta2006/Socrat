@@ -152,9 +152,14 @@ def today_view(db: Session, catalog: Catalog, user: User, enrollment: Enrollment
 
 def progress_numbers(plan: Plan) -> dict:
     total = len(plan.roadmap)
-    finished = sum(1 for r in plan.roadmap if r["status"] in {"mastered", "assumed", "practiced"})
+    # Assumed-from-placement skills are not evidence, so they stay out of "finished".
+    finished = sum(1 for r in plan.roadmap if r["status"] in {"mastered", "practiced"})
+    assumed = sum(1 for r in plan.roadmap if r["status"] == "assumed")
     return dict(
-        total=total, finished=finished, percent=round(100 * finished / total) if total else 0
+        total=total,
+        finished=finished,
+        assumed=assumed,
+        percent=round(100 * finished / total) if total else 0,
     )
 
 
@@ -341,8 +346,8 @@ def problem_view(
         constraints=problem.constraints,
         examples=[e.model_dump() for e in problem.examples],
         language=language,
-        starter=problem.starter.get(language)
-        or (ZERO_STARTERS if course_id == "zero" else STARTERS)[language],  # type: ignore[call-overload]
+        starter=problem.starter.get(language)  # type: ignore[call-overload]
+        or (ZERO_STARTERS if course_id == "zero" else STARTERS)[language],
         draft=draft.source if draft else None,
         solved=problem_id in solved_problems(db, user.id),
         locked=lock_info(db, catalog, enrollment, concept),

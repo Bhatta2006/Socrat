@@ -177,6 +177,7 @@ async def render_check(document, settings: Settings) -> dict:
                 response.raise_for_status()
                 result = response.json()
         except (httpx.HTTPError, ValueError) as exc:
+            logging.getLogger("socrat.explainer").warning("remote browser checker failed: %r", exc)
             raise ProviderError("playground_checker_unavailable") from exc
     else:
         if settings.secure:

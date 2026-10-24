@@ -459,6 +459,15 @@ def finish(
             now,
             outcome={"score": score_of(catalog, session, enrollment.language)},
         )
+        if session.activity_id.startswith("quiz:"):  # Taking the check means the lesson was read.
+            learn.complete_activity(
+                db,
+                user,
+                enrollment,
+                "lesson:" + session.activity_id.removeprefix("quiz:"),
+                now,
+                outcome={"via": "concept_check"},
+            )
     else:  # Reviews recur on a schedule; count the effort without completing them forever.
         learn.bump_daily(db, user, now, minutes=max(1, round(elapsed / 60)))
 

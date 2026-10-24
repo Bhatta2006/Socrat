@@ -39,7 +39,7 @@ test('a beginner reads a lesson, passes its check and sees progress', async ({ p
   await page.getByRole('button', { name: 'Mark lesson as read' }).click();
   await page.getByRole('link', { name: 'Take concept check' }).click();
 
-  await expect(page).toHaveURL(/\/quiz\/quiz\/zero\/programs-and-output$/);
+  await expect(page).toHaveURL(/\/quiz\/zero\/programs-and-output$/);
   for (;;) {
     const results = page.getByRole('link', { name: 'Continue' });
     if (await results.isVisible()) break;
@@ -88,11 +88,9 @@ test('placement adapts, then practice and the Socratic tutor work', async ({ pag
   await tutor.getByRole('button', { name: 'Give me a hint' }).click();
   // A live model (when one is configured) takes longer than the curated offline reply.
   await expect(tutor.locator('.chat-bubble-assistant').last()).toHaveText(/\w/, { timeout: 90_000 });
-  await expect(tutor.getByRole('button', { name: 'Show solution' })).toBeEnabled({ timeout: 90_000 });
-  await tutor.getByRole('button', { name: 'Show solution' }).click();
-  await tutor.getByRole('button', { name: 'Yes, show it' }).click();
-  // Without real attempts the server withholds the full answer.
-  await expect(tutor.locator('.chat-bubble-assistant').last()).toContainText('To unlock the full walkthrough');
+  // The walkthrough is not offered after one hint; it appears only once real help has been given.
+  await expect(tutor.getByRole('button', { name: 'Give me a hint' })).toBeEnabled({ timeout: 90_000 });
+  await expect(tutor.getByRole('button', { name: 'Show solution' })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(tutor).toBeHidden();
 

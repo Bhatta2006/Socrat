@@ -94,7 +94,11 @@ def test_placement_finds_the_frontier(knows):
         right = item.shown(placement.seed_of(state))["answer"]
         placement.answer(cat, state, right if index < knows else (right + 1) % len(item.options))
     known = placement.result(state)
-    assert [known[c] for c in path] == [i < knows for i in range(len(path))]
+    cap = int(
+        len(path) * placement.SKIP_CAP
+    )  # a perfect score still leaves the last stretch to learn
+    assert [known[c] for c in path] == [i < min(knows, cap) for i in range(len(path))]
+    assert not known[path[-1]]
     assert len(state.asked) <= placement.MAX_QUESTIONS
 
 
@@ -286,8 +290,9 @@ def test_placement_never_skips_unasked_course_topics():
         placement.answer(cat, state, item.shown(placement.seed_of(state))["answer"])
     known = placement.result(state, own)
     asked = {x["concept"] for x in state.asked}
-    assert all(known[c] == (c in asked) for c in own)
-    assert all(known[c] for c in path if c not in own)
+    capped = set(path[: state.frontier])  # the last stretch always stays to learn
+    assert all(known[c] == (c in asked and c in capped) for c in own)
+    assert all(known[c] == (c in capped) for c in path if c not in own)
 
 
 def test_quiz_items_about_other_languages_do_not_fit():

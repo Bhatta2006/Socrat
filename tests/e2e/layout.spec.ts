@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 /** No route may scroll sideways at 320, 390, 768 or 1440 px (reflow, not shrink). */
 const ROUTES = [
   '/today', '/plan', '/library', '/companies', '/sprint', '/assessments', '/playground', '/progress', '/settings',
-  '/learn/zero/programs-and-output', '/quiz/quiz/zero/programs-and-output', '/problems/greeting',
+  '/learn/zero/programs-and-output', '/quiz/zero/programs-and-output', '/problems/greeting',
 ];
 
 async function enrolled(page: Page) {

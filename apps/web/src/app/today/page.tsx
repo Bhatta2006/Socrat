@@ -13,7 +13,7 @@ import { Level, PlatformTag, ProblemName } from '@/components/practice';
 import Assistant from '@/components/assistant';
 import Markdown from '@/components/markdown';
 import { ProposalList } from '@/components/socrat/proposals';
-import { Illustration, Soc } from '@/components/socrat/illustration';
+import { Soc } from '@/components/socrat/illustration';
 import { StatusIcon, statusFromBand, statusFromRoadmap } from '@/components/socrat/status';
 import { SkillGrid } from '@/components/socrat/skill-grid';
 import { WeekStrip } from '@/components/socrat/week-strip';
@@ -63,7 +63,7 @@ function milestone(plan: PlanView | null) {
   if (!plan) return null;
   const module = plan.modules.find(m => m.concepts.some(c => c.concept === plan.current_concept)) ?? plan.modules.find(m => !m.locked_by);
   if (!module) return null;
-  const finished = module.concepts.filter(c => ['mastered', 'assumed', 'practiced'].includes(c.status)).length;
+  const finished = module.concepts.filter(c => ['mastered', 'practiced'].includes(c.status)).length;
   return { title: module.title, finished, total: module.concepts.length, concepts: module.concepts, current: plan.current_concept };
 }
 
@@ -226,9 +226,8 @@ export default function TodayPage() {
         <Reveal index={1} className="col-span-12 lg:col-span-8">
           {next ? (
             <Card tone="hero" className="relative h-full min-h-72 lg:min-h-80" aria-labelledby="next-heading">
-              <Illustration name="orbit" className="pointer-events-none absolute -top-4 -right-8 size-28 opacity-95 sm:-top-6 sm:-right-10 sm:size-52 lg:top-1/2 lg:right-4 lg:size-72 lg:-translate-y-1/2" />
               <div className="relative flex h-full flex-col gap-5 px-(--card-spacing) lg:max-w-[60%]">
-                <p className="type-label text-(--card-muted)">Today, {today.minutes.goal} min</p>
+                <p className="type-label text-(--card-muted)">Today, goal {today.minutes.goal} min</p>
                 <div>
                   <h2 id="next-heading" className="type-display-l max-w-[14ch] pr-8 [overflow-wrap:anywhere] sm:pr-0">{next.title}</h2>
                   <p className="mt-3 max-w-md text-base text-(--card-muted)">{next.reason || 'Next in your plan.'}</p>

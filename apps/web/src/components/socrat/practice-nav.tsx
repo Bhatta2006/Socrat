@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { PRACTICE_SEGMENTS } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -8,8 +9,13 @@ import { cn } from '@/lib/utils';
 /** Problems | Company questions | Company sprint | Focus sprint. Real route links, so URLs and back work. */
 export function PracticeNav({ className }: { className?: string }) {
   const pathname = usePathname();
+  const nav = useRef<HTMLElement>(null);
+  // On a narrow screen the tab row scrolls; keep the current tab in view.
+  useEffect(() => {
+    nav.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [pathname]);
   return (
-    <nav aria-label="Practice" className={cn('mb-6 max-w-full overflow-x-auto', className)}>
+    <nav ref={nav} aria-label="Practice" className={cn('no-scrollbar mb-6 max-w-full overflow-x-auto', className)}>
       <ul className="inline-flex h-12 items-center gap-1 rounded-full bg-raised p-1">
         {PRACTICE_SEGMENTS.map(segment => {
           const active = pathname === segment.href || pathname.startsWith(`${segment.href}/`);

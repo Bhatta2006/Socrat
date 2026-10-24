@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 /** WCAG 2.1 A/AA checks on every main page, light and dark. Serious or critical issues fail. */
 const PAGES = [
   '/today', '/plan', '/library', '/assessments', '/sprint', '/progress', '/settings', '/companies',
-  '/learn/zero/programs-and-output', '/problems/greeting', '/quiz/quiz/zero/programs-and-output',
+  '/learn/zero/programs-and-output', '/problems/greeting', '/quiz/zero/programs-and-output',
   '/quiz/checkpoint/zero/first-steps',
 ];
 
@@ -52,7 +52,6 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.waitForTimeout(400);
       await audit(page, `${scheme} ${path}`, found);
     }
-    console.log(found.join('\n'));
-    expect(found.length, `${found.length} serious accessibility issues`).toBe(0);
+    expect(found.length, `${found.length} serious accessibility issues\n${found.join('\n')}`).toBe(0);
   });
 }

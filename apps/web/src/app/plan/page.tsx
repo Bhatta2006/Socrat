@@ -13,15 +13,15 @@ import { ProposalList } from '@/components/socrat/proposals';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ErrorNote, Loading, Page, Reveal } from '@/components/common';
-import { Illustration } from '@/components/socrat/illustration';
 import { LockedState } from '@/components/socrat/states';
 import { NodeMap } from '@/components/socrat/node-map';
 import { StatusLabel, StatusLegend, statusFromRoadmap } from '@/components/socrat/status';
 import { Badge } from '@/components/ui/badge';
+import { Soc } from '@/components/socrat/illustration';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
-const FINISHED = ['mastered', 'assumed', 'practiced'];
+const FINISHED = ['mastered', 'practiced'];
 const FOCUS_LABEL = { foundations: 'programming foundations', interview: 'coding interviews', contest: 'contests' } as const;
 
 /** Learner-owned changes to one concept, each with a way to take it back. */
@@ -142,7 +142,7 @@ export default function PlanPage() {
           {current ? (
             <Reveal index={1}>
               <Card tone="hero" className="relative" aria-labelledby="module-heading">
-                <Illustration name="ladder" className="pointer-events-none absolute -right-6 -bottom-6 hidden size-36 opacity-90 sm:block sm:size-48 lg:right-4 lg:bottom-auto lg:top-1/2 lg:size-60 lg:-translate-y-1/2" />
+                <Soc size={176} className="pointer-events-none absolute top-1/2 right-8 hidden -translate-y-1/2 lg:block" />
                 <div className="relative grid gap-5 px-(--card-spacing) lg:max-w-[62%]">
                   <p className="type-label text-(--card-muted)">Current module{current.bridge ? `, bridge from ${current.course}` : ''}</p>
                   <h2 id="module-heading" className="type-display-l">{current.title}</h2>
@@ -277,7 +277,7 @@ export default function PlanPage() {
                 <li key={day.date}>
                   <div className="mb-1 flex items-baseline justify-between">
                     <span className="font-semibold" data-visual-mask="">{index === 0 ? NAME.today : formatDate(day.date, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                    <span className="text-[13px] text-muted-foreground tabular-nums">{day.minutes} min</span>
+                    <span className="text-[13px] text-muted-foreground tabular-nums">{day.minutes} min planned</span>
                   </div>
                   <ul className="grid gap-1">
                     {day.items.map(item => (

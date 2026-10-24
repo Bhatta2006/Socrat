@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from '@/lib/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, explain, stream } from '@/lib/api';
 import type { ChatMessage, Proposal, ProposalsView } from '@/lib/types';
@@ -188,7 +189,11 @@ export default function Assistant({ scope, title, language, context, onSent, ope
   const level = ladder.revealed ? 5 : ladder.ceiling ?? 0;
   return (
     <section
-      className="fixed inset-x-0 bottom-0 z-[60] flex h-[calc(100dvh-4rem)] flex-col overflow-hidden rounded-t-card border bg-card pb-[env(safe-area-inset-bottom)] text-card-foreground shadow-floating animate-in fade-in slide-in-from-bottom-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:h-[min(680px,calc(100dvh-6rem))] sm:w-[420px] sm:rounded-card sm:pb-0"
+      className={cn(
+        'fixed inset-x-0 bottom-0 z-[60] flex h-[calc(100dvh-4rem)] flex-col overflow-hidden rounded-t-card border bg-card pb-[env(safe-area-inset-bottom)] text-card-foreground shadow-floating animate-in fade-in slide-in-from-bottom-2 sm:inset-x-auto sm:bottom-6 sm:h-[min(680px,calc(100dvh-6rem))] sm:w-[420px] sm:rounded-card sm:pb-0',
+        // On a problem the test results sit bottom-right, so the tutor opens over the statement instead.
+        problem ? 'sm:left-6 lg:left-[17rem]' : 'sm:right-6',
+      )}
       role="dialog"
       aria-label={title}
       onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } }}
@@ -296,9 +301,9 @@ export default function Assistant({ scope, title, language, context, onSent, ope
             </span>
           ) : reveal && !reveal.ok && !ladder.revealed ? (
             <span className="text-xs text-muted-foreground">Full solution unlocks after you {reveal.needs}.</span>
-          ) : (
+          ) : level >= 3 ? ( // the walkthrough is offered only once real help has been given
             <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => setConfirmReveal(true)}>Show solution</Button>
-          )}
+          ) : null}
         </div>
       ) : null}
       <form className="flex items-end gap-2 p-3" onSubmit={e => { e.preventDefault(); send('chat'); }}>

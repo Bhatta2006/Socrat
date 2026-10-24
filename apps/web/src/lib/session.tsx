@@ -37,6 +37,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     await api.post('/auth/logout').catch(() => undefined);
     setProfile(null);
     setCsrf('');
+    // Drafts (onboarding name, answers) belong to the learner who signed out, not the next one.
+    try { sessionStorage.clear(); } catch { /* storage unavailable */ }
   }, []);
 
   return (
@@ -68,7 +70,8 @@ export function useGuard(need: Requirement): boolean {
   const router = useRouter();
   const target = loading ? null : destination(profile, need);
   useEffect(() => {
-    if (target) router.replace(target);
+    // Signed-out visitors come back to the page they asked for after logging in.
+    if (target) router.replace(target === '/login' ? `/login?next=${encodeURIComponent(location.pathname + location.search)}` : target);
   }, [target, router]);
   return !loading && !target;
 }

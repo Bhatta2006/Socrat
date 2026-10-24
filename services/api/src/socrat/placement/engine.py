@@ -13,6 +13,7 @@ from socrat.catalog.registry import Catalog
 from socrat.catalog.schema import QuizItem
 
 MAX_QUESTIONS = 12
+SKIP_CAP = 0.85  # most of the path placement may mark as assumed known
 
 
 @dataclass
@@ -38,7 +39,8 @@ class PlacementState:
 
     @property
     def frontier(self) -> int:
-        return self.lo
+        # A short check can't vouch for the whole path: the last stretch always stays to learn.
+        return min(self.lo, int(len(self.path) * SKIP_CAP))
 
 
 def start(
@@ -121,6 +123,7 @@ def result(state: PlacementState, own: set[str] | None = None) -> dict[str, bool
     """
     confirmed = {x["concept"] for x in state.asked if x["correct"]}
     return {
-        concept: index < state.lo and (own is None or concept not in own or concept in confirmed)
+        concept: index < state.frontier
+        and (own is None or concept not in own or concept in confirmed)
         for index, concept in enumerate(state.path)
     }

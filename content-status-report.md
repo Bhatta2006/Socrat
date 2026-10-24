@@ -1,6 +1,6 @@
 # Socrat: current content status and complete inventory
 
-**Snapshot:** 2026-10-24T16:33:43+05:30 (Asia/Calcutta). **Branch:** `content/syllabus-expansion`. **Inspected commit:** `c295242b344b59b7940fc8c95162f2c4639684c6`.
+**Snapshot:** 2026-10-24T17:30:25+05:30 (Asia/Calcutta). **Branch:** `content/syllabus-expansion`. **Inspected commit:** `f972ef4111a1fbffa3c8f359aaa5cb685eb53f05`.
 
 This report inventories the checked-out repository and its existing generated test cache. It does not measure a deployed production database, student-generated content, private uploads or external websites. Counts below come from files and the executable catalog schema, not older roadmap totals. No course content was edited or downloaded for this audit.
 
@@ -60,8 +60,8 @@ Estimated learning minutes are authored concept estimates that include learning/
 
 | Course | Lesson words | Quiz-prompt words | Native-statement words | Hint words | Solution-approach words | Atom-body words (instances) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Programming from Zero | 22023 | 1359 | 1909 | 2196 | 1810 | 1913 |
-| DSA for Interviews | 91083 | 3203 | 3914 | 4884 | 4368 | 2008 |
+| Programming from Zero | 22023 | 1364 | 1932 | 2196 | 1810 | 1913 |
+| DSA for Interviews | 91083 | 3206 | 3914 | 4884 | 4368 | 2008 |
 | Competitive Programming | 11667 | 944 | 1036 | 1571 | 1033 | 2009 |
 
 These are separate field-level text measurements, not an additive unique-word corpus: atom templates repeat, quizzes can refer to code outside their prompt, and lessons include Markdown/code. Reference/generator code and test input/output bytes are not counted as explanatory prose. Every lesson section below has its own body word count; inclusive counts overlap when headings nest.
@@ -4611,7 +4611,7 @@ The default `.cache/foundry-snapshots` directory was absent at audit time. No li
 
 Read-only checks passed: authoring schemas, global prerequisite DAG/references, atom-pack schemas/version linkage, runtime catalog loading from existing test caches, source-cache hashes for all 152 problems, external concept references and company problem IDs. The runtime load read 1778 cached tests. Reference programs, generators, importers, LLMs and source fetchers were not executed. No frontend files or learning content were edited; no push was performed.
 
-Active `content/` scan: **512 files** (8,742,103 bytes). Composite SHA-256 of sorted path→file-hash mapping: `abf16e3b255a620a9e40ea859bbd8c4e63d524458a5fc922c644dcec92437ab5`. This fingerprint excludes generated caches, fixtures, code and this report. Word counts split on whitespace and include inline code/Markdown. Atom uniqueness collapses whitespace in `body` only. URL uniqueness uses exact stored/resolved URL strings, not semantic page equivalence.
+Active `content/` scan: **512 files** (8,741,997 bytes). Composite SHA-256 of sorted path→file-hash mapping: `cb260b8e0488483a8c225d10fc7823bbedbbe7b54897307a19dff0afd626b3f3`. This fingerprint excludes generated caches, fixtures, code and this report. Word counts split on whitespace and include inline code/Markdown. Atom uniqueness collapses whitespace in `body` only. URL uniqueness uses exact stored/resolved URL strings, not semantic page equivalence.
 
 | Inventory record type | CSV rows |
 | --- | --- |

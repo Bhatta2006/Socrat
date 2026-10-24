@@ -76,7 +76,7 @@ export default function ProgressPage() {
             <p className="type-label">Course completion</p>
             <h2 id="course-heading" className="type-display-m mt-2 tabular-nums">{data.progress.finished} of {data.progress.total} skills</h2>
             <p className="mt-2 text-base" data-visual-mask="">Projected finish {formatDate(data.projected_finish, { month: 'long', day: 'numeric', year: 'numeric' })}. {PACE_LABEL[data.pace]} pace.</p>
-            <p className="mt-1 text-sm">Finished counts skills practised, mastered or assumed from placement.</p>
+            <p className="mt-1 text-sm">Counts skills you have practised or mastered{data.progress.assumed ? `. ${data.progress.assumed} more are assumed from placement until a short review confirms them` : ''}.</p>
           </div>
         </section>
 
